@@ -6,9 +6,34 @@ import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { isAdmin } from "@/lib/admin";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const title = "the feed";
+const description = "Share what you're watching, reading, and listening to.";
+
 export const metadata: Metadata = {
-  title: "the feed",
-  description: "Share what you're watching, reading, and listening to.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: title,
+    template: `%s | ${title}`,
+  },
+  description,
+  keywords: ["music reviews", "movie reviews", "tv reviews", "social feed", "fan clubs"],
+  openGraph: {
+    title,
+    description,
+    url: siteUrl,
+    siteName: title,
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default async function RootLayout({
