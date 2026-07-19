@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { setStatus, clearStatus, type ProfileFormState } from "@/app/actions/profile";
-import type { SpotifyTrack } from "@/lib/spotify";
 import type { YoutubeVideo } from "@/lib/youtube";
 
 const initialState: ProfileFormState = {};
@@ -12,10 +11,6 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
   const [state, formAction, pending] = useActionState(setStatus, initialState);
   const [mediaType, setMediaType] = useState<"music" | "movie_tv">("music");
   const [title, setTitle] = useState("");
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SpotifyTrack[]>([]);
-  const [selected, setSelected] = useState<SpotifyTrack | null>(null);
-  const [searching, setSearching] = useState(false);
   const [videoQuery, setVideoQuery] = useState("");
   const [videoResults, setVideoResults] = useState<YoutubeVideo[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
@@ -26,25 +21,7 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
   }, [state.ok]);
 
   useEffect(() => {
-    if (mediaType !== "music" || !query.trim()) return;
-    let cancelled = false;
-    const timeout = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        if (!cancelled) setResults(data.tracks ?? []);
-      } finally {
-        if (!cancelled) setSearching(false);
-      }
-    }, 350);
-    return () => {
-      cancelled = true;
-      clearTimeout(timeout);
-    };
-  }, [query, mediaType]);
-
-  useEffect(() => {
-    if (mediaType !== "movie_tv" || !videoQuery.trim()) return;
+    if (!videoQuery.trim()) return;
     let cancelled = false;
     const timeout = setTimeout(async () => {
       try {
@@ -59,7 +36,7 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [videoQuery, mediaType]);
+  }, [videoQuery]);
 
   if (!open) {
     return (
@@ -77,84 +54,17 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
           value={mediaType}
           onChange={(e) => {
             setMediaType(e.target.value as "music" | "movie_tv");
-            setSelected(null);
             setSelectedVideo(null);
             setTitle("");
-            setQuery("");
             setVideoQuery("");
+            setVideoResults([]);
           }}
         >
           <option value="music">🎧 Listening to…</option>
           <option value="movie_tv">📺 Watching…</option>
         </select>
 
-        {mediaType === "music" ? (
-          selected ? (
-            <div className="track-selected">
-              {selected.imageUrl && <img src={selected.imageUrl} alt="" />}
-              <div>
-                <b>{selected.name}</b>
-                <div className="sub">{selected.artist}</div>
-              </div>
-              <span
-                className="clear"
-                onClick={() => {
-                  setSelected(null);
-                  setTitle("");
-                }}
-              >
-                Clear
-              </span>
-            </div>
-          ) : (
-            <div className="track-search">
-              <input
-                type="text"
-                placeholder="Search song or artist…"
-                value={query}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setQuery(value);
-                  if (!value.trim()) {
-                    setResults([]);
-                    setSearching(false);
-                  } else {
-                    setSearching(true);
-                  }
-                }}
-                autoComplete="off"
-              />
-              {query.trim() && (
-                <div className="track-results">
-                  {searching ? (
-                    <div className="track-result">Searching…</div>
-                  ) : results.length === 0 ? (
-                    <div className="track-result">No matches.</div>
-                  ) : (
-                    results.map((track) => (
-                      <div
-                        className="track-result"
-                        key={track.id}
-                        onClick={() => {
-                          setSelected(track);
-                          setTitle(track.name);
-                          setQuery("");
-                          setResults([]);
-                        }}
-                      >
-                        {track.imageUrl && <img src={track.imageUrl} alt="" />}
-                        <div>
-                          <b>{track.name}</b>
-                          <div className="sub">{track.artist}</div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        ) : selectedVideo ? (
+        {selectedVideo ? (
           <div className="track-selected">
             {selectedVideo.thumbnailUrl && <img src={selectedVideo.thumbnailUrl} alt="" />}
             <div>
@@ -175,7 +85,7 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
           <div className="track-search">
             <input
               type="text"
-              placeholder="Search movie or show title…"
+              placeholder={mediaType === "music" ? "Search song or artist…" : "Search movie or show title…"}
               value={videoQuery}
               onChange={(e) => {
                 const value = e.target.value;
@@ -222,16 +132,8 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
 
         <input type="hidden" name="media_type" value={mediaType} />
         <input type="hidden" name="title" value={title} />
-        <input
-          type="hidden"
-          name="artist"
-          value={mediaType === "music" ? selected?.artist ?? "" : selectedVideo?.channelTitle ?? ""}
-        />
-        <input
-          type="hidden"
-          name="cover_url"
-          value={selected?.imageUrl ?? selectedVideo?.thumbnailUrl ?? ""}
-        />
+        <input type="hidden" name="artist" value={selectedVideo?.channelTitle ?? ""} />
+        <input type="hidden" name="cover_url" value={selectedVideo?.thumbnailUrl ?? ""} />
 
         <div className="form-actions">
           <button className="btn" type="submit" disabled={pending || !title}>

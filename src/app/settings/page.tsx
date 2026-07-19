@@ -2,7 +2,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { ThemeForm } from "@/components/ThemeForm";
-import { disconnectSpotify } from "@/app/actions/spotify";
 import { disconnectYoutube } from "@/app/actions/youtube";
 
 export const metadata = { title: "Settings — the feed" };
@@ -34,13 +33,6 @@ export default async function SettingsPage() {
 
   const currentTheme = isValidTheme(profile?.theme) ? profile.theme : DEFAULT_THEME;
 
-  const { data: spotifyAccount } = await supabase
-    .from("spotify_accounts")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  const spotifyConnected = !!spotifyAccount;
-
   const { data: youtubeAccount } = await supabase
     .from("youtube_accounts")
     .select("user_id")
@@ -60,21 +52,11 @@ export default async function SettingsPage() {
       <div className="panel">
         <div className="panel-head">Connect Your Accounts</div>
         <div className="connect-body">
-          {spotifyConnected ? (
-            <form action={disconnectSpotify} className="connect-btn live" style={{ background: "linear-gradient(160deg, #3ee08a, #0f7a3f)" }}>
-              <span className="mark" />
-              <span>Spotify</span>
-              <button type="submit" className="soon connect-action">
-                Connected · Disconnect
-              </button>
-            </form>
-          ) : (
-            <div className="connect-btn" style={{ background: "linear-gradient(160deg, #3ee08a, #0f7a3f)" }}>
-              <span className="mark" />
-              <span>Spotify</span>
-              <span className="soon">Coming soon</span>
-            </div>
-          )}
+          <div className="connect-btn" style={{ background: "linear-gradient(160deg, #3ee08a, #0f7a3f)" }}>
+            <span className="mark" />
+            <span>Spotify</span>
+            <span className="soon">Coming soon</span>
+          </div>
           <div className="connect-btn" style={{ background: "linear-gradient(160deg, #01b4e4, #0d253f)" }}>
             <span className="mark" />
             <span>TMDB</span>
