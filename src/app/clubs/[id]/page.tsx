@@ -19,6 +19,7 @@ type ClubRow = {
   status: "pending" | "approved" | "banned";
   banner_url: string | null;
   avatar_url: string | null;
+  created_by: string | null;
 };
 
 type ChatMessageRow = {
@@ -92,13 +93,14 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
 
   const { data: clubData } = await supabase
     .from("clubs")
-    .select("id, media_type, name, status, banner_url, avatar_url")
+    .select("id, media_type, name, status, banner_url, avatar_url, created_by")
     .eq("id", id)
     .maybeSingle();
   const club = clubData as ClubRow | null;
   if (!club) notFound();
 
   const admin = user ? await isAdmin(supabase, user.id) : false;
+  const isOwner = user?.id === club.created_by;
   if (club.status === "banned" && !admin) notFound();
 
   const [{ data: postRows }, { count: memberCount }, { data: likeRows }, { data: commentRows }] =
@@ -256,6 +258,14 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
                 </button>
               </form>
             </div>
+          </div>
+        </div>
+      )}
+
+      {(admin || isOwner) && (
+        <div className="panel">
+          <div className="panel-head">Manage Club{isOwner && !admin && " (you created this club)"}</div>
+          <div className="panel-body">
             <ClubImageForms clubId={club.id} />
           </div>
         </div>

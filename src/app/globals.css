@@ -217,6 +217,11 @@ a:hover {
   height: 18px;
   background: var(--orb-bg);
 }
+.brand-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
 .brand .wordmark {
   font-weight: 800;
   font-size: 15px;
@@ -831,6 +836,20 @@ a:hover {
 .club-row:hover {
   background: #f6f6f6;
 }
+.club-row-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.club-row-banner {
+  width: 48px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
 .club-row-name {
   font-weight: 700;
   font-size: 12.5px;
@@ -1172,6 +1191,38 @@ a:hover {
 .field-hint {
   font-size: 10.5px;
   color: #888;
+}
+.banner-crop {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.banner-crop-viewport {
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  max-width: 100%;
+}
+.banner-crop-viewport img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.banner-crop-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.banner-crop-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #555;
+}
+.banner-crop-controls input[type="range"] {
+  flex: 1;
 }
 .field input,
 .field select,

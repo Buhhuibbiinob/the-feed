@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { uploadClubBanner, uploadClubAvatar, type ClubImageFormState } from "@/app/actions/clubs";
 import { MAX_CLUB_IMAGE_BYTES, megabytes } from "@/lib/uploads";
+import { BannerCropInput } from "@/components/BannerCropInput";
 
 const initialState: ClubImageFormState = {};
 
@@ -36,7 +37,7 @@ export function ClubImageForms({ clubId }: { clubId: string }) {
           <div className="form-error">{banner.clientError ?? bannerState.error}</div>
         )}
         {bannerState.ok && <div className="form-message">Banner saved.</div>}
-        <input type="file" name="banner_file" accept="image/*" required />
+        <BannerCropInput name="banner_file" />
         <div className="field-hint">Max {megabytes(MAX_CLUB_IMAGE_BYTES)}MB.</div>
         <div className="form-actions">
           <button className="btn" type="submit" disabled={bannerPending}>

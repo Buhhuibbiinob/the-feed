@@ -431,6 +431,11 @@ alter table public.clubs add column if not exists status text not null default '
 alter table public.clubs add column if not exists banner_url text;
 alter table public.clubs add column if not exists avatar_url text;
 
+-- Whoever creates a club (manually, or automatically via the first post about
+-- an artist/show) is its "club admin" and can manage its banner/avatar; null
+-- for older auto-created clubs from before this column existed.
+alter table public.clubs add column if not exists created_by uuid references public.profiles (id) on delete set null;
+
 alter table public.clubs enable row level security;
 
 drop policy if exists "Clubs are viewable by everyone" on public.clubs;
@@ -441,12 +446,71 @@ create policy "Clubs are viewable by everyone"
 drop policy if exists "Signed-in users can create clubs" on public.clubs;
 create policy "Signed-in users can create clubs"
   on public.clubs for insert
-  with check (auth.uid() is not null);
+  with check (auth.uid() is not null and (created_by is null or created_by = auth.uid()));
 
 drop policy if exists "Admins can update clubs" on public.clubs;
 create policy "Admins can update clubs"
   on public.clubs for update
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- Lets a club's creator manage their own club (banner/avatar); a trigger below
+-- stops them from touching `status` (approve/ban is site-admin only).
+drop policy if exists "Club creators can update their own club" on public.clubs;
+create policy "Club creators can update their own club"
+  on public.clubs for update
+  using (auth.uid() = created_by);
+
+-- Site admins always have final say: silently revert any attempt by a
+-- non-admin to change a club's status through their update access above.
+create or replace function public.enforce_club_status_change()
+returns trigger as $$
+begin
+  if new.status is distinct from old.status
+     and not exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin) then
+    new.status := old.status;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists clubs_enforce_status_change on public.clubs;
+create trigger clubs_enforce_status_change
+  before update on public.clubs
+  for each row execute procedure public.enforce_club_status_change();
+
+-- Widen the club-assets storage policies (originally admin-only, defined
+-- earlier in this file before public.clubs existed) so a club's own creator
+-- can upload its banner/avatar too, not just site admins. Path shape is
+-- club-assets/<club_id>/<file>, so foldername()[2] is the club id.
+drop policy if exists "Admins can upload club assets" on storage.objects;
+drop policy if exists "Admins and club owners can upload club assets" on storage.objects;
+create policy "Admins and club owners can upload club assets"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = 'club-assets'
+    and (
+      exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+      or exists (
+        select 1 from public.clubs
+        where id::text = (storage.foldername(name))[2] and created_by = auth.uid()
+      )
+    )
+  );
+
+drop policy if exists "Admins can update club assets" on storage.objects;
+drop policy if exists "Admins and club owners can update club assets" on storage.objects;
+create policy "Admins and club owners can update club assets"
+  on storage.objects for update
+  using (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = 'club-assets'
+    and (
+      exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+      or exists (
+        select 1 from public.clubs
+        where id::text = (storage.foldername(name))[2] and created_by = auth.uid()
+      )
+    )
+  );
 
 drop policy if exists "Admins can delete clubs" on public.clubs;
 create policy "Admins can delete clubs"

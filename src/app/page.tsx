@@ -69,7 +69,7 @@ function topByEngagement(
 }
 
 const bannerCopy: Record<PostRow["media_type"], { eyebrow: string; empty: string }> = {
-  music: { eyebrow: "Album of the Week", empty: "No music reviews yet" },
+  music: { eyebrow: "Liked by the Community", empty: "No music reviews yet" },
   movie_tv: { eyebrow: "Editor's Pick", empty: "No movie or TV reviews yet" },
 };
 
