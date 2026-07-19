@@ -53,6 +53,61 @@ export const THEMES: Theme[] = [
     label: "McBling",
     description: "Hot pink chrome, rhinestones, and swirl bling patterns.",
   },
+  {
+    id: "vaporwave",
+    label: "Vaporwave",
+    description: "Pink, purple, and cyan retro-digital dreamscape.",
+  },
+  {
+    id: "win95",
+    label: "Windows 95",
+    description: "Classic gray beveled UI over a teal desktop background.",
+  },
+  {
+    id: "synthwave",
+    label: "Synthwave",
+    description: "Neon sunset grid over a purple horizon, 80s outrun style.",
+  },
+  {
+    id: "dark-academia",
+    label: "Dark Academia",
+    description: "Burgundy, oxblood leather, and mossy library shelves.",
+  },
+  {
+    id: "cottagecore",
+    label: "Cottagecore",
+    description: "Cream linens, sage green, and dried wildflowers.",
+  },
+  {
+    id: "solarized-dark",
+    label: "Solarized Dark",
+    description: "The classic low-contrast developer palette, teal on slate.",
+  },
+  {
+    id: "matcha-zen",
+    label: "Matcha Zen",
+    description: "Calm matcha green and rice-paper cream, minimal and quiet.",
+  },
+  {
+    id: "halloween-gothic",
+    label: "Halloween Gothic",
+    description: "Black and violet with a pumpkin-orange glow.",
+  },
+  {
+    id: "winxp-bliss",
+    label: "Windows XP Bliss",
+    description: "Green rolling hills under a wide blue sky.",
+  },
+  {
+    id: "discord-dark",
+    label: "Discord Dark",
+    description: "Blurple accents on charcoal, the modern chat-app look.",
+  },
+  {
+    id: "nordic-frost",
+    label: "Nordic Frost",
+    description: "Pale glacier blues and cool grays, Scandinavian calm.",
+  },
 ];
 
 export const THEME_IDS = new Set(THEMES.map((t) => t.id));

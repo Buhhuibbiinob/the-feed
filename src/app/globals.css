@@ -1861,3 +1861,472 @@ footer .copy {
 
   --like-color: #ffea00;
 }
+
+/* ---- Vaporwave: pink/purple/cyan retro-digital dreamscape ---- */
+[data-theme="vaporwave"] {
+  --body-bg: radial-gradient(circle at 20% 15%, rgba(255, 113, 206, 0.35), transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(1, 205, 254, 0.3), transparent 42%),
+    radial-gradient(ellipse at 50% 92%, rgba(185, 103, 255, 0.35), transparent 55%),
+    linear-gradient(160deg, #1a0b2e 0%, #2d1b4e 30%, #6a2c91 60%, #b967ff 85%, #ff71ce 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.08);
+
+  --nav-bg: linear-gradient(180deg, #2d1b4e, #1a0b2e 70%);
+  --nav-border: #6a2c91;
+  --nav-text: #f5d9ff;
+  --nav-active-text: #01cdfe;
+
+  --subnav-bg: linear-gradient(180deg, #241640, #150a26);
+  --subnav-border: #4d2570;
+  --subnav-text: #d9b8ff;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff71ce 75%);
+  --wordmark-color: #f5d9ff;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffd6f0 0%, #ff9ee0 46%, #ff71ce 50%, #b967ff 100%);
+  --acct-btn-border: #6a2c91;
+  --acct-btn-text: #3a1050;
+  --acct-btn-primary-bg: linear-gradient(180deg, #01cdfe 0%, #05a8d6 46%, #1670a0 50%, #0a3d5c 100%);
+  --acct-btn-primary-border: #052a3d;
+
+  --panel-border: #c79ee8;
+  --panel-head-bg: linear-gradient(180deg, #f5e6ff, #ddb8f5);
+  --panel-head-border: #c79ee8;
+  --panel-body-bg: #fbf3ff;
+  --shelf-bg: #fbf3ff;
+
+  --btn-bg: linear-gradient(180deg, #ff71ce 0%, #d648a8 46%, #9c2c7a 50%, #5c1548 100%);
+  --btn-border: #3a0d2c;
+  --btn-text: #fff0fa;
+
+  --hero-title-color: #fdf0ff;
+  --hero-tagline-color: #d9b8ff;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+
+  --like-color: #05ffa1;
+}
+
+/* ---- Windows 95: classic gray beveled UI, teal desktop ---- */
+[data-theme="win95"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 40%),
+    linear-gradient(160deg, #00a0a0 0%, #008080 45%, #006666 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.05);
+
+  --nav-bg: linear-gradient(180deg, #dcdcdc, #a0a0a0 60%, #808080);
+  --nav-border: #404040;
+  --nav-text: #000000;
+  --nav-active-text: #000080;
+
+  --subnav-bg: linear-gradient(180deg, #c0c0c0, #909090);
+  --subnav-border: #606060;
+  --subnav-text: #000000;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #000080 75%);
+  --wordmark-color: #000000;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #dcdcdc 50%, #a0a0a0 100%);
+  --acct-btn-border: #404040;
+  --acct-btn-text: #000080;
+  --acct-btn-primary-bg: linear-gradient(180deg, #1084d0 0%, #000080 60%, #000050 100%);
+  --acct-btn-primary-border: #000030;
+
+  --panel-border: #808080;
+  --panel-head-bg: linear-gradient(180deg, #dcdcdc, #b0b0b0);
+  --panel-head-border: #707070;
+  --panel-body-bg: #d4d0c8;
+  --shelf-bg: #d4d0c8;
+
+  --btn-bg: linear-gradient(180deg, #dcdcdc 0%, #b0b0b0 50%, #808080 100%);
+  --btn-border: #404040;
+  --btn-text: #000000;
+
+  --hero-title-color: #ffffff;
+  --hero-tagline-color: #d4f0f0;
+  --hero-text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+
+  --like-color: #ff0000;
+}
+
+/* ---- Synthwave: neon sunset grid over a purple horizon ---- */
+[data-theme="synthwave"] {
+  --body-bg: radial-gradient(circle at 50% 20%, rgba(255, 176, 59, 0.5), transparent 35%),
+    radial-gradient(ellipse at 20% 90%, rgba(255, 45, 149, 0.35), transparent 55%),
+    radial-gradient(ellipse at 80% 85%, rgba(75, 0, 255, 0.3), transparent 55%),
+    linear-gradient(160deg, #0d0221 0%, #240b4d 30%, #6e1e8c 55%, #c93b7a 80%, #ff9f5a 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.08);
+
+  --nav-bg: linear-gradient(180deg, #240b4d, #0d0221 70%);
+  --nav-border: #6e1e8c;
+  --nav-text: #ffd7f0;
+  --nav-active-text: #ff9f5a;
+
+  --subnav-bg: linear-gradient(180deg, #1c0838, #0a011a);
+  --subnav-border: #4d1670;
+  --subnav-text: #f0b8e0;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff2d95 75%);
+  --wordmark-color: #ffd7f0;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffe0b8 0%, #ffa8d0 46%, #ff2d95 50%, #a0208a 100%);
+  --acct-btn-border: #5c0d52;
+  --acct-btn-text: #35003a;
+  --acct-btn-primary-bg: linear-gradient(180deg, #6e1e8c 0%, #4d1670 46%, #2e0a4a 50%, #14032a 100%);
+  --acct-btn-primary-border: #0a0116;
+
+  --panel-border: #c98ad0;
+  --panel-head-bg: linear-gradient(180deg, #f8e0ff, #e0b0f0);
+  --panel-head-border: #c98ad0;
+  --panel-body-bg: #fbf3ff;
+  --shelf-bg: #fbf3ff;
+
+  --btn-bg: linear-gradient(180deg, #ff9f5a 0%, #ff2d95 46%, #a0208a 50%, #4d1670 100%);
+  --btn-border: #2e0a4a;
+  --btn-text: #fff0fa;
+
+  --hero-title-color: #ffe8f5;
+  --hero-tagline-color: #ffcbe8;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+
+  --like-color: #00e5ff;
+}
+
+/* ---- Dark Academia: burgundy, oxblood, and mossy library shelves ---- */
+[data-theme="dark-academia"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 224, 170, 0.12), transparent 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(74, 90, 58, 0.4), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(107, 31, 42, 0.35), transparent 50%),
+    linear-gradient(160deg, #1a0f0d 0%, #2e1712 30%, #4a231d 60%, #6b1f2a 85%, #8a3a2e 100%);
+  --body-glyph-color: rgba(255, 224, 170, 0.05);
+
+  --nav-bg: linear-gradient(180deg, #3b2a1a, #1e140d 70%);
+  --nav-border: #5c4326;
+  --nav-text: #e8d5b0;
+  --nav-active-text: #d9a441;
+
+  --subnav-bg: linear-gradient(180deg, #332415, #1a110a);
+  --subnav-border: #4a3520;
+  --subnav-text: #c9ad82;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #f0dcae, #6b1f2a 75%);
+  --wordmark-color: #ecd9b0;
+
+  --acct-btn-bg: linear-gradient(180deg, #e8d5b0 0%, #c9ad72 46%, #9c7a42 50%, #6b4f24 100%);
+  --acct-btn-border: #3a2a12;
+  --acct-btn-text: #2e1a0e;
+  --acct-btn-primary-bg: linear-gradient(180deg, #8a3a2e 0%, #6b1f2a 46%, #4a1420 50%, #2a0a12 100%);
+  --acct-btn-primary-border: #1a0509;
+
+  --panel-border: #9c7a54;
+  --panel-head-bg: linear-gradient(180deg, #ecdbb8, #cbb188);
+  --panel-head-border: #9c7a54;
+  --panel-body-bg: #f7efdc;
+  --shelf-bg: #f7efdc;
+
+  --btn-bg: linear-gradient(180deg, #8a3a2e 0%, #6b1f2a 46%, #4a1420 50%, #2a0a12 100%);
+  --btn-border: #1a0509;
+  --btn-text: #f0dcae;
+
+  --hero-title-color: #f5e6c8;
+  --hero-tagline-color: #d9bd8f;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+
+  --like-color: #a8452e;
+}
+
+/* ---- Cottagecore: cream linens, sage green, dried wildflowers ---- */
+[data-theme="cottagecore"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.5), transparent 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(138, 154, 107, 0.3), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(201, 138, 138, 0.25), transparent 50%),
+    linear-gradient(160deg, #f5eee0 0%, #ece0c8 35%, #dccfa8 65%, #b9c99a 100%);
+  --body-glyph-color: rgba(90, 90, 60, 0.06);
+
+  --nav-bg: linear-gradient(180deg, #fdfaf3, #e8dcc0 70%);
+  --nav-border: #c9b78a;
+  --nav-text: #4a4530;
+  --nav-active-text: #6f7f4a;
+
+  --subnav-bg: linear-gradient(180deg, #f5eedb, #e0d1a8);
+  --subnav-border: #cbb98a;
+  --subnav-text: #5c5638;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #8a9a6b 75%);
+  --wordmark-color: #4a4530;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #ecdfc0 46%, #d3c193 50%, #a99a68 100%);
+  --acct-btn-border: #8a7a4a;
+  --acct-btn-text: #4a3f22;
+  --acct-btn-primary-bg: linear-gradient(180deg, #a9b98a 0%, #8a9a6b 46%, #6a7a4e 50%, #4a5a32 100%);
+  --acct-btn-primary-border: #33401f;
+
+  --panel-border: #c9b98a;
+  --panel-head-bg: linear-gradient(180deg, #fdfaf0, #ecdfc0);
+  --panel-head-border: #c9b98a;
+  --panel-body-bg: #fffdf6;
+  --shelf-bg: #fffdf6;
+
+  --btn-bg: linear-gradient(180deg, #a9b98a 0%, #8a9a6b 46%, #6a7a4e 50%, #4a5a32 100%);
+  --btn-border: #33401f;
+  --btn-text: #fbf9f0;
+
+  --hero-title-color: #3e3a24;
+  --hero-tagline-color: #6a6440;
+  --hero-text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+
+  --like-color: #c9727a;
+}
+
+/* ---- Solarized Dark: the classic developer palette, teal on slate ---- */
+[data-theme="solarized-dark"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(147, 161, 161, 0.1), transparent 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(42, 161, 152, 0.2), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(38, 139, 210, 0.15), transparent 50%),
+    linear-gradient(160deg, #00212b 0%, #002b36 40%, #073642 75%, #0a4353 100%);
+  --body-glyph-color: rgba(131, 148, 150, 0.06);
+
+  --nav-bg: linear-gradient(180deg, #073642, #002b36 70%);
+  --nav-border: #0a4353;
+  --nav-text: #93a1a1;
+  --nav-active-text: #2aa198;
+
+  --subnav-bg: linear-gradient(180deg, #06323d, #002229);
+  --subnav-border: #0a4353;
+  --subnav-text: #839496;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fdf6e3, #2aa198 75%);
+  --wordmark-color: #93a1a1;
+
+  --acct-btn-bg: linear-gradient(180deg, #fdf6e3 0%, #eee8d5 46%, #93a1a1 50%, #657b83 100%);
+  --acct-btn-border: #073642;
+  --acct-btn-text: #002b36;
+  --acct-btn-primary-bg: linear-gradient(180deg, #2aa198 0%, #268bd2 46%, #1a5a8a 50%, #0e3450 100%);
+  --acct-btn-primary-border: #061e2b;
+
+  --panel-border: #93a1a1;
+  --panel-head-bg: linear-gradient(180deg, #fdf6e3, #eee8d5);
+  --panel-head-border: #93a1a1;
+  --panel-body-bg: #fdf6e3;
+  --shelf-bg: #fdf6e3;
+
+  --btn-bg: linear-gradient(180deg, #2aa198 0%, #268bd2 46%, #1a5a8a 50%, #0e3450 100%);
+  --btn-border: #061e2b;
+  --btn-text: #fdf6e3;
+
+  --hero-title-color: #eee8d5;
+  --hero-tagline-color: #93a1a1;
+  --hero-text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+
+  --like-color: #cb4b16;
+}
+
+/* ---- Matcha Zen: calm matcha green and rice-paper cream ---- */
+[data-theme="matcha-zen"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.4), transparent 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(122, 150, 92, 0.3), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(180, 196, 150, 0.25), transparent 50%),
+    linear-gradient(160deg, #eef1e4 0%, #dbe4c8 40%, #b7c99a 75%, #8fa86a 100%);
+  --body-glyph-color: rgba(70, 90, 50, 0.05);
+
+  --nav-bg: linear-gradient(180deg, #fbfdf6, #e2ead0 70%);
+  --nav-border: #b9cb9a;
+  --nav-text: #3a4a2a;
+  --nav-active-text: #5c7a3a;
+
+  --subnav-bg: linear-gradient(180deg, #f2f7e6, #d9e5bd);
+  --subnav-border: #bccf9e;
+  --subnav-text: #4a5c36;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #7a965c 75%);
+  --wordmark-color: #3a4a2a;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #e5edd0 46%, #c3d59e 50%, #9ab370 100%);
+  --acct-btn-border: #7a9052;
+  --acct-btn-text: #3a4a2a;
+  --acct-btn-primary-bg: linear-gradient(180deg, #8fa86a 0%, #7a965c 46%, #5c7a3a 50%, #3f5c26 100%);
+  --acct-btn-primary-border: #263c16;
+
+  --panel-border: #bccf9e;
+  --panel-head-bg: linear-gradient(180deg, #fbfdf3, #e5edd0);
+  --panel-head-border: #bccf9e;
+  --panel-body-bg: #fdfdf5;
+  --shelf-bg: #fdfdf5;
+
+  --btn-bg: linear-gradient(180deg, #8fa86a 0%, #7a965c 46%, #5c7a3a 50%, #3f5c26 100%);
+  --btn-border: #263c16;
+  --btn-text: #fbfdf0;
+
+  --hero-title-color: #33421f;
+  --hero-tagline-color: #5c6e42;
+  --hero-text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+
+  --like-color: #c9622e;
+}
+
+/* ---- Halloween Gothic: black and violet with pumpkin-orange glow ---- */
+[data-theme="halloween-gothic"] {
+  --body-bg: radial-gradient(circle at 50% 5%, rgba(255, 140, 26, 0.3), transparent 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(122, 26, 140, 0.35), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(255, 90, 10, 0.25), transparent 50%),
+    linear-gradient(160deg, #0a0510 0%, #1a0e26 30%, #331a40 60%, #4d1f5c 85%, #7a2e1a 100%);
+  --body-glyph-color: rgba(255, 140, 26, 0.06);
+
+  --nav-bg: linear-gradient(180deg, #1a0e26, #0a0510 70%);
+  --nav-border: #4d1f5c;
+  --nav-text: #f0d9a8;
+  --nav-active-text: #ff8c1a;
+
+  --subnav-bg: linear-gradient(180deg, #150a1e, #08040c);
+  --subnav-border: #3a1a4a;
+  --subnav-text: #d9b88a;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #ffd39a, #ff5a0a 75%);
+  --wordmark-color: #f0d9a8;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffd39a 0%, #ff9c3a 46%, #ff5a0a 50%, #a8340a 100%);
+  --acct-btn-border: #4a1503;
+  --acct-btn-text: #2e0e02;
+  --acct-btn-primary-bg: linear-gradient(180deg, #7a2e8c 0%, #5c1f70 46%, #3a1350 50%, #1e0930 100%);
+  --acct-btn-primary-border: #0e0418;
+
+  --panel-border: #cf9863;
+  --panel-head-bg: linear-gradient(180deg, #f5ded0, #e0b28a);
+  --panel-head-border: #cf9863;
+  --panel-body-bg: #fbf1e4;
+  --shelf-bg: #fbf1e4;
+
+  --btn-bg: linear-gradient(180deg, #ff8c1a 0%, #d9630a 46%, #a8340a 50%, #5c1a03 100%);
+  --btn-border: #2e0d02;
+  --btn-text: #fff0da;
+
+  --hero-title-color: #ffd9a0;
+  --hero-tagline-color: #d9a8c9;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+
+  --like-color: #ff5a0a;
+}
+
+/* ---- Windows XP Bliss: green rolling hills, wide blue sky ---- */
+[data-theme="winxp-bliss"] {
+  --body-bg: radial-gradient(ellipse at 50% 100%, rgba(70, 168, 58, 0.6), transparent 60%),
+    radial-gradient(circle at 30% 15%, rgba(255, 255, 255, 0.6), transparent 30%),
+    linear-gradient(180deg, #3a8ee0 0%, #7cbcf0 35%, #bfe0f5 55%, #9ecb5c 65%, #5a9e3a 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.15);
+
+  --nav-bg: linear-gradient(180deg, #2e6fd6, #1a4faa 70%);
+  --nav-border: #123a80;
+  --nav-text: #ffffff;
+  --nav-active-text: #ffe066;
+
+  --subnav-bg: linear-gradient(180deg, #1a4faa, #123a80);
+  --subnav-border: #0f2f66;
+  --subnav-text: #d0e4ff;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #3a9e3a 75%);
+  --wordmark-color: #ffffff;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #cde4ff 46%, #7cb0f0 50%, #3a7ed6 100%);
+  --acct-btn-border: #123a80;
+  --acct-btn-text: #123a80;
+  --acct-btn-primary-bg: linear-gradient(180deg, #7cd65a 0%, #5aae3a 46%, #3a8622 50%, #245c14 100%);
+  --acct-btn-primary-border: #143a0c;
+
+  --panel-border: #7fbde6;
+  --panel-head-bg: linear-gradient(180deg, #eaf4ff, #bcdcf5);
+  --panel-head-border: #7fbde6;
+  --panel-body-bg: #f5fbff;
+  --shelf-bg: #f5fbff;
+
+  --btn-bg: linear-gradient(180deg, #2e6fd6 0%, #1a4faa 46%, #123a80 50%, #0a2456 100%);
+  --btn-border: #061530;
+  --btn-text: #ffffff;
+
+  --hero-title-color: #ffffff;
+  --hero-tagline-color: #e0f0ff;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+
+  --like-color: #ff5a3a;
+}
+
+/* ---- Discord Dark: blurple accents on charcoal ---- */
+[data-theme="discord-dark"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(88, 101, 242, 0.15), transparent 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(88, 101, 242, 0.12), transparent 55%),
+    linear-gradient(160deg, #1e1f22 0%, #2b2d31 40%, #313338 75%, #232428 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.03);
+
+  --nav-bg: linear-gradient(180deg, #2b2d31, #1e1f22 70%);
+  --nav-border: #1e1f22;
+  --nav-text: #dbdee1;
+  --nav-active-text: #5865f2;
+
+  --subnav-bg: linear-gradient(180deg, #232428, #1a1b1e);
+  --subnav-border: #1e1f22;
+  --subnav-text: #b5bac1;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #5865f2 75%);
+  --wordmark-color: #dbdee1;
+
+  --acct-btn-bg: linear-gradient(180deg, #5865f2 0%, #4752c4 100%);
+  --acct-btn-border: #3c45a5;
+  --acct-btn-text: #ffffff;
+  --acct-btn-primary-bg: linear-gradient(180deg, #248046 0%, #1a6334 100%);
+  --acct-btn-primary-border: #123f22;
+
+  --panel-border: #d4d6da;
+  --panel-head-bg: linear-gradient(180deg, #f2f3f5, #e3e5e8);
+  --panel-head-border: #d4d6da;
+  --panel-body-bg: #f2f3f5;
+  --shelf-bg: #f2f3f5;
+
+  --btn-bg: linear-gradient(180deg, #5865f2 0%, #4752c4 100%);
+  --btn-border: #3c45a5;
+  --btn-text: #ffffff;
+
+  --hero-title-color: #ffffff;
+  --hero-tagline-color: #b5bac1;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+
+  --like-color: #ed4245;
+}
+
+/* ---- Nordic Frost: pale glacier blues, cool grays ---- */
+[data-theme="nordic-frost"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.5), transparent 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(150, 180, 200, 0.3), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(200, 215, 225, 0.3), transparent 50%),
+    linear-gradient(160deg, #eef2f5 0%, #dce4ea 40%, #b8c8d4 75%, #8fa6b8 100%);
+  --body-glyph-color: rgba(60, 80, 100, 0.05);
+
+  --nav-bg: linear-gradient(180deg, #fbfdfe, #e3eaf0 70%);
+  --nav-border: #c2d0da;
+  --nav-text: #2e3a44;
+  --nav-active-text: #4a7ea0;
+
+  --subnav-bg: linear-gradient(180deg, #f2f6f8, #dbe6ec);
+  --subnav-border: #c5d2db;
+  --subnav-text: #3e4c56;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #6f95ab 75%);
+  --wordmark-color: #2e3a44;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #e3ecf1 46%, #c1d4de 50%, #93b0c0 100%);
+  --acct-btn-border: #7fa0b3;
+  --acct-btn-text: #2e5266;
+  --acct-btn-primary-bg: linear-gradient(180deg, #7fa8bd 0%, #5e8ca3 46%, #446e83 50%, #2c4d5f 100%);
+  --acct-btn-primary-border: #1a323e;
+
+  --panel-border: #c5d2db;
+  --panel-head-bg: linear-gradient(180deg, #fbfdfe, #e3ecf1);
+  --panel-head-border: #c5d2db;
+  --panel-body-bg: #fcfdfe;
+  --shelf-bg: #fcfdfe;
+
+  --btn-bg: linear-gradient(180deg, #7fa8bd 0%, #5e8ca3 46%, #446e83 50%, #2c4d5f 100%);
+  --btn-border: #1a323e;
+  --btn-text: #f5fafd;
+
+  --hero-title-color: #263038;
+  --hero-tagline-color: #52626c;
+  --hero-text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
+
+  --like-color: #e0685a;
+}
