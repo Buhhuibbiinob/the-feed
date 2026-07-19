@@ -3,11 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/PostCard";
 import { FollowButton } from "@/components/FollowButton";
 import { AvatarPicker } from "@/components/AvatarPicker";
+import { ProfileCustomize } from "@/components/ProfileCustomize";
 
 type ProfileRow = {
   id: string;
   username: string;
   avatar_url: string | null;
+  bio: string | null;
+  banner_url: string | null;
   created_at: string;
 };
 
@@ -42,7 +45,7 @@ export default async function ProfilePage({
 
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("id, username, avatar_url, created_at")
+    .select("id, username, avatar_url, bio, banner_url, created_at")
     .eq("username", username)
     .maybeSingle();
 
@@ -106,7 +109,18 @@ export default async function ProfilePage({
 
   return (
     <>
-      <div className="panel profile-head">
+      <div
+        className="panel profile-head"
+        style={
+          profile.banner_url
+            ? {
+                backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.55)), url(${profile.banner_url})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : undefined
+        }
+      >
         <div className="panel-body profile-head-body">
           <img
             src={profile.avatar_url || "/avatars/preset-1.svg"}
@@ -115,6 +129,7 @@ export default async function ProfilePage({
           />
           <div className="profile-info">
             <div className="profile-username">{profile.username}</div>
+            {profile.bio && <div className="profile-bio">{profile.bio}</div>}
             <div className="profile-counts">
               <span>{posts.length} reviews</span>
               <span>{followerCount ?? 0} followers</span>
@@ -122,7 +137,10 @@ export default async function ProfilePage({
             </div>
             <div className="profile-actions">
               {isOwnProfile ? (
-                <AvatarPicker />
+                <>
+                  <AvatarPicker />
+                  <ProfileCustomize bio={profile.bio} />
+                </>
               ) : user ? (
                 <FollowButton
                   followedId={profile.id}

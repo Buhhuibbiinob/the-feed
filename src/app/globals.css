@@ -1070,10 +1070,32 @@ footer .copy {
 }
 
 /* ---- Profile ---- */
+.profile-head {
+  background-size: cover;
+  background-position: center;
+}
+.profile-head[style*="background-image"] .profile-username,
+.profile-head[style*="background-image"] .profile-bio,
+.profile-head[style*="background-image"] .profile-counts {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
 .profile-head-body {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+.profile-bio {
+  font-size: 12px;
+  margin-top: 4px;
+  max-width: 480px;
+  white-space: pre-wrap;
+}
+.profile-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .profile-avatar {
   width: 72px;
@@ -1097,9 +1119,6 @@ footer .copy {
   font-size: 11px;
   color: #777;
   margin-top: 4px;
-}
-.profile-actions {
-  margin-top: 10px;
 }
 .btn.following {
   background: linear-gradient(180deg, #bfe7cf 0%, #6fbf8f 46%, #4f9f6f 50%, #2f7f4f 100%);
