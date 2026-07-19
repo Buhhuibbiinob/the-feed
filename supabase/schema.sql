@@ -10,6 +10,9 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles add column if not exists theme text not null default 'default';
+-- New signups now default to the iOS Light theme instead of Classic Aqua;
+-- this only changes the default for rows inserted from now on.
+alter table public.profiles alter column theme set default 'ios-light';
 alter table public.profiles add column if not exists bio text;
 alter table public.profiles add column if not exists banner_url text;
 
@@ -154,6 +157,41 @@ create policy "Users can update their own spotify account"
 drop policy if exists "Users can delete their own spotify account" on public.spotify_accounts;
 create policy "Users can delete their own spotify account"
   on public.spotify_accounts for delete
+  using (auth.uid() = user_id);
+
+-- ---------- posts: optional YouTube video reference ----------
+alter table public.posts add column if not exists youtube_video_id text;
+
+-- ---------- youtube_accounts (OAuth tokens) ----------
+create table if not exists public.youtube_accounts (
+  user_id uuid primary key references public.profiles (id) on delete cascade,
+  youtube_channel_id text not null,
+  access_token text not null,
+  refresh_token text not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.youtube_accounts enable row level security;
+
+drop policy if exists "Users can view their own youtube account" on public.youtube_accounts;
+create policy "Users can view their own youtube account"
+  on public.youtube_accounts for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own youtube account" on public.youtube_accounts;
+create policy "Users can insert their own youtube account"
+  on public.youtube_accounts for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own youtube account" on public.youtube_accounts;
+create policy "Users can update their own youtube account"
+  on public.youtube_accounts for update
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own youtube account" on public.youtube_accounts;
+create policy "Users can delete their own youtube account"
+  on public.youtube_accounts for delete
   using (auth.uid() = user_id);
 
 -- ---------- comments (top-level + one level of replies) ----------

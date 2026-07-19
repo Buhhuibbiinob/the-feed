@@ -31,6 +31,7 @@ export async function createPost(
   const artist = String(formData.get("artist") ?? "").trim();
   const coverUrl = String(formData.get("cover_url") ?? "").trim();
   const spotifyTrackId = String(formData.get("spotify_track_id") ?? "").trim();
+  const youtubeVideoId = String(formData.get("youtube_video_id") ?? "").trim();
 
   if (!MEDIA_TYPES.includes(mediaType as (typeof MEDIA_TYPES)[number])) {
     return { error: "Choose a valid category." };
@@ -51,6 +52,7 @@ export async function createPost(
     artist: artist || null,
     cover_url: coverUrl || null,
     spotify_track_id: spotifyTrackId || null,
+    youtube_video_id: youtubeVideoId || null,
   });
 
   if (error) {

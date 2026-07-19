@@ -38,10 +38,25 @@ export const THEMES: Theme[] = [
     label: "iOS Dark",
     description: "Frosted-glass black, the same clean look after sunset.",
   },
+  {
+    id: "tuscan",
+    label: "Tuscan",
+    description: "Warm olive and terracotta, Windows-XP-Tuscany style.",
+  },
+  {
+    id: "frutiger-metro",
+    label: "Frutiger Metro",
+    description: "Glossy Frutiger Aero blended with flat Metro tiles.",
+  },
+  {
+    id: "mcbling",
+    label: "McBling",
+    description: "Hot pink chrome, rhinestones, and swirl bling patterns.",
+  },
 ];
 
 export const THEME_IDS = new Set(THEMES.map((t) => t.id));
-export const DEFAULT_THEME = "default";
+export const DEFAULT_THEME = "ios-light";
 
 export function isValidTheme(value: string | null | undefined): value is string {
   return !!value && THEME_IDS.has(value);

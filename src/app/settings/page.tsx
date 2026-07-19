@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { ThemeForm } from "@/components/ThemeForm";
 import { disconnectSpotify } from "@/app/actions/spotify";
+import { disconnectYoutube } from "@/app/actions/youtube";
 
 export const metadata = { title: "Settings — the feed" };
 
@@ -40,6 +41,13 @@ export default async function SettingsPage() {
     .maybeSingle();
   const spotifyConnected = !!spotifyAccount;
 
+  const { data: youtubeAccount } = await supabase
+    .from("youtube_accounts")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const youtubeConnected = !!youtubeAccount;
+
   return (
     <>
       <div className="panel">
@@ -76,6 +84,25 @@ export default async function SettingsPage() {
             <span>TMDB</span>
             <span className="soon">Coming soon</span>
           </div>
+          {youtubeConnected ? (
+            <form action={disconnectYoutube} className="connect-btn live" style={{ background: "linear-gradient(160deg, #ff5c5c, #7a0f0f)" }}>
+              <span className="mark" />
+              <span>YouTube</span>
+              <button type="submit" className="soon connect-action">
+                Connected · Disconnect
+              </button>
+            </form>
+          ) : (
+            <a
+              href="/api/youtube/connect"
+              className="connect-btn live"
+              style={{ background: "linear-gradient(160deg, #ff5c5c, #7a0f0f)" }}
+            >
+              <span className="mark" />
+              <span>YouTube</span>
+              <span className="soon">Connect</span>
+            </a>
+          )}
         </div>
       </div>
     </>
