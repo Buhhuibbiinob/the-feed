@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { PostForm } from "@/components/PostForm";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
-import { getTopTracks, getValidAccessToken, getNewReleases } from "@/lib/spotify";
+import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
+import { getTrendingTracks } from "@/lib/lastfm";
 import type { MediaType } from "@/lib/media";
 import { getAllSiteText } from "@/lib/siteContent";
 
@@ -93,7 +94,7 @@ export default async function FeedPage({
     chatCount,
     { data: likeRows },
     { data: commentRows },
-    spotifyNewReleases,
+    trendingTracks,
     { data: statusRows },
     siteText,
   ] = await Promise.all([
@@ -116,7 +117,7 @@ export default async function FeedPage({
     supabase.from("chat_messages").select("id", { count: "exact", head: true }),
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
-    getNewReleases(10),
+    getTrendingTracks(10),
     supabase
       .from("profiles")
       .select("username, status_media_type, status_title, status_artist")
@@ -195,11 +196,11 @@ export default async function FeedPage({
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(0, 5);
 
-  const newReleases: ShelfItem[] = spotifyNewReleases.map((album) => ({
-    id: album.id,
-    title: album.name,
-    subtitle: album.artist,
-    imageUrl: album.imageUrl ?? undefined,
+  const newReleases: ShelfItem[] = trendingTracks.map((track) => ({
+    id: track.id,
+    title: track.name,
+    subtitle: track.artist,
+    imageUrl: track.imageUrl ?? undefined,
   }));
 
   const nowWatching: ShelfItem[] = allPosts
@@ -257,7 +258,7 @@ export default async function FeedPage({
           emptyMessage="Play something on Spotify and it'll show up here."
         />
       )}
-      <Shelf title="New Releases" items={newReleases} />
+      <Shelf title="Trending Music" items={newReleases} />
       <Shelf title="Now Watching" items={nowWatching} />
 
       <div className="content-grid">
