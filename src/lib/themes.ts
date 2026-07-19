@@ -28,6 +28,16 @@ export const THEMES: Theme[] = [
     label: "Tumblr Fashion",
     description: "Soft grunge, pastel-goth pinks and lavenders.",
   },
+  {
+    id: "ios-light",
+    label: "iOS Light",
+    description: "Clean frosted-glass white, soft blue accents.",
+  },
+  {
+    id: "ios-dark",
+    label: "iOS Dark",
+    description: "Frosted-glass black, the same clean look after sunset.",
+  },
 ];
 
 export const THEME_IDS = new Set(THEMES.map((t) => t.id));
