@@ -3,11 +3,31 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
-import { joinClub, leaveClub } from "@/app/actions/clubs";
+import { joinClub, leaveClub, reportClub, uploadClubBanner, uploadClubAvatar } from "@/app/actions/clubs";
 import { setRsvp, clearRsvp, deleteEvent } from "@/app/actions/events";
+import { adminApproveClub, adminBanClub, adminUnbanClub, adminDeleteClub } from "@/app/actions/admin";
 import { CreateEventForm } from "@/components/CreateEventForm";
+import { ChatRoom, type ChatMessage } from "@/components/ChatRoom";
+import { ClubImageForms } from "@/components/ClubImageForms";
+import { isAdmin } from "@/lib/admin";
+import { getWikipediaSummary } from "@/lib/wikipedia";
 
-type ClubRow = { id: string; media_type: MediaType; name: string };
+type ClubRow = {
+  id: string;
+  media_type: MediaType;
+  name: string;
+  status: "pending" | "approved" | "banned";
+  banner_url: string | null;
+  avatar_url: string | null;
+};
+
+type ChatMessageRow = {
+  id: string;
+  body: string;
+  created_at: string;
+  user_id: string;
+  profiles: { username: string } | null;
+};
 
 type EventRow = {
   id: string;
@@ -15,7 +35,7 @@ type EventRow = {
   created_by: string;
   title: string;
   description: string | null;
-  location: string | null;
+  flyer_url: string | null;
   event_time: string;
 };
 
@@ -72,11 +92,14 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
 
   const { data: clubData } = await supabase
     .from("clubs")
-    .select("id, media_type, name")
+    .select("id, media_type, name, status, banner_url, avatar_url")
     .eq("id", id)
     .maybeSingle();
   const club = clubData as ClubRow | null;
   if (!club) notFound();
+
+  const admin = user ? await isAdmin(supabase, user.id) : false;
+  if (club.status === "banned" && !admin) notFound();
 
   const [{ data: postRows }, { count: memberCount }, { data: likeRows }, { data: commentRows }] =
     await Promise.all([
@@ -98,7 +121,7 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
   // Fetched separately so a not-yet-migrated `club_events` table can't break the rest of the page.
   const { data: eventRows } = await supabase
     .from("club_events")
-    .select("id, club_id, created_by, title, description, location, event_time")
+    .select("id, club_id, created_by, title, description, flyer_url, event_time")
     .eq("club_id", id)
     .order("event_time", { ascending: true })
     .returns<EventRow[]>();
@@ -144,38 +167,145 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
     isMember = !!myMembership;
   }
 
+  const wikiSummary = await getWikipediaSummary(club.name);
+
+  const [{ data: chatRows }, { data: blockRows }, { data: myProfile }] = await Promise.all([
+    supabase
+      .from("chat_messages")
+      .select("id, body, created_at, user_id, profiles(username)")
+      .eq("club_id", id)
+      .order("created_at", { ascending: true })
+      .limit(50)
+      .returns<ChatMessageRow[]>(),
+    user
+      ? supabase.from("blocked_users").select("blocked_id").eq("blocker_id", user.id)
+      : Promise.resolve({ data: [] as { blocked_id: string }[] }),
+    user
+      ? supabase.from("profiles").select("username").eq("id", user.id).single()
+      : Promise.resolve({ data: null as { username: string } | null }),
+  ]);
+
+  const chatMessages: ChatMessage[] = (chatRows ?? []).map((row) => ({
+    id: row.id,
+    body: row.body,
+    createdAt: row.created_at,
+    userId: row.user_id,
+    username: row.profiles?.username ?? "unknown",
+  }));
+  const blockedIds = (blockRows ?? []).map((r) => r.blocked_id);
+
   return (
     <>
-      <div className="page-header">
-        <h1>{club.name}</h1>
+      <div
+        className="page-header"
+        style={
+          club.banner_url
+            ? { backgroundImage: `url(${club.banner_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+            : undefined
+        }
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {club.avatar_url && (
+            <img
+              src={club.avatar_url}
+              alt=""
+              style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }}
+            />
+          )}
+          <h1>{club.name}</h1>
+        </div>
         <div className="tagline">
           {MEDIA_LABELS[club.media_type]} fan club · {memberCount ?? 0} member{(memberCount ?? 0) === 1 ? "" : "s"}
+          {club.status === "pending" && " · Pending admin review"}
         </div>
       </div>
 
+      {admin && (
+        <div className="panel">
+          <div className="panel-head">Admin: Club Moderation</div>
+          <div className="panel-body" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div className="chat-msg-actions">
+              {club.status !== "approved" && (
+                <form action={adminApproveClub} className="inline-form">
+                  <input type="hidden" name="club_id" value={club.id} />
+                  <button type="submit" className="comment-action">
+                    Approve
+                  </button>
+                </form>
+              )}
+              {club.status !== "banned" && (
+                <form action={adminBanClub} className="inline-form">
+                  <input type="hidden" name="club_id" value={club.id} />
+                  <button type="submit" className="comment-action danger">
+                    Ban
+                  </button>
+                </form>
+              )}
+              {club.status === "banned" && (
+                <form action={adminUnbanClub} className="inline-form">
+                  <input type="hidden" name="club_id" value={club.id} />
+                  <button type="submit" className="comment-action">
+                    Unban
+                  </button>
+                </form>
+              )}
+              <form action={adminDeleteClub} className="inline-form">
+                <input type="hidden" name="club_id" value={club.id} />
+                <button type="submit" className="comment-action danger">
+                  Delete club
+                </button>
+              </form>
+            </div>
+            <ClubImageForms clubId={club.id} />
+          </div>
+        </div>
+      )}
+
       <div className="panel">
-        <div className="panel-body" style={{ display: "flex", justifyContent: "flex-end" }}>
-          {!user ? (
-            <Link href="/sign-in" className="btn">
-              Sign in to join
-            </Link>
-          ) : isMember ? (
-            <form action={leaveClub}>
+        <div className="panel-body" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          {user && !admin && (
+            <form action={reportClub} className="inline-form">
               <input type="hidden" name="club_id" value={club.id} />
-              <button type="submit" className="btn">
-                Leave Club
-              </button>
-            </form>
-          ) : (
-            <form action={joinClub}>
-              <input type="hidden" name="club_id" value={club.id} />
-              <button type="submit" className="btn">
-                Join Club
+              <button type="submit" className="comment-action">
+                Report club
               </button>
             </form>
           )}
+          <div style={{ marginLeft: "auto" }}>
+            {!user ? (
+              <Link href="/sign-in" className="btn">
+                Sign in to join
+              </Link>
+            ) : isMember ? (
+              <form action={leaveClub}>
+                <input type="hidden" name="club_id" value={club.id} />
+                <button type="submit" className="btn">
+                  Leave Club
+                </button>
+              </form>
+            ) : (
+              <form action={joinClub}>
+                <input type="hidden" name="club_id" value={club.id} />
+                <button type="submit" className="btn">
+                  Join Club
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
+
+      {wikiSummary && (
+        <div className="panel">
+          <div className="panel-head">About {wikiSummary.title}</div>
+          <div className="panel-body">
+            <p>{wikiSummary.extract}</p>
+            <a href={wikiSummary.url} target="_blank" rel="noopener noreferrer" className="comment-action">
+              Read more on Wikipedia
+            </a>
+          </div>
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -204,7 +334,9 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
                       })}
                     </span>
                   </div>
-                  {event.location && <div className="event-row-location">📍 {event.location}</div>}
+                  {event.flyer_url && (
+                    <img src={event.flyer_url} alt="" className="event-row-flyer" />
+                  )}
                   {event.description && <div className="event-row-desc">{event.description}</div>}
                   <div className="event-rsvp-bar">
                     {user ? (
@@ -276,6 +408,16 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
           )}
         </div>
       </div>
+
+      <ChatRoom
+        initialMessages={chatMessages}
+        userId={user?.id ?? null}
+        username={myProfile?.username ?? null}
+        blockedIds={blockedIds}
+        isAdmin={admin}
+        clubId={club.id}
+        heading={`${club.name} Chat`}
+      />
     </>
   );
 }

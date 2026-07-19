@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ChatRoom, type ChatMessage } from "@/components/ChatRoom";
 import { isAdmin } from "@/lib/admin";
+import { getAllSiteText } from "@/lib/siteContent";
 
 type ChatMessageRow = {
   id: string;
@@ -16,12 +17,16 @@ export default async function ChatPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: rows } = await supabase
-    .from("chat_messages")
-    .select("id, body, created_at, user_id, profiles(username)")
-    .order("created_at", { ascending: true })
-    .limit(50)
-    .returns<ChatMessageRow[]>();
+  const [{ data: rows }, siteText] = await Promise.all([
+    supabase
+      .from("chat_messages")
+      .select("id, body, created_at, user_id, profiles(username)")
+      .is("club_id", null)
+      .order("created_at", { ascending: true })
+      .limit(50)
+      .returns<ChatMessageRow[]>(),
+    getAllSiteText(supabase),
+  ]);
 
   const messages: ChatMessage[] = (rows ?? []).map((row) => ({
     id: row.id,
@@ -47,8 +52,8 @@ export default async function ChatPage() {
   return (
     <>
       <div className="page-header">
-        <h1>Live Chat</h1>
-        <div className="tagline">Based on what the community&apos;s into right now.</div>
+        <h1>{siteText.chat_heading}</h1>
+        <div className="tagline">{siteText.chat_tagline}</div>
       </div>
       <ChatRoom
         initialMessages={messages}

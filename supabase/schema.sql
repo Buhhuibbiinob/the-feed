@@ -49,6 +49,14 @@ create policy "Users can update their own profile"
   on public.profiles for update
   using (auth.uid() = id);
 
+-- Without this, admin actions like banning a user or granting the artist
+-- "blue check" silently update zero rows: the owner-only policy above blocks
+-- an admin from updating anyone else's profile row.
+drop policy if exists "Admins can update any profile" on public.profiles;
+create policy "Admins can update any profile"
+  on public.profiles for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
 -- Case-insensitive uniqueness so "Dyamanite" and "dyamanite" can't both
 -- be taken; the plain `unique` constraint above only guards exact case.
 create unique index if not exists profiles_username_lower_idx
@@ -389,6 +397,22 @@ create policy "Users can delete their own avatar"
   on storage.objects for delete
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
 
+drop policy if exists "Admins can upload club assets" on storage.objects;
+create policy "Admins can upload club assets"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = 'club-assets'
+    and exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+  );
+
+drop policy if exists "Admins can update club assets" on storage.objects;
+create policy "Admins can update club assets"
+  on storage.objects for update
+  using (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = 'club-assets'
+    and exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+  );
+
 -- ---------- clubs (fan clubs for artists, bands, movies, shows) ----------
 create table if not exists public.clubs (
   id uuid primary key default gen_random_uuid(),
@@ -399,6 +423,13 @@ create table if not exists public.clubs (
 );
 
 create unique index if not exists clubs_media_type_slug_idx on public.clubs (media_type, slug);
+
+-- New clubs start out pending so an admin can review them before they're
+-- listed publicly; existing rows default to approved so nothing already
+-- live gets hidden by this migration.
+alter table public.clubs add column if not exists status text not null default 'approved' check (status in ('pending', 'approved', 'banned'));
+alter table public.clubs add column if not exists banner_url text;
+alter table public.clubs add column if not exists avatar_url text;
 
 alter table public.clubs enable row level security;
 
@@ -411,6 +442,47 @@ drop policy if exists "Signed-in users can create clubs" on public.clubs;
 create policy "Signed-in users can create clubs"
   on public.clubs for insert
   with check (auth.uid() is not null);
+
+drop policy if exists "Admins can update clubs" on public.clubs;
+create policy "Admins can update clubs"
+  on public.clubs for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete clubs" on public.clubs;
+create policy "Admins can delete clubs"
+  on public.clubs for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- club_reports (report a fan club for admin review) ----------
+create table if not exists public.club_reports (
+  id uuid primary key default gen_random_uuid(),
+  club_id uuid not null references public.clubs (id) on delete cascade,
+  reporter_id uuid not null references public.profiles (id) on delete cascade,
+  reason text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.club_reports enable row level security;
+
+drop policy if exists "Users can report clubs" on public.club_reports;
+create policy "Users can report clubs"
+  on public.club_reports for insert
+  with check (auth.uid() = reporter_id);
+
+drop policy if exists "Admins can view club reports" on public.club_reports;
+create policy "Admins can view club reports"
+  on public.club_reports for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete club reports" on public.club_reports;
+create policy "Admins can delete club reports"
+  on public.club_reports for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- Messages with a club_id belong to that club's chat room instead of the
+-- site-wide Live Chat; null stays the global room.
+alter table public.chat_messages add column if not exists club_id uuid references public.clubs (id) on delete cascade;
+create index if not exists chat_messages_club_id_idx on public.chat_messages (club_id);
 
 -- ---------- club_members (join/leave a fan club) ----------
 create table if not exists public.club_members (
@@ -451,6 +523,8 @@ create table if not exists public.club_events (
   event_time timestamptz not null,
   created_at timestamptz not null default now()
 );
+
+alter table public.club_events add column if not exists flyer_url text;
 
 create index if not exists club_events_club_id_idx on public.club_events (club_id, event_time);
 
@@ -565,3 +639,136 @@ create policy "Users can remove posts from their own collections"
   using (
     auth.uid() in (select user_id from public.collections where id = collection_id)
   );
+
+-- ---------- artist verification ("blue check", admin-granted after review) ----------
+alter table public.profiles add column if not exists is_verified_artist boolean not null default false;
+
+-- ---------- artist_posts (self-serve board for unsigned/underground artists and
+-- filmmakers to share a Spotify/SoundCloud/Apple Music/YouTube link; visible
+-- immediately like a normal post, but admins can ban or delete it after the fact) ----------
+create table if not exists public.artist_posts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  artist_name text not null,
+  platform text not null check (platform in ('spotify', 'soundcloud', 'apple_music', 'youtube')),
+  link_url text not null,
+  description text,
+  status text not null default 'active' check (status in ('active', 'banned')),
+  created_at timestamptz not null default now()
+);
+
+-- Widen the allowed platforms to include YouTube for filmmakers/short films;
+-- safe to re-run against a table created before this column existed.
+alter table public.artist_posts drop constraint if exists artist_posts_platform_check;
+alter table public.artist_posts add constraint artist_posts_platform_check
+  check (platform in ('spotify', 'soundcloud', 'apple_music', 'youtube'));
+
+create index if not exists artist_posts_created_at_idx on public.artist_posts (created_at desc);
+
+alter table public.artist_posts enable row level security;
+
+drop policy if exists "Artist posts are viewable by everyone" on public.artist_posts;
+create policy "Artist posts are viewable by everyone"
+  on public.artist_posts for select
+  using (true);
+
+drop policy if exists "Users can create artist posts" on public.artist_posts;
+create policy "Users can create artist posts"
+  on public.artist_posts for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own artist posts" on public.artist_posts;
+create policy "Users can delete their own artist posts"
+  on public.artist_posts for delete
+  using (auth.uid() = user_id);
+
+drop policy if exists "Admins can update artist posts" on public.artist_posts;
+create policy "Admins can update artist posts"
+  on public.artist_posts for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete artist posts" on public.artist_posts;
+create policy "Admins can delete artist posts"
+  on public.artist_posts for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- artist_post_comments (replies on an artist post) ----------
+create table if not exists public.artist_post_comments (
+  id uuid primary key default gen_random_uuid(),
+  artist_post_id uuid not null references public.artist_posts (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists artist_post_comments_post_id_idx on public.artist_post_comments (artist_post_id);
+
+alter table public.artist_post_comments enable row level security;
+
+drop policy if exists "Artist post comments are viewable by everyone" on public.artist_post_comments;
+create policy "Artist post comments are viewable by everyone"
+  on public.artist_post_comments for select
+  using (true);
+
+drop policy if exists "Users can comment on artist posts" on public.artist_post_comments;
+create policy "Users can comment on artist posts"
+  on public.artist_post_comments for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own artist post comments" on public.artist_post_comments;
+create policy "Users can delete their own artist post comments"
+  on public.artist_post_comments for delete
+  using (
+    auth.uid() = user_id
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+-- ---------- artist_post_reports (report an artist post for admin review) ----------
+create table if not exists public.artist_post_reports (
+  id uuid primary key default gen_random_uuid(),
+  artist_post_id uuid not null references public.artist_posts (id) on delete cascade,
+  reporter_id uuid not null references public.profiles (id) on delete cascade,
+  reason text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.artist_post_reports enable row level security;
+
+drop policy if exists "Users can report artist posts" on public.artist_post_reports;
+create policy "Users can report artist posts"
+  on public.artist_post_reports for insert
+  with check (auth.uid() = reporter_id);
+
+drop policy if exists "Admins can view artist post reports" on public.artist_post_reports;
+create policy "Admins can view artist post reports"
+  on public.artist_post_reports for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete artist post reports" on public.artist_post_reports;
+create policy "Admins can delete artist post reports"
+  on public.artist_post_reports for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- site_content (admin-editable page taglines/blurbs) ----------
+create table if not exists public.site_content (
+  key text primary key,
+  value text not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.site_content enable row level security;
+
+drop policy if exists "Site content is viewable by everyone" on public.site_content;
+create policy "Site content is viewable by everyone"
+  on public.site_content for select
+  using (true);
+
+drop policy if exists "Admins can insert site content" on public.site_content;
+create policy "Admins can insert site content"
+  on public.site_content for insert
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can update site content" on public.site_content;
+create policy "Admins can update site content"
+  on public.site_content for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));

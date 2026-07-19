@@ -19,6 +19,7 @@ type NewMessageRow = {
   body: string;
   created_at: string;
   user_id: string;
+  club_id: string | null;
 };
 
 export function ChatRoom({
@@ -27,12 +28,16 @@ export function ChatRoom({
   username,
   blockedIds,
   isAdmin,
+  clubId = null,
+  heading = "Live Chat",
 }: {
   initialMessages: ChatMessage[];
   userId: string | null;
   username: string | null;
   blockedIds: string[];
   isAdmin: boolean;
+  clubId?: string | null;
+  heading?: string;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
@@ -63,12 +68,13 @@ export function ChatRoom({
     }
 
     const channel = supabase
-      .channel("chat_messages_inserts")
+      .channel(`chat_messages_inserts_${clubId ?? "global"}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
         async (payload) => {
           const row = payload.new as NewMessageRow;
+          if ((row.club_id ?? null) !== clubId) return;
           const name = await resolveUsername(row.user_id);
 
           setMessages((prev) => [
@@ -96,7 +102,7 @@ export function ChatRoom({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [clubId]);
 
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
@@ -111,6 +117,7 @@ export function ChatRoom({
     const { error } = await supabase.from("chat_messages").insert({
       user_id: userId,
       body,
+      club_id: clubId,
     });
     if (error) {
       console.error(error.message);
@@ -133,7 +140,7 @@ export function ChatRoom({
 
   return (
     <div className="panel">
-      <div className="panel-head">Live Chat</div>
+      <div className="panel-head">{heading}</div>
       <div className="chat-body" ref={bodyRef}>
         {visibleMessages.length === 0 ? (
           <div className="empty-state">No messages yet — say something.</div>

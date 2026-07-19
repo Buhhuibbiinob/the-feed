@@ -2,9 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MediaType } from "@/lib/media";
 import { slugify } from "@/lib/slug";
 
-// Finds the fan club for this artist/title, auto-creating it the first time
-// someone posts about it. Returns null if there's no name to key a club on
-// (e.g. a music post with no artist filled in).
+// Finds the fan club for this artist/title, creating a pending one the
+// first time someone posts about it. Pending clubs aren't listed publicly
+// until an admin approves them. Returns null if there's no name to key a
+// club on (e.g. a music post with no artist filled in).
 export async function findOrCreateClub(
   supabase: SupabaseClient,
   mediaType: MediaType,
@@ -23,7 +24,7 @@ export async function findOrCreateClub(
 
   const { data: created } = await supabase
     .from("clubs")
-    .insert({ media_type: mediaType, name, slug })
+    .insert({ media_type: mediaType, name, slug, status: "pending" })
     .select("id")
     .single();
   return created?.id ?? null;

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createCollection } from "@/app/actions/collections";
+import { getAllSiteText } from "@/lib/siteContent";
 
 type CollectionRow = {
   id: string;
@@ -19,13 +20,14 @@ export default async function CollectionsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: collectionRows }, { data: postRows }] = await Promise.all([
+  const [{ data: collectionRows }, { data: postRows }, siteText] = await Promise.all([
     supabase
       .from("collections")
       .select("id, user_id, name, description, created_at, profiles!collections_user_id_fkey(username)")
       .order("created_at", { ascending: false })
       .returns<CollectionRow[]>(),
     supabase.from("collection_posts").select("collection_id"),
+    getAllSiteText(supabase),
   ]);
 
   const collections = collectionRows ?? [];
@@ -38,8 +40,8 @@ export default async function CollectionsPage() {
   return (
     <>
       <div className="page-header">
-        <h1>Collections</h1>
-        <div className="tagline">Curated lists of reviews, made by the community.</div>
+        <h1>{siteText.collections_heading}</h1>
+        <div className="tagline">{siteText.collections_tagline}</div>
       </div>
 
       {user && (
@@ -63,9 +65,7 @@ export default async function CollectionsPage() {
         <div className="panel-head">All Collections</div>
         <div className="panel-body flush">
           {collections.length === 0 ? (
-            <div className="empty-state" style={{ padding: 16 }}>
-              No collections yet — start one above.
-            </div>
+            <div className="empty-state" style={{ padding: 16 }}>{siteText.collections_empty}</div>
           ) : (
             collections.map((c) => (
               <Link href={`/collections/${c.id}`} className="club-row" key={c.id}>

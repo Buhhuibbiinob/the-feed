@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { MAX_EVENT_FLYER_BYTES, megabytes, isImageFile, guessContentType } from "@/lib/uploads";
 
 export type EventFormState = {
   error?: string;
@@ -25,12 +26,20 @@ export async function createEvent(
   if (!title) return { error: "Title is required." };
 
   const description = String(formData.get("description") ?? "").trim() || null;
-  const location = String(formData.get("location") ?? "").trim() || null;
 
   const eventTimeRaw = String(formData.get("event_time") ?? "");
   const eventTime = eventTimeRaw ? new Date(eventTimeRaw) : null;
   if (!eventTime || Number.isNaN(eventTime.getTime())) {
     return { error: "Pick a valid date and time." };
+  }
+
+  const flyerFile = formData.get("flyer_file");
+  const flyer = flyerFile instanceof File && flyerFile.size > 0 ? flyerFile : null;
+  if (flyer) {
+    if (!isImageFile(flyer)) return { error: "Flyer must be an image." };
+    if (flyer.size > MAX_EVENT_FLYER_BYTES) {
+      return { error: `Flyer must be under ${megabytes(MAX_EVENT_FLYER_BYTES)}MB.` };
+    }
   }
 
   const { data: membership } = await supabase
@@ -41,16 +50,36 @@ export async function createEvent(
     .maybeSingle();
   if (!membership) return { error: "Join the club to create events." };
 
-  const { error } = await supabase.from("club_events").insert({
-    club_id: clubId,
-    created_by: user.id,
-    title,
-    description,
-    location,
-    event_time: eventTime.toISOString(),
-  });
+  const { data: inserted, error } = await supabase
+    .from("club_events")
+    .insert({
+      club_id: clubId,
+      created_by: user.id,
+      title,
+      description,
+      event_time: eventTime.toISOString(),
+    })
+    .select("id")
+    .single();
 
   if (error) return { error: error.message };
+
+  if (flyer && inserted) {
+    const ext = flyer.name.split(".").pop() || "jpg";
+    const path = `${user.id}/event-flyers/${inserted.id}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, flyer, { upsert: true, contentType: guessContentType(flyer) });
+    if (!uploadError) {
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(path);
+      await supabase
+        .from("club_events")
+        .update({ flyer_url: publicUrl })
+        .eq("id", inserted.id);
+    }
+  }
 
   revalidatePath(`/clubs/${clubId}`);
   return { ok: true };

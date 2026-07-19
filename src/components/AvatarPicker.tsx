@@ -6,6 +6,7 @@ import {
   uploadAvatar,
   type ProfileFormState,
 } from "@/app/actions/profile";
+import { MAX_AVATAR_BYTES, megabytes } from "@/lib/uploads";
 
 const PRESETS = [
   "/avatars/preset-1.svg",
@@ -28,6 +29,18 @@ export function AvatarPicker() {
     uploadAvatar,
     initialState
   );
+  const [clientError, setClientError] = useState<string | null>(null);
+
+  function handleUploadSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const input = e.currentTarget.elements.namedItem("avatar_file") as HTMLInputElement | null;
+    const file = input?.files?.[0];
+    if (file && file.size > MAX_AVATAR_BYTES) {
+      e.preventDefault();
+      setClientError(`Image must be under ${megabytes(MAX_AVATAR_BYTES)}MB.`);
+      return;
+    }
+    setClientError(null);
+  }
 
   if (!open) {
     return (
@@ -40,7 +53,9 @@ export function AvatarPicker() {
   return (
     <div className="avatar-picker">
       {presetState.error && <div className="form-error">{presetState.error}</div>}
-      {uploadState.error && <div className="form-error">{uploadState.error}</div>}
+      {(clientError || uploadState.error) && (
+        <div className="form-error">{clientError ?? uploadState.error}</div>
+      )}
       <div className="avatar-preset-grid">
         {PRESETS.map((preset) => (
           <form action={presetAction} key={preset}>
@@ -51,8 +66,9 @@ export function AvatarPicker() {
           </form>
         ))}
       </div>
-      <form action={uploadAction} className="comment-form avatar-upload-form">
+      <form action={uploadAction} onSubmit={handleUploadSubmit} className="comment-form avatar-upload-form">
         <input type="file" name="avatar_file" accept="image/*" required />
+        <div className="field-hint">Max {megabytes(MAX_AVATAR_BYTES)}MB.</div>
         <div className="form-actions">
           <button className="btn" type="submit" disabled={uploadPending}>
             {uploadPending ? "Uploading…" : "Upload photo"}

@@ -5,6 +5,7 @@ import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
 import { getTopTracks, getValidAccessToken, getNewReleases } from "@/lib/spotify";
 import type { MediaType } from "@/lib/media";
+import { getAllSiteText } from "@/lib/siteContent";
 
 type PostRow = {
   id: string;
@@ -54,10 +55,16 @@ function isWithinLastWeek(iso: string) {
   return Date.now() - new Date(iso).getTime() <= 7 * 24 * 60 * 60 * 1000;
 }
 
-function topByRating(posts: PostRow[], mediaType: PostRow["media_type"]) {
+function topByEngagement(
+  posts: PostRow[],
+  mediaType: PostRow["media_type"],
+  likeCounts: Map<string, number>,
+  commentCounts: Map<string, number>
+) {
+  const score = (p: PostRow) => (likeCounts.get(p.id) ?? 0) + (commentCounts.get(p.id) ?? 0);
   return posts
     .filter((p) => p.media_type === mediaType)
-    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    .sort((a, b) => score(b) - score(a) || (b.rating ?? 0) - (a.rating ?? 0))
     .at(0);
 }
 
@@ -88,6 +95,7 @@ export default async function FeedPage({
     { data: commentRows },
     spotifyNewReleases,
     { data: statusRows },
+    siteText,
   ] = await Promise.all([
     supabase
       .from("posts")
@@ -117,6 +125,7 @@ export default async function FeedPage({
       .order("status_updated_at", { ascending: false })
       .limit(8)
       .returns<StatusRow[]>(),
+    getAllSiteText(supabase),
   ]);
 
   let followedIds: Set<string> | null = null;
@@ -205,15 +214,15 @@ export default async function FeedPage({
     }));
 
   const banners = (["music", "movie_tv"] as const).map((mediaType) => {
-    const top = topByRating(allPosts, mediaType);
+    const top = topByEngagement(allPosts, mediaType, likeCounts, commentCounts);
     return { mediaType, top, ...bannerCopy[mediaType] };
   });
 
   return (
     <>
       <div className="page-header">
-        <h1>The Feed</h1>
-        <div className="tagline">Share what you&apos;re watching, reading, and listening to.</div>
+        <h1>{siteText.feed_heading}</h1>
+        <div className="tagline">{siteText.feed_tagline}</div>
       </div>
 
       <div className="feature-row">

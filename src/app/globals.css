@@ -851,6 +851,41 @@ a:hover {
   border-radius: 100px;
 }
 
+/* ---- Artist posts ---- */
+.artist-post-row {
+  display: block;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e2e2;
+  text-decoration: none;
+  color: inherit;
+}
+.artist-post-row:last-child {
+  border-bottom: none;
+}
+.artist-post-row:hover {
+  background: #f6f6f6;
+}
+.artist-post-row-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.artist-post-row-name {
+  font-weight: 700;
+  font-size: 12.5px;
+}
+.artist-post-row-desc {
+  font-size: 11.5px;
+  color: #444;
+  margin-top: 6px;
+  white-space: pre-wrap;
+}
+.artist-post-row-meta {
+  font-size: 10px;
+  color: #999;
+  margin-top: 6px;
+}
+
 /* ---- Club events ---- */
 .event-row {
   padding: 12px 16px;
@@ -874,10 +909,13 @@ a:hover {
   color: #999;
   white-space: nowrap;
 }
-.event-row-location {
-  font-size: 11px;
-  color: #666;
-  margin-top: 2px;
+.event-row-flyer {
+  display: block;
+  max-width: 100%;
+  max-height: 240px;
+  border-radius: 8px;
+  margin-top: 8px;
+  object-fit: cover;
 }
 .event-row-desc {
   font-size: 11.5px;
@@ -960,6 +998,31 @@ a:hover {
 }
 .badge.movie_tv {
   background: linear-gradient(160deg, #ff5f8a, #a8123f);
+}
+.badge.spotify {
+  background: linear-gradient(160deg, #3ee08a, #0f7a3f);
+}
+.badge.soundcloud {
+  background: linear-gradient(160deg, #ff8a3d, #d4530a);
+}
+.badge.apple_music {
+  background: linear-gradient(160deg, #fc5c8a, #b81d5c);
+}
+.badge.youtube {
+  background: linear-gradient(160deg, #ff4d4d, #a80f0f);
+}
+.verified-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 3px;
+  border-radius: 50%;
+  background: #1d9bf0;
+  color: #fff;
+  font-size: 9px;
+  line-height: 1;
 }
 .stars {
   color: #d99a1a;

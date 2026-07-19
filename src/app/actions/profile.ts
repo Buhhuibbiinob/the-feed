@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { MAX_AVATAR_BYTES, MAX_BANNER_BYTES, MAX_BACKGROUND_BYTES, megabytes, isImageFile, guessContentType } from "@/lib/uploads";
 
 export type ProfileFormState = {
   error?: string;
@@ -65,11 +66,11 @@ export async function uploadAvatar(
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Choose an image file." };
   }
-  if (!file.type.startsWith("image/")) {
+  if (!isImageFile(file)) {
     return { error: "File must be an image." };
   }
-  if (file.size > 2 * 1024 * 1024) {
-    return { error: "Image must be under 2MB." };
+  if (file.size > MAX_AVATAR_BYTES) {
+    return { error: `Image must be under ${megabytes(MAX_AVATAR_BYTES)}MB.` };
   }
 
   const ext = file.name.split(".").pop() || "jpg";
@@ -77,7 +78,7 @@ export async function uploadAvatar(
 
   const { error: uploadError } = await supabase.storage
     .from("avatars")
-    .upload(path, file, { upsert: true, contentType: file.type });
+    .upload(path, file, { upsert: true, contentType: guessContentType(file) });
   if (uploadError) return { error: uploadError.message };
 
   const {
@@ -128,11 +129,11 @@ export async function uploadBanner(
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Choose an image file." };
   }
-  if (!file.type.startsWith("image/")) {
+  if (!isImageFile(file)) {
     return { error: "File must be an image." };
   }
-  if (file.size > 4 * 1024 * 1024) {
-    return { error: "Image must be under 4MB." };
+  if (file.size > MAX_BANNER_BYTES) {
+    return { error: `Image must be under ${megabytes(MAX_BANNER_BYTES)}MB.` };
   }
 
   const ext = file.name.split(".").pop() || "jpg";
@@ -140,7 +141,7 @@ export async function uploadBanner(
 
   const { error: uploadError } = await supabase.storage
     .from("avatars")
-    .upload(path, file, { upsert: true, contentType: file.type });
+    .upload(path, file, { upsert: true, contentType: guessContentType(file) });
   if (uploadError) return { error: uploadError.message };
 
   const {
@@ -172,11 +173,11 @@ export async function uploadCustomBackground(
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Choose an image file." };
   }
-  if (!file.type.startsWith("image/")) {
+  if (!isImageFile(file)) {
     return { error: "File must be an image." };
   }
-  if (file.size > 6 * 1024 * 1024) {
-    return { error: "Image must be under 6MB." };
+  if (file.size > MAX_BACKGROUND_BYTES) {
+    return { error: `Image must be under ${megabytes(MAX_BACKGROUND_BYTES)}MB.` };
   }
 
   const ext = file.name.split(".").pop() || "jpg";
@@ -184,7 +185,7 @@ export async function uploadCustomBackground(
 
   const { error: uploadError } = await supabase.storage
     .from("avatars")
-    .upload(path, file, { upsert: true, contentType: file.type });
+    .upload(path, file, { upsert: true, contentType: guessContentType(file) });
   if (uploadError) return { error: uploadError.message };
 
   const {

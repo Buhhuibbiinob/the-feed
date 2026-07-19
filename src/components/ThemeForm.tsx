@@ -13,7 +13,7 @@ export function ThemeForm({ currentTheme }: { currentTheme: string }) {
     if (!state.ok) return;
     const theme = document.querySelector<HTMLSelectElement>("select[name=theme]")?.value;
     if (theme) document.documentElement.setAttribute("data-theme", theme);
-  }, [state.ok]);
+  }, [state]);
 
   return (
     <form action={action} className="theme-form">
@@ -21,7 +21,14 @@ export function ThemeForm({ currentTheme }: { currentTheme: string }) {
         Site theme
       </label>
       <div className="theme-form-row">
-        <select id="theme-select" name="theme" defaultValue={currentTheme} className="theme-select">
+        <select
+          id="theme-select"
+          name="theme"
+          defaultValue={currentTheme}
+          className="theme-select"
+          onChange={(e) => document.documentElement.setAttribute("data-theme", e.target.value)}
+        >
+
           {THEMES.map((theme) => (
             <option key={theme.id} value={theme.id}>
               {theme.label}

@@ -38,6 +38,9 @@ export function SiteHeader({ username, isAdmin = false }: { username: string | n
         <Link href="/clubs" className={pathname.startsWith("/clubs") ? "active" : ""}>
           Clubs
         </Link>
+        <Link href="/artists" className={pathname.startsWith("/artists") ? "active" : ""}>
+          Creators
+        </Link>
         <Link href="/collections" className={pathname.startsWith("/collections") ? "active" : ""}>
           Collections
         </Link>
