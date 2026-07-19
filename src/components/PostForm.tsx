@@ -1,0 +1,213 @@
+"use client";
+
+import { useActionState, useEffect, useState } from "react";
+import { createPost, type PostFormState } from "@/app/actions/posts";
+import type { SpotifyTrack } from "@/lib/spotify";
+
+const initialState: PostFormState = {};
+
+export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
+  const [state, formAction, pending] = useActionState(createPost, initialState);
+  const [formKey, setFormKey] = useState(0);
+  const [lastOk, setLastOk] = useState(state.ok);
+
+  const [mediaType, setMediaType] = useState("music");
+  const [title, setTitle] = useState("");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SpotifyTrack[]>([]);
+  const [selected, setSelected] = useState<SpotifyTrack | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [posterUrl, setPosterUrl] = useState("");
+
+  if (state.ok !== lastOk) {
+    setLastOk(state.ok);
+    if (state.ok) {
+      setFormKey((k) => k + 1);
+      setMediaType("music");
+      setTitle("");
+      setQuery("");
+      setResults([]);
+      setSelected(null);
+      setPosterUrl("");
+    }
+  }
+
+  useEffect(() => {
+    if (mediaType !== "music" || !spotifyConnected || !query.trim()) {
+      return;
+    }
+    let cancelled = false;
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (!cancelled) setResults(data.tracks ?? []);
+      } finally {
+        if (!cancelled) setSearching(false);
+      }
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [query, mediaType, spotifyConnected]);
+
+  function selectTrack(track: SpotifyTrack) {
+    setSelected(track);
+    setTitle(track.name);
+    setQuery("");
+    setResults([]);
+  }
+
+  function clearSelected() {
+    setSelected(null);
+  }
+
+  return (
+    <div className="panel">
+      <div className="panel-head">Post a Review</div>
+      <div className="panel-body">
+        {state.error && <div className="form-error">{state.error}</div>}
+        <form action={formAction} key={formKey}>
+          <div className="field">
+            <label htmlFor="media_type">Category</label>
+            <select
+              id="media_type"
+              name="media_type"
+              value={mediaType}
+              onChange={(e) => {
+                setMediaType(e.target.value);
+                setQuery("");
+                setResults([]);
+              }}
+              required
+            >
+              <option value="music">Music</option>
+              <option value="movie">Movie</option>
+              <option value="tv">TV</option>
+            </select>
+          </div>
+
+          {mediaType === "music" && spotifyConnected && (
+            <div className="field">
+              <label htmlFor="track-search">Find a track on Spotify</label>
+              {selected ? (
+                <div className="track-selected">
+                  {selected.imageUrl && <img src={selected.imageUrl} alt="" />}
+                  <div>
+                    <b>{selected.name}</b>
+                    <div className="sub">{selected.artist}</div>
+                  </div>
+                  <span className="clear" onClick={clearSelected}>
+                    Clear
+                  </span>
+                </div>
+              ) : (
+                <div className="track-search">
+                  <input
+                    id="track-search"
+                    type="text"
+                    placeholder="Search song or artist…"
+                    value={query}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setQuery(value);
+                      if (!value.trim()) {
+                        setResults([]);
+                        setSearching(false);
+                      } else {
+                        setSearching(true);
+                      }
+                    }}
+                    autoComplete="off"
+                  />
+                  {query.trim() && (
+                    <div className="track-results">
+                      {searching ? (
+                        <div className="track-result">Searching…</div>
+                      ) : results.length === 0 ? (
+                        <div className="track-result">No matches.</div>
+                      ) : (
+                        results.map((track) => (
+                          <div
+                            className="track-result"
+                            key={track.id}
+                            onClick={() => selectTrack(track)}
+                          >
+                            {track.imageUrl && <img src={track.imageUrl} alt="" />}
+                            <div>
+                              <b>{track.name}</b>
+                              <div className="sub">{track.artist}</div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {mediaType !== "music" && (
+            <div className="field">
+              <label htmlFor="poster-url">Poster image URL</label>
+              <input
+                id="poster-url"
+                type="url"
+                placeholder="https://…"
+                value={posterUrl}
+                onChange={(e) => setPosterUrl(e.target.value)}
+              />
+              {posterUrl && (
+                <div className="track-selected">
+                  <img src={posterUrl} alt="" />
+                </div>
+              )}
+            </div>
+          )}
+
+          <input type="hidden" name="artist" value={selected?.artist ?? ""} />
+          <input
+            type="hidden"
+            name="cover_url"
+            value={mediaType === "music" ? selected?.imageUrl ?? "" : posterUrl}
+          />
+          <input type="hidden" name="spotify_track_id" value={selected?.id ?? ""} />
+
+          <div className="field">
+            <label htmlFor="title">Title</label>
+            <input
+              id="title"
+              name="title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="rating">Rating</label>
+            <select id="rating" name="rating" defaultValue="">
+              <option value="">No rating</option>
+              <option value="1">★☆☆☆☆</option>
+              <option value="2">★★☆☆☆</option>
+              <option value="3">★★★☆☆</option>
+              <option value="4">★★★★☆</option>
+              <option value="5">★★★★★</option>
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="body">Your review</label>
+            <textarea id="body" name="body" required />
+          </div>
+          <div className="form-actions">
+            <button className="btn" type="submit" disabled={pending}>
+              {pending ? "Posting…" : "Post"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
