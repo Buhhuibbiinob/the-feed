@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/PostCard";
 import { CommentSection, type CommentData } from "@/components/CommentSection";
@@ -58,6 +59,38 @@ function buildCommentTree(rows: CommentRow[]): CommentData[] {
   }
 
   return top;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: post } = await supabase
+    .from("posts")
+    .select("title, artist, body, profiles!posts_user_id_fkey(username)")
+    .eq("id", id)
+    .maybeSingle<{
+      title: string;
+      artist: string | null;
+      body: string;
+      profiles: { username: string } | null;
+    }>();
+
+  if (!post) return {};
+
+  const username = post.profiles?.username ?? "someone";
+  const title = post.artist ? `${post.title} — ${post.artist}` : post.title;
+  const description = `Reviewed by ${username}: ${post.body}`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { title, description },
+  };
 }
 
 export default async function PostPage({
