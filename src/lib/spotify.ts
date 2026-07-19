@@ -175,6 +175,11 @@ async function searchNewTracksByGenre(
   });
   const res = await fetch(`https://api.spotify.com/v1/search?${params.toString()}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
+    // This app-level query is identical for every visitor, so cache it across
+    // requests instead of refetching per page load — with 14 genre/market
+    // buckets fired in parallel on every visit, an uncached page trips
+    // Spotify's rate limit (429) almost immediately.
+    next: { revalidate: 1800 },
   });
   if (!res.ok) return [];
   const data = (await res.json()) as { tracks: { items: SpotifyApiSearchTrack[] } };
@@ -193,7 +198,7 @@ export async function getNewReleases(limit = 20): Promise<SpotifyAlbum[]> {
   const seen = new Set<string>();
   const ordered: SpotifyApiAlbum[] = [];
   const maxLength = Math.max(0, ...buckets.map((b) => b.length));
-  for (let i = 0; i < maxLength && ordered.length < limit; i++) {
+  for (let i = 0; i < maxLength; i++) {
     for (const bucket of buckets) {
       const album = bucket[i];
       if (album && album.images.length > 0 && !seen.has(album.id)) {
@@ -202,6 +207,8 @@ export async function getNewReleases(limit = 20): Promise<SpotifyAlbum[]> {
       }
     }
   }
+
+  ordered.sort((a, b) => (a.release_date < b.release_date ? 1 : a.release_date > b.release_date ? -1 : 0));
 
   return ordered.slice(0, limit).map(simplifyAlbum);
 }

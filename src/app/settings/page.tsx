@@ -71,9 +71,9 @@ export default async function SettingsPage() {
               <span className="soon">Connect</span>
             </a>
           )}
-          <div className="connect-btn" style={{ background: "linear-gradient(160deg, #5fc9ff, #0d3b7a)" }}>
+          <div className="connect-btn" style={{ background: "linear-gradient(160deg, #01b4e4, #0d253f)" }}>
             <span className="mark" />
-            <span>Letterboxd</span>
+            <span>TMDB</span>
             <span className="soon">Coming soon</span>
           </div>
         </div>
