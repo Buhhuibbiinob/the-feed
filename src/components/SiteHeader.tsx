@@ -11,29 +11,20 @@ export function SiteHeader({ username, isAdmin = false }: { username: string | n
     <>
       <div className="apple-nav">
         <div className="brand">
-          <div className="orb" />
+          <img src="/f-logo.PNG" alt="" className="brand-logo" />
           <span className="wordmark">the feed</span>
         </div>
-        <a href="#" className="disabled">
-          Store
-        </a>
         <Link href="/" className={pathname === "/" ? "active" : ""}>
           Feed
         </Link>
         <Link href="/new-releases" className={pathname === "/new-releases" ? "active" : ""}>
           New Releases
         </Link>
-        <Link href="/chat" className={pathname === "/chat" ? "active" : ""}>
-          Chat
-        </Link>
         <Link href="/leaderboard" className={pathname === "/leaderboard" ? "active" : ""}>
           Leaderboard
         </Link>
         <Link href="/recs" className={pathname === "/recs" ? "active" : ""}>
           Recs
-        </Link>
-        <Link href="/wrapped" className={pathname === "/wrapped" ? "active" : ""}>
-          Wrapped
         </Link>
         <Link href="/clubs" className={pathname.startsWith("/clubs") ? "active" : ""}>
           Clubs
