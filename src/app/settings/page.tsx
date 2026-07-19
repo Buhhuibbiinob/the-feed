@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { ThemeForm } from "@/components/ThemeForm";
+import { BackgroundPicker } from "@/components/BackgroundPicker";
 import { disconnectYoutube } from "@/app/actions/youtube";
 
 export const metadata = { title: "Settings — the feed" };
@@ -46,6 +47,7 @@ export default async function SettingsPage() {
         <div className="panel-head">Settings</div>
         <div className="panel-body">
           <ThemeForm currentTheme={currentTheme} />
+          <BackgroundPicker />
         </div>
       </div>
 

@@ -108,6 +108,51 @@ export const THEMES: Theme[] = [
     label: "Nordic Frost",
     description: "Pale glacier blues and cool grays, Scandinavian calm.",
   },
+  {
+    id: "film-reel",
+    label: "Film Reel",
+    description: "Chrome and gold movie-projector look with sprocket-hole dots.",
+  },
+  {
+    id: "movie-marquee",
+    label: "Movie Marquee",
+    description: "Broadway red and gold, lit up like a theater marquee.",
+  },
+  {
+    id: "golden-hollywood",
+    label: "Golden Age Hollywood",
+    description: "Black and gold Art Deco glamour with chevron trim.",
+  },
+  {
+    id: "drive-in-dusk",
+    label: "Drive-In Dusk",
+    description: "Dusky drive-in movie sky scattered with stars.",
+  },
+  {
+    id: "popcorn-bucket",
+    label: "Popcorn Bucket",
+    description: "Cheerful red-and-white striped movie-theater snack look.",
+  },
+  {
+    id: "crt-tv",
+    label: "CRT Television",
+    description: "Phosphor-green scanlines glowing off an old tube TV.",
+  },
+  {
+    id: "static-signal",
+    label: "Static Signal",
+    description: "Grayscale off-air TV static, dialed in and buzzing.",
+  },
+  {
+    id: "vhs-rewind",
+    label: "VHS Rewind",
+    description: "Purple and teal retro tape aesthetic with tracking lines.",
+  },
+  {
+    id: "custom",
+    label: "Custom Background",
+    description: "Upload your own photo as the site background.",
+  },
 ];
 
 export const THEME_IDS = new Set(THEMES.map((t) => t.id));

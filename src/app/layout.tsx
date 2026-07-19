@@ -49,19 +49,26 @@ export default async function RootLayout({
   let username: string | null = null;
   let theme = DEFAULT_THEME;
   let admin = false;
+  let customBackgroundUrl: string | null = null;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username, theme")
+      .select("username, theme, custom_background_url")
       .eq("id", user.id)
       .single();
     username = profile?.username ?? null;
     if (isValidTheme(profile?.theme)) theme = profile.theme;
+    customBackgroundUrl = profile?.custom_background_url ?? null;
     admin = await isAdmin(supabase, user.id);
   }
 
+  const htmlStyle =
+    theme === "custom" && customBackgroundUrl
+      ? ({ "--body-bg": `url(${customBackgroundUrl}) center / cover fixed no-repeat` } as React.CSSProperties)
+      : undefined;
+
   return (
-    <html lang="en" data-theme={theme}>
+    <html lang="en" data-theme={theme} style={htmlStyle}>
       <body>
         <SiteHeader username={username} isAdmin={admin} />
         <div className="wrap">{children}</div>

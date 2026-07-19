@@ -55,6 +55,14 @@
   --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 
   --like-color: #d9345c;
+
+  /* ---- Pattern overlay (optional, layered over --body-bg via body::after) ----
+     Themes leave these at their defaults (no pattern) unless they redefine
+     them, so adding a pattern to a new theme never affects existing ones. */
+  --body-pattern: none;
+  --body-pattern-size: auto;
+  --body-pattern-position: 0 0;
+  --body-pattern-opacity: 1;
 }
 * {
   box-sizing: border-box;
@@ -101,6 +109,18 @@ body::before {
   pointer-events: none;
   z-index: 0;
   font-weight: 700;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: var(--body-pattern);
+  background-size: var(--body-pattern-size);
+  background-position: var(--body-pattern-position);
+  background-attachment: fixed;
+  opacity: var(--body-pattern-opacity);
+  pointer-events: none;
+  z-index: 0;
 }
 h1,
 h2,
@@ -2429,4 +2449,425 @@ footer .copy {
   --hero-text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
 
   --like-color: #e0685a;
+}
+
+/* ---- Film Reel: chrome & gold, movie-projector sprocket dots ---- */
+[data-theme="film-reel"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 220, 140, 0.2), transparent 40%),
+    linear-gradient(160deg, #0b0b0d 0%, #1c1c20 35%, #302c24 65%, #1c1c20 100%);
+  --body-glyph-color: rgba(255, 210, 120, 0.06);
+  --body-pattern: radial-gradient(circle, rgba(255, 255, 255, 0.16) 3px, transparent 3.5px);
+  --body-pattern-size: 26px 26px;
+  --body-pattern-opacity: 0.5;
+
+  --nav-bg: linear-gradient(180deg, #3a3a3e, #17171a 60%, #050505);
+  --nav-border: #d4af37;
+  --nav-text: #e8d9a8;
+  --nav-active-text: #ffe9a8;
+
+  --subnav-bg: linear-gradient(180deg, #2a2a2d, #121214);
+  --subnav-border: #a8822c;
+  --subnav-text: #d9c48c;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff8e0, #d4af37 75%);
+  --wordmark-color: #f0dca0;
+
+  --acct-btn-bg: linear-gradient(180deg, #f8e8b8 0%, #e0c068 46%, #b8912e 50%, #7a5e1c 100%);
+  --acct-btn-border: #8a6a20;
+  --acct-btn-text: #2a2008;
+  --acct-btn-primary-bg: linear-gradient(180deg, #4a4a4e 0%, #26262a 46%, #141416 50%, #050505 100%);
+  --acct-btn-primary-border: #d4af37;
+
+  --panel-border: #3a3428;
+  --panel-head-bg: linear-gradient(180deg, #3a352a, #1a1712);
+  --panel-head-border: #8a6a20;
+  --panel-body-bg: #161513;
+  --shelf-bg: #161513;
+
+  --btn-bg: linear-gradient(180deg, #f8e8b8 0%, #e0c068 46%, #b8912e 50%, #7a5e1c 100%);
+  --btn-border: #4a3a10;
+  --btn-text: #2a2008;
+
+  --hero-title-color: #f8e8b8;
+  --hero-tagline-color: #cbb87a;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+
+  --like-color: #e0a83f;
+}
+
+/* ---- Movie Marquee: Broadway red & gold, bulb-lit dot pattern ---- */
+[data-theme="movie-marquee"] {
+  --body-bg: radial-gradient(ellipse at 50% -10%, rgba(255, 210, 120, 0.3), transparent 45%),
+    linear-gradient(165deg, #2a0509 0%, #4a0a12 35%, #7a1120 65%, #4a0a12 100%);
+  --body-glyph-color: rgba(255, 210, 120, 0.08);
+  --body-pattern: radial-gradient(circle, rgba(255, 214, 120, 0.55) 2px, transparent 2.5px);
+  --body-pattern-size: 28px 28px;
+  --body-pattern-opacity: 0.4;
+
+  --nav-bg: linear-gradient(180deg, #6a0f1a, #3a0810 60%, #1a0406);
+  --nav-border: #e0b04a;
+  --nav-text: #ffe4b0;
+  --nav-active-text: #fff2d0;
+
+  --subnav-bg: linear-gradient(180deg, #500b12, #2a0508);
+  --subnav-border: #c08f3a;
+  --subnav-text: #f0cf95;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff2d0, #e0b04a 75%);
+  --wordmark-color: #ffe4b0;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffe9b8 0%, #f0c05a 46%, #d69a2e 50%, #a2711a 100%);
+  --acct-btn-border: #8a5e1a;
+  --acct-btn-text: #3a1c04;
+  --acct-btn-primary-bg: linear-gradient(180deg, #ff5c6e 0%, #d6203c 46%, #a3122a 50%, #6e0a1c 100%);
+  --acct-btn-primary-border: #4a0812;
+
+  --panel-border: #6e2a30;
+  --panel-head-bg: linear-gradient(180deg, #5c1218, #2e0709);
+  --panel-head-border: #c08f3a;
+  --panel-body-bg: #200608;
+  --shelf-bg: #200608;
+
+  --btn-bg: linear-gradient(180deg, #ffe9b8 0%, #f0c05a 46%, #d69a2e 50%, #a2711a 100%);
+  --btn-border: #6e4a12;
+  --btn-text: #3a1c04;
+
+  --hero-title-color: #ffe9b8;
+  --hero-tagline-color: #f0c07a;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+
+  --like-color: #ff5c6e;
+}
+
+/* ---- Golden Age Hollywood: black & gold Art Deco chevrons ---- */
+[data-theme="golden-hollywood"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 230, 170, 0.22), transparent 45%),
+    linear-gradient(150deg, #050505 0%, #1a1a1a 40%, #0d0d0d 100%);
+  --body-glyph-color: rgba(230, 190, 110, 0.07);
+  --body-pattern: repeating-linear-gradient(
+    45deg,
+    rgba(230, 190, 110, 0.12) 0px,
+    rgba(230, 190, 110, 0.12) 3px,
+    transparent 3px,
+    transparent 22px
+  );
+  --body-pattern-opacity: 1;
+
+  --nav-bg: linear-gradient(180deg, #2a2a2a, #0a0a0a 70%);
+  --nav-border: #c9a24a;
+  --nav-text: #e6d3a0;
+  --nav-active-text: #fff6da;
+
+  --subnav-bg: linear-gradient(180deg, #1c1c1c, #050505);
+  --subnav-border: #a4813a;
+  --subnav-text: #d8c288;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff6da, #c9a24a 75%);
+  --wordmark-color: #e6d3a0;
+
+  --acct-btn-bg: linear-gradient(180deg, #fff2cc 0%, #e6c675 46%, #c9a24a 50%, #8a6a24 100%);
+  --acct-btn-border: #6e5218;
+  --acct-btn-text: #2a2004;
+  --acct-btn-primary-bg: linear-gradient(180deg, #3a3a3a 0%, #1c1c1c 46%, #0a0a0a 50%, #000000 100%);
+  --acct-btn-primary-border: #c9a24a;
+
+  --panel-border: #3a3020;
+  --panel-head-bg: linear-gradient(180deg, #2c2618, #100d08);
+  --panel-head-border: #a4813a;
+  --panel-body-bg: #121212;
+  --shelf-bg: #121212;
+
+  --btn-bg: linear-gradient(180deg, #fff2cc 0%, #e6c675 46%, #c9a24a 50%, #8a6a24 100%);
+  --btn-border: #5c4416;
+  --btn-text: #2a2004;
+
+  --hero-title-color: #fff6da;
+  --hero-tagline-color: #d8c288;
+  --hero-text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
+
+  --like-color: #d94f4f;
+}
+
+/* ---- Drive-In Dusk: dusk-sky movie theme with scattered stars ---- */
+[data-theme="drive-in-dusk"] {
+  --body-bg: radial-gradient(ellipse at 50% 100%, rgba(255, 140, 90, 0.35), transparent 55%),
+    linear-gradient(180deg, #1a1035 0%, #3a1a4a 35%, #7a3a4a 65%, #d97a4a 100%);
+  --body-glyph-color: rgba(255, 220, 180, 0.08);
+  --body-pattern: radial-gradient(circle, rgba(255, 255, 255, 0.7) 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1.5px);
+  --body-pattern-size: 60px 60px, 95px 95px;
+  --body-pattern-position: 0 0, 30px 45px;
+  --body-pattern-opacity: 0.6;
+
+  --nav-bg: linear-gradient(180deg, #2a1840, #150a24 65%);
+  --nav-border: #d97a4a;
+  --nav-text: #f0d8c8;
+  --nav-active-text: #ffe4d0;
+
+  --subnav-bg: linear-gradient(180deg, #241338, #12081e);
+  --subnav-border: #a8506e;
+  --subnav-text: #e0b8c8;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #ffe4d0, #d97a4a 75%);
+  --wordmark-color: #f0d8c8;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffd7b0 0%, #f0a468 46%, #d97a4a 50%, #a8502e 100%);
+  --acct-btn-border: #7a3a1e;
+  --acct-btn-text: #2a1004;
+  --acct-btn-primary-bg: linear-gradient(180deg, #6a3a8a 0%, #4a2468 46%, #331a4a 50%, #200e30 100%);
+  --acct-btn-primary-border: #150a24;
+
+  --panel-border: #4a2e50;
+  --panel-head-bg: linear-gradient(180deg, #341c48, #180c26);
+  --panel-head-border: #a8506e;
+  --panel-body-bg: #1c1030;
+  --shelf-bg: #1c1030;
+
+  --btn-bg: linear-gradient(180deg, #ffd7b0 0%, #f0a468 46%, #d97a4a 50%, #a8502e 100%);
+  --btn-border: #6e3a1a;
+  --btn-text: #2a1004;
+
+  --hero-title-color: #ffe4d0;
+  --hero-tagline-color: #e0b8c8;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+
+  --like-color: #ff6f6f;
+}
+
+/* ---- Popcorn Bucket: cheerful red & white stripes, gold trim ---- */
+[data-theme="popcorn-bucket"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.4), transparent 40%),
+    linear-gradient(160deg, #fff6e0 0%, #ffe8b0 40%, #ffd97a 100%);
+  --body-glyph-color: rgba(210, 40, 40, 0.08);
+  --body-pattern: repeating-linear-gradient(
+    90deg,
+    rgba(217, 40, 40, 0.14) 0px,
+    rgba(217, 40, 40, 0.14) 18px,
+    transparent 18px,
+    transparent 36px
+  );
+  --body-pattern-opacity: 1;
+
+  --nav-bg: linear-gradient(180deg, #ffffff, #ffe0e0 60%, #ffb0b0);
+  --nav-border: #d92828;
+  --nav-text: #7a1010;
+  --nav-active-text: #fff;
+
+  --subnav-bg: linear-gradient(180deg, #fff4e8, #ffd8d8);
+  --subnav-border: #e05a5a;
+  --subnav-text: #922020;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #d92828 75%);
+  --wordmark-color: #922020;
+
+  --acct-btn-bg: linear-gradient(180deg, #fff0c0 0%, #ffd76a 46%, #f0b02e 50%, #c2841a 100%);
+  --acct-btn-border: #9a641a;
+  --acct-btn-text: #3a2004;
+  --acct-btn-primary-bg: linear-gradient(180deg, #ff8a8a 0%, #e83a3a 46%, #c21e1e 50%, #8a1010 100%);
+  --acct-btn-primary-border: #6e0a0a;
+
+  --panel-border: #e0b0b0;
+  --panel-head-bg: linear-gradient(180deg, #fff4e0, #ffdada);
+  --panel-head-border: #e08a8a;
+  --panel-body-bg: #fffdf8;
+  --shelf-bg: #fffdf8;
+
+  --btn-bg: linear-gradient(180deg, #ff8a8a 0%, #e83a3a 46%, #c21e1e 50%, #8a1010 100%);
+  --btn-border: #6e0a0a;
+  --btn-text: #fff8ee;
+
+  --hero-title-color: #7a1010;
+  --hero-tagline-color: #a83a3a;
+  --hero-text-shadow: 0 1px 3px rgba(255, 255, 255, 0.6);
+
+  --like-color: #d92860;
+}
+
+/* ---- CRT Television: navy & phosphor-green with scanlines ---- */
+[data-theme="crt-tv"] {
+  --body-bg: radial-gradient(ellipse at 50% 20%, rgba(90, 255, 160, 0.15), transparent 50%),
+    linear-gradient(160deg, #030b0a 0%, #071a16 45%, #0a2420 100%);
+  --body-glyph-color: rgba(90, 255, 160, 0.06);
+  --body-pattern: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.35) 0px,
+    rgba(0, 0, 0, 0.35) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  --body-pattern-opacity: 0.55;
+
+  --nav-bg: linear-gradient(180deg, #10201c, #04100d 65%);
+  --nav-border: #3fd68a;
+  --nav-text: #a8ffcf;
+  --nav-active-text: #d8ffe8;
+
+  --subnav-bg: linear-gradient(180deg, #0c1a16, #030a08);
+  --subnav-border: #2fa068;
+  --subnav-text: #8fe8b8;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #d8ffe8, #3fd68a 75%);
+  --wordmark-color: #a8ffcf;
+
+  --acct-btn-bg: linear-gradient(180deg, #c8ffe0 0%, #6fe0a8 46%, #2fb877 50%, #157a4a 100%);
+  --acct-btn-border: #0e5c38;
+  --acct-btn-text: #04200f;
+  --acct-btn-primary-bg: linear-gradient(180deg, #2a4440 0%, #16241f 46%, #0a1512 50%, #030a08 100%);
+  --acct-btn-primary-border: #3fd68a;
+
+  --panel-border: #163a2e;
+  --panel-head-bg: linear-gradient(180deg, #142e26, #06120e);
+  --panel-head-border: #2fa068;
+  --panel-body-bg: #081814;
+  --shelf-bg: #081814;
+
+  --btn-bg: linear-gradient(180deg, #c8ffe0 0%, #6fe0a8 46%, #2fb877 50%, #157a4a 100%);
+  --btn-border: #0a4a2c;
+  --btn-text: #04200f;
+
+  --hero-title-color: #d8ffe8;
+  --hero-tagline-color: #8fe8b8;
+  --hero-text-shadow: 0 0 6px rgba(90, 255, 160, 0.5);
+
+  --like-color: #ff6f6f;
+}
+
+/* ---- Static Signal: grayscale TV-static noise ---- */
+[data-theme="static-signal"] {
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.15), transparent 45%),
+    linear-gradient(160deg, #0a0a0a 0%, #2a2a2a 45%, #101010 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.06);
+  --body-pattern: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.18) 0.6px, transparent 1px),
+    radial-gradient(circle at 60% 70%, rgba(255, 255, 255, 0.14) 0.6px, transparent 1px),
+    radial-gradient(circle at 80% 15%, rgba(255, 255, 255, 0.12) 0.6px, transparent 1px),
+    radial-gradient(circle at 35% 85%, rgba(255, 255, 255, 0.1) 0.6px, transparent 1px);
+  --body-pattern-size: 6px 6px, 9px 9px, 5px 5px, 7px 7px;
+  --body-pattern-opacity: 0.8;
+
+  --nav-bg: linear-gradient(180deg, #3a3a3a, #141414 65%);
+  --nav-border: #8a8a8a;
+  --nav-text: #e0e0e0;
+  --nav-active-text: #fff;
+
+  --subnav-bg: linear-gradient(180deg, #2a2a2a, #101010);
+  --subnav-border: #6a6a6a;
+  --subnav-text: #cfcfcf;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #8a8a8a 75%);
+  --wordmark-color: #e8e8e8;
+
+  --acct-btn-bg: linear-gradient(180deg, #f0f0f0 0%, #c4c4c4 46%, #909090 50%, #5a5a5a 100%);
+  --acct-btn-border: #3a3a3a;
+  --acct-btn-text: #1a1a1a;
+  --acct-btn-primary-bg: linear-gradient(180deg, #4a4a4a 0%, #262626 46%, #141414 50%, #050505 100%);
+  --acct-btn-primary-border: #8a8a8a;
+
+  --panel-border: #3a3a3a;
+  --panel-head-bg: linear-gradient(180deg, #303030, #141414);
+  --panel-head-border: #5a5a5a;
+  --panel-body-bg: #181818;
+  --shelf-bg: #181818;
+
+  --btn-bg: linear-gradient(180deg, #f0f0f0 0%, #c4c4c4 46%, #909090 50%, #5a5a5a 100%);
+  --btn-border: #2a2a2a;
+  --btn-text: #1a1a1a;
+
+  --hero-title-color: #f0f0f0;
+  --hero-tagline-color: #b8b8b8;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+
+  --like-color: #e0685a;
+}
+
+/* ---- VHS Rewind: purple/teal retro tape, scanline grid ---- */
+[data-theme="vhs-rewind"] {
+  --body-bg: radial-gradient(ellipse at 20% 10%, rgba(255, 100, 220, 0.25), transparent 45%),
+    radial-gradient(ellipse at 85% 85%, rgba(80, 220, 220, 0.25), transparent 50%),
+    linear-gradient(155deg, #180a2a 0%, #2a1245 40%, #0e2438 100%);
+  --body-glyph-color: rgba(255, 130, 230, 0.08);
+  --body-pattern: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  --body-pattern-opacity: 0.5;
+
+  --nav-bg: linear-gradient(180deg, #2e1450, #150826 65%);
+  --nav-border: #ff6fd8;
+  --nav-text: #e8d0ff;
+  --nav-active-text: #fff0ff;
+
+  --subnav-bg: linear-gradient(180deg, #24103e, #0f051e);
+  --subnav-border: #5fd0d0;
+  --subnav-text: #c8e8ff;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff0ff, #ff6fd8 75%);
+  --wordmark-color: #ffb0ec;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffd0f4 0%, #ff8ae2 46%, #e04ec2 50%, #a02890 100%);
+  --acct-btn-border: #7a1a6e;
+  --acct-btn-text: #3a0a30;
+  --acct-btn-primary-bg: linear-gradient(180deg, #6ae0e0 0%, #2fb8bc 46%, #1c8a8e 50%, #0e5c60 100%);
+  --acct-btn-primary-border: #0a3a3c;
+
+  --panel-border: #3a2258;
+  --panel-head-bg: linear-gradient(180deg, #2c1650, #140828);
+  --panel-head-border: #5fd0d0;
+  --panel-body-bg: #180c2c;
+  --shelf-bg: #180c2c;
+
+  --btn-bg: linear-gradient(180deg, #ffd0f4 0%, #ff8ae2 46%, #e04ec2 50%, #a02890 100%);
+  --btn-border: #6e1662;
+  --btn-text: #2a0824;
+
+  --hero-title-color: #ffe0fa;
+  --hero-tagline-color: #c8e8ff;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+
+  --like-color: #5fe8e8;
+}
+
+/* ---- Custom Background: your own uploaded photo behind frosted glass panels ----
+   --body-bg is overridden per-user via an inline style on <html> (see layout.tsx)
+   when profiles.custom_background_url is set; this block just supplies a
+   glassy, semi-transparent palette so panels/nav read well over any photo. */
+[data-theme="custom"] {
+  --body-bg: linear-gradient(160deg, #1a1a1a 0%, #2c2c2c 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.05);
+
+  --nav-bg: linear-gradient(180deg, rgba(20, 20, 20, 0.55), rgba(10, 10, 10, 0.7));
+  --nav-border: rgba(255, 255, 255, 0.25);
+  --nav-text: #f0f0f0;
+  --nav-active-text: #fff;
+
+  --subnav-bg: linear-gradient(180deg, rgba(30, 30, 30, 0.55), rgba(10, 10, 10, 0.6));
+  --subnav-border: rgba(255, 255, 255, 0.2);
+  --subnav-text: #e4e4e4;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #999 75%);
+  --wordmark-color: #fff;
+
+  --acct-btn-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(220, 220, 220, 0.7));
+  --acct-btn-border: rgba(255, 255, 255, 0.4);
+  --acct-btn-text: #202020;
+  --acct-btn-primary-bg: linear-gradient(180deg, rgba(60, 60, 60, 0.85), rgba(20, 20, 20, 0.85));
+  --acct-btn-primary-border: rgba(255, 255, 255, 0.3);
+
+  --panel-border: rgba(255, 255, 255, 0.18);
+  --panel-head-bg: linear-gradient(180deg, rgba(40, 40, 40, 0.65), rgba(15, 15, 15, 0.65));
+  --panel-head-border: rgba(255, 255, 255, 0.15);
+  --panel-body-bg: rgba(20, 20, 20, 0.55);
+  --shelf-bg: rgba(20, 20, 20, 0.55);
+
+  --btn-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(200, 200, 200, 0.7));
+  --btn-border: rgba(255, 255, 255, 0.4);
+  --btn-text: #1a1a1a;
+
+  --hero-title-color: #fff;
+  --hero-tagline-color: #e0e0e0;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+
+  --like-color: #ff5c7a;
 }

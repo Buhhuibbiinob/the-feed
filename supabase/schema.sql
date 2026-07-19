@@ -25,6 +25,9 @@ alter table public.profiles add column if not exists status_artist text;
 alter table public.profiles add column if not exists status_cover_url text;
 alter table public.profiles add column if not exists status_updated_at timestamptz;
 
+-- Per-user custom site background image, used by the "custom" theme.
+alter table public.profiles add column if not exists custom_background_url text;
+
 -- Grant the site owner admin access. Safe to re-run.
 update public.profiles set is_admin = true
 where id = (select id from auth.users where email = 'amaiyamedley@gmail.com');
