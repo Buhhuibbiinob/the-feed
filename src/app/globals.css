@@ -1326,6 +1326,13 @@ footer .copy {
   color: #777;
   margin-top: 4px;
 }
+.taste-match {
+  font-weight: 700;
+  color: #0f7a3f;
+}
+.profile-head[style*="background-image"] .taste-match {
+  color: #8fe0b1;
+}
 .btn.following {
   background: linear-gradient(180deg, #bfe7cf 0%, #6fbf8f 46%, #4f9f6f 50%, #2f7f4f 100%);
 }

@@ -7,6 +7,7 @@ import { AvatarPicker } from "@/components/AvatarPicker";
 import { ProfileCustomize } from "@/components/ProfileCustomize";
 import { StatusPicker } from "@/components/StatusPicker";
 import { MEDIA_LABELS, MEDIA_TYPES, type MediaType } from "@/lib/media";
+import { computeTasteMatch } from "@/lib/taste";
 
 type ClubMembershipRow = {
   clubs: { id: string; media_type: MediaType; name: string } | null;
@@ -40,6 +41,7 @@ type PostRow = {
   cover_url: string | null;
   spotify_track_id: string | null;
   youtube_video_id: string | null;
+  club_id: string | null;
 };
 
 export default async function ProfilePage({
@@ -81,7 +83,7 @@ export default async function ProfilePage({
     supabase
       .from("posts")
       .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id"
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, club_id"
       )
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
@@ -126,14 +128,39 @@ export default async function ProfilePage({
   const isOwnProfile = user?.id === profile.id;
 
   let isFollowing = false;
+  let tasteMatch: number | null = null;
   if (user && !isOwnProfile) {
-    const { data: followRow } = await supabase
-      .from("follows")
-      .select("follower_id")
-      .eq("follower_id", user.id)
-      .eq("followed_id", profile.id)
-      .maybeSingle();
+    const [{ data: followRow }, { data: myPostRows }, { data: myClubRows }] = await Promise.all([
+      supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("follower_id", user.id)
+        .eq("followed_id", profile.id)
+        .maybeSingle(),
+      supabase.from("posts").select("club_id, rating").eq("user_id", user.id),
+      supabase.from("club_members").select("club_id").eq("user_id", user.id),
+    ]);
     isFollowing = !!followRow;
+
+    const theirRatings = new Map<string, number[]>();
+    for (const post of posts) {
+      if (!post.club_id || post.rating == null) continue;
+      const ratings = theirRatings.get(post.club_id) ?? [];
+      ratings.push(post.rating);
+      theirRatings.set(post.club_id, ratings);
+    }
+    const theirClubIds = new Set(clubs.map((c) => c.id));
+
+    const myRatings = new Map<string, number[]>();
+    for (const post of myPostRows ?? []) {
+      if (!post.club_id || post.rating == null) continue;
+      const ratings = myRatings.get(post.club_id) ?? [];
+      ratings.push(post.rating);
+      myRatings.set(post.club_id, ratings);
+    }
+    const myClubIds = new Set((myClubRows ?? []).map((r) => r.club_id));
+
+    tasteMatch = computeTasteMatch(myRatings, myClubIds, theirRatings, theirClubIds);
   }
 
   return (
@@ -170,6 +197,7 @@ export default async function ProfilePage({
               <span>{posts.length} reviews</span>
               <span>{followerCount ?? 0} followers</span>
               <span>{followingCount ?? 0} following</span>
+              {tasteMatch !== null && <span className="taste-match">{tasteMatch}% taste match</span>}
             </div>
             <div className="profile-actions">
               {isOwnProfile ? (
