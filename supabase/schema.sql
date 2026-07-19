@@ -437,6 +437,72 @@ create policy "Users can leave clubs"
 -- ---------- posts: link to the auto-created fan club for its artist/title ----------
 alter table public.posts add column if not exists club_id uuid references public.clubs (id) on delete set null;
 
+-- ---------- club_events (meetups/watch-parties/listening parties for a club) ----------
+create table if not exists public.club_events (
+  id uuid primary key default gen_random_uuid(),
+  club_id uuid not null references public.clubs (id) on delete cascade,
+  created_by uuid not null references public.profiles (id) on delete cascade,
+  title text not null,
+  description text,
+  location text,
+  event_time timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists club_events_club_id_idx on public.club_events (club_id, event_time);
+
+alter table public.club_events enable row level security;
+
+drop policy if exists "Club events are viewable by everyone" on public.club_events;
+create policy "Club events are viewable by everyone"
+  on public.club_events for select
+  using (true);
+
+drop policy if exists "Club members can create events" on public.club_events;
+create policy "Club members can create events"
+  on public.club_events for insert
+  with check (
+    auth.uid() = created_by
+    and auth.uid() in (select user_id from public.club_members where club_id = club_events.club_id)
+  );
+
+drop policy if exists "Event creators can delete their events" on public.club_events;
+create policy "Event creators can delete their events"
+  on public.club_events for delete
+  using (auth.uid() = created_by);
+
+-- ---------- club_event_rsvps (going / maybe / not going) ----------
+create table if not exists public.club_event_rsvps (
+  event_id uuid not null references public.club_events (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  status text not null check (status in ('going', 'maybe', 'not_going')),
+  responded_at timestamptz not null default now(),
+  primary key (event_id, user_id)
+);
+
+alter table public.club_event_rsvps enable row level security;
+
+drop policy if exists "Event RSVPs are viewable by everyone" on public.club_event_rsvps;
+create policy "Event RSVPs are viewable by everyone"
+  on public.club_event_rsvps for select
+  using (true);
+
+drop policy if exists "Users can set their own RSVP" on public.club_event_rsvps;
+create policy "Users can set their own RSVP"
+  on public.club_event_rsvps for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own RSVP" on public.club_event_rsvps;
+create policy "Users can update their own RSVP"
+  on public.club_event_rsvps for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can remove their own RSVP" on public.club_event_rsvps;
+create policy "Users can remove their own RSVP"
+  on public.club_event_rsvps for delete
+  using (auth.uid() = user_id);
+
 -- ---------- collections (user-curated lists of posts) ----------
 create table if not exists public.collections (
   id uuid primary key default gen_random_uuid(),

@@ -4,8 +4,32 @@ import { createClient } from "@/lib/supabase/server";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 import { joinClub, leaveClub } from "@/app/actions/clubs";
+import { setRsvp, clearRsvp, deleteEvent } from "@/app/actions/events";
+import { CreateEventForm } from "@/components/CreateEventForm";
 
 type ClubRow = { id: string; media_type: MediaType; name: string };
+
+type EventRow = {
+  id: string;
+  club_id: string;
+  created_by: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  event_time: string;
+};
+
+type RsvpRow = {
+  event_id: string;
+  user_id: string;
+  status: "going" | "maybe" | "not_going";
+};
+
+const RSVP_LABELS: Record<RsvpRow["status"], string> = {
+  going: "Going",
+  maybe: "Maybe",
+  not_going: "Can't go",
+};
 
 type PostRow = {
   id: string;
@@ -71,6 +95,33 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
 
   const posts = postRows ?? [];
 
+  // Fetched separately so a not-yet-migrated `club_events` table can't break the rest of the page.
+  const { data: eventRows } = await supabase
+    .from("club_events")
+    .select("id, club_id, created_by, title, description, location, event_time")
+    .eq("club_id", id)
+    .order("event_time", { ascending: true })
+    .returns<EventRow[]>();
+  const events = eventRows ?? [];
+
+  const eventIds = events.map((e) => e.id);
+  const { data: rsvpRows } = eventIds.length
+    ? await supabase
+        .from("club_event_rsvps")
+        .select("event_id, user_id, status")
+        .in("event_id", eventIds)
+        .returns<RsvpRow[]>()
+    : { data: [] as RsvpRow[] };
+
+  const rsvpCounts = new Map<string, Record<RsvpRow["status"], number>>();
+  const myRsvp = new Map<string, RsvpRow["status"]>();
+  for (const rsvp of rsvpRows ?? []) {
+    const counts = rsvpCounts.get(rsvp.event_id) ?? { going: 0, maybe: 0, not_going: 0 };
+    counts[rsvp.status]++;
+    rsvpCounts.set(rsvp.event_id, counts);
+    if (user && rsvp.user_id === user.id) myRsvp.set(rsvp.event_id, rsvp.status);
+  }
+
   const likeCounts = new Map<string, number>();
   const likedByMe = new Set<string>();
   for (const like of likeRows ?? []) {
@@ -122,6 +173,84 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
                 Join Club
               </button>
             </form>
+          )}
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>Events</span>
+          {isMember && <CreateEventForm clubId={club.id} />}
+        </div>
+        <div className="panel-body flush">
+          {events.length === 0 ? (
+            <div className="empty-state" style={{ padding: 16 }}>
+              No upcoming events yet.
+            </div>
+          ) : (
+            events.map((event) => {
+              const counts = rsvpCounts.get(event.id) ?? { going: 0, maybe: 0, not_going: 0 };
+              const mine = myRsvp.get(event.id);
+              return (
+                <div className="event-row" key={event.id}>
+                  <div className="event-row-head">
+                    <span className="event-row-title">{event.title}</span>
+                    <span className="event-row-time">
+                      {new Date(event.event_time).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  {event.location && <div className="event-row-location">📍 {event.location}</div>}
+                  {event.description && <div className="event-row-desc">{event.description}</div>}
+                  <div className="event-rsvp-bar">
+                    {user ? (
+                      (["going", "maybe", "not_going"] as const).map((status) => (
+                        <form action={setRsvp} key={status}>
+                          <input type="hidden" name="event_id" value={event.id} />
+                          <input type="hidden" name="club_id" value={club.id} />
+                          <input type="hidden" name="status" value={status} />
+                          <button
+                            type="submit"
+                            className={`event-rsvp-btn${mine === status ? " active" : ""}`}
+                          >
+                            {RSVP_LABELS[status]}
+                          </button>
+                        </form>
+                      ))
+                    ) : (
+                      <Link href="/sign-in" className="comment-action">
+                        Sign in to RSVP
+                      </Link>
+                    )}
+                    {mine && (
+                      <form action={clearRsvp}>
+                        <input type="hidden" name="event_id" value={event.id} />
+                        <input type="hidden" name="club_id" value={club.id} />
+                        <button type="submit" className="comment-action">
+                          Clear
+                        </button>
+                      </form>
+                    )}
+                    <span className="event-rsvp-count">
+                      {counts.going} going · {counts.maybe} maybe
+                    </span>
+                  </div>
+                  {user?.id === event.created_by && (
+                    <form action={deleteEvent} style={{ marginTop: 6 }}>
+                      <input type="hidden" name="event_id" value={event.id} />
+                      <input type="hidden" name="club_id" value={club.id} />
+                      <button type="submit" className="comment-action danger">
+                        Delete event
+                      </button>
+                    </form>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       </div>
