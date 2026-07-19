@@ -28,6 +28,13 @@ type ChatPreviewRow = {
   profiles: { username: string } | null;
 };
 
+type StatusRow = {
+  username: string;
+  status_media_type: MediaType;
+  status_title: string;
+  status_artist: string | null;
+};
+
 function stars(rating: number | null) {
   if (!rating) return null;
   return "★".repeat(rating) + "☆".repeat(5 - rating);
@@ -80,6 +87,7 @@ export default async function FeedPage({
     { data: likeRows },
     { data: commentRows },
     spotifyNewReleases,
+    { data: statusRows },
   ] = await Promise.all([
     supabase
       .from("posts")
@@ -101,6 +109,14 @@ export default async function FeedPage({
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
     getNewReleases(10),
+    supabase
+      .from("profiles")
+      .select("username, status_media_type, status_title, status_artist")
+      .not("status_media_type", "is", null)
+      .gte("status_updated_at", new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())
+      .order("status_updated_at", { ascending: false })
+      .limit(8)
+      .returns<StatusRow[]>(),
   ]);
 
   let followedIds: Set<string> | null = null;
@@ -302,6 +318,26 @@ export default async function FeedPage({
         </div>
 
         <div className="right-col">
+          {statusRows && statusRows.length > 0 && (
+            <div className="panel">
+              <div className="panel-head">Live Now</div>
+              <div className="side-list">
+                {statusRows.map((row) => (
+                  <div className="row" key={row.username}>
+                    <span className="num">{row.status_media_type === "music" ? "🎧" : "📺"}</span>
+                    <div className="info">
+                      <b>{row.username}</b>
+                      <span>
+                        {row.status_title}
+                        {row.status_artist && <> — {row.status_artist}</>}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="panel">
             <div className="panel-head">Today&apos;s Top Tracks</div>
             <div className="side-list">

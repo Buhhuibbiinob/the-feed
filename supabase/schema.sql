@@ -18,6 +18,13 @@ alter table public.profiles add column if not exists banner_url text;
 alter table public.profiles add column if not exists is_admin boolean not null default false;
 alter table public.profiles add column if not exists banned boolean not null default false;
 
+-- "Currently listening / watching" status, manually set by the user.
+alter table public.profiles add column if not exists status_media_type text check (status_media_type in ('music', 'movie_tv'));
+alter table public.profiles add column if not exists status_title text;
+alter table public.profiles add column if not exists status_artist text;
+alter table public.profiles add column if not exists status_cover_url text;
+alter table public.profiles add column if not exists status_updated_at timestamptz;
+
 -- Grant the site owner admin access. Safe to re-run.
 update public.profiles set is_admin = true
 where id = (select id from auth.users where email = 'amaiyamedley@gmail.com');

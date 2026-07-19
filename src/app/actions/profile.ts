@@ -157,3 +157,60 @@ export async function uploadBanner(
   await revalidateProfile(supabase, user.id);
   return { ok: true };
 }
+
+export async function setStatus(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  const mediaType = String(formData.get("media_type") ?? "");
+  if (mediaType !== "music" && mediaType !== "movie_tv") {
+    return { error: "Invalid media type." };
+  }
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) return { error: "Title is required." };
+  const artist = String(formData.get("artist") ?? "").trim() || null;
+  const coverUrl = String(formData.get("cover_url") ?? "").trim() || null;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      status_media_type: mediaType,
+      status_title: title,
+      status_artist: artist,
+      status_cover_url: coverUrl,
+      status_updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+
+  await revalidateProfile(supabase, user.id);
+  return { ok: true };
+}
+
+export async function clearStatus(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("profiles")
+    .update({
+      status_media_type: null,
+      status_title: null,
+      status_artist: null,
+      status_cover_url: null,
+      status_updated_at: null,
+    })
+    .eq("id", user.id);
+
+  await revalidateProfile(supabase, user.id);
+}

@@ -5,6 +5,7 @@ import { PostCard } from "@/components/PostCard";
 import { FollowButton } from "@/components/FollowButton";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { ProfileCustomize } from "@/components/ProfileCustomize";
+import { StatusPicker } from "@/components/StatusPicker";
 import { MEDIA_LABELS, MEDIA_TYPES, type MediaType } from "@/lib/media";
 
 type ClubMembershipRow = {
@@ -18,6 +19,13 @@ type ProfileRow = {
   bio: string | null;
   banner_url: string | null;
   created_at: string;
+};
+
+type StatusRow = {
+  status_media_type: MediaType | null;
+  status_title: string | null;
+  status_artist: string | null;
+  status_cover_url: string | null;
 };
 
 type PostRow = {
@@ -53,6 +61,14 @@ export default async function ProfilePage({
 
   const profile = profileData as ProfileRow | null;
   if (!profile) notFound();
+
+  // Fetched separately so a not-yet-migrated `status_*` column can't 404 the whole profile.
+  const { data: statusData } = await supabase
+    .from("profiles")
+    .select("status_media_type, status_title, status_artist, status_cover_url")
+    .eq("id", profile.id)
+    .maybeSingle();
+  const status = statusData as StatusRow | null;
 
   const [
     { data: postRows },
@@ -143,6 +159,13 @@ export default async function ProfilePage({
           <div className="profile-info">
             <div className="profile-username">{profile.username}</div>
             {profile.bio && <div className="profile-bio">{profile.bio}</div>}
+            {status?.status_media_type && (
+              <div className="profile-status">
+                {status.status_media_type === "music" ? "🎧 Listening to " : "📺 Watching "}
+                <b>{status.status_title}</b>
+                {status.status_artist && <> — {status.status_artist}</>}
+              </div>
+            )}
             <div className="profile-counts">
               <span>{posts.length} reviews</span>
               <span>{followerCount ?? 0} followers</span>
@@ -153,6 +176,7 @@ export default async function ProfilePage({
                 <>
                   <AvatarPicker />
                   <ProfileCustomize bio={profile.bio} />
+                  <StatusPicker hasStatus={!!status?.status_media_type} />
                 </>
               ) : user ? (
                 <FollowButton
