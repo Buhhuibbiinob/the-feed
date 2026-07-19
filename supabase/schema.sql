@@ -429,3 +429,63 @@ create policy "Users can leave clubs"
 
 -- ---------- posts: link to the auto-created fan club for its artist/title ----------
 alter table public.posts add column if not exists club_id uuid references public.clubs (id) on delete set null;
+
+-- ---------- collections (user-curated lists of posts) ----------
+create table if not exists public.collections (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  name text not null,
+  description text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.collections enable row level security;
+
+drop policy if exists "Collections are viewable by everyone" on public.collections;
+create policy "Collections are viewable by everyone"
+  on public.collections for select
+  using (true);
+
+drop policy if exists "Users can create their own collections" on public.collections;
+create policy "Users can create their own collections"
+  on public.collections for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own collections" on public.collections;
+create policy "Users can update their own collections"
+  on public.collections for update
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own collections" on public.collections;
+create policy "Users can delete their own collections"
+  on public.collections for delete
+  using (auth.uid() = user_id);
+
+-- ---------- collection_posts (posts saved into a collection) ----------
+create table if not exists public.collection_posts (
+  collection_id uuid not null references public.collections (id) on delete cascade,
+  post_id uuid not null references public.posts (id) on delete cascade,
+  added_at timestamptz not null default now(),
+  primary key (collection_id, post_id)
+);
+
+alter table public.collection_posts enable row level security;
+
+drop policy if exists "Collection posts are viewable by everyone" on public.collection_posts;
+create policy "Collection posts are viewable by everyone"
+  on public.collection_posts for select
+  using (true);
+
+drop policy if exists "Users can add posts to their own collections" on public.collection_posts;
+create policy "Users can add posts to their own collections"
+  on public.collection_posts for insert
+  with check (
+    auth.uid() in (select user_id from public.collections where id = collection_id)
+  );
+
+drop policy if exists "Users can remove posts from their own collections" on public.collection_posts;
+create policy "Users can remove posts from their own collections"
+  on public.collection_posts for delete
+  using (
+    auth.uid() in (select user_id from public.collections where id = collection_id)
+  );

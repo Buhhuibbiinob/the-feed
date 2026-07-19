@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { updatePost, deletePost, type PostFormState } from "@/app/actions/posts";
 import { LikeButton } from "@/components/LikeButton";
+import { AddToCollectionButton } from "@/components/AddToCollectionButton";
 import { PreviewPlayer } from "@/components/PreviewPlayer";
 import { SpoilerText } from "@/components/SpoilerText";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
@@ -126,6 +127,12 @@ export function PostCard({
             {post.username}
           </Link>{" "}
           · {timeAgo(post.createdAt)}
+          {currentUserId && (
+            <>
+              {" "}
+              · <AddToCollectionButton postId={post.id} />
+            </>
+          )}
           {isOwner && (
             <>
               {" "}

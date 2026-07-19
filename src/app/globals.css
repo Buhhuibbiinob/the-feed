@@ -549,6 +549,10 @@ a:hover {
 .track-search {
   position: relative;
 }
+.add-to-collection {
+  position: relative;
+  display: inline-block;
+}
 .track-results {
   position: absolute;
   z-index: 5;
