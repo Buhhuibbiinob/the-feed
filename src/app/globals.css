@@ -937,6 +937,22 @@ a:hover {
   line-height: 1.5;
   white-space: pre-wrap;
 }
+.spoiler {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0 2px;
+  background: var(--text, #333);
+  color: transparent;
+  text-shadow: none;
+  transition: background 0.15s ease;
+  user-select: none;
+}
+.spoiler.revealed {
+  background: rgba(127, 127, 127, 0.18);
+  color: inherit;
+  cursor: text;
+  user-select: text;
+}
 .comment-meta {
   color: #999;
   font-size: 10.5px;
@@ -1002,6 +1018,10 @@ a:hover {
   font-size: 11px;
   font-weight: 700;
   color: #444;
+}
+.field-hint {
+  font-size: 10.5px;
+  color: #888;
 }
 .field input,
 .field select,

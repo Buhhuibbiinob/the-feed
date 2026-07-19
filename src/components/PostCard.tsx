@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import { updatePost, deletePost, type PostFormState } from "@/app/actions/posts";
 import { LikeButton } from "@/components/LikeButton";
 import { PreviewPlayer } from "@/components/PreviewPlayer";
+import { SpoilerText } from "@/components/SpoilerText";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 
 export type PostCardData = {
@@ -119,7 +120,7 @@ export function PostCard({
         />
       )}
       <div className="post-card-body">
-        {post.body}
+        <SpoilerText text={post.body} />
         <div className="post-meta">
           <Link href={`/profile/${post.username}`} className="comment-action">
             {post.username}

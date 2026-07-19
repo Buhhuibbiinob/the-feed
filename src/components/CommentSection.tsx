@@ -7,6 +7,7 @@ import {
   deleteComment,
   type CommentFormState,
 } from "@/app/actions/comments";
+import { SpoilerText } from "@/components/SpoilerText";
 
 export type CommentData = {
   id: string;
@@ -120,7 +121,9 @@ function CommentItem({
         <EditForm comment={comment} onDone={() => setEditing(false)} />
       ) : (
         <>
-          <div className="comment-body">{comment.body}</div>
+          <div className="comment-body">
+            <SpoilerText text={comment.body} />
+          </div>
           <div className="comment-meta">
             <b>{comment.username}</b> · {timeAgo(comment.createdAt)}
             {edited && <> · edited</>}
