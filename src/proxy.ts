@@ -26,7 +26,22 @@ export async function proxy(request: NextRequest) {
   );
 
   // Refreshes the auth session cookie if it's expired.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user && !request.nextUrl.pathname.startsWith("/banned")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("banned")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.banned) {
+      await supabase.auth.signOut();
+      return NextResponse.redirect(new URL("/banned", request.url));
+    }
+  }
 
   return supabaseResponse;
 }

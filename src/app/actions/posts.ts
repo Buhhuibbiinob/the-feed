@@ -2,13 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { MEDIA_TYPES, type MediaType } from "@/lib/media";
+import { findOrCreateClub } from "@/lib/clubs";
 
 export type PostFormState = {
   error?: string;
   ok?: boolean;
 };
-
-const MEDIA_TYPES = ["music", "movie", "tv"] as const;
 
 export async function createPost(
   _prevState: PostFormState,
@@ -43,6 +43,11 @@ export async function createPost(
     return { error: "Rating must be between 1 and 5." };
   }
 
+  const clubName = mediaType === "music" ? artist : title;
+  const clubId = clubName
+    ? await findOrCreateClub(supabase, mediaType as MediaType, clubName)
+    : null;
+
   const { error } = await supabase.from("posts").insert({
     user_id: user.id,
     media_type: mediaType,
@@ -53,6 +58,7 @@ export async function createPost(
     cover_url: coverUrl || null,
     spotify_track_id: spotifyTrackId || null,
     youtube_video_id: youtubeVideoId || null,
+    club_id: clubId,
   });
 
   if (error) {
@@ -60,6 +66,7 @@ export async function createPost(
   }
 
   revalidatePath("/");
+  revalidatePath("/clubs");
   return { ok: true };
 }
 

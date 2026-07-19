@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
+import { isAdmin } from "@/lib/admin";
 
 export const metadata: Metadata = {
   title: "the feed",
@@ -22,6 +23,7 @@ export default async function RootLayout({
 
   let username: string | null = null;
   let theme = DEFAULT_THEME;
+  let admin = false;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -30,12 +32,13 @@ export default async function RootLayout({
       .single();
     username = profile?.username ?? null;
     if (isValidTheme(profile?.theme)) theme = profile.theme;
+    admin = await isAdmin(supabase, user.id);
   }
 
   return (
     <html lang="en" data-theme={theme}>
       <body>
-        <SiteHeader username={username} />
+        <SiteHeader username={username} isAdmin={admin} />
         <div className="wrap">{children}</div>
         <SiteFooter />
       </body>

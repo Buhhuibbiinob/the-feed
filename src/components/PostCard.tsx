@@ -4,16 +4,20 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { updatePost, deletePost, type PostFormState } from "@/app/actions/posts";
 import { LikeButton } from "@/components/LikeButton";
+import { PreviewPlayer } from "@/components/PreviewPlayer";
+import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 
 export type PostCardData = {
   id: string;
-  mediaType: "music" | "movie" | "tv";
+  mediaType: MediaType;
   title: string;
   body: string;
   rating: number | null;
   createdAt: string;
   artist: string | null;
   coverUrl: string | null;
+  spotifyTrackId: string | null;
+  youtubeVideoId: string | null;
   username: string;
   userId: string;
 };
@@ -100,13 +104,20 @@ export function PostCard({
     <div className="post-card">
       <div className="post-card-head">
         {post.coverUrl && <img src={post.coverUrl} alt="" className="cover-thumb" />}
-        <span className={`badge ${post.mediaType}`}>{post.mediaType}</span>
+        <span className={`badge ${post.mediaType}`}>{MEDIA_LABELS[post.mediaType]}</span>
         <span className="title">
           {post.title}
           {post.artist && <> — {post.artist}</>}
         </span>
         {post.rating && <span className="stars">{stars(post.rating)}</span>}
       </div>
+      {(post.spotifyTrackId || post.youtubeVideoId) && (
+        <PreviewPlayer
+          spotifyTrackId={post.spotifyTrackId}
+          youtubeVideoId={post.youtubeVideoId}
+          label={post.title}
+        />
+      )}
       <div className="post-card-body">
         {post.body}
         <div className="post-meta">

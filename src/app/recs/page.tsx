@@ -1,17 +1,21 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard, type PostCardData } from "@/components/PostCard";
+import { OrbyBot, type OrbyCandidate } from "@/components/OrbyBot";
+import type { MediaType } from "@/lib/media";
 
 type PostRow = {
   id: string;
   user_id: string;
-  media_type: "music" | "movie" | "tv";
+  media_type: MediaType;
   title: string;
   body: string;
   rating: number | null;
   created_at: string;
   artist: string | null;
   cover_url: string | null;
+  spotify_track_id: string | null;
+  youtube_video_id: string | null;
   profiles: { username: string } | null;
 };
 
@@ -28,6 +32,8 @@ function toCardData(post: PostRow): PostCardData {
     createdAt: post.created_at,
     artist: post.artist,
     coverUrl: post.cover_url,
+    spotifyTrackId: post.spotify_track_id,
+    youtubeVideoId: post.youtube_video_id,
     username: post.profiles?.username ?? "unknown",
   };
 }
@@ -42,7 +48,7 @@ export default async function RecsPage() {
     supabase
       .from("posts")
       .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, profiles!posts_user_id_fkey(username)"
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username)"
       )
       .order("created_at", { ascending: false })
       .limit(200)
@@ -102,8 +108,27 @@ export default async function RecsPage() {
       .slice(0, 10);
   }
 
+  const orbySeen = new Set<string>();
+  const orbyCandidates: OrbyCandidate[] = [...forYou, ...trending, ...allPosts.filter((p) => (p.rating ?? 0) >= 4)]
+    .filter((p) => {
+      if (orbySeen.has(p.id)) return false;
+      orbySeen.add(p.id);
+      return true;
+    })
+    .map((p) => ({
+      id: p.id,
+      title: p.title,
+      artist: p.artist,
+      mediaType: p.media_type,
+      username: p.profiles?.username ?? "unknown",
+      rating: p.rating,
+    }))
+    .slice(0, 30);
+
   return (
     <>
+      <OrbyBot candidates={orbyCandidates} />
+
       <div className="panel">
         <div className="panel-head">For You</div>
         <div className="panel-body flush">

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ChatRoom, type ChatMessage } from "@/components/ChatRoom";
+import { isAdmin } from "@/lib/admin";
 
 type ChatMessageRow = {
   id: string;
@@ -31,13 +32,16 @@ export default async function ChatPage() {
   }));
 
   let username: string | null = null;
+  let blockedIds: string[] = [];
+  let admin = false;
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("username")
-      .eq("id", user.id)
-      .single();
+    const [{ data: profile }, { data: blockRows }] = await Promise.all([
+      supabase.from("profiles").select("username").eq("id", user.id).single(),
+      supabase.from("blocked_users").select("blocked_id").eq("blocker_id", user.id),
+    ]);
     username = profile?.username ?? null;
+    blockedIds = (blockRows ?? []).map((r) => r.blocked_id);
+    admin = await isAdmin(supabase, user.id);
   }
 
   return (
@@ -50,6 +54,8 @@ export default async function ChatPage() {
         initialMessages={messages}
         userId={user?.id ?? null}
         username={username}
+        blockedIds={blockedIds}
+        isAdmin={admin}
       />
     </>
   );

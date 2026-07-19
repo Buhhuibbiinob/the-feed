@@ -69,15 +69,11 @@ export default async function SettingsPage() {
               </button>
             </form>
           ) : (
-            <a
-              href="/api/spotify/connect"
-              className="connect-btn live"
-              style={{ background: "linear-gradient(160deg, #3ee08a, #0f7a3f)" }}
-            >
+            <div className="connect-btn" style={{ background: "linear-gradient(160deg, #3ee08a, #0f7a3f)" }}>
               <span className="mark" />
               <span>Spotify</span>
-              <span className="soon">Connect</span>
-            </a>
+              <span className="soon">Coming soon</span>
+            </div>
           )}
           <div className="connect-btn" style={{ background: "linear-gradient(160deg, #01b4e4, #0d253f)" }}>
             <span className="mark" />

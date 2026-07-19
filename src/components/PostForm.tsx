@@ -4,15 +4,17 @@ import { useActionState, useEffect, useState } from "react";
 import { createPost, type PostFormState } from "@/app/actions/posts";
 import type { SpotifyTrack } from "@/lib/spotify";
 import type { YoutubeVideo } from "@/lib/youtube";
+import { MEDIA_LABELS } from "@/lib/media";
 
 const initialState: PostFormState = {};
 
-export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
+export function PostForm() {
   const [state, formAction, pending] = useActionState(createPost, initialState);
   const [formKey, setFormKey] = useState(0);
   const [lastOk, setLastOk] = useState(state.ok);
 
   const [mediaType, setMediaType] = useState("music");
+  const [musicSource, setMusicSource] = useState<"spotify" | "youtube">("spotify");
   const [title, setTitle] = useState("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SpotifyTrack[]>([]);
@@ -24,11 +26,15 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
   const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
   const [videoSearching, setVideoSearching] = useState(false);
 
+  const wantsYoutube = mediaType !== "music" || musicSource === "youtube";
+  const wantsSpotify = mediaType === "music" && musicSource === "spotify";
+
   if (state.ok !== lastOk) {
     setLastOk(state.ok);
     if (state.ok) {
       setFormKey((k) => k + 1);
       setMediaType("music");
+      setMusicSource("spotify");
       setTitle("");
       setQuery("");
       setResults([]);
@@ -41,7 +47,7 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
   }
 
   useEffect(() => {
-    if (mediaType !== "music" || !spotifyConnected || !query.trim()) {
+    if (!wantsSpotify || !query.trim()) {
       return;
     }
     let cancelled = false;
@@ -58,7 +64,7 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [query, mediaType, spotifyConnected]);
+  }, [query, wantsSpotify]);
 
   function selectTrack(track: SpotifyTrack) {
     setSelected(track);
@@ -72,7 +78,7 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
   }
 
   useEffect(() => {
-    if (mediaType === "music" || !videoQuery.trim()) {
+    if (!wantsYoutube || !videoQuery.trim()) {
       return;
     }
     let cancelled = false;
@@ -89,7 +95,7 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [videoQuery, mediaType]);
+  }, [videoQuery, wantsYoutube]);
 
   function selectVideo(video: YoutubeVideo) {
     setSelectedVideo(video);
@@ -118,16 +124,51 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
                 setMediaType(e.target.value);
                 setQuery("");
                 setResults([]);
+                setSelected(null);
+                setVideoQuery("");
+                setVideoResults([]);
+                setSelectedVideo(null);
               }}
               required
             >
-              <option value="music">Music</option>
-              <option value="movie">Movie</option>
-              <option value="tv">TV</option>
+              <option value="music">{MEDIA_LABELS.music}</option>
+              <option value="movie_tv">{MEDIA_LABELS.movie_tv}</option>
             </select>
           </div>
 
-          {mediaType === "music" && spotifyConnected && (
+          {mediaType === "music" && (
+            <div className="field">
+              <label>Find it on</label>
+              <div className="source-toggle">
+                <button
+                  type="button"
+                  className={musicSource === "spotify" ? "active" : ""}
+                  onClick={() => {
+                    setMusicSource("spotify");
+                    setSelectedVideo(null);
+                    setVideoQuery("");
+                    setVideoResults([]);
+                  }}
+                >
+                  Spotify
+                </button>
+                <button
+                  type="button"
+                  className={musicSource === "youtube" ? "active" : ""}
+                  onClick={() => {
+                    setMusicSource("youtube");
+                    setSelected(null);
+                    setQuery("");
+                    setResults([]);
+                  }}
+                >
+                  YouTube
+                </button>
+              </div>
+            </div>
+          )}
+
+          {wantsSpotify && (
             <div className="field">
               <label htmlFor="track-search">Find a track on Spotify</label>
               {selected ? (
@@ -188,9 +229,11 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
             </div>
           )}
 
-          {mediaType !== "music" && (
+          {wantsYoutube && (
             <div className="field">
-              <label htmlFor="video-search">Find it on YouTube</label>
+              <label htmlFor="video-search">
+                {mediaType === "music" ? "Find a track on YouTube" : "Find it on YouTube"}
+              </label>
               {selectedVideo ? (
                 <div className="track-selected">
                   {selectedVideo.thumbnailUrl && <img src={selectedVideo.thumbnailUrl} alt="" />}
@@ -207,7 +250,9 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
                   <input
                     id="video-search"
                     type="text"
-                    placeholder="Search movie or show title…"
+                    placeholder={
+                      mediaType === "music" ? "Search song or artist…" : "Search movie or show title…"
+                    }
                     value={videoQuery}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -245,9 +290,9 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
             </div>
           )}
 
-          {mediaType !== "music" && !selectedVideo && (
+          {!selected && !selectedVideo && (
             <div className="field">
-              <label htmlFor="poster-url">Or paste a poster image URL</label>
+              <label htmlFor="poster-url">Or paste a cover image URL</label>
               <input
                 id="poster-url"
                 type="url"
@@ -263,15 +308,21 @@ export function PostForm({ spotifyConnected }: { spotifyConnected: boolean }) {
             </div>
           )}
 
-          <input type="hidden" name="artist" value={selected?.artist ?? ""} />
+          <input
+            type="hidden"
+            name="artist"
+            value={
+              wantsSpotify
+                ? selected?.artist ?? ""
+                : mediaType === "music"
+                ? selectedVideo?.channelTitle ?? ""
+                : ""
+            }
+          />
           <input
             type="hidden"
             name="cover_url"
-            value={
-              mediaType === "music"
-                ? selected?.imageUrl ?? ""
-                : selectedVideo?.thumbnailUrl ?? posterUrl
-            }
+            value={selected?.imageUrl ?? selectedVideo?.thumbnailUrl ?? posterUrl}
           />
           <input type="hidden" name="youtube_video_id" value={selectedVideo?.id ?? ""} />
           <input type="hidden" name="spotify_track_id" value={selected?.id ?? ""} />

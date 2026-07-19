@@ -4,17 +4,20 @@ import { PostForm } from "@/components/PostForm";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
 import { getTopTracks, getValidAccessToken, getNewReleases } from "@/lib/spotify";
+import type { MediaType } from "@/lib/media";
 
 type PostRow = {
   id: string;
   user_id: string;
-  media_type: "music" | "movie" | "tv";
+  media_type: MediaType;
   title: string;
   body: string;
   rating: number | null;
   created_at: string;
   artist: string | null;
   cover_url: string | null;
+  spotify_track_id: string | null;
+  youtube_video_id: string | null;
   profiles: { username: string } | null;
 };
 
@@ -53,8 +56,7 @@ function topByRating(posts: PostRow[], mediaType: PostRow["media_type"]) {
 
 const bannerCopy: Record<PostRow["media_type"], { eyebrow: string; empty: string }> = {
   music: { eyebrow: "Album of the Week", empty: "No music reviews yet" },
-  tv: { eyebrow: "New TV Season", empty: "No TV reviews yet" },
-  movie: { eyebrow: "Editor's Pick", empty: "No movie reviews yet" },
+  movie_tv: { eyebrow: "Editor's Pick", empty: "No movie or TV reviews yet" },
 };
 
 export default async function FeedPage({
@@ -82,7 +84,7 @@ export default async function FeedPage({
     supabase
       .from("posts")
       .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, profiles!posts_user_id_fkey(username)"
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username)"
       )
       .order("created_at", { ascending: false })
       .limit(50)
@@ -176,7 +178,7 @@ export default async function FeedPage({
   }));
 
   const nowWatching: ShelfItem[] = allPosts
-    .filter((p) => p.media_type === "movie" || p.media_type === "tv")
+    .filter((p) => p.media_type === "movie_tv")
     .slice(0, 10)
     .map((p) => ({
       id: p.id,
@@ -186,7 +188,7 @@ export default async function FeedPage({
       imageUrl: p.cover_url ?? undefined,
     }));
 
-  const banners = (["music", "tv", "movie"] as const).map((mediaType) => {
+  const banners = (["music", "movie_tv"] as const).map((mediaType) => {
     const top = topByRating(allPosts, mediaType);
     return { mediaType, top, ...bannerCopy[mediaType] };
   });
@@ -203,9 +205,7 @@ export default async function FeedPage({
           const brandGradient =
             mediaType === "music"
               ? "linear-gradient(160deg, #3ee08a, #0f7a3f)"
-              : mediaType === "movie"
-              ? "linear-gradient(160deg, #ff5f8a, #a8123f)"
-              : "linear-gradient(160deg, #5fc9ff, #0d3b7a)";
+              : "linear-gradient(160deg, #ff5f8a, #a8123f)";
           return (
             <div
               className="feature-banner"
@@ -238,7 +238,7 @@ export default async function FeedPage({
       <div className="content-grid">
         <div className="left-col">
           {user ? (
-            <PostForm spotifyConnected={spotifyConnected} />
+            <PostForm />
           ) : (
             <div className="panel">
               <div className="panel-head">Join the conversation</div>
@@ -286,6 +286,8 @@ export default async function FeedPage({
                       createdAt: post.created_at,
                       artist: post.artist,
                       coverUrl: post.cover_url,
+                      spotifyTrackId: post.spotify_track_id,
+                      youtubeVideoId: post.youtube_video_id,
                       username: post.profiles?.username ?? "unknown",
                     }}
                     currentUserId={user?.id ?? null}

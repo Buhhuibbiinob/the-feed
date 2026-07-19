@@ -15,6 +15,12 @@ alter table public.profiles add column if not exists theme text not null default
 alter table public.profiles alter column theme set default 'ios-light';
 alter table public.profiles add column if not exists bio text;
 alter table public.profiles add column if not exists banner_url text;
+alter table public.profiles add column if not exists is_admin boolean not null default false;
+alter table public.profiles add column if not exists banned boolean not null default false;
+
+-- Grant the site owner admin access. Safe to re-run.
+update public.profiles set is_admin = true
+where id = (select id from auth.users where email = 'amaiyamedley@gmail.com');
 
 alter table public.profiles enable row level security;
 
@@ -115,12 +121,73 @@ create policy "Users can insert their own chat messages"
   on public.chat_messages for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can delete their own chat messages" on public.chat_messages;
+create policy "Users can delete their own chat messages"
+  on public.chat_messages for delete
+  using (auth.uid() = user_id);
+
+drop policy if exists "Admins can delete any chat message" on public.chat_messages;
+create policy "Admins can delete any chat message"
+  on public.chat_messages for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
 -- Turn on Realtime so new chat messages push to connected clients.
 do $$ begin
   alter publication supabase_realtime add table public.chat_messages;
 exception
   when duplicate_object then null;
 end $$;
+
+-- ---------- message_reports (chat moderation) ----------
+create table if not exists public.message_reports (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references public.chat_messages (id) on delete cascade,
+  reporter_id uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+alter table public.message_reports enable row level security;
+
+drop policy if exists "Users can insert their own reports" on public.message_reports;
+create policy "Users can insert their own reports"
+  on public.message_reports for insert
+  with check (auth.uid() = reporter_id);
+
+drop policy if exists "Admins can view reports" on public.message_reports;
+create policy "Admins can view reports"
+  on public.message_reports for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete reports" on public.message_reports;
+create policy "Admins can delete reports"
+  on public.message_reports for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- blocked_users (chat moderation) ----------
+create table if not exists public.blocked_users (
+  blocker_id uuid not null references public.profiles (id) on delete cascade,
+  blocked_id uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (blocker_id, blocked_id),
+  check (blocker_id <> blocked_id)
+);
+
+alter table public.blocked_users enable row level security;
+
+drop policy if exists "Users can view their own blocks" on public.blocked_users;
+create policy "Users can view their own blocks"
+  on public.blocked_users for select
+  using (auth.uid() = blocker_id);
+
+drop policy if exists "Users can insert their own blocks" on public.blocked_users;
+create policy "Users can insert their own blocks"
+  on public.blocked_users for insert
+  with check (auth.uid() = blocker_id);
+
+drop policy if exists "Users can delete their own blocks" on public.blocked_users;
+create policy "Users can delete their own blocks"
+  on public.blocked_users for delete
+  using (auth.uid() = blocker_id);
 
 -- ---------- posts: optional Spotify track metadata ----------
 alter table public.posts add column if not exists artist text;
@@ -161,6 +228,15 @@ create policy "Users can delete their own spotify account"
 
 -- ---------- posts: optional YouTube video reference ----------
 alter table public.posts add column if not exists youtube_video_id text;
+
+-- ---------- posts: consolidate "movie" and "tv" into a single "movie_tv" category ----------
+-- Switch media_type from an enum to plain text with a check constraint, since
+-- Postgres enums can't merge two values into one without recreating the type.
+alter table public.posts alter column media_type type text using media_type::text;
+update public.posts set media_type = 'movie_tv' where media_type in ('movie', 'tv');
+alter table public.posts drop constraint if exists posts_media_type_check;
+alter table public.posts add constraint posts_media_type_check check (media_type in ('music', 'movie_tv'));
+drop type if exists media_type;
 
 -- ---------- youtube_accounts (OAuth tokens) ----------
 create table if not exists public.youtube_accounts (
@@ -302,3 +378,54 @@ drop policy if exists "Users can delete their own avatar" on storage.objects;
 create policy "Users can delete their own avatar"
   on storage.objects for delete
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ---------- clubs (fan clubs for artists, bands, movies, shows) ----------
+create table if not exists public.clubs (
+  id uuid primary key default gen_random_uuid(),
+  media_type text not null check (media_type in ('music', 'movie_tv')),
+  name text not null,
+  slug text not null,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists clubs_media_type_slug_idx on public.clubs (media_type, slug);
+
+alter table public.clubs enable row level security;
+
+drop policy if exists "Clubs are viewable by everyone" on public.clubs;
+create policy "Clubs are viewable by everyone"
+  on public.clubs for select
+  using (true);
+
+drop policy if exists "Signed-in users can create clubs" on public.clubs;
+create policy "Signed-in users can create clubs"
+  on public.clubs for insert
+  with check (auth.uid() is not null);
+
+-- ---------- club_members (join/leave a fan club) ----------
+create table if not exists public.club_members (
+  club_id uuid not null references public.clubs (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  joined_at timestamptz not null default now(),
+  primary key (club_id, user_id)
+);
+
+alter table public.club_members enable row level security;
+
+drop policy if exists "Club members are viewable by everyone" on public.club_members;
+create policy "Club members are viewable by everyone"
+  on public.club_members for select
+  using (true);
+
+drop policy if exists "Users can join clubs" on public.club_members;
+create policy "Users can join clubs"
+  on public.club_members for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can leave clubs" on public.club_members;
+create policy "Users can leave clubs"
+  on public.club_members for delete
+  using (auth.uid() = user_id);
+
+-- ---------- posts: link to the auto-created fan club for its artist/title ----------
+alter table public.posts add column if not exists club_id uuid references public.clubs (id) on delete set null;

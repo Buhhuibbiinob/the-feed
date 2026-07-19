@@ -1,9 +1,15 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/PostCard";
 import { FollowButton } from "@/components/FollowButton";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { ProfileCustomize } from "@/components/ProfileCustomize";
+import { MEDIA_LABELS, MEDIA_TYPES, type MediaType } from "@/lib/media";
+
+type ClubMembershipRow = {
+  clubs: { id: string; media_type: MediaType; name: string } | null;
+};
 
 type ProfileRow = {
   id: string;
@@ -17,19 +23,15 @@ type ProfileRow = {
 type PostRow = {
   id: string;
   user_id: string;
-  media_type: "music" | "movie" | "tv";
+  media_type: MediaType;
   title: string;
   body: string;
   rating: number | null;
   created_at: string;
   artist: string | null;
   cover_url: string | null;
-};
-
-const MEDIA_LABELS: Record<PostRow["media_type"], string> = {
-  music: "Music",
-  movie: "Movies",
-  tv: "TV",
+  spotify_track_id: string | null;
+  youtube_video_id: string | null;
 };
 
 export default async function ProfilePage({
@@ -58,10 +60,13 @@ export default async function ProfilePage({
     { count: followingCount },
     { data: likeRows },
     { data: commentRows },
+    { data: clubMembershipRows },
   ] = await Promise.all([
     supabase
       .from("posts")
-      .select("id, user_id, media_type, title, body, rating, created_at, artist, cover_url")
+      .select(
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id"
+      )
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
       .returns<PostRow[]>(),
@@ -75,9 +80,17 @@ export default async function ProfilePage({
       .eq("follower_id", profile.id),
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
+    supabase
+      .from("club_members")
+      .select("clubs(id, media_type, name)")
+      .eq("user_id", profile.id)
+      .returns<ClubMembershipRow[]>(),
   ]);
 
   const posts = postRows ?? [];
+  const clubs = (clubMembershipRows ?? [])
+    .map((row) => row.clubs)
+    .filter((club): club is NonNullable<ClubMembershipRow["clubs"]> => club !== null);
 
   const likeCounts = new Map<string, number>();
   const likedByMe = new Set<string>();
@@ -91,7 +104,7 @@ export default async function ProfilePage({
     commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1);
   }
 
-  const breakdown: Record<PostRow["media_type"], number> = { music: 0, movie: 0, tv: 0 };
+  const breakdown: Record<MediaType, number> = { music: 0, movie_tv: 0 };
   for (const post of posts) breakdown[post.media_type]++;
 
   const isOwnProfile = user?.id === profile.id;
@@ -156,13 +169,27 @@ export default async function ProfilePage({
       <div className="panel">
         <div className="panel-head">Stats</div>
         <div className="stats-body">
-          {(Object.keys(MEDIA_LABELS) as PostRow["media_type"][]).map((mt) => (
+          {MEDIA_TYPES.map((mt) => (
             <div key={mt}>
               {breakdown[mt]} {MEDIA_LABELS[mt]} review{breakdown[mt] === 1 ? "" : "s"}
             </div>
           ))}
         </div>
       </div>
+
+      {clubs.length > 0 && (
+        <div className="panel">
+          <div className="panel-head">Clubs</div>
+          <div className="panel-body flush">
+            {clubs.map((club) => (
+              <Link href={`/clubs/${club.id}`} className="club-row" key={club.id}>
+                <span className={`badge ${club.media_type}`}>{MEDIA_LABELS[club.media_type]}</span>
+                <span className="club-row-name">{club.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-head">Reviews</div>
@@ -185,6 +212,8 @@ export default async function ProfilePage({
                   createdAt: post.created_at,
                   artist: post.artist,
                   coverUrl: post.cover_url,
+                  spotifyTrackId: post.spotify_track_id,
+                  youtubeVideoId: post.youtube_video_id,
                   username: profile.username,
                 }}
                 currentUserId={user?.id ?? null}

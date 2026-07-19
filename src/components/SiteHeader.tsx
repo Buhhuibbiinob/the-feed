@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
 
-export function SiteHeader({ username }: { username: string | null }) {
+export function SiteHeader({ username, isAdmin = false }: { username: string | null; isAdmin?: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -35,12 +35,20 @@ export function SiteHeader({ username }: { username: string | null }) {
         <Link href="/wrapped" className={pathname === "/wrapped" ? "active" : ""}>
           Wrapped
         </Link>
+        <Link href="/clubs" className={pathname.startsWith("/clubs") ? "active" : ""}>
+          Clubs
+        </Link>
         <div className="nav-account">
           {username ? (
             <>
               <Link href={`/profile/${username}`} className="nav-user">
                 Hi, {username}
               </Link>
+              {isAdmin && (
+                <Link href="/admin" className="acct-btn">
+                  <span>Admin</span>
+                </Link>
+              )}
               <Link href="/settings" className="acct-btn">
                 <span>Settings</span>
               </Link>

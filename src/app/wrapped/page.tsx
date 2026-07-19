@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { coverGradient } from "@/lib/cover";
+import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 
 type PostRow = {
   id: string;
-  media_type: "music" | "movie" | "tv";
+  media_type: MediaType;
   title: string;
   artist: string | null;
   cover_url: string | null;
@@ -115,7 +116,7 @@ export default async function WrappedPage() {
               </div>
               {favoriteType && (
                 <div className="wrapped-stat">
-                  <div className="wrapped-num wrapped-cap">{favoriteType[0]}</div>
+                  <div className="wrapped-num wrapped-cap">{MEDIA_LABELS[favoriteType[0] as MediaType]}</div>
                   <div className="wrapped-label">favorite category · {favoriteType[1]} reviews</div>
                 </div>
               )}
