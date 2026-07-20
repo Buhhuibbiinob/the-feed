@@ -1408,6 +1408,12 @@ footer .copy {
   background-size: cover;
   background-position: center;
 }
+/* When a banner image is set on the profile head, the inner panel-body's
+   own opaque background would paint right over it — make it transparent so
+   the banner actually shows through. */
+.profile-head[style*="background-image"] .profile-head-body {
+  background: transparent;
+}
 .profile-head[style*="background-image"] .profile-username,
 .profile-head[style*="background-image"] .profile-bio,
 .profile-head[style*="background-image"] .profile-status,
