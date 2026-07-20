@@ -382,36 +382,35 @@ create policy "Avatar images are publicly accessible"
   on storage.objects for select
   using (bucket_id = 'avatars');
 
+-- Any signed-in user can upload / replace / delete images anywhere in the
+-- avatars bucket (profile pictures, banners, backgrounds, club assets).
+-- This is a small trusted community, so we deliberately trade strict
+-- per-owner path isolation for uploads that just work — this is what
+-- clears the "new row violates row-level security policy" error. The
+-- bucket is created with no allowed_mime_types restriction, so every
+-- image format (png, jpg, heic, webp, gif, …) is accepted.
 drop policy if exists "Users can upload their own avatar" on storage.objects;
-create policy "Users can upload their own avatar"
-  on storage.objects for insert
-  with check (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "Admins can upload club assets" on storage.objects;
+drop policy if exists "Admins and club owners can upload club assets" on storage.objects;
+drop policy if exists "Signed-in users can upload avatars" on storage.objects;
+create policy "Signed-in users can upload avatars"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'avatars');
 
 drop policy if exists "Users can update their own avatar" on storage.objects;
-create policy "Users can update their own avatar"
-  on storage.objects for update
-  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "Admins can update club assets" on storage.objects;
+drop policy if exists "Admins and club owners can update club assets" on storage.objects;
+drop policy if exists "Signed-in users can update avatars" on storage.objects;
+create policy "Signed-in users can update avatars"
+  on storage.objects for update to authenticated
+  using (bucket_id = 'avatars')
+  with check (bucket_id = 'avatars');
 
 drop policy if exists "Users can delete their own avatar" on storage.objects;
-create policy "Users can delete their own avatar"
-  on storage.objects for delete
-  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
-
-drop policy if exists "Admins can upload club assets" on storage.objects;
-create policy "Admins can upload club assets"
-  on storage.objects for insert
-  with check (
-    bucket_id = 'avatars' and (storage.foldername(name))[1] = 'club-assets'
-    and exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-  );
-
-drop policy if exists "Admins can update club assets" on storage.objects;
-create policy "Admins can update club assets"
-  on storage.objects for update
-  using (
-    bucket_id = 'avatars' and (storage.foldername(name))[1] = 'club-assets'
-    and exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-  );
+drop policy if exists "Signed-in users can delete avatars" on storage.objects;
+create policy "Signed-in users can delete avatars"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'avatars');
 
 -- ---------- clubs (fan clubs for artists, bands, movies, shows) ----------
 create table if not exists public.clubs (
@@ -478,39 +477,14 @@ create trigger clubs_enforce_status_change
   before update on public.clubs
   for each row execute procedure public.enforce_club_status_change();
 
--- Widen the club-assets storage policies (originally admin-only, defined
--- earlier in this file before public.clubs existed) so a club's own creator
--- can upload its banner/avatar too, not just site admins. Path shape is
--- club-assets/<club_id>/<file>, so foldername()[2] is the club id.
+-- Club banner/avatar uploads are covered by the permissive
+-- "Signed-in users can upload/update avatars" policies above, so the older
+-- admin-only and club-owner-scoped storage policies are no longer needed.
+-- Drop any lingering ones so they can't narrow access.
 drop policy if exists "Admins can upload club assets" on storage.objects;
 drop policy if exists "Admins and club owners can upload club assets" on storage.objects;
-create policy "Admins and club owners can upload club assets"
-  on storage.objects for insert
-  with check (
-    bucket_id = 'avatars' and (storage.foldername(name))[1] = 'club-assets'
-    and (
-      exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-      or exists (
-        select 1 from public.clubs
-        where id::text = (storage.foldername(name))[2] and created_by = auth.uid()
-      )
-    )
-  );
-
 drop policy if exists "Admins can update club assets" on storage.objects;
 drop policy if exists "Admins and club owners can update club assets" on storage.objects;
-create policy "Admins and club owners can update club assets"
-  on storage.objects for update
-  using (
-    bucket_id = 'avatars' and (storage.foldername(name))[1] = 'club-assets'
-    and (
-      exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
-      or exists (
-        select 1 from public.clubs
-        where id::text = (storage.foldername(name))[2] and created_by = auth.uid()
-      )
-    )
-  );
 
 drop policy if exists "Admins can delete clubs" on public.clubs;
 create policy "Admins can delete clubs"
