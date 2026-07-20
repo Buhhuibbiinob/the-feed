@@ -7,6 +7,7 @@ import { joinClub, leaveClub, reportClub, uploadClubBanner, uploadClubAvatar } f
 import { setRsvp, clearRsvp, deleteEvent } from "@/app/actions/events";
 import { adminApproveClub, adminBanClub, adminUnbanClub, adminDeleteClub } from "@/app/actions/admin";
 import { CreateEventForm } from "@/components/CreateEventForm";
+import { ClubPostForm } from "@/components/ClubPostForm";
 import { ChatRoom, type ChatMessage } from "@/components/ChatRoom";
 import { ClubImageForms } from "@/components/ClubImageForms";
 import { isAdmin } from "@/lib/admin";
@@ -399,6 +400,11 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
 
       <div className="panel">
         <div className="panel-head">Posts</div>
+        {isMember && (
+          <div className="panel-body" style={{ borderBottom: "1px solid var(--line, #e2e2e2)" }}>
+            <ClubPostForm clubId={club.id} />
+          </div>
+        )}
         <div className="panel-body flush">
           {posts.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
