@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -34,6 +34,21 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  // Lets iOS "Add to Home Screen" launch the site full-screen (no Safari
+  // chrome), with its own name and app icon — the PWA / "install as app" flow.
+  appleWebApp: {
+    capable: true,
+    title,
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1,
+  // Let the standalone app fill the notch/home-indicator safe areas.
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
