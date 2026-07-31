@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PostForm } from "@/components/PostForm";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
+import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
 import type { MediaType } from "@/lib/media";
@@ -217,12 +218,29 @@ export default async function FeedPage({
     return { mediaType, top, ...bannerCopy[mediaType] };
   });
 
+  const feedTvClips: FeedTvClip[] = [];
+  const seenVideoIds = new Set<string>();
+  for (const post of allPosts) {
+    if (!post.youtube_video_id || seenVideoIds.has(post.youtube_video_id)) continue;
+    seenVideoIds.add(post.youtube_video_id);
+    feedTvClips.push({
+      id: post.id,
+      title: post.title,
+      artist: post.artist,
+      username: post.profiles?.username ?? "unknown",
+      youtubeVideoId: post.youtube_video_id,
+    });
+    if (feedTvClips.length >= 10) break;
+  }
+
   return (
     <>
       <div className="page-header">
         <h1>{siteText.feed_heading}</h1>
         <div className="tagline">{siteText.feed_tagline}</div>
       </div>
+
+      <FeedTV clips={feedTvClips} />
 
       <div className="feature-row">
         {banners.map(({ mediaType, top, eyebrow, empty }) => {
