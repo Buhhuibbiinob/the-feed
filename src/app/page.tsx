@@ -5,6 +5,7 @@ import { PostCard } from "@/components/PostCard";
 import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
 import { FollowingToggle } from "@/components/FollowingToggle";
 import { OrbyBot, type OrbyCandidate } from "@/components/OrbyBot";
+import { coverGradient } from "@/lib/cover";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
 import type { MediaType } from "@/lib/media";
@@ -344,17 +345,33 @@ export default async function FeedPage({
           <div className="right-now-tab">the RIGHT NOW</div>
           <div className="right-now-body">
             {rightNowStatus ? (
-              <>
-                <div className="right-now-status">
-                  <b>{rightNowStatus.username}</b>
-                  <p>
-                    {rightNowStatus.status_media_type === "music" ? "🎧" : "📺"} {rightNowStatus.status_title}
-                    {rightNowStatus.status_artist && <> - {rightNowStatus.status_artist}</>}
-                  </p>
-                </div>
-              </>
+              <div className="right-now-status">
+                <b>{rightNowStatus.username}</b>
+                <p>
+                  {rightNowStatus.status_media_type === "music" ? "🎧" : "📺"} {rightNowStatus.status_title}
+                  {rightNowStatus.status_artist && <> - {rightNowStatus.status_artist}</>}
+                </p>
+              </div>
+            ) : newFavePost ? (
+              <div className="right-now-spotlight">
+                <div
+                  className="right-now-photo"
+                  style={{
+                    backgroundImage: newFavePost.cover_url
+                      ? `url(${newFavePost.cover_url})`
+                      : coverGradient(newFavePost.id),
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                />
+                <b>{newFavePost.title}</b>
+                <span>Reviewed by {newFavePost.profiles?.username ?? "unknown"}</span>
+              </div>
             ) : (
-              <p className="right-now-empty">Nobody&apos;s posted a status yet - be the first.</p>
+              <div className="right-now-empty">
+                <span className="orb" style={{ width: 36, height: 36 }} />
+                <p>Nothing posted yet - be the first to review something.</p>
+              </div>
             )}
           </div>
         </div>
