@@ -5,7 +5,7 @@ import { ThemeForm } from "@/components/ThemeForm";
 import { BackgroundPicker } from "@/components/BackgroundPicker";
 import { disconnectYoutube } from "@/app/actions/youtube";
 
-export const metadata = { title: "Settings — the feed" };
+export const metadata = { title: "Settings — Feedback" };
 
 export default async function SettingsPage() {
   const supabase = await createClient();

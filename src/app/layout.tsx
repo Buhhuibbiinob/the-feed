@@ -2,13 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { isAdmin } from "@/lib/admin";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const title = "the feed";
-const description = "Share what you're watching, reading, and listening to.";
+const title = "Feedback";
+const description = "Post reviews of music, movies, and TV — see what the community's watching and listening to.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -88,6 +89,7 @@ export default async function RootLayout({
         <SiteHeader username={username} isAdmin={admin} />
         <div className="wrap">{children}</div>
         <SiteFooter />
+        <WelcomeExplainer />
       </body>
     </html>
   );

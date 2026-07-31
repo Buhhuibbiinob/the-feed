@@ -18,7 +18,7 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-export const metadata = { title: "Wrapped — the feed" };
+export const metadata = { title: "Wrapped — Feedback" };
 
 export default async function WrappedPage() {
   const supabase = await createClient();

@@ -90,7 +90,6 @@ export default async function FeedPage({
     { data: posts },
     { data: chatRows },
     postsCount,
-    profilesCount,
     chatCount,
     { data: likeRows },
     { data: commentRows },
@@ -113,7 +112,6 @@ export default async function FeedPage({
       .limit(3)
       .returns<ChatPreviewRow[]>(),
     supabase.from("posts").select("id", { count: "exact", head: true }),
-    supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("chat_messages").select("id", { count: "exact", head: true }),
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
@@ -419,7 +417,6 @@ export default async function FeedPage({
           <div className="panel-head">Community Stats</div>
           <div className="stats-body">
             <div>{postsCount.count ?? 0} reviews posted</div>
-            <div>{profilesCount.count ?? 0} members</div>
             <div>{chatCount.count ?? 0} chat messages sent</div>
           </div>
         </div>

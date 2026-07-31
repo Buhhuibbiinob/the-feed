@@ -70,7 +70,7 @@ type ClubReportRow = {
   profiles: { username: string } | null;
 };
 
-export const metadata = { title: "Admin — the feed" };
+export const metadata = { title: "Admin — Feedback" };
 
 export default async function AdminPage() {
   const supabase = await createClient();

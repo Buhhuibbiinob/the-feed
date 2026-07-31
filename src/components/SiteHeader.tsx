@@ -1,87 +1,112 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
 
+const MORE_LINKS = [
+  { href: "/new-releases", label: "New Releases" },
+  { href: "/recs", label: "Recs" },
+  { href: "/clubs", label: "Clubs" },
+  { href: "/artists", label: "Creators" },
+  { href: "/collections", label: "Collections" },
+  { href: "/wrapped", label: "Wrapped" },
+];
+
 export function SiteHeader({ username, isAdmin = false }: { username: string | null; isAdmin?: boolean }) {
   const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  const isMoreActive = MORE_LINKS.some(
+    (link) => pathname === link.href || pathname.startsWith(`${link.href}/`)
+  );
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [moreOpen]);
+
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
 
   return (
-    <>
-      <div className="apple-nav">
-        <div className="brand">
-          <img src="/f-logo.PNG" alt="" className="brand-logo" />
-          <span className="wordmark">the feed</span>
-        </div>
-        <Link href="/" className={pathname === "/" ? "active" : ""}>
-          Feed
-        </Link>
-        <Link href="/new-releases" className={pathname === "/new-releases" ? "active" : ""}>
-          New Releases
-        </Link>
-        <Link href="/leaderboard" className={pathname === "/leaderboard" ? "active" : ""}>
-          Leaderboard
-        </Link>
-        <Link href="/recs" className={pathname === "/recs" ? "active" : ""}>
-          Recs
-        </Link>
-        <Link href="/clubs" className={pathname.startsWith("/clubs") ? "active" : ""}>
-          Clubs
-        </Link>
-        <Link href="/artists" className={pathname.startsWith("/artists") ? "active" : ""}>
-          Creators
-        </Link>
-        <Link href="/collections" className={pathname.startsWith("/collections") ? "active" : ""}>
-          Collections
-        </Link>
-        <div className="nav-account">
-          {username ? (
-            <>
-              <Link href={`/profile/${username}`} className="nav-user">
-                Hi, {username}
-              </Link>
-              {isAdmin && (
-                <Link href="/admin" className="acct-btn">
-                  <span>Admin</span>
-                </Link>
-              )}
-              <Link href="/settings" className="acct-btn">
-                <span>Settings</span>
-              </Link>
-              <button className="acct-btn primary" onClick={() => signOut()}>
-                <span>Sign Out</span>
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/sign-in" className="acct-btn">
-                <span>Sign In</span>
-              </Link>
-              <Link href="/sign-up" className="acct-btn primary">
-                <span>Create Account</span>
-              </Link>
-            </>
-          )}
-        </div>
+    <div className="apple-nav">
+      <div className="brand">
+        <img src="/f-logo.PNG" alt="" className="brand-logo" />
+        <span className="wordmark">Feedback</span>
       </div>
-      <div className="apple-subnav">
-        <Link href="/new-releases" className={pathname === "/new-releases" ? "active" : ""}>
-          New Releases
-        </Link>
-        <Link href="/" className={pathname === "/" ? "active" : ""}>
-          This Week
-        </Link>
-        <Link href="/chat" className={pathname === "/chat" ? "active" : ""}>
-          Live Chat
-        </Link>
-        <Link href="/recs" className={pathname === "/recs" ? "active" : ""}>
-          Recs
-        </Link>
-        <Link href="/wrapped" className={pathname === "/wrapped" ? "active" : ""}>
-          Wrapped
-        </Link>
+      <Link href="/" className={pathname === "/" ? "active" : ""}>
+        Feed
+      </Link>
+      <Link href="/chat" className={pathname === "/chat" ? "active" : ""}>
+        Chat
+      </Link>
+      <Link href="/leaderboard" className={pathname === "/leaderboard" ? "active" : ""}>
+        Leaderboard
+      </Link>
+      <div className="nav-more" ref={moreRef}>
+        <button
+          type="button"
+          className={`nav-more-btn ${isMoreActive ? "active" : ""}`}
+          onClick={() => setMoreOpen((open) => !open)}
+          aria-haspopup="true"
+          aria-expanded={moreOpen}
+        >
+          More <span className="nav-more-caret">▾</span>
+        </button>
+        {moreOpen && (
+          <div className="nav-more-menu">
+            {MORE_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={pathname === link.href || pathname.startsWith(`${link.href}/`) ? "active" : ""}
+                onClick={() => setMoreOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
-    </>
+      <div className="nav-account">
+        {username ? (
+          <>
+            <Link href={`/profile/${username}`} className="nav-user">
+              Hi, {username}
+            </Link>
+            {isAdmin && (
+              <Link href="/admin" className="acct-btn">
+                <span>Admin</span>
+              </Link>
+            )}
+            <Link href="/settings" className="acct-btn">
+              <span>Settings</span>
+            </Link>
+            <button className="acct-btn primary" onClick={() => signOut()}>
+              <span>Sign Out</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <Link href="/sign-in" className="acct-btn">
+              <span>Sign In</span>
+            </Link>
+            <Link href="/sign-up" className="acct-btn primary">
+              <span>Create Account</span>
+            </Link>
+          </>
+        )}
+      </div>
+    </div>
   );
 }

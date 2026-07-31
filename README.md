@@ -1,4 +1,4 @@
-# the feed
+# Feedback
 
 A music/movie/TV community site — post reviews, chat live, and (soon) connect Spotify/Apple Music. Built with Next.js (App Router) + TypeScript + Supabase.
 

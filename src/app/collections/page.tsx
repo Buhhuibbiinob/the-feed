@@ -12,7 +12,7 @@ type CollectionRow = {
   profiles: { username: string } | null;
 };
 
-export const metadata = { title: "Collections — the feed" };
+export const metadata = { title: "Collections — Feedback" };
 
 export default async function CollectionsPage() {
   const supabase = await createClient();

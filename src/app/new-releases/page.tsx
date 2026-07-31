@@ -19,7 +19,7 @@ function stars(rating: number | null) {
   return "★".repeat(rating) + "☆".repeat(5 - rating);
 }
 
-export const metadata = { title: "New Releases — the feed" };
+export const metadata = { title: "New Releases — Feedback" };
 
 export default async function NewReleasesPage() {
   const supabase = await createClient();

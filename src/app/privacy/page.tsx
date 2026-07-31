@@ -1,4 +1,4 @@
-export const metadata = { title: "Privacy Policy — the feed" };
+export const metadata = { title: "Privacy Policy — Feedback" };
 
 export default function PrivacyPage() {
   return (
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
 
         <h3>How we use it</h3>
         <p>
-          We use your data to operate the feed: showing your posts and comments to other users,
+          We use your data to operate Feedback: showing your posts and comments to other users,
           powering the leaderboard and profile stats, personalizing your &quot;Following&quot;
           feed, and authenticating your account. We do not sell your data.
         </p>

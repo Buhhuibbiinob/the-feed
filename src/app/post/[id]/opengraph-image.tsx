@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { coverGradient } from "@/lib/cover";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 
-export const alt = "Post on the feed";
+export const alt = "Post on Feedback";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -27,7 +27,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     .maybeSingle();
   const post = postData as PostRow | null;
 
-  const title = post?.title ?? "the feed";
+  const title = post?.title ?? "Feedback";
   const artist = post?.artist ?? null;
   const username = post?.profiles?.username ?? "someone";
   const rating = post?.rating ?? null;
@@ -99,7 +99,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             </div>
           )}
           <div style={{ display: "flex", fontSize: 26, color: "#888", marginTop: "auto" }}>
-            reviewed by {username} · the feed
+            reviewed by {username} · Feedback
           </div>
         </div>
       </div>

@@ -284,25 +284,70 @@ a:hover {
   margin-right: 4px;
 }
 
-.apple-subnav {
+/* ---- "More" nav dropdown ---- */
+.nav-more {
+  position: relative;
   display: flex;
-  justify-content: center;
-  gap: 26px;
-  background: var(--subnav-bg);
-  border-bottom: 1px solid var(--subnav-border);
-  padding: 5px 0;
-  font-size: 11px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  align-items: stretch;
 }
-.apple-subnav a {
-  color: var(--subnav-text);
+.nav-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 20px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--nav-text);
+  background: none;
+  border: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.6);
+  cursor: pointer;
 }
-.apple-subnav a.disabled {
-  color: #999;
+.nav-more-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
 }
-.apple-subnav a.active {
+.nav-more-btn.active {
+  background: linear-gradient(180deg, var(--blue-hi), var(--blue-lo));
+  color: var(--nav-active-text);
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 0 14px rgba(0, 0, 0, 0.35);
+}
+.nav-more-caret {
+  font-size: 9px;
+}
+.nav-more-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-head-bg);
+  border: 1px solid var(--nav-border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+  overflow: hidden;
+}
+.nav-more-menu a {
+  padding: 9px 16px;
+  font-size: 12px;
+  color: var(--nav-text);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.nav-more-menu a:last-child {
+  border-bottom: none;
+}
+.nav-more-menu a:hover {
+  background: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+}
+.nav-more-menu a.active {
   font-weight: 700;
-  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.55);
 }
 
 /* ---- Page header ---- */
@@ -1320,6 +1365,62 @@ a:hover {
   font-size: 11.5px;
   color: #666;
 }
+.auth-card + .auth-card {
+  margin-top: -10px;
+}
+.waitlist-form {
+  display: flex;
+  gap: 8px;
+}
+.waitlist-form input {
+  flex: 1;
+  font-size: 12px;
+  padding: 7px 9px;
+  border: 1px solid #aaaaaa;
+  border-radius: 5px;
+  font-family: inherit;
+  background: linear-gradient(180deg, #ececec, #ffffff 45%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) inset, 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ---- First-visit welcome explainer ---- */
+.welcome-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.welcome-modal {
+  max-width: 440px;
+  width: 100%;
+  margin: 0;
+}
+.welcome-modal-close {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.welcome-modal-list {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.welcome-modal-list li {
+  margin-bottom: 8px;
+}
+.welcome-modal-list li:last-child {
+  margin-bottom: 0;
+}
 
 /* ---- Live chat ---- */
 .chat-body {
@@ -1636,17 +1737,15 @@ footer .copy {
   .apple-nav a {
     padding: 0 12px;
   }
+  .nav-more-btn {
+    padding: 0 12px;
+  }
   .nav-account {
     margin-left: 0;
     flex-basis: 100%;
     justify-content: center;
     padding: 6px 0;
     border-top: 1px solid rgba(0, 0, 0, 0.12);
-  }
-  .apple-subnav {
-    flex-wrap: wrap;
-    gap: 10px 16px;
-    padding: 6px 10px;
   }
   .page-header {
     flex-direction: column;

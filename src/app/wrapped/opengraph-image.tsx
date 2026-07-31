@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Wrapped — the feed";
+export const alt = "Wrapped — Feedback";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -23,7 +23,7 @@ export default function Image() {
         }}
       >
         <div style={{ display: "flex", fontSize: 28, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>
-          the feed
+          Feedback
         </div>
         <div style={{ display: "flex", fontSize: 96, fontWeight: 800, marginTop: 16 }}>
           Wrapped {year}

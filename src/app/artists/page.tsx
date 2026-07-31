@@ -15,7 +15,7 @@ type ArtistPostRow = {
   profiles: { username: string; is_verified_artist: boolean } | null;
 };
 
-export const metadata = { title: "Underground Creators — the feed" };
+export const metadata = { title: "Underground Creators — Feedback" };
 
 export default async function ArtistsPage() {
   const supabase = await createClient();

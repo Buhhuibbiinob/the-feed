@@ -16,7 +16,7 @@ type ClubRow = {
   banner_url: string | null;
 };
 
-export const metadata = { title: "Fan Clubs — the feed" };
+export const metadata = { title: "Fan Clubs — Feedback" };
 
 export default async function ClubsPage() {
   const supabase = await createClient();

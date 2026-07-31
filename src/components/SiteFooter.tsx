@@ -13,7 +13,7 @@ export function SiteFooter() {
         <Link href="/privacy">Privacy Policy</Link>
         <Link href="/terms">Terms of Service</Link>
       </div>
-      <div className="copy">© 2026 the feed. all rights reserved.</div>
+      <div className="copy">© 2026 Feedback. all rights reserved.</div>
     </footer>
   );
 }

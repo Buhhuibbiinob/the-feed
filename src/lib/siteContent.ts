@@ -5,13 +5,13 @@ export const SITE_CONTENT_FIELDS = [
     key: "feed_heading",
     label: "Feed page heading",
     path: "/",
-    default: "The Feed",
+    default: "Feed",
   },
   {
     key: "feed_tagline",
     label: "Feed page tagline",
     path: "/",
-    default: "Share what you're watching, reading, and listening to.",
+    default: "Post quick reviews of music, movies, and TV — and see what the community's into right now.",
   },
   {
     key: "artists_heading",

@@ -810,3 +810,25 @@ drop policy if exists "Admins can update site content" on public.site_content;
 create policy "Admins can update site content"
   on public.site_content for update
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- waitlist_signups ("get notified" email capture on sign-up page) ----------
+create table if not exists public.waitlist_signups (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists waitlist_signups_email_lower_idx
+  on public.waitlist_signups (lower(email));
+
+alter table public.waitlist_signups enable row level security;
+
+drop policy if exists "Anyone can join the waitlist" on public.waitlist_signups;
+create policy "Anyone can join the waitlist"
+  on public.waitlist_signups for insert
+  with check (true);
+
+drop policy if exists "Admins can view waitlist signups" on public.waitlist_signups;
+create policy "Admins can view waitlist signups"
+  on public.waitlist_signups for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));

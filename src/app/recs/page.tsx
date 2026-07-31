@@ -19,7 +19,7 @@ type PostRow = {
   profiles: { username: string } | null;
 };
 
-export const metadata = { title: "Recs — the feed" };
+export const metadata = { title: "Recs — Feedback" };
 
 function toCardData(post: PostRow): PostCardData {
   return {

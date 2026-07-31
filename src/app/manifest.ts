@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "the feed",
-    short_name: "the feed",
-    description: "Share what you're watching, reading, and listening to.",
+    name: "Feedback",
+    short_name: "Feedback",
+    description: "Post reviews of music, movies, and TV — see what the community's watching and listening to.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

@@ -1,4 +1,4 @@
-export const metadata = { title: "Terms of Service — the feed" };
+export const metadata = { title: "Terms of Service — Feedback" };
 
 export default function TermsPage() {
   return (
