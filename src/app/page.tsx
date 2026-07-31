@@ -139,8 +139,7 @@ export default async function FeedPage({
       .select("id, artist_name, link_url, image_url, message")
       .eq("status", "approved")
       .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
-      .order("created_at", { ascending: false })
-      .limit(2)
+      .order("created_at", { ascending: true })
       .returns<BannerAdRow[]>(),
     getAllSiteText(supabase),
   ]);
@@ -257,7 +256,19 @@ export default async function FeedPage({
     if (feedTvClips.length >= 10) break;
   }
 
-  const approvedBanners = bannerAdRows ?? [];
+  // Rotate through every approved banner in the pool - a new pick every 6
+  // hours (4x/day), so a handful of images naturally cycle through the day
+  // without needing a cron job or extra scheduling UI.
+  const allBanners = bannerAdRows ?? [];
+  const ROTATION_MS = 6 * 60 * 60 * 1000;
+  const rotationSlot = Math.floor(Date.now() / ROTATION_MS);
+  const approvedBanners =
+    allBanners.length === 0
+      ? []
+      : Array.from(
+          { length: Math.min(2, allBanners.length) },
+          (_, i) => allBanners[(rotationSlot + i) % allBanners.length]
+        );
 
   return (
     <>

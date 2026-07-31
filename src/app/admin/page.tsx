@@ -26,6 +26,7 @@ import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 import { ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatforms";
 import { SITE_CONTENT_FIELDS, getAllSiteText } from "@/lib/siteContent";
 import { SiteContentForm } from "@/components/SiteContentForm";
+import { HouseAdForm } from "@/components/HouseAdForm";
 
 type ReportRow = {
   id: string;
@@ -457,6 +458,17 @@ export default async function AdminPage() {
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Add a House Ad</div>
+        <div className="panel-body">
+          <p className="field-hint" style={{ marginBottom: 12 }}>
+            Your own ads - added here go live immediately (no review needed) and rotate
+            automatically with whatever else is approved below, cycling every few hours.
+          </p>
+          <HouseAdForm />
         </div>
       </div>
 
