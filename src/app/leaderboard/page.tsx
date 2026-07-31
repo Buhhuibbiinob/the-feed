@@ -47,8 +47,8 @@ export default async function LeaderboardPage() {
                   <b>
                     <Link href={`/profile/${p.username}`}>{p.username}</Link>
                     {badge && (
-                      <span className="leaderboard-badge" title={`${badge.label} - ${badge.threshold}+ reviews`}>
-                        {badge.emoji}
+                      <span className="leaderboard-badge" title={`${badge.threshold}+ reviews`}>
+                        {badge.label}
                       </span>
                     )}
                   </b>

@@ -635,7 +635,7 @@ export default async function FeedPage({
               <div className="side-list">
                 {statusRows.map((row) => (
                   <div className="row" key={row.username}>
-                    <span className="num">{row.status_media_type === "music" ? "🎧" : "📺"}</span>
+                    <span className="num">{row.status_media_type === "music" ? "Music" : "TV"}</span>
                     <div className="info">
                       <b>{row.username}</b>
                       <span>

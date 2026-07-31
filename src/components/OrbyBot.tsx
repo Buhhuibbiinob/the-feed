@@ -100,14 +100,13 @@ async function fetchOutsidePick(mediaType: MediaType): Promise<OrbyPick | null> 
 }
 
 function formatRec(pick: OrbyPick): string {
-  const kind = pick.mediaType === "music" ? "🎧" : "🎬";
   const byline = pick.artist ? ` - ${pick.artist}` : "";
   if (pick.source === "feed") {
     const ratingClause = pick.rating ? `, rated ${pick.rating}★` : "";
-    return `${kind} Orby recommends: **${pick.title}**${byline} (posted by ${pick.username}${ratingClause}).`;
+    return `Orby recommends: **${pick.title}**${byline} (posted by ${pick.username}${ratingClause}).`;
   }
   const sourceLabel = pick.source === "spotify" ? "Spotify" : "YouTube";
-  return `${kind} Orby found this on ${sourceLabel}: **${pick.title}**${byline}.`;
+  return `Orby found this on ${sourceLabel}: **${pick.title}**${byline}.`;
 }
 
 export function OrbyBot({ candidates }: { candidates: OrbyCandidate[] }) {

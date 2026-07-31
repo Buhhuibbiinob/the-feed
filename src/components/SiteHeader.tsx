@@ -19,10 +19,12 @@ export function SiteHeader({
   username,
   isAdmin = false,
   notificationCount = 0,
+  unreadDmCount = 0,
 }: {
   username: string | null;
   isAdmin?: boolean;
   notificationCount?: number;
+  unreadDmCount?: number;
 }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -88,13 +90,18 @@ export function SiteHeader({
         )}
       </div>
       <form action="/search" method="get" className="nav-search">
-        <span className="nav-search-icon">🔍</span>
         <input type="search" name="q" placeholder="Search Feedback" aria-label="Search" />
       </form>
       <div className="nav-account">
         {username ? (
           <>
             <NotificationBell initialCount={notificationCount} />
+            <Link href="/messages" className="nav-bell-btn">
+              Messages
+              {unreadDmCount > 0 && (
+                <span className="nav-bell-badge">{unreadDmCount > 9 ? "9+" : unreadDmCount}</span>
+              )}
+            </Link>
             <Link href={`/profile/${username}`} className="nav-user">
               Hi, {username}
             </Link>

@@ -60,8 +60,8 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
             setVideoResults([]);
           }}
         >
-          <option value="music">🎧 Listening to…</option>
-          <option value="movie_tv">📺 Watching…</option>
+          <option value="music">Listening to…</option>
+          <option value="movie_tv">Watching…</option>
         </select>
 
         {selectedVideo ? (

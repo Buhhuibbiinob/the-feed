@@ -193,7 +193,7 @@ export default async function ProfilePage({
             {profile.bio && <div className="profile-bio">{profile.bio}</div>}
             {status?.status_media_type && (
               <div className="profile-status">
-                {status.status_media_type === "music" ? "🎧 Listening to " : "📺 Watching "}
+                {status.status_media_type === "music" ? "Listening to " : "Watching "}
                 <b>{status.status_title}</b>
                 {status.status_artist && <> - {status.status_artist}</>}
               </div>
@@ -203,13 +203,13 @@ export default async function ProfilePage({
               <span>{followerCount ?? 0} followers</span>
               <span>{followingCount ?? 0} following</span>
               {tasteMatch !== null && <span className="taste-match">{tasteMatch}% taste match</span>}
-              {streak > 1 && <span className="streak-count">🔥 {streak} day streak</span>}
+              {streak > 1 && <span className="streak-count">{streak} day streak</span>}
             </div>
             {badges.length > 0 && (
               <div className="profile-badges">
                 {badges.map((b) => (
                   <span key={b.id} className="profile-badge" title={`${b.label} - ${b.threshold}+ reviews`}>
-                    {b.emoji} {b.label}
+                    {b.label}
                   </span>
                 ))}
               </div>
@@ -217,8 +217,7 @@ export default async function ProfilePage({
             {nextBadge && (
               <div className="profile-badge-next">
                 {nextBadge.threshold - posts.length} more review
-                {nextBadge.threshold - posts.length === 1 ? "" : "s"} to unlock {nextBadge.emoji}{" "}
-                {nextBadge.label}
+                {nextBadge.threshold - posts.length === 1 ? "" : "s"} to unlock {nextBadge.label}
               </div>
             )}
             <div className="profile-actions">
@@ -229,11 +228,16 @@ export default async function ProfilePage({
                   <StatusPicker hasStatus={!!status?.status_media_type} />
                 </>
               ) : user ? (
-                <FollowButton
-                  followedId={profile.id}
-                  username={profile.username}
-                  following={isFollowing}
-                />
+                <>
+                  <FollowButton
+                    followedId={profile.id}
+                    username={profile.username}
+                    following={isFollowing}
+                  />
+                  <Link href={`/messages/${profile.username}`} className="btn btn-ghost">
+                    Message
+                  </Link>
+                </>
               ) : null}
             </div>
           </div>

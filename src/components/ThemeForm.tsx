@@ -70,7 +70,7 @@ export function ThemeForm({ currentTheme }: { currentTheme: string }) {
           {pending ? "Saving…" : "Save"}
         </button>
         <button type="button" className="btn btn-ghost" onClick={shuffle}>
-          🎲 Surprise Me
+          Surprise Me
         </button>
       </div>
       {state.error && <div className="form-error">{state.error}</div>}

@@ -107,8 +107,8 @@ export function PostCard({
 
   return (
     <div className="post-card">
-      {sticker === "hot" && <span className="sticker-badge hot">🔥 hot take</span>}
-      {sticker === "new" && <span className="sticker-badge new">🆕 new fave</span>}
+      {sticker === "hot" && <span className="sticker-badge hot">hot take</span>}
+      {sticker === "new" && <span className="sticker-badge new">new fave</span>}
       <div className="post-card-head">
         {post.coverUrl && <img src={post.coverUrl} alt="" className="cover-thumb" />}
         <span className={`badge ${post.mediaType}`}>{MEDIA_LABELS[post.mediaType]}</span>

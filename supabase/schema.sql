@@ -871,3 +871,86 @@ drop policy if exists "Admins can delete banner requests" on public.banner_ads;
 create policy "Admins can delete banner requests"
   on public.banner_ads for delete
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- direct messages (1:1 DMs between profiles) ----------
+create table if not exists public.direct_messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_id uuid not null references public.profiles (id) on delete cascade,
+  recipient_id uuid not null references public.profiles (id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now(),
+  read_at timestamptz,
+  check (sender_id <> recipient_id)
+);
+
+alter table public.direct_messages enable row level security;
+
+drop policy if exists "Users can view their own conversations" on public.direct_messages;
+create policy "Users can view their own conversations"
+  on public.direct_messages for select
+  using (auth.uid() = sender_id or auth.uid() = recipient_id);
+
+drop policy if exists "Users can send messages" on public.direct_messages;
+create policy "Users can send messages"
+  on public.direct_messages for insert
+  with check (
+    auth.uid() = sender_id
+    and not exists (
+      select 1 from public.blocked_users b
+      where (b.blocker_id = recipient_id and b.blocked_id = sender_id)
+         or (b.blocker_id = sender_id and b.blocked_id = recipient_id)
+    )
+  );
+
+drop policy if exists "Recipients can mark messages read" on public.direct_messages;
+create policy "Recipients can mark messages read"
+  on public.direct_messages for update
+  using (auth.uid() = recipient_id)
+  with check (auth.uid() = recipient_id);
+
+create index if not exists direct_messages_conversation_idx
+  on public.direct_messages (least(sender_id, recipient_id), greatest(sender_id, recipient_id), created_at);
+
+-- ---------- weekly newsletter issues ----------
+create table if not exists public.newsletter_issues (
+  id uuid primary key default gen_random_uuid(),
+  issue_date date not null default current_date,
+  status text not null default 'draft' check (status in ('draft', 'published')),
+  title text not null default 'This Week on Feedback',
+  upcoming_releases text,
+  underground_releases text,
+  upcoming_artists text,
+  upcoming_actors text,
+  upcoming_short_films text,
+  short_film_releases text,
+  artist_of_week text,
+  filmmaker_of_week text,
+  created_by uuid references public.profiles (id) on delete set null,
+  created_at timestamptz not null default now(),
+  published_at timestamptz
+);
+
+alter table public.newsletter_issues enable row level security;
+
+drop policy if exists "Published issues are viewable by everyone" on public.newsletter_issues;
+create policy "Published issues are viewable by everyone"
+  on public.newsletter_issues for select
+  using (
+    status = 'published'
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+drop policy if exists "Admins can create newsletter issues" on public.newsletter_issues;
+create policy "Admins can create newsletter issues"
+  on public.newsletter_issues for insert
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can update newsletter issues" on public.newsletter_issues;
+create policy "Admins can update newsletter issues"
+  on public.newsletter_issues for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete newsletter issues" on public.newsletter_issues;
+create policy "Admins can delete newsletter issues"
+  on public.newsletter_issues for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));

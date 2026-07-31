@@ -164,8 +164,12 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
                   <button className="feedtv-ctrl-btn" onClick={skipNext} aria-label="Skip to next">
                     <span>⏭</span>
                   </button>
-                  <button className="feedtv-ctrl-btn" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}>
-                    <span>{muted ? "🔇" : "🔊"}</span>
+                  <button
+                    className="feedtv-ctrl-btn wide"
+                    onClick={toggleMute}
+                    aria-label={muted ? "Unmute" : "Mute"}
+                  >
+                    <span>{muted ? "Unmute" : "Mute"}</span>
                   </button>
                 </div>
               </div>

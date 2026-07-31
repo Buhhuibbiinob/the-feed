@@ -61,7 +61,7 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
         aria-expanded={open}
         aria-label="Notifications"
       >
-        🔔
+        Alerts
         {initialCount > 0 && <span className="nav-bell-badge">{initialCount > 9 ? "9+" : initialCount}</span>}
       </button>
       {open && (
