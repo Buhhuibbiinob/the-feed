@@ -258,17 +258,22 @@ export default async function FeedPage({
 
   // Rotate through every approved banner in the pool - a new pick every 6
   // hours (4x/day), so a handful of images naturally cycle through the day
-  // without needing a cron job or extra scheduling UI.
+  // without needing a cron job or extra scheduling UI. Two ad spots pull
+  // from different offsets in the rotation so they don't just repeat the
+  // same image.
   const allBanners = bannerAdRows ?? [];
   const ROTATION_MS = 6 * 60 * 60 * 1000;
   const rotationSlot = Math.floor(Date.now() / ROTATION_MS);
+  const sidebarBannerCount = Math.min(2, allBanners.length);
   const approvedBanners =
     allBanners.length === 0
       ? []
       : Array.from(
-          { length: Math.min(2, allBanners.length) },
+          { length: sidebarBannerCount },
           (_, i) => allBanners[(rotationSlot + i) % allBanners.length]
         );
+  const midFeedBanner =
+    allBanners.length === 0 ? null : allBanners[(rotationSlot + sidebarBannerCount) % allBanners.length];
 
   return (
     <>
@@ -316,6 +321,28 @@ export default async function FeedPage({
           )}
           <Shelf title="Trending Music" items={newReleases} tone="green" />
           <Shelf title="Now Watching" items={nowWatching} tone="pink" />
+
+          {midFeedBanner ? (
+            <a href={midFeedBanner.link_url} target="_blank" rel="noreferrer" className="banner-slot-wide">
+              <span className="banner-slot-tag">Sponsored</span>
+              {midFeedBanner.image_url ? (
+                <img src={midFeedBanner.image_url} alt={midFeedBanner.artist_name} />
+              ) : (
+                <div className="banner-slot-wide-fallback">
+                  <b>{midFeedBanner.artist_name}</b>
+                  {midFeedBanner.message && <span>{midFeedBanner.message}</span>}
+                </div>
+              )}
+            </a>
+          ) : (
+            <Link href="/advertise" className="banner-slot-wide">
+              <span className="banner-slot-tag">Sponsored</span>
+              <div className="banner-slot-wide-fallback">
+                <b>Advertise on Feedback</b>
+                <span>Get your music or film in front of the community - free for now.</span>
+              </div>
+            </Link>
+          )}
 
           <div className="panel tone-yellow">
             <div className="panel-head tabbed">
