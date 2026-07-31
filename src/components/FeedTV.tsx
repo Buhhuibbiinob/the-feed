@@ -61,12 +61,16 @@ function loadYouTubeAPI(): Promise<YTNamespace> {
   });
 }
 
-export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
+const STATIC_DURATION_MS = 400;
+
+export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading?: string }) {
   const playerElRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const [index, setIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     if (clips.length === 0) return;
@@ -103,11 +107,19 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   }, [clips]);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    setSwitching(true);
+    const timeout = setTimeout(() => setSwitching(false), STATIC_DURATION_MS);
     const player = playerRef.current;
     const clip = clips[index];
-    if (!player?.loadVideoById || !clip) return;
-    player.loadVideoById(clip.youtubeVideoId);
-    if (muted) player.mute();
+    if (player?.loadVideoById && clip) {
+      player.loadVideoById(clip.youtubeVideoId);
+      if (muted) player.mute();
+    }
+    return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
 
@@ -129,12 +141,9 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   }
 
   return (
-    <div className="panel feedtv-panel tone-blue">
+    <div className="panel feedtv-panel">
       <div className="panel-head">
-        <span>
-          📺 <span className="tab-the">the</span>
-          <span className="tab-main">Feed TV</span>
-        </span>
+        <span className="tab-main">{heading}</span>
         <span className="feedtv-live">● LIVE</span>
       </div>
       <div className="feedtv-body">
@@ -145,7 +154,7 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
             <div className="feedtv-tv-led" />
             <div className="feedtv-player">
               <div ref={playerElRef} className="feedtv-iframe-target" />
-              <div className="feedtv-bug">FEED TV</div>
+              {switching && <div className="feedtv-static" />}
               <div className="feedtv-controls">
                 <button className="feedtv-ctrl-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
                   <span>{paused ? "▶" : "❚❚"}</span>

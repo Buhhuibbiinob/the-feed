@@ -483,20 +483,34 @@ a:hover {
   height: 100%;
   border: none;
 }
-.feedtv-bug {
+.feedtv-static {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 2;
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: #fff;
-  background: rgba(20, 20, 20, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  padding: 3px 8px;
-  border-radius: 100px;
-  pointer-events: none;
+  inset: 0;
+  z-index: 4;
+  background-color: #000;
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      transparent 1px,
+      transparent 2px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.1) 0px,
+      rgba(255, 255, 255, 0.1) 2px,
+      transparent 2px,
+      transparent 4px
+    );
+  animation: feedtv-static-flicker 0.09s steps(2) infinite;
+}
+@keyframes feedtv-static-flicker {
+  0% {
+    background-position: 0 0, 0 0;
+  }
+  100% {
+    background-position: 3px 7px, -5px 2px;
+  }
 }
 .feedtv-controls {
   position: absolute;
@@ -2292,9 +2306,9 @@ footer .copy {
   --acct-btn-primary-bg: linear-gradient(180deg, #0a84ff 0%, #007aff 100%);
   --acct-btn-primary-border: #005ec4;
 
-  --panel-border: #e5e5ea;
-  --panel-head-bg: linear-gradient(180deg, #ffffff, #f2f2f7);
-  --panel-head-border: #e5e5ea;
+  --panel-border: #7fc4f5;
+  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #eaf4ff 40%, #bfe0ff 60%, #7fc4f5 100%);
+  --panel-head-border: #4fa8e0;
   --panel-body-bg: #ffffff;
   --shelf-bg: #f9f9fb;
 
@@ -2334,9 +2348,9 @@ footer .copy {
   --acct-btn-primary-bg: linear-gradient(180deg, #0a84ff 0%, #0060df 100%);
   --acct-btn-primary-border: #003f99;
 
-  --panel-border: #2c2c2e;
-  --panel-head-bg: linear-gradient(180deg, #2c2c2e, #1c1c1e);
-  --panel-head-border: #38383a;
+  --panel-border: #0a5ec4;
+  --panel-head-bg: linear-gradient(180deg, #3a3a3e 0%, #1c4a78 45%, #0a3d78 60%, #041d3d 100%);
+  --panel-head-border: #0a5ec4;
   --panel-body-bg: #1c1c1e;
   --shelf-bg: #1c1c1e;
 
@@ -3499,94 +3513,6 @@ footer .copy {
 .banner-slot-fallback span {
   color: var(--muted);
   font-size: 11px;
-}
-
-/* ---- Color-block section tones (TheSlap/PopGirl-style tab headers) ---- */
-.tone-blue {
-  border-color: #2f74c8;
-}
-.tone-blue .panel-head {
-  background: linear-gradient(180deg, #bfe0ff, #7fbdf5);
-  border-color: #2f74c8;
-  color: #08315c;
-}
-.tone-blue .panel-body,
-.tone-blue .shelf-body,
-.tone-blue .side-list,
-.tone-blue .stats-body,
-.tone-blue .chat-preview-body,
-.tone-blue .feedtv-upnext-label {
-  background: #eaf4ff;
-}
-
-.tone-purple {
-  border-color: #8a5fc8;
-}
-.tone-purple .panel-head {
-  background: linear-gradient(180deg, #e6d9ff, #c3a3f0);
-  border-color: #8a5fc8;
-  color: #3a1d66;
-}
-.tone-purple .panel-body,
-.tone-purple .shelf-body,
-.tone-purple .side-list {
-  background: #f4eeff;
-}
-
-.tone-green {
-  border-color: #2f9e5c;
-}
-.tone-green .panel-head {
-  background: linear-gradient(180deg, #cdf5da, #8fdca8);
-  border-color: #2f9e5c;
-  color: #0d4d27;
-}
-.tone-green .panel-body,
-.tone-green .shelf-body,
-.tone-green .side-list {
-  background: #eafff2;
-}
-
-.tone-pink {
-  border-color: #d8447a;
-}
-.tone-pink .panel-head {
-  background: linear-gradient(180deg, #ffd9e6, #f5a3c0);
-  border-color: #d8447a;
-  color: #6b1235;
-}
-.tone-pink .panel-body,
-.tone-pink .shelf-body,
-.tone-pink .side-list {
-  background: #fff0f5;
-}
-
-.tone-orange {
-  border-color: #d8813a;
-}
-.tone-orange .panel-head {
-  background: linear-gradient(180deg, #ffe6c9, #f5bd80);
-  border-color: #d8813a;
-  color: #6b3a0d;
-}
-.tone-orange .panel-body,
-.tone-orange .shelf-body,
-.tone-orange .side-list {
-  background: #fff7ea;
-}
-
-.tone-yellow {
-  border-color: #cbb02a;
-}
-.tone-yellow .panel-head {
-  background: linear-gradient(180deg, #fff3bf, #f0d876);
-  border-color: #cbb02a;
-  color: #5c4c05;
-}
-.tone-yellow .panel-body,
-.tone-yellow .shelf-body,
-.tone-yellow .side-list {
-  background: #fffbe8;
 }
 
 /* ---- Real ON/OFF toggle switch (iOS-style) ---- */
