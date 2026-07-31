@@ -411,29 +411,6 @@ export default async function FeedPage({
         )}
       </div>
 
-      <div className="panel site-links-panel">
-        <div className="panel-head tabbed">
-          <span className="panel-head-tab">
-            <span className="tab-the">the</span>
-            <span className="tab-main">Site Links</span>
-          </span>
-        </div>
-        <div className="site-links-body">
-          {SITE_LINKS.map((group) => (
-            <div className="site-links-group" key={group.heading}>
-              <b>{group.heading}</b>
-              <div className="site-links-row">
-                {group.links.map((link) => (
-                  <Link key={link.href} href={link.href}>
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {topFeedBanner ? (
         <a href={topFeedBanner.link_url} target="_blank" rel="noreferrer" className="banner-slot-wide">
           <span className="banner-slot-tag">Sponsored</span>
@@ -724,6 +701,29 @@ export default async function FeedPage({
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="panel site-links-panel">
+        <div className="panel-head tabbed">
+          <span className="panel-head-tab">
+            <span className="tab-the">the</span>
+            <span className="tab-main">Site Links</span>
+          </span>
+        </div>
+        <div className="site-links-body">
+          {SITE_LINKS.map((group) => (
+            <div className="site-links-group" key={group.heading}>
+              <b>{group.heading}</b>
+              <div className="site-links-row">
+                {group.links.map((link) => (
+                  <Link key={link.href} href={link.href}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </>
