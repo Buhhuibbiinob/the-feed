@@ -2456,47 +2456,47 @@ footer .copy {
 }
 
 [data-theme="ios-light"] {
-  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 40%),
-    radial-gradient(ellipse at 15% 85%, rgba(10, 132, 255, 0.35), transparent 55%),
-    radial-gradient(ellipse at 85% 10%, rgba(191, 90, 242, 0.3), transparent 50%),
-    linear-gradient(160deg, #2f8ee0 0%, #1c6fc7 40%, #0d4f96 70%, #1c3d78 100%);
-  --body-glyph-color: rgba(255, 255, 255, 0.06);
-  --body-pattern: radial-gradient(circle, rgba(255, 255, 255, 0.18) 3px, transparent 3.5px);
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(255, 0, 0, 0.12), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(0, 0, 0, 0.08), transparent 50%),
+    linear-gradient(160deg, #f4f4f4 0%, #e8e8e8 40%, #dadada 70%, #c9c9c9 100%);
+  --body-glyph-color: rgba(0, 0, 0, 0.05);
+  --body-pattern: radial-gradient(circle, rgba(0, 0, 0, 0.07) 3px, transparent 3.5px);
   --body-pattern-size: 30px 30px;
 
-  --nav-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(242, 242, 247, 0.92) 70%);
-  --nav-border: #d1d1d6;
-  --nav-text: #1c1c1e;
-  --nav-active-text: #007aff;
+  --nav-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(249, 249, 249, 0.95) 70%);
+  --nav-border: #e0e0e0;
+  --nav-text: #0f0f0f;
+  --nav-active-text: #ff0000;
 
-  --subnav-bg: linear-gradient(180deg, #ffffff, #f2f2f7);
-  --subnav-border: #d1d1d6;
-  --subnav-text: #3a3a3c;
+  --subnav-bg: linear-gradient(180deg, #ffffff, #f9f9f9);
+  --subnav-border: #e0e0e0;
+  --subnav-text: #606060;
 
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #007aff 75%);
-  --wordmark-color: #1c1c1e;
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff0000 75%);
+  --wordmark-color: #0f0f0f;
 
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #eef3fa 45%, #d3e3f5 55%, #b0cdec 100%);
-  --acct-btn-border: #7fa8d6;
-  --acct-btn-text: #005ec4;
-  --acct-btn-primary-bg: linear-gradient(180deg, #bfe0ff 0%, #4fb0ff 25%, #0a7bff 55%, #0050c4 100%);
-  --acct-btn-primary-border: #00327a;
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f6f6f6 45%, #e6e6e6 55%, #cfcfcf 100%);
+  --acct-btn-border: #9c9c9c;
+  --acct-btn-text: #0f0f0f;
+  --acct-btn-primary-bg: linear-gradient(180deg, #ff8a80 0%, #ff5c4d 25%, #ff0000 55%, #a30000 100%);
+  --acct-btn-primary-border: #6b0000;
 
-  --panel-border: #7fc4f5;
-  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #eaf4ff 35%, #9fd0ff 60%, #4fa8f0 100%);
-  --panel-head-border: #2f74c8;
+  --panel-border: #d4d4d4;
+  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #f7f7f7 35%, #e6e6e6 60%, #cfcfcf 100%);
+  --panel-head-border: #a3a3a3;
   --panel-body-bg: #ffffff;
-  --shelf-bg: #f9f9fb;
+  --shelf-bg: #f9f9f9;
 
-  --btn-bg: linear-gradient(180deg, #bfe0ff 0%, #4fb0ff 25%, #0a7bff 55%, #0050c4 100%);
-  --btn-border: #00327a;
+  --btn-bg: linear-gradient(180deg, #ff8a80 0%, #ff5c4d 25%, #ff0000 55%, #a30000 100%);
+  --btn-border: #6b0000;
   --btn-text: #fff;
 
-  --hero-title-color: #1c1c1e;
-  --hero-tagline-color: #6e6e73;
+  --hero-title-color: #0f0f0f;
+  --hero-tagline-color: #606060;
   --hero-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 
-  --like-color: #ff375f;
+  --like-color: #ff0000;
 }
 
 [data-theme="ios-dark"] {
@@ -3737,9 +3737,9 @@ footer .copy {
   gap: 12px;
   overflow-x: auto;
   padding: 12px 10px;
-  background: linear-gradient(180deg, #ffb347, #ff7a3d);
-  border-top: 2px solid #d8447a;
-  border-bottom: 2px solid #d8447a;
+  background: var(--btn-bg);
+  border-top: 2px solid var(--btn-border);
+  border-bottom: 2px solid var(--btn-border);
 }
 .hot-pages-strip::-webkit-scrollbar {
   height: 6px;
@@ -3888,8 +3888,8 @@ footer .copy {
   flex-shrink: 0;
 }
 .ios-toggle input:checked + .ios-toggle-track {
-  background: linear-gradient(180deg, #5ebbfa 0%, #2e8ee0 55%, #0d6fc7 100%);
-  border-color: #0a5aa8;
+  background: var(--btn-bg);
+  border-color: var(--btn-border);
 }
 .ios-toggle-track::before {
   content: "";
@@ -4154,8 +4154,8 @@ footer .copy {
 }
 .right-now-tab {
   padding: 8px 14px;
-  background: linear-gradient(180deg, #3a4a8f, #1c2a6b);
-  color: #fff;
+  background: var(--btn-bg);
+  color: var(--btn-text);
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
