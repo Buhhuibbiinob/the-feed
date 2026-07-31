@@ -2150,9 +2150,14 @@ footer .copy {
 @media (max-width: 1024px) {
   .content-grid {
     flex-direction: column;
+    align-items: stretch;
   }
+  .left-col,
   .right-col {
     width: 100%;
+    min-width: 0;
+  }
+  .right-col {
     position: static;
   }
 }
