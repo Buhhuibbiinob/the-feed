@@ -371,10 +371,12 @@ a:hover {
 }
 
 .wrap {
+  position: relative;
+  z-index: 1;
   max-width: 1240px;
   margin: 20px auto 30px;
   padding: 24px;
-  background: rgba(255, 255, 255, 0.94);
+  background: #f4f6fa;
   border-radius: 20px;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
