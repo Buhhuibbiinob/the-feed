@@ -3677,6 +3677,134 @@ footer .copy {
   font-size: 11px;
 }
 
+/* ---- "Hot Pages"-style avatar strip (TheSlap) ---- */
+.hot-pages-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 12px 10px;
+  background: linear-gradient(180deg, #ffb347, #ff7a3d);
+  border-top: 2px solid #d8447a;
+  border-bottom: 2px solid #d8447a;
+}
+.hot-pages-strip::-webkit-scrollbar {
+  height: 6px;
+}
+.hot-pages-item {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 56px;
+}
+.hot-pages-photo-wrap {
+  position: relative;
+}
+.hot-pages-photo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.hot-pages-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff6b6b, #c0182f);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.hot-pages-name {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 56px;
+}
+
+/* ---- "Did You Know" fun-fact banner ---- */
+.fun-fact-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #eaf7ff, #cdeeff);
+  border: 1px solid #8fd0f0;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  font-size: 12px;
+  color: #0a3a55;
+}
+.fun-fact-label {
+  flex-shrink: 0;
+  font-weight: 800;
+  color: #0a6ea8;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+
+/* ---- "Avatar of the Week"-style reviewer spotlight ---- */
+.spotlight-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #c3a3f0, #8a5fc8);
+  border: 1px solid #6a3fa0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  text-align: center;
+}
+.spotlight-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+.spotlight-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  margin-top: 4px;
+}
+.spotlight-name {
+  color: #fff;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.spotlight-sub {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 10.5px;
+}
+
 /* ---- Real ON/OFF toggle switch (iOS-style) ---- */
 .ios-toggle {
   display: inline-flex;

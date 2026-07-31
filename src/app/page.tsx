@@ -21,7 +21,7 @@ type PostRow = {
   cover_url: string | null;
   spotify_track_id: string | null;
   youtube_video_id: string | null;
-  profiles: { username: string } | null;
+  profiles: { username: string; avatar_url: string | null } | null;
 };
 
 type ChatPreviewRow = {
@@ -110,7 +110,7 @@ export default async function FeedPage({
     supabase
       .from("posts")
       .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username)"
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username, avatar_url)"
       )
       .order("created_at", { ascending: false })
       .limit(50)
@@ -191,15 +191,19 @@ export default async function FeedPage({
     }
   }
 
-  const reviewerCounts = new Map<string, number>();
+  const reviewerCounts = new Map<string, { count: number; avatarUrl: string | null }>();
   for (const post of allPosts) {
     const name = post.profiles?.username;
     if (!name) continue;
-    reviewerCounts.set(name, (reviewerCounts.get(name) ?? 0) + 1);
+    const existing = reviewerCounts.get(name);
+    reviewerCounts.set(name, {
+      count: (existing?.count ?? 0) + 1,
+      avatarUrl: existing?.avatarUrl ?? post.profiles?.avatar_url ?? null,
+    });
   }
   const topReviewers = [...reviewerCounts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 7);
 
   const topThisWeek = allPosts
     .filter((p) => p.rating && isWithinLastWeek(p.created_at))
@@ -240,6 +244,16 @@ export default async function FeedPage({
     return score > bestScore ? p : best;
   }, null);
   const newFavePost = allPosts[0] ?? null;
+
+  const FUN_FACTS = [
+    "Every review you post can spin up a new fan club automatically.",
+    "Feed TV's lineup is pulled straight from what the community's been posting.",
+    "Your Wrapped recap updates all year long, not just in December.",
+    "The Leaderboard is a lifetime tally - it never resets.",
+    "Ad slots in the sidebar rotate every 6 hours, so check back for new ones.",
+  ];
+  const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % FUN_FACTS.length;
+  const todayFunFact = FUN_FACTS[dayIndex];
 
   const feedTvClips: FeedTvClip[] = [];
   const seenVideoIds = new Set<string>();
@@ -310,6 +324,11 @@ export default async function FeedPage({
       <div className="content-grid">
         <div className="left-col">
           <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
+
+          <div className="fun-fact-banner">
+            <span className="fun-fact-label">Did You Know</span>
+            <span className="fun-fact-text">{todayFunFact}</span>
+          </div>
 
           {spotifyConnected && (
             <Shelf
@@ -396,6 +415,21 @@ export default async function FeedPage({
         </div>
 
         <div className="right-col">
+          {topReviewers.length > 0 && (
+            <div className="spotlight-panel">
+              <span className="spotlight-tag">Top Reviewer</span>
+              <img
+                src={topReviewers[0][1].avatarUrl || "/avatars/preset-1.svg"}
+                alt=""
+                className="spotlight-avatar"
+              />
+              <b className="spotlight-name">{topReviewers[0][0]}</b>
+              <span className="spotlight-sub">
+                {topReviewers[0][1].count} review{topReviewers[0][1].count === 1 ? "" : "s"} and counting
+              </span>
+            </div>
+          )}
+
           <div className="panel new-post-card tone-orange">
             <div className="panel-body">
               {user ? (
@@ -449,23 +483,23 @@ export default async function FeedPage({
                 <span className="tab-main">Most Active</span>
               </span>
             </div>
-            <div className="side-list">
-              {topReviewers.length === 0 ? (
+            {topReviewers.length === 0 ? (
+              <div className="side-list">
                 <div className="empty-state">No reviews yet.</div>
-              ) : (
-                topReviewers.map(([name, count], i) => (
-                  <div className="row" key={name}>
-                    <span className="num">{i + 1}</span>
-                    <div className="info">
-                      <b>{name}</b>
-                      <span>
-                        {count} review{count === 1 ? "" : "s"}
-                      </span>
+              </div>
+            ) : (
+              <div className="hot-pages-strip">
+                {topReviewers.map(([name, { count, avatarUrl }]) => (
+                  <div className="hot-pages-item" key={name}>
+                    <div className="hot-pages-photo-wrap">
+                      <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
+                      <span className="hot-pages-badge">{count}</span>
                     </div>
+                    <span className="hot-pages-name">{name}</span>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {approvedBanners.length > 0 ? (
