@@ -8,6 +8,7 @@ import { ProfileCustomize } from "@/components/ProfileCustomize";
 import { StatusPicker } from "@/components/StatusPicker";
 import { MEDIA_LABELS, MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { computeTasteMatch } from "@/lib/taste";
+import { earnedBadges, BADGES } from "@/lib/badges";
 
 type ClubMembershipRow = {
   clubs: { id: string; media_type: MediaType; name: string } | null;
@@ -126,6 +127,8 @@ export default async function ProfilePage({
   for (const post of posts) breakdown[post.media_type]++;
 
   const isOwnProfile = user?.id === profile.id;
+  const badges = earnedBadges(posts.length);
+  const nextBadge = BADGES.find((b) => b.threshold > posts.length) ?? null;
 
   let isFollowing = false;
   let tasteMatch: number | null = null;
@@ -199,6 +202,22 @@ export default async function ProfilePage({
               <span>{followingCount ?? 0} following</span>
               {tasteMatch !== null && <span className="taste-match">{tasteMatch}% taste match</span>}
             </div>
+            {badges.length > 0 && (
+              <div className="profile-badges">
+                {badges.map((b) => (
+                  <span key={b.id} className="profile-badge" title={`${b.label} - ${b.threshold}+ reviews`}>
+                    {b.emoji} {b.label}
+                  </span>
+                ))}
+              </div>
+            )}
+            {nextBadge && (
+              <div className="profile-badge-next">
+                {nextBadge.threshold - posts.length} more review
+                {nextBadge.threshold - posts.length === 1 ? "" : "s"} to unlock {nextBadge.emoji}{" "}
+                {nextBadge.label}
+              </div>
+            )}
             <div className="profile-actions">
               {isOwnProfile ? (
                 <>

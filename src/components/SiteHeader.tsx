@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const MORE_LINKS = [
   { href: "/new-releases", label: "New Releases" },
@@ -14,7 +15,15 @@ const MORE_LINKS = [
   { href: "/wrapped", label: "Wrapped" },
 ];
 
-export function SiteHeader({ username, isAdmin = false }: { username: string | null; isAdmin?: boolean }) {
+export function SiteHeader({
+  username,
+  isAdmin = false,
+  notificationCount = 0,
+}: {
+  username: string | null;
+  isAdmin?: boolean;
+  notificationCount?: number;
+}) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
@@ -78,9 +87,14 @@ export function SiteHeader({ username, isAdmin = false }: { username: string | n
           </div>
         )}
       </div>
+      <form action="/search" method="get" className="nav-search">
+        <span className="nav-search-icon">🔍</span>
+        <input type="search" name="q" placeholder="Search Feedback" aria-label="Search" />
+      </form>
       <div className="nav-account">
         {username ? (
           <>
+            <NotificationBell initialCount={notificationCount} />
             <Link href={`/profile/${username}`} className="nav-user">
               Hi, {username}
             </Link>

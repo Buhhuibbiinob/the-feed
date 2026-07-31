@@ -6,6 +6,7 @@ import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { isAdmin } from "@/lib/admin";
+import { getNotificationCount } from "@/lib/notifications";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const title = "Feedback";
@@ -66,6 +67,7 @@ export default async function RootLayout({
   let theme = DEFAULT_THEME;
   let admin = false;
   let customBackgroundUrl: string | null = null;
+  let notificationCount = 0;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -76,6 +78,7 @@ export default async function RootLayout({
     if (isValidTheme(profile?.theme)) theme = profile.theme;
     customBackgroundUrl = profile?.custom_background_url ?? null;
     admin = await isAdmin(supabase, user.id);
+    notificationCount = await getNotificationCount(supabase, user.id);
   }
 
   const htmlStyle =
@@ -86,7 +89,7 @@ export default async function RootLayout({
   return (
     <html lang="en" data-theme={theme} style={htmlStyle}>
       <body>
-        <SiteHeader username={username} isAdmin={admin} />
+        <SiteHeader username={username} isAdmin={admin} notificationCount={notificationCount} />
         <div className="wrap">{children}</div>
         <SiteFooter />
         <WelcomeExplainer />

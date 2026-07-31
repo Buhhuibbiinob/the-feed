@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { highestBadge } from "@/lib/badges";
 
 type ProfileRow = {
   id: string;
@@ -32,24 +33,32 @@ export default async function LeaderboardPage() {
         {ranked.length === 0 ? (
           <div className="empty-state">No reviewers yet.</div>
         ) : (
-          ranked.map((p, i) => (
-            <div className="row" key={p.id}>
-              <span className="num">{i + 1}</span>
-              <img
-                src={p.avatar_url || "/avatars/preset-1.svg"}
-                alt=""
-                className="leaderboard-avatar"
-              />
-              <div className="info">
-                <b>
-                  <Link href={`/profile/${p.username}`}>{p.username}</Link>
-                </b>
-                <span>
-                  {p.count} review{p.count === 1 ? "" : "s"}
-                </span>
+          ranked.map((p, i) => {
+            const badge = highestBadge(p.count);
+            return (
+              <div className="row" key={p.id}>
+                <span className="num">{i + 1}</span>
+                <img
+                  src={p.avatar_url || "/avatars/preset-1.svg"}
+                  alt=""
+                  className="leaderboard-avatar"
+                />
+                <div className="info">
+                  <b>
+                    <Link href={`/profile/${p.username}`}>{p.username}</Link>
+                    {badge && (
+                      <span className="leaderboard-badge" title={`${badge.label} - ${badge.threshold}+ reviews`}>
+                        {badge.emoji}
+                      </span>
+                    )}
+                  </b>
+                  <span>
+                    {p.count} review{p.count === 1 ? "" : "s"}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

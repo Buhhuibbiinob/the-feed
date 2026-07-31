@@ -229,8 +229,34 @@ a:hover {
   letter-spacing: -0.3px;
 }
 
-.nav-account {
+.nav-search {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  margin-top: auto;
+  margin-bottom: auto;
+  background: linear-gradient(180deg, #f1f1f1, #ffffff);
+  border: 1px solid #d0d0d0;
+  border-radius: 100px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) inset;
+}
+.nav-search-icon {
+  font-size: 11px;
+  opacity: 0.6;
+}
+.nav-search input {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 12px;
+  width: 140px;
+  color: var(--nav-text);
+  font-family: inherit;
+}
+.nav-account {
+  margin-left: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -348,6 +374,89 @@ a:hover {
 .nav-more-menu a.active {
   font-weight: 700;
   background: rgba(255, 255, 255, 0.55);
+}
+
+.nav-bell {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.nav-bell-btn {
+  position: relative;
+  font-size: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.nav-bell-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff6b6b, #c0182f);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.nav-bell-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  width: 280px;
+  max-height: 360px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-body-bg);
+  border: 1px solid var(--nav-border);
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+  margin-top: 8px;
+}
+.nav-bell-menu-head {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #1a1a1a;
+  background: var(--panel-head-bg);
+  border-bottom: 1px solid var(--panel-head-border);
+}
+.nav-bell-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 12px;
+  color: #1a1a1a;
+  border-bottom: 1px solid #ececec;
+  text-decoration: none;
+}
+.nav-bell-row:last-child {
+  border-bottom: none;
+}
+.nav-bell-row:hover {
+  background: #f6f6f6;
+  text-decoration: none;
+}
+.nav-bell-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 /* ---- Page header ---- */
@@ -1255,6 +1364,41 @@ a:hover {
   object-fit: cover;
   flex-shrink: 0;
 }
+.search-person-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e2e2;
+  text-decoration: none;
+  color: inherit;
+}
+.search-person-row:last-child {
+  border-bottom: none;
+}
+.search-person-row:hover {
+  background: #f6f6f6;
+  text-decoration: none;
+}
+.search-person-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.search-person-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.search-person-info span {
+  font-size: 11px;
+  color: #777;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .club-row-banner {
   width: 48px;
   height: 28px;
@@ -1995,6 +2139,35 @@ footer .copy {
 .profile-head[style*="background-image"] .taste-match {
   color: #8fe0b1;
 }
+.profile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.profile-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: linear-gradient(180deg, #fafafa, #e4e4e4);
+  border: 1px solid #d0d0d0;
+  color: #1a1a1a;
+}
+.profile-badge-next {
+  font-size: 10.5px;
+  color: #888;
+  margin-top: 4px;
+}
+.profile-head[style*="background-image"] .profile-badge-next {
+  color: #d0d0d0;
+}
+.leaderboard-badge {
+  margin-left: 4px;
+}
 .btn.following {
   background: linear-gradient(180deg, #bfe7cf 0%, #6fbf8f 46%, #4f9f6f 50%, #2f7f4f 100%);
 }
@@ -2176,6 +2349,14 @@ footer .copy {
   }
   .nav-more-btn {
     padding: 0 12px;
+  }
+  .nav-search {
+    margin-left: 0;
+    flex-basis: 100%;
+    padding: 6px 12px;
+  }
+  .nav-search input {
+    width: 100%;
   }
   .nav-account {
     margin-left: 0;
