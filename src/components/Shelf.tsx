@@ -97,8 +97,8 @@ export function Shelf({
 
   return (
     <div className={`panel${tone ? ` tone-${tone}` : ""}`}>
-      <div className="panel-head">
-        <span>
+      <div className="panel-head tabbed">
+        <span className="panel-head-tab">
           <span className="tab-the">the</span>
           <span className="tab-main">{title}</span>
         </span>

@@ -142,8 +142,8 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
 
   return (
     <div className="panel feedtv-panel">
-      <div className="panel-head">
-        <span className="tab-main">{heading}</span>
+      <div className="panel-head tabbed">
+        <span className="panel-head-tab tab-main">{heading}</span>
         <span className="feedtv-live">● LIVE</span>
       </div>
       <div className="feedtv-body">

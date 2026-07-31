@@ -318,8 +318,8 @@ export default async function FeedPage({
           <Shelf title="Now Watching" items={nowWatching} tone="pink" />
 
           <div className="panel tone-yellow">
-            <div className="panel-head">
-              <span>
+            <div className="panel-head tabbed">
+              <span className="panel-head-tab">
                 <span className="tab-the">the</span>
                 <span className="tab-main">Recent Reviews</span>
               </span>
@@ -390,9 +390,11 @@ export default async function FeedPage({
           </div>
 
           <div className="panel tone-green">
-            <div className="panel-head">
-              <span className="tab-the">the</span>
-              <span className="tab-main">Top Tracks</span>
+            <div className="panel-head tabbed">
+              <span className="panel-head-tab">
+                <span className="tab-the">the</span>
+                <span className="tab-main">Top Tracks</span>
+              </span>
             </div>
             <div className="side-list">
               {topTracks.length === 0 ? (
@@ -414,9 +416,11 @@ export default async function FeedPage({
           </div>
 
           <div className="panel tone-purple">
-            <div className="panel-head">
-              <span className="tab-the">the</span>
-              <span className="tab-main">Most Active</span>
+            <div className="panel-head tabbed">
+              <span className="panel-head-tab">
+                <span className="tab-the">the</span>
+                <span className="tab-main">Most Active</span>
+              </span>
             </div>
             <div className="side-list">
               {topReviewers.length === 0 ? (
@@ -463,9 +467,11 @@ export default async function FeedPage({
 
           {statusRows && statusRows.length > 0 && (
             <div className="panel tone-blue">
-              <div className="panel-head">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Live Now</span>
+              <div className="panel-head tabbed">
+                <span className="panel-head-tab">
+                  <span className="tab-the">the</span>
+                  <span className="tab-main">Live Now</span>
+                </span>
               </div>
               <div className="side-list">
                 {statusRows.map((row) => (
@@ -485,9 +491,11 @@ export default async function FeedPage({
           )}
 
           <div className="panel tone-pink">
-            <div className="panel-head">
-              <span className="tab-the">the</span>
-              <span className="tab-main">Top This Week</span>
+            <div className="panel-head tabbed">
+              <span className="panel-head-tab">
+                <span className="tab-the">the</span>
+                <span className="tab-main">Top This Week</span>
+              </span>
             </div>
             <div className="side-list">
               {topThisWeek.length === 0 ? (
@@ -509,9 +517,11 @@ export default async function FeedPage({
           </div>
 
           <div className="panel tone-orange">
-            <div className="panel-head">
-              <span className="tab-the">the</span>
-              <span className="tab-main">Community Stats</span>
+            <div className="panel-head tabbed">
+              <span className="panel-head-tab">
+                <span className="tab-the">the</span>
+                <span className="tab-main">Community Stats</span>
+              </span>
             </div>
             <div className="stats-body">
               <div>{postsCount.count ?? 0} reviews posted</div>
@@ -520,8 +530,8 @@ export default async function FeedPage({
           </div>
 
           <div className="panel tone-blue">
-            <div className="panel-head">
-              <span>
+            <div className="panel-head tabbed">
+              <span className="panel-head-tab">
                 <span className="tab-the">the</span>
                 <span className="tab-main">Live Chat</span>
               </span>

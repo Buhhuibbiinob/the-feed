@@ -372,8 +372,17 @@ a:hover {
 
 .wrap {
   max-width: 1240px;
-  margin: 0 auto 30px;
-  padding: 0 24px;
+  margin: 20px auto 30px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+@media (max-width: 720px) {
+  .wrap {
+    margin: 10px auto 20px;
+    border-radius: 14px;
+  }
 }
 
 /* ---- Feed TV ---- */
@@ -1085,6 +1094,45 @@ a:hover {
   position: relative;
   font-weight: 400;
   font-size: 10.5px;
+}
+
+/* ---- Floating pill tab (TheSlap-style) - opt-in via .tabbed ---- */
+.panel-head.tabbed {
+  background: transparent;
+  box-shadow: none;
+  border-bottom: none;
+  padding: 10px 14px 0;
+  align-items: flex-end;
+  overflow: visible;
+}
+.panel-head.tabbed::before {
+  content: none;
+}
+.panel-head-tab {
+  position: relative;
+  top: 1px;
+  z-index: 2;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  border-radius: 10px 10px 0 0;
+  background: var(--panel-head-bg);
+  border: 1px solid var(--panel-head-border);
+  border-bottom: none;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  font-weight: 700;
+}
+.panel-head-tab::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  pointer-events: none;
 }
 .feed-filter {
   position: relative;
@@ -2354,11 +2402,13 @@ footer .copy {
 }
 
 [data-theme="ios-light"] {
-  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 40%),
-    radial-gradient(ellipse at 15% 85%, rgba(10, 132, 255, 0.12), transparent 55%),
-    radial-gradient(ellipse at 85% 10%, rgba(191, 90, 242, 0.1), transparent 50%),
-    linear-gradient(160deg, #f2f2f7 0%, #e8e8ed 40%, #eef3fb 70%, #ffffff 100%);
-  --body-glyph-color: rgba(0, 0, 0, 0.03);
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(10, 132, 255, 0.35), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(191, 90, 242, 0.3), transparent 50%),
+    linear-gradient(160deg, #2f8ee0 0%, #1c6fc7 40%, #0d4f96 70%, #1c3d78 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.06);
+  --body-pattern: radial-gradient(circle, rgba(255, 255, 255, 0.18) 3px, transparent 3.5px);
+  --body-pattern-size: 30px 30px;
 
   --nav-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(242, 242, 247, 0.92) 70%);
   --nav-border: #d1d1d6;
@@ -3808,37 +3858,43 @@ footer .copy {
    Frosted-glass color-block section tabs (TheSlap/PopGirl-style).
    Translucent + blurred, not flat color, so it reads as glass.
    ================================================================ */
-.tone-blue .panel-head {
+.tone-blue .panel-head,
+.tone-blue .panel-head-tab {
   background: linear-gradient(180deg, rgba(234, 246, 255, 0.92) 0%, rgba(127, 196, 245, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   color: #08315c;
 }
-.tone-purple .panel-head {
+.tone-purple .panel-head,
+.tone-purple .panel-head-tab {
   background: linear-gradient(180deg, rgba(240, 230, 255, 0.92) 0%, rgba(180, 140, 240, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   color: #3a1d66;
 }
-.tone-green .panel-head {
+.tone-green .panel-head,
+.tone-green .panel-head-tab {
   background: linear-gradient(180deg, rgba(225, 250, 235, 0.92) 0%, rgba(120, 220, 160, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   color: #0d4d27;
 }
-.tone-pink .panel-head {
+.tone-pink .panel-head,
+.tone-pink .panel-head-tab {
   background: linear-gradient(180deg, rgba(255, 232, 240, 0.92) 0%, rgba(245, 140, 180, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   color: #6b1235;
 }
-.tone-orange .panel-head {
+.tone-orange .panel-head,
+.tone-orange .panel-head-tab {
   background: linear-gradient(180deg, rgba(255, 238, 220, 0.92) 0%, rgba(245, 175, 110, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   color: #6b3a0d;
 }
-.tone-yellow .panel-head {
+.tone-yellow .panel-head,
+.tone-yellow .panel-head-tab {
   background: linear-gradient(180deg, rgba(255, 249, 220, 0.92) 0%, rgba(240, 216, 118, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
