@@ -138,20 +138,33 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
         <span className="feedtv-live">● LIVE</span>
       </div>
       <div className="feedtv-body">
-        <div className="feedtv-player">
-          <div ref={playerElRef} className="feedtv-iframe-target" />
-          <div className="feedtv-bug">FEED TV</div>
-          <div className="feedtv-controls">
-            <button className="feedtv-ctrl-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
-              <span>{paused ? "▶" : "❚❚"}</span>
-            </button>
-            <button className="feedtv-ctrl-btn" onClick={skipNext} aria-label="Skip to next">
-              <span>⏭</span>
-            </button>
-            <button className="feedtv-ctrl-btn" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}>
-              <span>{muted ? "🔇" : "🔊"}</span>
-            </button>
+        <div className="feedtv-tv">
+          <div className="feedtv-tv-antenna feedtv-tv-antenna-left" />
+          <div className="feedtv-tv-antenna feedtv-tv-antenna-right" />
+          <div className="feedtv-tv-frame">
+            <div className="feedtv-tv-led" />
+            <div className="feedtv-player">
+              <div ref={playerElRef} className="feedtv-iframe-target" />
+              <div className="feedtv-bug">FEED TV</div>
+              <div className="feedtv-controls">
+                <button className="feedtv-ctrl-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
+                  <span>{paused ? "▶" : "❚❚"}</span>
+                </button>
+                <button className="feedtv-ctrl-btn" onClick={skipNext} aria-label="Skip to next">
+                  <span>⏭</span>
+                </button>
+                <button className="feedtv-ctrl-btn" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}>
+                  <span>{muted ? "🔇" : "🔊"}</span>
+                </button>
+              </div>
+            </div>
+            <div className="feedtv-tv-speaker">
+              {Array.from({ length: 5 }, (_, i) => (
+                <span key={i} />
+              ))}
+            </div>
           </div>
+          <div className="feedtv-tv-stand" />
         </div>
         <div className="feedtv-upnext">
           <div className="feedtv-upnext-label">Up Next</div>

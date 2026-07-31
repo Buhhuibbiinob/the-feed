@@ -37,8 +37,8 @@
   --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #e8e8e8 46%, #cccccc 50%, #a0a0a0 100%);
   --acct-btn-border: #999999;
   --acct-btn-text: #2a5a80;
-  --acct-btn-primary-bg: linear-gradient(180deg, #7fcaff 0%, #2f8ee8 46%, #1f74c8 50%, #0d4f96 100%);
-  --acct-btn-primary-border: #0a3d78;
+  --acct-btn-primary-bg: linear-gradient(180deg, #c4c4c4 0%, #8a8a8a 46%, #6a6a6a 50%, #3a3a3a 100%);
+  --acct-btn-primary-border: #1a1a1a;
 
   --panel-border: #c9c9c9;
   --panel-head-bg: linear-gradient(180deg, #f2f2f2, #d3d3d3);
@@ -46,8 +46,8 @@
   --panel-body-bg: #fff;
   --shelf-bg: #fff;
 
-  --btn-bg: linear-gradient(180deg, #7fcaff 0%, #2f8ee8 46%, #1f74c8 50%, #0d4f96 100%);
-  --btn-border: #0a3d78;
+  --btn-bg: linear-gradient(180deg, #c4c4c4 0%, #8a8a8a 46%, #6a6a6a 50%, #3a3a3a 100%);
+  --btn-border: #1a1a1a;
   --btn-text: #fff;
 
   --hero-title-color: #fff;
@@ -371,9 +371,9 @@ a:hover {
 }
 
 .wrap {
-  max-width: 980px;
+  max-width: 1240px;
   margin: 0 auto 30px;
-  padding: 0 20px;
+  padding: 0 24px;
 }
 
 /* ---- Feed TV ---- */
@@ -386,18 +386,93 @@ a:hover {
 .feedtv-body {
   display: flex;
   gap: 14px;
-  padding: 14px;
-  background: #111;
+  padding: 26px 14px 14px;
+  background: radial-gradient(ellipse at 50% 20%, #2c2c30, #131316 75%);
 }
-.feedtv-player {
+.feedtv-tv {
   position: relative;
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.feedtv-tv-antenna {
+  position: absolute;
+  top: -32px;
+  width: 3px;
+  height: 44px;
+  background: linear-gradient(180deg, #e2e2e2, #8a8a8a);
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+.feedtv-tv-antenna::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #999);
+}
+.feedtv-tv-antenna-left {
+  left: 20%;
+  transform: rotate(-26deg);
+}
+.feedtv-tv-antenna-right {
+  right: 20%;
+  transform: rotate(26deg);
+}
+.feedtv-tv-frame {
+  position: relative;
+  width: 100%;
+  padding: 16px 16px 20px;
+  border-radius: 22px;
+  background: linear-gradient(155deg, #5a5a5e 0%, #38383b 45%, #1c1c1e 100%);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255, 255, 255, 0.15) inset,
+    0 -6px 14px rgba(0, 0, 0, 0.4) inset;
+  border: 1px solid #0c0c0d;
+}
+.feedtv-tv-led {
+  position: absolute;
+  top: 8px;
+  right: 18px;
+  z-index: 3;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff8080, #c0182f);
+  box-shadow: 0 0 5px 1px rgba(255, 60, 60, 0.8);
+}
+.feedtv-tv-speaker {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.feedtv-tv-speaker span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #555, #0a0a0a);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.feedtv-tv-stand {
+  width: 90px;
+  height: 14px;
+  background: linear-gradient(180deg, #3a3a3d, #1c1c1e);
+  clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5);
+}
+.feedtv-player {
+  position: relative;
   aspect-ratio: 16 / 9;
-  border-radius: 10px;
+  border-radius: 6px;
   overflow: hidden;
   background: #000;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.15) inset;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6) inset, 0 0 0 3px #000, 0 0 0 4px rgba(255, 255, 255, 0.06);
 }
 .feedtv-iframe-target {
   position: absolute;
@@ -437,9 +512,9 @@ a:hover {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid #0a3d78;
-  background: linear-gradient(180deg, #7fcaff 0%, #2f8ee8 46%, #1f74c8 50%, #0d4f96 100%);
-  color: #fff;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-text);
   font-size: 12px;
   cursor: pointer;
   display: flex;
@@ -879,15 +954,6 @@ a:hover {
   height: auto;
 }
 
-/* ---- Bottom row: stats + chat preview ---- */
-.bottom-row {
-  display: flex;
-  gap: 18px;
-}
-.bottom-row .panel {
-  flex: 1;
-  margin-bottom: 0;
-}
 .stats-body {
   background: #fff;
   padding: 16px 18px;
@@ -952,8 +1018,8 @@ a:hover {
   border-radius: 100px;
 }
 .feed-filter a.active {
-  color: #fff;
-  background: linear-gradient(180deg, #7fcaff 0%, #2f8ee8 46%, #1f74c8 50%, #0d4f96 100%);
+  color: var(--btn-text);
+  background: var(--btn-bg);
   text-decoration: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
 }
@@ -987,10 +1053,13 @@ a:hover {
 }
 .left-col {
   flex: 1;
+  min-width: 0;
 }
 .right-col {
-  width: 240px;
+  width: 300px;
   flex-shrink: 0;
+  position: sticky;
+  top: 12px;
 }
 
 /* ---- Sidebar list panels ---- */
@@ -1434,20 +1503,30 @@ a:hover {
 .field input,
 .field select,
 .field textarea {
-  font-size: 12px;
-  padding: 7px 9px;
-  border: 1px solid #aaaaaa;
-  border-radius: 5px;
+  font-size: 12.5px;
+  padding: 8px 11px;
+  border: 1px solid #c2c2c2;
+  border-radius: 9px;
   font-family: inherit;
-  background: linear-gradient(180deg, #ececec, #ffffff 45%);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) inset, 0 1px 0 rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, #ffffff, #f2f2f2 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) inset, 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(180deg, #ffffff, #f2f2f2 100%),
+    linear-gradient(45deg, transparent 50%, #666 50%), linear-gradient(135deg, #666 50%, transparent 50%);
+  background-position: 0 0, calc(100% - 16px) center, calc(100% - 11px) center;
+  background-size: 100% 100%, 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
 }
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
   outline: none;
   border-color: var(--acct-btn-primary-border, #4fa8c2);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) inset, 0 0 0 3px rgba(79, 168, 194, 0.25);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) inset, 0 0 0 3px rgba(79, 168, 194, 0.25);
 }
 .field textarea {
   resize: vertical;
@@ -1887,6 +1966,17 @@ footer .copy {
   margin: 6px 0;
 }
 
+/* ---- Tablet & below: sidebar stacks below main content ---- */
+@media (max-width: 1024px) {
+  .content-grid {
+    flex-direction: column;
+  }
+  .right-col {
+    width: 100%;
+    position: static;
+  }
+}
+
 /* ---- Mobile ---- */
 @media (max-width: 720px) {
   .wrap {
@@ -1940,15 +2030,6 @@ footer .copy {
   .coverflow-spacer {
     width: calc(50% - 46px);
   }
-  .content-grid {
-    flex-direction: column;
-  }
-  .right-col {
-    width: 100%;
-  }
-  .bottom-row {
-    flex-direction: column;
-  }
   .post-card-head {
     flex-wrap: wrap;
   }
@@ -1981,10 +2062,36 @@ footer .copy {
   font-weight: 700;
   margin-bottom: 6px;
 }
-.theme-form-row {
+.theme-tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 4px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #ccc;
+}
+.theme-tab {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: none;
+  cursor: pointer;
+  color: #777;
+  font-family: inherit;
+  margin-bottom: -1px;
+}
+.theme-tab.active {
+  color: #1a1a1a;
+  background: #fff;
+  border-color: #ccc;
+}
+.theme-swatch.selected {
+  outline: 2px solid #2f8ee8;
+  outline-offset: 2px;
+}
+.theme-swatch {
+  cursor: pointer;
 }
 .theme-select {
   flex: 1;
@@ -3324,7 +3431,77 @@ footer .copy {
   letter-spacing: 0.3px;
 }
 
-/* ---- Color-block section tones ---- */
+/* ---- Sidebar "New Post" CTA ---- */
+.new-post-card .panel-body {
+  padding: 14px;
+  text-align: center;
+}
+.new-post-btn {
+  display: block;
+  text-align: center;
+}
+
+/* ---- Sidebar ad banner slots ---- */
+.banner-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 18px;
+  border-radius: 9px;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.25) inset;
+  background: var(--panel-body-bg);
+  color: inherit;
+  text-decoration: none;
+}
+.banner-slot:hover {
+  text-decoration: none;
+}
+.banner-slot img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 300 / 250;
+  object-fit: cover;
+}
+.banner-slot-tag {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 2px 7px;
+  border-radius: 100px;
+}
+.banner-slot-fallback {
+  aspect-ratio: 300 / 250;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 20px;
+  background: var(--panel-head-bg);
+  font-size: 12px;
+}
+.banner-slot-fallback b {
+  font-size: 14px;
+}
+.banner-slot-fallback span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* ---- Color-block section tones (TheSlap/PopGirl-style tab headers) ---- */
 .tone-blue {
   border-color: #2f74c8;
 }
@@ -3410,4 +3587,211 @@ footer .copy {
 .tone-yellow .shelf-body,
 .tone-yellow .side-list {
   background: #fffbe8;
+}
+
+/* ---- Real ON/OFF toggle switch (iOS-style) ---- */
+.ios-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #666;
+}
+.ios-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.ios-toggle-track {
+  position: relative;
+  width: 38px;
+  height: 21px;
+  border-radius: 100px;
+  background: linear-gradient(180deg, #c9c9c9, #e2e2e2);
+  border: 1px solid #b0b0b0;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+.ios-toggle input:checked + .ios-toggle-track {
+  background: linear-gradient(180deg, #7ed86a, #4cd440 60%, #2fae28);
+  border-color: #1f8a1c;
+}
+.ios-toggle-knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff, #e2e2e2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  transition: left 0.15s ease;
+}
+.ios-toggle input:checked + .ios-toggle-track .ios-toggle-knob {
+  left: 18px;
+}
+
+/* ================================================================
+   Era layout/format overrides. Themes bucketed under "era-90s-2000s"
+   or "era-2010-2016" (see src/lib/themes.ts) get real structural
+   changes here - corner radius, shadow style, density - on top of
+   their own color tokens. Everything else (the "color" category)
+   keeps the site's normal default shapes/spacing.
+   ================================================================ */
+
+/* ---- 90s-2000s: square, dense, hard-edged Windows-era chrome ---- */
+[data-theme="y2k-futuristic"] .panel,
+[data-theme="tuscan"] .panel,
+[data-theme="mcbling"] .panel,
+[data-theme="win95"] .panel,
+[data-theme="winxp-bliss"] .panel,
+[data-theme="crt-tv"] .panel,
+[data-theme="static-signal"] .panel,
+[data-theme="vhs-rewind"] .panel {
+  border-radius: 2px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+[data-theme="y2k-futuristic"] .panel-head,
+[data-theme="tuscan"] .panel-head,
+[data-theme="mcbling"] .panel-head,
+[data-theme="win95"] .panel-head,
+[data-theme="winxp-bliss"] .panel-head,
+[data-theme="crt-tv"] .panel-head,
+[data-theme="static-signal"] .panel-head,
+[data-theme="vhs-rewind"] .panel-head {
+  border-radius: 0;
+}
+[data-theme="y2k-futuristic"] .btn,
+[data-theme="tuscan"] .btn,
+[data-theme="mcbling"] .btn,
+[data-theme="win95"] .btn,
+[data-theme="winxp-bliss"] .btn,
+[data-theme="crt-tv"] .btn,
+[data-theme="static-signal"] .btn,
+[data-theme="vhs-rewind"] .btn,
+[data-theme="y2k-futuristic"] .acct-btn,
+[data-theme="tuscan"] .acct-btn,
+[data-theme="mcbling"] .acct-btn,
+[data-theme="win95"] .acct-btn,
+[data-theme="winxp-bliss"] .acct-btn,
+[data-theme="crt-tv"] .acct-btn,
+[data-theme="static-signal"] .acct-btn,
+[data-theme="vhs-rewind"] .acct-btn {
+  border-radius: 3px;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+[data-theme="y2k-futuristic"] .feature-banner,
+[data-theme="tuscan"] .feature-banner,
+[data-theme="mcbling"] .feature-banner,
+[data-theme="win95"] .feature-banner,
+[data-theme="winxp-bliss"] .feature-banner,
+[data-theme="crt-tv"] .feature-banner,
+[data-theme="static-signal"] .feature-banner,
+[data-theme="vhs-rewind"] .feature-banner,
+[data-theme="y2k-futuristic"] .cover,
+[data-theme="tuscan"] .cover,
+[data-theme="mcbling"] .cover,
+[data-theme="win95"] .cover,
+[data-theme="winxp-bliss"] .cover,
+[data-theme="crt-tv"] .cover,
+[data-theme="static-signal"] .cover,
+[data-theme="vhs-rewind"] .cover,
+[data-theme="y2k-futuristic"] .banner-slot,
+[data-theme="tuscan"] .banner-slot,
+[data-theme="mcbling"] .banner-slot,
+[data-theme="win95"] .banner-slot,
+[data-theme="winxp-bliss"] .banner-slot,
+[data-theme="crt-tv"] .banner-slot,
+[data-theme="static-signal"] .banner-slot,
+[data-theme="vhs-rewind"] .banner-slot {
+  border-radius: 0;
+}
+[data-theme="y2k-futuristic"] .content-grid,
+[data-theme="tuscan"] .content-grid,
+[data-theme="mcbling"] .content-grid,
+[data-theme="win95"] .content-grid,
+[data-theme="winxp-bliss"] .content-grid,
+[data-theme="crt-tv"] .content-grid,
+[data-theme="static-signal"] .content-grid,
+[data-theme="vhs-rewind"] .content-grid {
+  gap: 10px;
+}
+[data-theme="y2k-futuristic"] .panel-body,
+[data-theme="tuscan"] .panel-body,
+[data-theme="mcbling"] .panel-body,
+[data-theme="win95"] .panel-body,
+[data-theme="winxp-bliss"] .panel-body,
+[data-theme="crt-tv"] .panel-body,
+[data-theme="static-signal"] .panel-body,
+[data-theme="vhs-rewind"] .panel-body {
+  padding: 10px;
+}
+
+/* ---- 2010-2016: glossy iPhone-5-era skeuomorphic chrome ---- */
+[data-theme="frutiger-aero"] .panel,
+[data-theme="tumblr-fashion"] .panel,
+[data-theme="ios-light"] .panel,
+[data-theme="ios-dark"] .panel,
+[data-theme="frutiger-metro"] .panel,
+[data-theme="discord-dark"] .panel {
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 2px 0 rgba(255, 255, 255, 0.5) inset;
+}
+[data-theme="frutiger-aero"] .panel-head,
+[data-theme="tumblr-fashion"] .panel-head,
+[data-theme="ios-light"] .panel-head,
+[data-theme="ios-dark"] .panel-head,
+[data-theme="frutiger-metro"] .panel-head,
+[data-theme="discord-dark"] .panel-head {
+  border-radius: 14px 14px 0 0;
+}
+[data-theme="frutiger-aero"] .btn,
+[data-theme="tumblr-fashion"] .btn,
+[data-theme="ios-light"] .btn,
+[data-theme="ios-dark"] .btn,
+[data-theme="frutiger-metro"] .btn,
+[data-theme="discord-dark"] .btn,
+[data-theme="frutiger-aero"] .acct-btn,
+[data-theme="tumblr-fashion"] .acct-btn,
+[data-theme="ios-light"] .acct-btn,
+[data-theme="ios-dark"] .acct-btn,
+[data-theme="frutiger-metro"] .acct-btn,
+[data-theme="discord-dark"] .acct-btn {
+  border-radius: 100px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 -2px 4px rgba(0, 0, 0, 0.2) inset;
+}
+[data-theme="frutiger-aero"] .feature-banner,
+[data-theme="tumblr-fashion"] .feature-banner,
+[data-theme="ios-light"] .feature-banner,
+[data-theme="ios-dark"] .feature-banner,
+[data-theme="frutiger-metro"] .feature-banner,
+[data-theme="discord-dark"] .feature-banner,
+[data-theme="frutiger-aero"] .banner-slot,
+[data-theme="tumblr-fashion"] .banner-slot,
+[data-theme="ios-light"] .banner-slot,
+[data-theme="ios-dark"] .banner-slot,
+[data-theme="frutiger-metro"] .banner-slot,
+[data-theme="discord-dark"] .banner-slot {
+  border-radius: 16px;
+}
+[data-theme="frutiger-aero"] .content-grid,
+[data-theme="tumblr-fashion"] .content-grid,
+[data-theme="ios-light"] .content-grid,
+[data-theme="ios-dark"] .content-grid,
+[data-theme="frutiger-metro"] .content-grid,
+[data-theme="discord-dark"] .content-grid {
+  gap: 26px;
+}
+[data-theme="frutiger-aero"] .panel-body,
+[data-theme="tumblr-fashion"] .panel-body,
+[data-theme="ios-light"] .panel-body,
+[data-theme="ios-dark"] .panel-body,
+[data-theme="frutiger-metro"] .panel-body,
+[data-theme="discord-dark"] .panel-body {
+  padding: 20px;
 }

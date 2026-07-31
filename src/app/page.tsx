@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { PostForm } from "@/components/PostForm";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
 import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
+import { FollowingToggle } from "@/components/FollowingToggle";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
 import type { MediaType } from "@/lib/media";
@@ -36,6 +36,14 @@ type StatusRow = {
   status_media_type: MediaType;
   status_title: string;
   status_artist: string | null;
+};
+
+type BannerAdRow = {
+  id: string;
+  artist_name: string;
+  link_url: string;
+  image_url: string | null;
+  message: string | null;
 };
 
 function stars(rating: number | null) {
@@ -96,6 +104,7 @@ export default async function FeedPage({
     { data: commentRows },
     trendingTracks,
     { data: statusRows },
+    { data: bannerAdRows },
     siteText,
   ] = await Promise.all([
     supabase
@@ -125,6 +134,14 @@ export default async function FeedPage({
       .order("status_updated_at", { ascending: false })
       .limit(8)
       .returns<StatusRow[]>(),
+    supabase
+      .from("banner_ads")
+      .select("id, artist_name, link_url, image_url, message")
+      .eq("status", "approved")
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+      .order("created_at", { ascending: false })
+      .limit(2)
+      .returns<BannerAdRow[]>(),
     getAllSiteText(supabase),
   ]);
 
@@ -240,14 +257,14 @@ export default async function FeedPage({
     if (feedTvClips.length >= 10) break;
   }
 
+  const approvedBanners = bannerAdRows ?? [];
+
   return (
     <>
       <div className="page-header">
         <h1>{siteText.feed_heading}</h1>
         <div className="tagline">{siteText.feed_tagline}</div>
       </div>
-
-      <FeedTV clips={feedTvClips} />
 
       <div className="feature-row">
         {banners.map(({ mediaType, top, eyebrow, empty }) => {
@@ -274,35 +291,20 @@ export default async function FeedPage({
         })}
       </div>
 
-      {spotifyConnected && (
-        <Shelf
-          title="On Repeat"
-          items={onRepeat}
-          emptyMessage="Play something on Spotify and it'll show up here."
-          tone="purple"
-        />
-      )}
-      <Shelf title="Trending Music" items={newReleases} tone="green" />
-      <Shelf title="Now Watching" items={nowWatching} tone="pink" />
-
       <div className="content-grid">
         <div className="left-col">
-          {user ? (
-            <PostForm />
-          ) : (
-            <div className="panel tone-yellow">
-              <div className="panel-head">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Join the conversation</span>
-              </div>
-              <div className="panel-body">
-                <p>
-                  <Link href="/sign-up">Create an account</Link> or{" "}
-                  <Link href="/sign-in">sign in</Link> to post a review.
-                </p>
-              </div>
-            </div>
+          <FeedTV clips={feedTvClips} />
+
+          {spotifyConnected && (
+            <Shelf
+              title="On Repeat"
+              items={onRepeat}
+              emptyMessage="Play something on Spotify and it'll show up here."
+              tone="purple"
+            />
           )}
+          <Shelf title="Trending Music" items={newReleases} tone="green" />
+          <Shelf title="Now Watching" items={nowWatching} tone="pink" />
 
           <div className="panel tone-yellow">
             <div className="panel-head">
@@ -310,16 +312,7 @@ export default async function FeedPage({
                 <span className="tab-the">the</span>
                 <span className="tab-main">Recent Reviews</span>
               </span>
-              {user && (
-                <span className="feed-filter">
-                  <Link href="/" className={!followingOnly ? "active" : ""}>
-                    All
-                  </Link>
-                  <Link href="/?filter=following" className={followingOnly ? "active" : ""}>
-                    Following
-                  </Link>
-                </span>
-              )}
+              {user && <FollowingToggle following={followingOnly} />}
             </div>
             <div className="panel-body flush">
               {allPosts.length === 0 ? (
@@ -365,28 +358,25 @@ export default async function FeedPage({
         </div>
 
         <div className="right-col">
-          {statusRows && statusRows.length > 0 && (
-            <div className="panel tone-orange">
-              <div className="panel-head">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Live Now</span>
-              </div>
-              <div className="side-list">
-                {statusRows.map((row) => (
-                  <div className="row" key={row.username}>
-                    <span className="num">{row.status_media_type === "music" ? "🎧" : "📺"}</span>
-                    <div className="info">
-                      <b>{row.username}</b>
-                      <span>
-                        {row.status_title}
-                        {row.status_artist && <> - {row.status_artist}</>}
-                      </span>
-                    </div>
+          <div className="panel new-post-card tone-orange">
+            <div className="panel-body">
+              {user ? (
+                <Link href="/post/new" className="btn new-post-btn">
+                  + New Post
+                </Link>
+              ) : (
+                <>
+                  <p style={{ margin: "0 0 10px" }}>Have something to review?</p>
+                  <Link href="/sign-up" className="btn new-post-btn">
+                    Create Account
+                  </Link>
+                  <div className="auth-switch" style={{ textAlign: "center" }}>
+                    <Link href="/sign-in">Sign in</Link>
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
-          )}
+          </div>
 
           <div className="panel tone-green">
             <div className="panel-head">
@@ -398,30 +388,6 @@ export default async function FeedPage({
                 <div className="empty-state">No music reviews yet.</div>
               ) : (
                 topTracks.map((post, i) => (
-                  <div className="row" key={post.id}>
-                    <span className="num">{i + 1}</span>
-                    <div className="info">
-                      <b>{post.title}</b>
-                      <span>
-                        {post.profiles?.username ?? "unknown"} · {stars(post.rating)}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="panel tone-pink">
-            <div className="panel-head">
-              <span className="tab-the">the</span>
-              <span className="tab-main">Top This Week</span>
-            </div>
-            <div className="side-list">
-              {topThisWeek.length === 0 ? (
-                <div className="empty-state">Nothing rated this week yet.</div>
-              ) : (
-                topThisWeek.map((post, i) => (
                   <div className="row" key={post.id}>
                     <span className="num">{i + 1}</span>
                     <div className="info">
@@ -460,42 +426,110 @@ export default async function FeedPage({
             </div>
           </div>
 
-        </div>
-      </div>
-
-      <div className="bottom-row">
-        <div className="panel tone-orange">
-          <div className="panel-head">
-            <span className="tab-the">the</span>
-            <span className="tab-main">Community Stats</span>
-          </div>
-          <div className="stats-body">
-            <div>{postsCount.count ?? 0} reviews posted</div>
-            <div>{chatCount.count ?? 0} chat messages sent</div>
-          </div>
-        </div>
-
-        <div className="panel tone-blue">
-          <div className="panel-head">
-            <span>
-              <span className="tab-the">the</span>
-              <span className="tab-main">Live Chat</span>
-            </span>
-            <Link href="/chat" className="see-all">
-              See All ▸
+          {approvedBanners.length > 0 ? (
+            approvedBanners.map((b) => (
+              <a href={b.link_url} target="_blank" rel="noreferrer" className="banner-slot" key={b.id}>
+                <span className="banner-slot-tag">Sponsored</span>
+                {b.image_url ? (
+                  <img src={b.image_url} alt={b.artist_name} />
+                ) : (
+                  <div className="banner-slot-fallback">
+                    <b>{b.artist_name}</b>
+                    {b.message && <span>{b.message}</span>}
+                  </div>
+                )}
+              </a>
+            ))
+          ) : (
+            <Link href="/advertise" className="banner-slot">
+              <span className="banner-slot-tag">Sponsored</span>
+              <div className="banner-slot-fallback">
+                <b>Advertise on Feedback</b>
+                <span>Get your music or film in front of the community - free for now.</span>
+              </div>
             </Link>
+          )}
+
+          {statusRows && statusRows.length > 0 && (
+            <div className="panel tone-blue">
+              <div className="panel-head">
+                <span className="tab-the">the</span>
+                <span className="tab-main">Live Now</span>
+              </div>
+              <div className="side-list">
+                {statusRows.map((row) => (
+                  <div className="row" key={row.username}>
+                    <span className="num">{row.status_media_type === "music" ? "🎧" : "📺"}</span>
+                    <div className="info">
+                      <b>{row.username}</b>
+                      <span>
+                        {row.status_title}
+                        {row.status_artist && <> - {row.status_artist}</>}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="panel tone-pink">
+            <div className="panel-head">
+              <span className="tab-the">the</span>
+              <span className="tab-main">Top This Week</span>
+            </div>
+            <div className="side-list">
+              {topThisWeek.length === 0 ? (
+                <div className="empty-state">Nothing rated this week yet.</div>
+              ) : (
+                topThisWeek.map((post, i) => (
+                  <div className="row" key={post.id}>
+                    <span className="num">{i + 1}</span>
+                    <div className="info">
+                      <b>{post.title}</b>
+                      <span>
+                        {post.profiles?.username ?? "unknown"} · {stars(post.rating)}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-          <div className="chat-preview-body">
-            {!chatRows || chatRows.length === 0 ? (
-              <div className="empty-state">No messages yet.</div>
-            ) : (
-              [...chatRows].reverse().map((row) => (
-                <div className="chat-row" key={row.id}>
-                  <b>{row.profiles?.username ?? "unknown"}:</b> {row.body}
-                  <span className="ts">{timeAgo(row.created_at)}</span>
-                </div>
-              ))
-            )}
+
+          <div className="panel tone-orange">
+            <div className="panel-head">
+              <span className="tab-the">the</span>
+              <span className="tab-main">Community Stats</span>
+            </div>
+            <div className="stats-body">
+              <div>{postsCount.count ?? 0} reviews posted</div>
+              <div>{chatCount.count ?? 0} chat messages sent</div>
+            </div>
+          </div>
+
+          <div className="panel tone-blue">
+            <div className="panel-head">
+              <span>
+                <span className="tab-the">the</span>
+                <span className="tab-main">Live Chat</span>
+              </span>
+              <Link href="/chat" className="see-all">
+                See All ▸
+              </Link>
+            </div>
+            <div className="chat-preview-body">
+              {!chatRows || chatRows.length === 0 ? (
+                <div className="empty-state">No messages yet.</div>
+              ) : (
+                [...chatRows].reverse().map((row) => (
+                  <div className="chat-row" key={row.id}>
+                    <b>{row.profiles?.username ?? "unknown"}:</b> {row.body}
+                    <span className="ts">{timeAgo(row.created_at)}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

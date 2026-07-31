@@ -184,3 +184,35 @@ export async function adminDeleteArtistComment(formData: FormData) {
   revalidatePath("/admin");
   if (postId) revalidatePath(`/artists/${postId}`);
 }
+
+export async function adminApproveBanner(formData: FormData) {
+  const supabase = await requireAdmin();
+  const bannerId = String(formData.get("banner_id") ?? "");
+  if (!bannerId) return;
+
+  const expiresAtRaw = String(formData.get("expires_at") ?? "").trim();
+  const expiresAt = expiresAtRaw ? new Date(expiresAtRaw).toISOString() : null;
+
+  await supabase.from("banner_ads").update({ status: "approved", expires_at: expiresAt }).eq("id", bannerId);
+  revalidatePath("/admin");
+  revalidatePath("/");
+}
+
+export async function adminRejectBanner(formData: FormData) {
+  const supabase = await requireAdmin();
+  const bannerId = String(formData.get("banner_id") ?? "");
+  if (!bannerId) return;
+
+  await supabase.from("banner_ads").update({ status: "rejected" }).eq("id", bannerId);
+  revalidatePath("/admin");
+}
+
+export async function adminDeleteBanner(formData: FormData) {
+  const supabase = await requireAdmin();
+  const bannerId = String(formData.get("banner_id") ?? "");
+  if (!bannerId) return;
+
+  await supabase.from("banner_ads").delete().eq("id", bannerId);
+  revalidatePath("/admin");
+  revalidatePath("/");
+}

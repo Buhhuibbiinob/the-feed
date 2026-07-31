@@ -1,52 +1,67 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { updateTheme, type ThemeFormState } from "@/app/actions/theme";
-import { THEMES } from "@/lib/themes";
+import { THEMES, THEME_CATEGORIES, type ThemeCategory } from "@/lib/themes";
 
 const initialState: ThemeFormState = {};
 
 export function ThemeForm({ currentTheme }: { currentTheme: string }) {
   const [state, action, pending] = useActionState(updateTheme, initialState);
+  const [selected, setSelected] = useState(currentTheme);
+  const currentCategory = THEMES.find((t) => t.id === currentTheme)?.category ?? "color";
+  const [activeTab, setActiveTab] = useState<ThemeCategory>(currentCategory);
 
   useEffect(() => {
     if (!state.ok) return;
-    const theme = document.querySelector<HTMLSelectElement>("select[name=theme]")?.value;
-    if (theme) document.documentElement.setAttribute("data-theme", theme);
-  }, [state]);
+    document.documentElement.setAttribute("data-theme", selected);
+  }, [state, selected]);
+
+  function pick(themeId: string) {
+    setSelected(themeId);
+    document.documentElement.setAttribute("data-theme", themeId);
+  }
+
+  const visibleThemes = THEMES.filter((t) => t.category === activeTab);
 
   return (
     <form action={action} className="theme-form">
-      <label htmlFor="theme-select" className="theme-form-label">
-        Site theme
-      </label>
-      <div className="theme-form-row">
-        <select
-          id="theme-select"
-          name="theme"
-          defaultValue={currentTheme}
-          className="theme-select"
-          onChange={(e) => document.documentElement.setAttribute("data-theme", e.target.value)}
-        >
+      <label className="theme-form-label">Site theme</label>
 
-          {THEMES.map((theme) => (
-            <option key={theme.id} value={theme.id}>
-              {theme.label}
-            </option>
-          ))}
-        </select>
-        <button className="btn" type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Save"}
-        </button>
+      <div className="theme-tabs">
+        {THEME_CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            className={`theme-tab ${activeTab === cat.id ? "active" : ""}`}
+            onClick={() => setActiveTab(cat.id)}
+          >
+            {cat.label}
+          </button>
+        ))}
       </div>
+
+      <input type="hidden" name="theme" value={selected} />
+
       <div className="theme-swatches">
-        {THEMES.map((theme) => (
-          <div className="theme-swatch" data-theme={theme.id} key={theme.id}>
+        {visibleThemes.map((theme) => (
+          <div
+            className={`theme-swatch ${selected === theme.id ? "selected" : ""}`}
+            data-theme={theme.id}
+            key={theme.id}
+            onClick={() => pick(theme.id)}
+          >
             <div className="theme-swatch-preview" />
             <div className="theme-swatch-label">{theme.label}</div>
             <div className="theme-swatch-desc">{theme.description}</div>
           </div>
         ))}
+      </div>
+
+      <div className="form-actions">
+        <button className="btn" type="submit" disabled={pending}>
+          {pending ? "Saving…" : "Save"}
+        </button>
       </div>
       {state.error && <div className="form-error">{state.error}</div>}
       {state.ok && <div className="form-message">Theme saved.</div>}

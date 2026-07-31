@@ -18,6 +18,9 @@ import {
   adminUnbanArtistPost,
   adminDeleteArtistPost,
   adminDismissArtistReport,
+  adminApproveBanner,
+  adminRejectBanner,
+  adminDeleteBanner,
 } from "@/app/actions/admin";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 import { ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatforms";
@@ -70,6 +73,17 @@ type ClubReportRow = {
   profiles: { username: string } | null;
 };
 
+type BannerRow = {
+  id: string;
+  artist_name: string;
+  link_url: string;
+  image_url: string | null;
+  message: string | null;
+  status: "pending" | "approved" | "rejected";
+  expires_at: string | null;
+  profiles: { username: string } | null;
+};
+
 export const metadata = { title: "Admin - Feedback" };
 
 export default async function AdminPage() {
@@ -89,6 +103,7 @@ export default async function AdminPage() {
     { data: clubReportRows },
     { data: artistPostRows },
     { data: artistReportRows },
+    { data: bannerRows },
     siteText,
   ] = await Promise.all([
     supabase
@@ -126,6 +141,11 @@ export default async function AdminPage() {
       )
       .order("created_at", { ascending: false })
       .returns<ArtistPostReportRow[]>(),
+    supabase
+      .from("banner_ads")
+      .select("id, artist_name, link_url, image_url, message, status, expires_at, profiles(username)")
+      .order("created_at", { ascending: false })
+      .returns<BannerRow[]>(),
     getAllSiteText(supabase),
   ]);
 
@@ -135,6 +155,9 @@ export default async function AdminPage() {
   const clubReports = clubReportRows ?? [];
   const artistPosts = artistPostRows ?? [];
   const artistReports = artistReportRows ?? [];
+  const banners = bannerRows ?? [];
+  const pendingBanners = banners.filter((b) => b.status === "pending");
+  const approvedBanners = banners.filter((b) => b.status === "approved");
 
   return (
     <>
@@ -395,6 +418,64 @@ export default async function AdminPage() {
                     <input type="hidden" name="post_id" value={post.id} />
                     <button type="submit" className="comment-action danger">
                       Delete
+                    </button>
+                  </form>
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Banner Requests Pending Review</div>
+        <div className="panel-body flush">
+          {pendingBanners.length === 0 ? (
+            <div className="empty-state" style={{ padding: 16 }}>No banner requests waiting on review.</div>
+          ) : (
+            pendingBanners.map((b) => (
+              <div className="chat-row" key={b.id}>
+                {b.image_url && <img src={b.image_url} alt="" className="cover-thumb" style={{ marginRight: 8 }} />}
+                <b>{b.artist_name}</b> · <a href={b.link_url} target="_blank" rel="noreferrer">{b.link_url}</a>
+                {b.message && <span> - {b.message}</span>}
+                <span> (submitted by {b.profiles?.username ?? "unknown"})</span>
+                <span className="chat-msg-actions">
+                  <form action={adminApproveBanner} className="inline-form">
+                    <input type="hidden" name="banner_id" value={b.id} />
+                    <input type="date" name="expires_at" className="field-hint" style={{ marginRight: 4 }} />
+                    <button type="submit" className="comment-action">
+                      Approve
+                    </button>
+                  </form>
+                  <form action={adminRejectBanner} className="inline-form">
+                    <input type="hidden" name="banner_id" value={b.id} />
+                    <button type="submit" className="comment-action danger">
+                      Reject
+                    </button>
+                  </form>
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Approved Banners</div>
+        <div className="panel-body flush">
+          {approvedBanners.length === 0 ? (
+            <div className="empty-state" style={{ padding: 16 }}>No approved banners yet.</div>
+          ) : (
+            approvedBanners.map((b) => (
+              <div className="chat-row" key={b.id}>
+                {b.image_url && <img src={b.image_url} alt="" className="cover-thumb" style={{ marginRight: 8 }} />}
+                <b>{b.artist_name}</b>
+                {b.expires_at && <span> · expires {new Date(b.expires_at).toLocaleDateString()}</span>}
+                <span className="chat-msg-actions">
+                  <form action={adminDeleteBanner} className="inline-form">
+                    <input type="hidden" name="banner_id" value={b.id} />
+                    <button type="submit" className="comment-action danger">
+                      Remove
                     </button>
                   </form>
                 </span>

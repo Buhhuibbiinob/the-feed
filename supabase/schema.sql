@@ -832,3 +832,42 @@ drop policy if exists "Admins can view waitlist signups" on public.waitlist_sign
 create policy "Admins can view waitlist signups"
   on public.waitlist_signups for select
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- banner_ads (sidebar ad slots: artist/band submissions, admin-approved) ----------
+create table if not exists public.banner_ads (
+  id uuid primary key default gen_random_uuid(),
+  submitted_by uuid references public.profiles (id) on delete set null,
+  artist_name text not null,
+  link_url text not null,
+  image_url text,
+  message text,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  expires_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table public.banner_ads enable row level security;
+
+drop policy if exists "Approved banners are viewable by everyone" on public.banner_ads;
+create policy "Approved banners are viewable by everyone"
+  on public.banner_ads for select
+  using (
+    status = 'approved'
+    or submitted_by = auth.uid()
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+drop policy if exists "Signed-in users can request a banner" on public.banner_ads;
+create policy "Signed-in users can request a banner"
+  on public.banner_ads for insert
+  with check (auth.uid() = submitted_by);
+
+drop policy if exists "Admins can update banner requests" on public.banner_ads;
+create policy "Admins can update banner requests"
+  on public.banner_ads for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete banner requests" on public.banner_ads;
+create policy "Admins can delete banner requests"
+  on public.banner_ads for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
