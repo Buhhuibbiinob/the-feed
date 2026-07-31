@@ -5,10 +5,8 @@ import { PostCard } from "@/components/PostCard";
 import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
 import { FollowingToggle } from "@/components/FollowingToggle";
 import { OrbyBot, type OrbyCandidate } from "@/components/OrbyBot";
-import { coverGradient } from "@/lib/cover";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
-import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import type { MediaType } from "@/lib/media";
 import { getAllSiteText } from "@/lib/siteContent";
 
@@ -108,7 +106,6 @@ export default async function FeedPage({
     trendingTracks,
     { data: statusRows },
     { data: bannerAdRows },
-    upcomingReleases,
     siteText,
   ] = await Promise.all([
     supabase
@@ -145,7 +142,6 @@ export default async function FeedPage({
       .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order("created_at", { ascending: true })
       .returns<BannerAdRow[]>(),
-    getUpcomingMoviesAndTv(6),
     getAllSiteText(supabase),
   ]);
 
@@ -333,6 +329,8 @@ export default async function FeedPage({
     allBanners.length === 0 ? null : allBanners[(rotationSlot + sidebarBannerCount) % allBanners.length];
   const topFeedBanner =
     allBanners.length === 0 ? null : allBanners[(rotationSlot + sidebarBannerCount + 1) % allBanners.length];
+  const upcomingBanner =
+    allBanners.length === 0 ? null : allBanners[(rotationSlot + sidebarBannerCount + 2) % allBanners.length];
 
   return (
     <>
@@ -343,35 +341,31 @@ export default async function FeedPage({
 
       <div className="theslap-top-grid">
         <div className="right-now-widget">
-          <div className="right-now-tab">UPCOMING</div>
-          <div className="right-now-body">
-            {upcomingReleases.length === 0 ? (
-              <div className="right-now-empty">
-                <span className="orb" style={{ width: 36, height: 36 }} />
-                <p>No upcoming releases to show right now.</p>
-              </div>
-            ) : (
-              <div className="right-now-upcoming-list">
-                {upcomingReleases.slice(0, 4).map((item) => (
-                  <div className="right-now-upcoming-item" key={item.id}>
-                    <div
-                      className="right-now-upcoming-poster"
-                      style={{
-                        backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : coverGradient(item.id),
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                    />
-                    <div className="right-now-upcoming-info">
-                      <b>{item.title}</b>
-                      <span>
-                        {item.mediaType === "movie" ? "🎬 Movie" : "📺 TV"}
-                        {item.date && <> · {item.date}</>}
-                      </span>
-                    </div>
+          <div className="right-now-tab">ADVERTISEMENT</div>
+          <div className="right-now-body right-now-ad">
+            {upcomingBanner ? (
+              <a
+                href={upcomingBanner.link_url}
+                target="_blank"
+                rel="noreferrer"
+                className="right-now-ad-link"
+              >
+                {upcomingBanner.image_url ? (
+                  <img src={upcomingBanner.image_url} alt={upcomingBanner.artist_name} />
+                ) : (
+                  <div className="right-now-ad-fallback">
+                    <b>{upcomingBanner.artist_name}</b>
+                    {upcomingBanner.message && <span>{upcomingBanner.message}</span>}
                   </div>
-                ))}
-              </div>
+                )}
+              </a>
+            ) : (
+              <Link href="/advertise" className="right-now-ad-link">
+                <div className="right-now-ad-fallback">
+                  <b>Advertise on Feedback</b>
+                  <span>Get your music or film in front of the community - free for now.</span>
+                </div>
+              </Link>
             )}
           </div>
         </div>
@@ -411,7 +405,7 @@ export default async function FeedPage({
 
       <div className="theslap-3col">
         <OrbyBot candidates={orbyCandidates} />
-        <Shelf title="Trending Music" items={newReleases} tone="green" />
+        <Shelf title="Trending Music" items={newReleases} />
         {topReviewers.length > 0 && (
           <div className="spotlight-panel">
             <span className="spotlight-tag">Top Reviewer</span>
@@ -482,10 +476,9 @@ export default async function FeedPage({
               title="On Repeat"
               items={onRepeat}
               emptyMessage="Play something on Spotify and it'll show up here."
-              tone="purple"
             />
           )}
-          <Shelf title="Now Watching" items={nowWatching} tone="pink" />
+          <Shelf title="Now Watching" items={nowWatching} />
 
           {midFeedBanner ? (
             <a href={midFeedBanner.link_url} target="_blank" rel="noreferrer" className="banner-slot-wide">
@@ -509,7 +502,7 @@ export default async function FeedPage({
             </Link>
           )}
 
-          <div className="panel tone-yellow">
+          <div className="panel">
             <div className="panel-head tabbed">
               <span className="panel-head-tab">
                 <span className="tab-the">the</span>
@@ -561,7 +554,7 @@ export default async function FeedPage({
         </div>
 
         <div className="right-col">
-          <div className="panel new-post-card tone-orange">
+          <div className="panel new-post-card">
             <div className="panel-body">
               {user ? (
                 <Link href="/post/new" className="btn new-post-btn">
@@ -581,7 +574,7 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel tone-green">
+          <div className="panel">
             <div className="panel-head tabbed">
               <span className="panel-head-tab">
                 <span className="tab-the">the</span>
@@ -632,7 +625,7 @@ export default async function FeedPage({
           )}
 
           {statusRows && statusRows.length > 0 && (
-            <div className="panel tone-blue">
+            <div className="panel">
               <div className="panel-head tabbed">
                 <span className="panel-head-tab">
                   <span className="tab-the">the</span>
@@ -656,7 +649,7 @@ export default async function FeedPage({
             </div>
           )}
 
-          <div className="panel tone-pink">
+          <div className="panel">
             <div className="panel-head tabbed">
               <span className="panel-head-tab">
                 <span className="tab-the">the</span>
@@ -682,7 +675,7 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel tone-orange">
+          <div className="panel">
             <div className="panel-head tabbed">
               <span className="panel-head-tab">
                 <span className="tab-the">the</span>
@@ -695,7 +688,7 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel tone-blue">
+          <div className="panel">
             <div className="panel-head tabbed">
               <span className="panel-head-tab">
                 <span className="tab-the">the</span>

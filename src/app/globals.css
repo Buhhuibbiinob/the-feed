@@ -2508,47 +2508,45 @@ footer .copy {
 }
 
 [data-theme="ios-light"] {
-  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 40%),
-    radial-gradient(ellipse at 15% 85%, rgba(10, 95, 199, 0.18), transparent 55%),
-    radial-gradient(ellipse at 85% 10%, rgba(255, 0, 0, 0.1), transparent 50%),
-    linear-gradient(160deg, #dfe6ee 0%, #c3ceda 40%, #a7b6c8 70%, #8a9ab0 100%);
-  --body-glyph-color: rgba(0, 0, 0, 0.05);
-  --body-pattern: radial-gradient(circle, rgba(255, 255, 255, 0.22) 3px, transparent 3.5px);
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 40%),
+    linear-gradient(160deg, #f6f6f6 0%, #ececec 45%, #dcdcdc 100%);
+  --body-glyph-color: rgba(0, 0, 0, 0.04);
+  --body-pattern: radial-gradient(circle, rgba(0, 0, 0, 0.05) 3px, transparent 3.5px);
   --body-pattern-size: 30px 30px;
 
-  --nav-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(232, 238, 245, 0.95) 70%);
-  --nav-border: #b8c4d2;
-  --nav-text: #1c2733;
-  --nav-active-text: #0a5fc7;
+  --nav-bg: linear-gradient(180deg, #ffffff, #f1f1f1 70%);
+  --nav-border: #e0e0e0;
+  --nav-text: #1a1a1a;
+  --nav-active-text: #cc0000;
 
-  --subnav-bg: linear-gradient(180deg, #ffffff, #eef2f7);
-  --subnav-border: #c3ceda;
-  --subnav-text: #46586b;
+  --subnav-bg: linear-gradient(180deg, #ffffff, #f1f1f1);
+  --subnav-border: #e0e0e0;
+  --subnav-text: #606060;
 
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #0a5fc7 75%);
-  --wordmark-color: #1c2733;
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #cc0000 75%);
+  --wordmark-color: #1a1a1a;
 
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #eef2f7 45%, #d7e0ea 55%, #b7c4d2 100%);
-  --acct-btn-border: #7f93a8;
-  --acct-btn-text: #1c2733;
-  --acct-btn-primary-bg: linear-gradient(180deg, #ff8a80 0%, #ff5c4d 25%, #ff0000 55%, #a30000 100%);
-  --acct-btn-primary-border: #6b0000;
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f7f7f7 45%, #eaeaea 55%, #d6d6d6 100%);
+  --acct-btn-border: #b0b0b0;
+  --acct-btn-text: #1a1a1a;
+  --acct-btn-primary-bg: linear-gradient(180deg, #f24e42 0%, #e0221a 45%, #cc0000 55%, #900000 100%);
+  --acct-btn-primary-border: #660000;
 
-  --panel-border: #9fb3c7;
-  --panel-head-bg: linear-gradient(180deg, #eaf1f8 0%, #cddce8 35%, #9fb8cf 60%, #6f8caa 100%);
-  --panel-head-border: #4a6483;
+  --panel-border: #e0e0e0;
+  --panel-head-bg: linear-gradient(180deg, #fafafa 0%, #f1f1f1 60%, #e4e4e4 100%);
+  --panel-head-border: #d0d0d0;
   --panel-body-bg: #ffffff;
-  --shelf-bg: #f4f7fa;
+  --shelf-bg: #f9f9f9;
 
-  --btn-bg: linear-gradient(180deg, #4a5a6e 0%, #2e3b4a 45%, #1c2733 55%, #0d1319 100%);
-  --btn-border: #05080c;
+  --btn-bg: linear-gradient(180deg, #f24e42 0%, #e0221a 45%, #cc0000 55%, #900000 100%);
+  --btn-border: #660000;
   --btn-text: #fff;
 
-  --hero-title-color: #1c2733;
-  --hero-tagline-color: #46586b;
+  --hero-title-color: #1a1a1a;
+  --hero-tagline-color: #606060;
   --hero-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 
-  --like-color: #ff0000;
+  --like-color: #cc0000;
 }
 
 [data-theme="ios-dark"] {
@@ -3853,16 +3851,16 @@ footer .copy {
   padding: 12px 16px;
   margin-bottom: 16px;
   border-radius: 9px;
-  background: linear-gradient(180deg, #eaf7ff, #cdeeff);
-  border: 1px solid #8fd0f0;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  background: linear-gradient(180deg, #fafafa, #ececec);
+  border: 1px solid #dcdcdc;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
   font-size: 12px;
-  color: #0a3a55;
+  color: #1a1a1a;
 }
 .fun-fact-label {
   flex-shrink: 0;
   font-weight: 800;
-  color: #0a6ea8;
+  color: #cc0000;
   text-transform: uppercase;
   font-size: 10px;
   letter-spacing: 0.4px;
@@ -3877,9 +3875,9 @@ footer .copy {
   padding: 18px;
   margin-bottom: 16px;
   border-radius: 12px;
-  background: linear-gradient(160deg, #c3a3f0, #8a5fc8);
-  border: 1px solid #6a3fa0;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  background: linear-gradient(160deg, #fafafa, #e4e4e4);
+  border: 1px solid #d0d0d0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
   text-align: center;
 }
 .spotlight-tag {
@@ -3888,7 +3886,7 @@ footer .copy {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #fff;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--btn-bg);
   padding: 3px 10px;
   border-radius: 100px;
 }
@@ -3898,16 +3896,15 @@ footer .copy {
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #fff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   margin-top: 4px;
 }
 .spotlight-name {
-  color: #fff;
+  color: #1a1a1a;
   font-size: 14px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .spotlight-sub {
-  color: rgba(255, 255, 255, 0.85);
+  color: #606060;
   font-size: 10.5px;
 }
 
@@ -4218,52 +4215,44 @@ footer .copy {
   padding: 14px;
   background: #fff;
 }
-.right-now-empty {
+.right-now-body.right-now-ad {
+  padding: 0;
+}
+.right-now-ad-link {
+  display: block;
   height: 100%;
+  min-height: 140px;
+  color: inherit;
+  text-decoration: none;
+}
+.right-now-ad-link:hover {
+  text-decoration: none;
+}
+.right-now-ad-link img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 140px;
+  object-fit: cover;
+}
+.right-now-ad-fallback {
+  height: 100%;
+  min-height: 140px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 6px;
   text-align: center;
+  padding: 20px;
+  background: var(--panel-head-bg);
 }
-.right-now-empty p {
-  font-size: 11.5px;
-  color: #999;
-  margin: 0;
+.right-now-ad-fallback b {
+  font-size: 14px;
 }
-.right-now-upcoming-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.right-now-upcoming-item {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.right-now-upcoming-poster {
-  width: 36px;
-  height: 50px;
-  flex-shrink: 0;
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-}
-.right-now-upcoming-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.right-now-upcoming-info b {
-  font-size: 11.5px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.right-now-upcoming-info span {
-  font-size: 10px;
-  color: #888;
+.right-now-ad-fallback span {
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .hot-pages-panel .panel-body,
