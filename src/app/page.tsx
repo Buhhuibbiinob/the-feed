@@ -329,6 +329,8 @@ export default async function FeedPage({
         );
   const midFeedBanner =
     allBanners.length === 0 ? null : allBanners[(rotationSlot + sidebarBannerCount) % allBanners.length];
+  const topFeedBanner =
+    allBanners.length === 0 ? null : allBanners[(rotationSlot + sidebarBannerCount + 1) % allBanners.length];
 
   return (
     <>
@@ -431,6 +433,28 @@ export default async function FeedPage({
           ))}
         </div>
       </div>
+
+      {topFeedBanner ? (
+        <a href={topFeedBanner.link_url} target="_blank" rel="noreferrer" className="banner-slot-wide">
+          <span className="banner-slot-tag">Sponsored</span>
+          {topFeedBanner.image_url ? (
+            <img src={topFeedBanner.image_url} alt={topFeedBanner.artist_name} />
+          ) : (
+            <div className="banner-slot-wide-fallback">
+              <b>{topFeedBanner.artist_name}</b>
+              {topFeedBanner.message && <span>{topFeedBanner.message}</span>}
+            </div>
+          )}
+        </a>
+      ) : (
+        <Link href="/advertise" className="banner-slot-wide">
+          <span className="banner-slot-tag">Sponsored</span>
+          <div className="banner-slot-wide-fallback">
+            <b>Advertise on Feedback</b>
+            <span>Get your music or film in front of the community - free for now.</span>
+          </div>
+        </Link>
+      )}
 
       <div className="feature-row">
         {banners.map(({ mediaType, top, eyebrow, empty }) => {
