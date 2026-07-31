@@ -22,6 +22,13 @@ export function ThemeForm({ currentTheme }: { currentTheme: string }) {
     document.documentElement.setAttribute("data-theme", themeId);
   }
 
+  function shuffle() {
+    const others = THEMES.filter((t) => t.id !== selected);
+    const random = others[Math.floor(Math.random() * others.length)];
+    setActiveTab(random.category);
+    pick(random.id);
+  }
+
   const visibleThemes = THEMES.filter((t) => t.category === activeTab);
 
   return (
@@ -61,6 +68,9 @@ export function ThemeForm({ currentTheme }: { currentTheme: string }) {
       <div className="form-actions">
         <button className="btn" type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save"}
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={shuffle}>
+          🎲 Surprise Me
         </button>
       </div>
       {state.error && <div className="form-error">{state.error}</div>}

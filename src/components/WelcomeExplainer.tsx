@@ -58,7 +58,7 @@ export function WelcomeExplainer() {
           </ul>
         </div>
         <div className="welcome-modal-actions">
-          <button className="btn welcome-modal-btn-ghost" onClick={dismiss}>
+          <button className="btn btn-ghost" onClick={dismiss}>
             Maybe later
           </button>
           <button className="btn" onClick={dismiss}>

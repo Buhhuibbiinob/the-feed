@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import { updatePost, deletePost, type PostFormState } from "@/app/actions/posts";
 import { LikeButton } from "@/components/LikeButton";
 import { AddToCollectionButton } from "@/components/AddToCollectionButton";
+import { ShareButton } from "@/components/ShareButton";
 import { PreviewPlayer } from "@/components/PreviewPlayer";
 import { SpoilerText } from "@/components/SpoilerText";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
@@ -130,7 +131,8 @@ export function PostCard({
           <Link href={`/profile/${post.username}`} className="comment-action">
             {post.username}
           </Link>{" "}
-          · {timeAgo(post.createdAt)}
+          · {timeAgo(post.createdAt)} ·{" "}
+          <ShareButton postId={post.id} title={`${post.title}${post.artist ? ` - ${post.artist}` : ""}`} />
           {currentUserId && (
             <>
               {" "}

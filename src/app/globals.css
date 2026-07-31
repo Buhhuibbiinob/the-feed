@@ -1980,7 +1980,7 @@ a:hover {
   flex: 1;
   padding: 9px 14px;
 }
-.welcome-modal-btn-ghost {
+.btn-ghost {
   background: linear-gradient(180deg, #ffffff 0%, #eef2f7 45%, #d7e0ea 55%, #b7c4d2 100%) !important;
   border-color: #7f93a8 !important;
   color: #1c2733 !important;
@@ -2138,6 +2138,13 @@ footer .copy {
 }
 .profile-head[style*="background-image"] .taste-match {
   color: #8fe0b1;
+}
+.streak-count {
+  font-weight: 700;
+  color: #cc4b00;
+}
+.profile-head[style*="background-image"] .streak-count {
+  color: #ffb37a;
 }
 .profile-badges {
   display: flex;

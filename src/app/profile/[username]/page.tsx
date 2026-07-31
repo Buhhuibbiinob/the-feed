@@ -9,6 +9,7 @@ import { StatusPicker } from "@/components/StatusPicker";
 import { MEDIA_LABELS, MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { computeTasteMatch } from "@/lib/taste";
 import { earnedBadges, BADGES } from "@/lib/badges";
+import { computeStreak } from "@/lib/streak";
 
 type ClubMembershipRow = {
   clubs: { id: string; media_type: MediaType; name: string } | null;
@@ -129,6 +130,7 @@ export default async function ProfilePage({
   const isOwnProfile = user?.id === profile.id;
   const badges = earnedBadges(posts.length);
   const nextBadge = BADGES.find((b) => b.threshold > posts.length) ?? null;
+  const streak = computeStreak(posts.map((p) => p.created_at));
 
   let isFollowing = false;
   let tasteMatch: number | null = null;
@@ -201,6 +203,7 @@ export default async function ProfilePage({
               <span>{followerCount ?? 0} followers</span>
               <span>{followingCount ?? 0} following</span>
               {tasteMatch !== null && <span className="taste-match">{tasteMatch}% taste match</span>}
+              {streak > 1 && <span className="streak-count">🔥 {streak} day streak</span>}
             </div>
             {badges.length > 0 && (
               <div className="profile-badges">
