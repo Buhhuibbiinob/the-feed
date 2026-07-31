@@ -4083,9 +4083,11 @@ footer .copy {
   grid-template-columns: 240px 1fr;
   gap: 16px;
   margin-bottom: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 .right-now-widget {
+  display: flex;
+  flex-direction: column;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28), 0 2px 0 rgba(255, 255, 255, 0.4) inset;
@@ -4100,9 +4102,9 @@ footer .copy {
   letter-spacing: 0.4px;
 }
 .right-now-body {
+  flex: 1;
   padding: 14px;
   background: #fff;
-  min-height: 140px;
 }
 .right-now-status b {
   font-size: 12.5px;
@@ -4128,7 +4130,21 @@ footer .copy {
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 16px;
-  align-items: start;
+  align-items: stretch;
+}
+.theslap-3col > .panel,
+.theslap-3col > .spotlight-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+.theslap-3col > .spotlight-panel {
+  justify-content: center;
+}
+.theslap-3col .shelf-body,
+.theslap-3col .chat-body {
+  flex: 1;
 }
 
 .site-links-body {
