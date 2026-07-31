@@ -4,6 +4,7 @@ import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
 import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
 import { FollowingToggle } from "@/components/FollowingToggle";
+import { OrbyBot, type OrbyCandidate } from "@/components/OrbyBot";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
 import type { MediaType } from "@/lib/media";
@@ -255,6 +256,46 @@ export default async function FeedPage({
   const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % FUN_FACTS.length;
   const todayFunFact = FUN_FACTS[dayIndex];
 
+  const orbyCandidates: OrbyCandidate[] = allPosts.slice(0, 30).map((p) => ({
+    id: p.id,
+    title: p.title,
+    artist: p.artist,
+    mediaType: p.media_type,
+    username: p.profiles?.username ?? "unknown",
+    rating: p.rating,
+  }));
+
+  const SITE_LINKS: { heading: string; links: { label: string; href: string }[] }[] = [
+    {
+      heading: "Community",
+      links: [
+        { label: "Leaderboard", href: "/leaderboard" },
+        { label: "Clubs", href: "/clubs" },
+        { label: "Creators", href: "/artists" },
+        { label: "Collections", href: "/collections" },
+      ],
+    },
+    {
+      heading: "Discover",
+      links: [
+        { label: "New Releases", href: "/new-releases" },
+        { label: "Recs", href: "/recs" },
+        { label: "Wrapped", href: "/wrapped" },
+        { label: "Live Chat", href: "/chat" },
+      ],
+    },
+    {
+      heading: "Site",
+      links: [
+        { label: "Advertise", href: "/advertise" },
+        { label: "Privacy Policy", href: "/privacy" },
+        { label: "Terms of Service", href: "/terms" },
+      ],
+    },
+  ];
+
+  const rightNowStatus = statusRows && statusRows.length > 0 ? statusRows[0] : null;
+
   const feedTvClips: FeedTvClip[] = [];
   const seenVideoIds = new Set<string>();
   for (const post of allPosts) {
@@ -296,6 +337,101 @@ export default async function FeedPage({
         <div className="tagline">{siteText.feed_tagline}</div>
       </div>
 
+      <div className="theslap-top-grid">
+        <div className="right-now-widget">
+          <div className="right-now-tab">the RIGHT NOW</div>
+          <div className="right-now-body">
+            {rightNowStatus ? (
+              <>
+                <div className="right-now-status">
+                  <b>{rightNowStatus.username}</b>
+                  <p>
+                    {rightNowStatus.status_media_type === "music" ? "🎧" : "📺"} {rightNowStatus.status_title}
+                    {rightNowStatus.status_artist && <> - {rightNowStatus.status_artist}</>}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <p className="right-now-empty">Nobody&apos;s posted a status yet - be the first.</p>
+            )}
+          </div>
+        </div>
+        <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
+      </div>
+
+      <div className="fun-fact-banner">
+        <span className="fun-fact-label">Did You Know</span>
+        <span className="fun-fact-text">{todayFunFact}</span>
+      </div>
+
+      <div className="panel hot-pages-panel">
+        <div className="panel-head tabbed">
+          <span className="panel-head-tab">
+            <span className="tab-the">the</span>
+            <span className="tab-main">Most Active</span>
+          </span>
+        </div>
+        {topReviewers.length === 0 ? (
+          <div className="side-list">
+            <div className="empty-state">No reviews yet.</div>
+          </div>
+        ) : (
+          <div className="hot-pages-strip">
+            {topReviewers.map(([name, { count, avatarUrl }]) => (
+              <div className="hot-pages-item" key={name}>
+                <div className="hot-pages-photo-wrap">
+                  <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
+                  <span className="hot-pages-badge">{count}</span>
+                </div>
+                <span className="hot-pages-name">{name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="theslap-3col">
+        <OrbyBot candidates={orbyCandidates} />
+        <Shelf title="Trending Music" items={newReleases} tone="green" />
+        {topReviewers.length > 0 && (
+          <div className="spotlight-panel">
+            <span className="spotlight-tag">Top Reviewer</span>
+            <img
+              src={topReviewers[0][1].avatarUrl || "/avatars/preset-1.svg"}
+              alt=""
+              className="spotlight-avatar"
+            />
+            <b className="spotlight-name">{topReviewers[0][0]}</b>
+            <span className="spotlight-sub">
+              {topReviewers[0][1].count} review{topReviewers[0][1].count === 1 ? "" : "s"} and counting
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="panel site-links-panel">
+        <div className="panel-head tabbed">
+          <span className="panel-head-tab">
+            <span className="tab-the">the</span>
+            <span className="tab-main">Site Links</span>
+          </span>
+        </div>
+        <div className="site-links-body">
+          {SITE_LINKS.map((group) => (
+            <div className="site-links-group" key={group.heading}>
+              <b>{group.heading}</b>
+              <div className="site-links-row">
+                {group.links.map((link) => (
+                  <Link key={link.href} href={link.href}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="feature-row">
         {banners.map(({ mediaType, top, eyebrow, empty }) => {
           const brandGradient =
@@ -323,13 +459,6 @@ export default async function FeedPage({
 
       <div className="content-grid">
         <div className="left-col">
-          <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
-
-          <div className="fun-fact-banner">
-            <span className="fun-fact-label">Did You Know</span>
-            <span className="fun-fact-text">{todayFunFact}</span>
-          </div>
-
           {spotifyConnected && (
             <Shelf
               title="On Repeat"
@@ -338,7 +467,6 @@ export default async function FeedPage({
               tone="purple"
             />
           )}
-          <Shelf title="Trending Music" items={newReleases} tone="green" />
           <Shelf title="Now Watching" items={nowWatching} tone="pink" />
 
           {midFeedBanner ? (
@@ -415,21 +543,6 @@ export default async function FeedPage({
         </div>
 
         <div className="right-col">
-          {topReviewers.length > 0 && (
-            <div className="spotlight-panel">
-              <span className="spotlight-tag">Top Reviewer</span>
-              <img
-                src={topReviewers[0][1].avatarUrl || "/avatars/preset-1.svg"}
-                alt=""
-                className="spotlight-avatar"
-              />
-              <b className="spotlight-name">{topReviewers[0][0]}</b>
-              <span className="spotlight-sub">
-                {topReviewers[0][1].count} review{topReviewers[0][1].count === 1 ? "" : "s"} and counting
-              </span>
-            </div>
-          )}
-
           <div className="panel new-post-card tone-orange">
             <div className="panel-body">
               {user ? (
@@ -474,32 +587,6 @@ export default async function FeedPage({
                 ))
               )}
             </div>
-          </div>
-
-          <div className="panel tone-purple">
-            <div className="panel-head tabbed">
-              <span className="panel-head-tab">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Most Active</span>
-              </span>
-            </div>
-            {topReviewers.length === 0 ? (
-              <div className="side-list">
-                <div className="empty-state">No reviews yet.</div>
-              </div>
-            ) : (
-              <div className="hot-pages-strip">
-                {topReviewers.map(([name, { count, avatarUrl }]) => (
-                  <div className="hot-pages-item" key={name}>
-                    <div className="hot-pages-photo-wrap">
-                      <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
-                      <span className="hot-pages-badge">{count}</span>
-                    </div>
-                    <span className="hot-pages-name">{name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           {approvedBanners.length > 0 ? (
