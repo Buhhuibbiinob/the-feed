@@ -152,25 +152,34 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
           <div className="feedtv-tv-antenna feedtv-tv-antenna-right" />
           <div className="feedtv-tv-frame">
             <div className="feedtv-tv-led" />
-            <div className="feedtv-player">
-              <div ref={playerElRef} className="feedtv-iframe-target" />
-              {switching && <div className="feedtv-static" />}
-              <div className="feedtv-controls">
-                <button className="feedtv-ctrl-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
-                  <span>{paused ? "▶" : "❚❚"}</span>
-                </button>
-                <button className="feedtv-ctrl-btn" onClick={skipNext} aria-label="Skip to next">
-                  <span>⏭</span>
-                </button>
-                <button className="feedtv-ctrl-btn" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}>
-                  <span>{muted ? "🔇" : "🔊"}</span>
-                </button>
+            <div className="feedtv-tv-console">
+              <div className="feedtv-player">
+                <div ref={playerElRef} className="feedtv-iframe-target" />
+                {switching && <div className="feedtv-static" />}
+                <div className="feedtv-screen-curve" />
+                <div className="feedtv-controls">
+                  <button className="feedtv-ctrl-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
+                    <span>{paused ? "▶" : "❚❚"}</span>
+                  </button>
+                  <button className="feedtv-ctrl-btn" onClick={skipNext} aria-label="Skip to next">
+                    <span>⏭</span>
+                  </button>
+                  <button className="feedtv-ctrl-btn" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}>
+                    <span>{muted ? "🔇" : "🔊"}</span>
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="feedtv-tv-speaker">
-              {Array.from({ length: 5 }, (_, i) => (
-                <span key={i} />
-              ))}
+              <div className="feedtv-tv-side-panel">
+                <div className="feedtv-tv-speaker">
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <span key={i} />
+                  ))}
+                </div>
+                <div className="feedtv-tv-knobs">
+                  <span className="feedtv-tv-knob" />
+                  <span className="feedtv-tv-knob" />
+                </div>
+              </div>
             </div>
           </div>
           <div className="feedtv-tv-stand" />

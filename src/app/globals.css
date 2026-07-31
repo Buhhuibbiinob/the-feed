@@ -387,7 +387,7 @@ a:hover {
   display: flex;
   gap: 14px;
   padding: 26px 14px 14px;
-  background: linear-gradient(165deg, #eaf4ff 0%, #d3e9ff 45%, #ffffff 100%);
+  background: var(--subnav-bg);
 }
 .feedtv-tv {
   position: relative;
@@ -425,25 +425,28 @@ a:hover {
   right: 20%;
   transform: rotate(26deg);
 }
+/* The chassis reuses the theme's own glossy button gradient/border so it
+   re-colors automatically with whichever theme is active, instead of a
+   fixed hardcoded color. */
 .feedtv-tv-frame {
   position: relative;
   overflow: hidden;
   width: 100%;
-  padding: 16px 16px 20px;
-  border-radius: 22px;
-  background: linear-gradient(155deg, #ffffff 0%, #eaf4ff 35%, #bfe0ff 60%, #7fc4f5 100%);
-  box-shadow: 0 20px 40px rgba(79, 168, 224, 0.35), 0 2px 0 rgba(255, 255, 255, 0.9) inset,
-    0 -6px 14px rgba(127, 196, 245, 0.35) inset;
-  border: 1px solid #7fc4f5;
+  padding: 20px 20px 26px;
+  border-radius: 14px;
+  background: var(--btn-bg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
+    0 -8px 16px rgba(0, 0, 0, 0.2) inset;
+  border: 1px solid var(--btn-border);
 }
 .feedtv-tv-frame::before {
   content: "";
   position: absolute;
   top: 0;
-  left: 8%;
-  right: 40%;
-  height: 45%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  left: 6%;
+  right: 45%;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0));
   border-radius: 50%;
   pointer-events: none;
 }
@@ -458,11 +461,28 @@ a:hover {
   background: radial-gradient(circle at 35% 30%, #ff8080, #c0182f);
   box-shadow: 0 0 5px 1px rgba(255, 60, 60, 0.8);
 }
+.feedtv-tv-console {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.feedtv-tv-side-panel {
+  flex-shrink: 0;
+  width: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+}
 .feedtv-tv-speaker {
   display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 10px;
+  flex-direction: column;
+  gap: 5px;
 }
 .feedtv-tv-speaker span {
   width: 5px;
@@ -471,20 +491,60 @@ a:hover {
   background: radial-gradient(circle at 35% 30%, #555, #0a0a0a);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
 }
+.feedtv-tv-knobs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.feedtv-tv-knob {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--acct-btn-bg);
+  border: 1px solid var(--acct-btn-border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+.feedtv-tv-knob::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 1.5px;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  transform: translateX(-50%);
+}
 .feedtv-tv-stand {
   width: 90px;
   height: 14px;
-  background: linear-gradient(180deg, #3a3a3d, #1c1c1e);
+  background: var(--btn-border);
   clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
 }
 .feedtv-player {
   position: relative;
+  flex: 1;
+  min-width: 0;
   aspect-ratio: 16 / 9;
-  border-radius: 6px;
+  border-radius: 8% / 6%;
   overflow: hidden;
   background: #000;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6) inset, 0 0 0 3px #000, 0 0 0 4px rgba(255, 255, 255, 0.06);
+}
+.feedtv-screen-curve {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.5) 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.1) 0px,
+      rgba(0, 0, 0, 0.1) 1px,
+      transparent 1px,
+      transparent 3px
+    );
 }
 .feedtv-iframe-target {
   position: absolute;
