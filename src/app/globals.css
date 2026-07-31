@@ -3512,9 +3512,7 @@ footer .copy {
   opacity: 0.7;
 }
 .tab-main {
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font-weight: 700;
 }
 
 /* ---- Sidebar "New Post" CTA ---- */
@@ -3814,50 +3812,35 @@ footer .copy {
   background: linear-gradient(180deg, rgba(234, 246, 255, 0.92) 0%, rgba(127, 196, 245, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border-color: #4a9fe0;
   color: #08315c;
 }
 .tone-purple .panel-head {
   background: linear-gradient(180deg, rgba(240, 230, 255, 0.92) 0%, rgba(180, 140, 240, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border-color: #8a5fc8;
   color: #3a1d66;
 }
 .tone-green .panel-head {
   background: linear-gradient(180deg, rgba(225, 250, 235, 0.92) 0%, rgba(120, 220, 160, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border-color: #2f9e5c;
   color: #0d4d27;
 }
 .tone-pink .panel-head {
   background: linear-gradient(180deg, rgba(255, 232, 240, 0.92) 0%, rgba(245, 140, 180, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border-color: #d8447a;
   color: #6b1235;
 }
 .tone-orange .panel-head {
   background: linear-gradient(180deg, rgba(255, 238, 220, 0.92) 0%, rgba(245, 175, 110, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border-color: #d8813a;
   color: #6b3a0d;
 }
 .tone-yellow .panel-head {
   background: linear-gradient(180deg, rgba(255, 249, 220, 0.92) 0%, rgba(240, 216, 118, 0.75) 100%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border-color: #cbb02a;
   color: #5c4c05;
-}
-.tone-blue,
-.tone-purple,
-.tone-green,
-.tone-pink,
-.tone-orange,
-.tone-yellow {
-  border-width: 1px;
-  border-style: solid;
 }
