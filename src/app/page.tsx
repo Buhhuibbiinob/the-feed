@@ -300,12 +300,13 @@ export default async function FeedPage({
               title="On Repeat"
               items={onRepeat}
               emptyMessage="Play something on Spotify and it'll show up here."
+              tone="purple"
             />
           )}
-          <Shelf title="Trending Music" items={newReleases} />
-          <Shelf title="Now Watching" items={nowWatching} />
+          <Shelf title="Trending Music" items={newReleases} tone="green" />
+          <Shelf title="Now Watching" items={nowWatching} tone="pink" />
 
-          <div className="panel">
+          <div className="panel tone-yellow">
             <div className="panel-head">
               <span>
                 <span className="tab-the">the</span>
@@ -357,7 +358,7 @@ export default async function FeedPage({
         </div>
 
         <div className="right-col">
-          <div className="panel new-post-card">
+          <div className="panel new-post-card tone-orange">
             <div className="panel-body">
               {user ? (
                 <Link href="/post/new" className="btn new-post-btn">
@@ -377,7 +378,7 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel">
+          <div className="panel tone-green">
             <div className="panel-head">
               <span className="tab-the">the</span>
               <span className="tab-main">Top Tracks</span>
@@ -401,7 +402,7 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel">
+          <div className="panel tone-purple">
             <div className="panel-head">
               <span className="tab-the">the</span>
               <span className="tab-main">Most Active</span>
@@ -450,7 +451,7 @@ export default async function FeedPage({
           )}
 
           {statusRows && statusRows.length > 0 && (
-            <div className="panel">
+            <div className="panel tone-blue">
               <div className="panel-head">
                 <span className="tab-the">the</span>
                 <span className="tab-main">Live Now</span>
@@ -472,7 +473,7 @@ export default async function FeedPage({
             </div>
           )}
 
-          <div className="panel">
+          <div className="panel tone-pink">
             <div className="panel-head">
               <span className="tab-the">the</span>
               <span className="tab-main">Top This Week</span>
@@ -496,7 +497,7 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel">
+          <div className="panel tone-orange">
             <div className="panel-head">
               <span className="tab-the">the</span>
               <span className="tab-main">Community Stats</span>
@@ -507,7 +508,7 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel">
+          <div className="panel tone-blue">
             <div className="panel-head">
               <span>
                 <span className="tab-the">the</span>

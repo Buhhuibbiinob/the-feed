@@ -15,10 +15,12 @@ export function Shelf({
   title,
   items,
   emptyMessage = "Nothing here yet - be the first to post one.",
+  tone,
 }: {
   title: string;
   items: ShelfItem[];
   emptyMessage?: string;
+  tone?: "blue" | "purple" | "green" | "pink" | "orange" | "yellow";
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -94,7 +96,7 @@ export function Shelf({
   }
 
   return (
-    <div className="panel">
+    <div className={`panel${tone ? ` tone-${tone}` : ""}`}>
       <div className="panel-head">
         <span>
           <span className="tab-the">the</span>
