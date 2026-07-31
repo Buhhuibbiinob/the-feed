@@ -8,6 +8,7 @@ import { OrbyBot, type OrbyCandidate } from "@/components/OrbyBot";
 import { coverGradient } from "@/lib/cover";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
+import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import type { MediaType } from "@/lib/media";
 import { getAllSiteText } from "@/lib/siteContent";
 
@@ -107,6 +108,7 @@ export default async function FeedPage({
     trendingTracks,
     { data: statusRows },
     { data: bannerAdRows },
+    upcomingReleases,
     siteText,
   ] = await Promise.all([
     supabase
@@ -143,6 +145,7 @@ export default async function FeedPage({
       .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order("created_at", { ascending: true })
       .returns<BannerAdRow[]>(),
+    getUpcomingMoviesAndTv(6),
     getAllSiteText(supabase),
   ]);
 
@@ -295,8 +298,6 @@ export default async function FeedPage({
     },
   ];
 
-  const rightNowStatus = statusRows && statusRows.length > 0 ? statusRows[0] : null;
-
   const feedTvClips: FeedTvClip[] = [];
   const seenVideoIds = new Set<string>();
   for (const post of allPosts) {
@@ -342,35 +343,34 @@ export default async function FeedPage({
 
       <div className="theslap-top-grid">
         <div className="right-now-widget">
-          <div className="right-now-tab">the RIGHT NOW</div>
+          <div className="right-now-tab">UPCOMING</div>
           <div className="right-now-body">
-            {rightNowStatus ? (
-              <div className="right-now-status">
-                <b>{rightNowStatus.username}</b>
-                <p>
-                  {rightNowStatus.status_media_type === "music" ? "🎧" : "📺"} {rightNowStatus.status_title}
-                  {rightNowStatus.status_artist && <> - {rightNowStatus.status_artist}</>}
-                </p>
-              </div>
-            ) : newFavePost ? (
-              <div className="right-now-spotlight">
-                <div
-                  className="right-now-photo"
-                  style={{
-                    backgroundImage: newFavePost.cover_url
-                      ? `url(${newFavePost.cover_url})`
-                      : coverGradient(newFavePost.id),
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
-                <b>{newFavePost.title}</b>
-                <span>Reviewed by {newFavePost.profiles?.username ?? "unknown"}</span>
-              </div>
-            ) : (
+            {upcomingReleases.length === 0 ? (
               <div className="right-now-empty">
                 <span className="orb" style={{ width: 36, height: 36 }} />
-                <p>Nothing posted yet - be the first to review something.</p>
+                <p>No upcoming releases to show right now.</p>
+              </div>
+            ) : (
+              <div className="right-now-upcoming-list">
+                {upcomingReleases.slice(0, 4).map((item) => (
+                  <div className="right-now-upcoming-item" key={item.id}>
+                    <div
+                      className="right-now-upcoming-poster"
+                      style={{
+                        backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : coverGradient(item.id),
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
+                    <div className="right-now-upcoming-info">
+                      <b>{item.title}</b>
+                      <span>
+                        {item.mediaType === "movie" ? "🎬 Movie" : "📺 TV"}
+                        {item.date && <> · {item.date}</>}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

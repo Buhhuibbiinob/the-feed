@@ -245,8 +245,8 @@ a:hover {
   color: var(--acct-btn-text);
   background: var(--acct-btn-bg);
   border: 1px solid var(--acct-btn-border);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.35) inset,
-    0 -1px 3px rgba(0, 0, 0, 0.2) inset;
+  box-shadow: 0 4px 9px rgba(0, 0, 0, 0.35), 0 2px 0 rgba(255, 255, 255, 0.5) inset,
+    0 -3px 6px rgba(0, 0, 0, 0.25) inset;
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
@@ -1707,8 +1707,8 @@ a:hover {
   background: var(--btn-bg);
   border: 1px solid var(--btn-border);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 -2px 4px rgba(0, 0, 0, 0.25) inset;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
+    0 -4px 8px rgba(0, 0, 0, 0.3) inset;
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
@@ -2476,20 +2476,20 @@ footer .copy {
   --orb-bg: radial-gradient(circle at 35% 30%, #fff, #007aff 75%);
   --wordmark-color: #1c1c1e;
 
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f2f2f7 100%);
-  --acct-btn-border: #d1d1d6;
-  --acct-btn-text: #007aff;
-  --acct-btn-primary-bg: linear-gradient(180deg, #0a84ff 0%, #007aff 100%);
-  --acct-btn-primary-border: #005ec4;
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #eef3fa 45%, #d3e3f5 55%, #b0cdec 100%);
+  --acct-btn-border: #7fa8d6;
+  --acct-btn-text: #005ec4;
+  --acct-btn-primary-bg: linear-gradient(180deg, #bfe0ff 0%, #4fb0ff 25%, #0a7bff 55%, #0050c4 100%);
+  --acct-btn-primary-border: #00327a;
 
   --panel-border: #7fc4f5;
-  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #eaf4ff 40%, #bfe0ff 60%, #7fc4f5 100%);
-  --panel-head-border: #4fa8e0;
+  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #eaf4ff 35%, #9fd0ff 60%, #4fa8f0 100%);
+  --panel-head-border: #2f74c8;
   --panel-body-bg: #ffffff;
   --shelf-bg: #f9f9fb;
 
-  --btn-bg: linear-gradient(180deg, #0a84ff 0%, #007aff 100%);
-  --btn-border: #005ec4;
+  --btn-bg: linear-gradient(180deg, #bfe0ff 0%, #4fb0ff 25%, #0a7bff 55%, #0050c4 100%);
+  --btn-border: #00327a;
   --btn-text: #fff;
 
   --hero-title-color: #1c1c1e;
@@ -4166,14 +4166,6 @@ footer .copy {
   padding: 14px;
   background: #fff;
 }
-.right-now-status b {
-  font-size: 12.5px;
-}
-.right-now-status p {
-  margin: 6px 0 0;
-  font-size: 11.5px;
-  color: #444;
-}
 .right-now-empty {
   height: 100%;
   display: flex;
@@ -4188,24 +4180,38 @@ footer .copy {
   color: #999;
   margin: 0;
 }
-.right-now-spotlight {
+.right-now-upcoming-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
 }
-.right-now-spotlight b {
-  font-size: 12.5px;
+.right-now-upcoming-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
-.right-now-spotlight span {
-  font-size: 11px;
+.right-now-upcoming-poster {
+  width: 36px;
+  height: 50px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.right-now-upcoming-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.right-now-upcoming-info b {
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.right-now-upcoming-info span {
+  font-size: 10px;
   color: #888;
-}
-.right-now-photo {
-  width: 100%;
-  height: 110px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .hot-pages-panel .panel-body,
