@@ -2456,44 +2456,44 @@ footer .copy {
 }
 
 [data-theme="ios-light"] {
-  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 40%),
-    radial-gradient(ellipse at 15% 85%, rgba(255, 0, 0, 0.12), transparent 55%),
-    radial-gradient(ellipse at 85% 10%, rgba(0, 0, 0, 0.08), transparent 50%),
-    linear-gradient(160deg, #f4f4f4 0%, #e8e8e8 40%, #dadada 70%, #c9c9c9 100%);
+  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 40%),
+    radial-gradient(ellipse at 15% 85%, rgba(10, 95, 199, 0.18), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(255, 0, 0, 0.1), transparent 50%),
+    linear-gradient(160deg, #dfe6ee 0%, #c3ceda 40%, #a7b6c8 70%, #8a9ab0 100%);
   --body-glyph-color: rgba(0, 0, 0, 0.05);
-  --body-pattern: radial-gradient(circle, rgba(0, 0, 0, 0.07) 3px, transparent 3.5px);
+  --body-pattern: radial-gradient(circle, rgba(255, 255, 255, 0.22) 3px, transparent 3.5px);
   --body-pattern-size: 30px 30px;
 
-  --nav-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(249, 249, 249, 0.95) 70%);
-  --nav-border: #e0e0e0;
-  --nav-text: #0f0f0f;
-  --nav-active-text: #ff0000;
+  --nav-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(232, 238, 245, 0.95) 70%);
+  --nav-border: #b8c4d2;
+  --nav-text: #1c2733;
+  --nav-active-text: #0a5fc7;
 
-  --subnav-bg: linear-gradient(180deg, #ffffff, #f9f9f9);
-  --subnav-border: #e0e0e0;
-  --subnav-text: #606060;
+  --subnav-bg: linear-gradient(180deg, #ffffff, #eef2f7);
+  --subnav-border: #c3ceda;
+  --subnav-text: #46586b;
 
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff0000 75%);
-  --wordmark-color: #0f0f0f;
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #0a5fc7 75%);
+  --wordmark-color: #1c2733;
 
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f6f6f6 45%, #e6e6e6 55%, #cfcfcf 100%);
-  --acct-btn-border: #9c9c9c;
-  --acct-btn-text: #0f0f0f;
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #eef2f7 45%, #d7e0ea 55%, #b7c4d2 100%);
+  --acct-btn-border: #7f93a8;
+  --acct-btn-text: #1c2733;
   --acct-btn-primary-bg: linear-gradient(180deg, #ff8a80 0%, #ff5c4d 25%, #ff0000 55%, #a30000 100%);
   --acct-btn-primary-border: #6b0000;
 
-  --panel-border: #d4d4d4;
-  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #f7f7f7 35%, #e6e6e6 60%, #cfcfcf 100%);
-  --panel-head-border: #a3a3a3;
+  --panel-border: #9fb3c7;
+  --panel-head-bg: linear-gradient(180deg, #eaf1f8 0%, #cddce8 35%, #9fb8cf 60%, #6f8caa 100%);
+  --panel-head-border: #4a6483;
   --panel-body-bg: #ffffff;
-  --shelf-bg: #f9f9f9;
+  --shelf-bg: #f4f7fa;
 
-  --btn-bg: linear-gradient(180deg, #ff8a80 0%, #ff5c4d 25%, #ff0000 55%, #a30000 100%);
-  --btn-border: #6b0000;
+  --btn-bg: linear-gradient(180deg, #4a5a6e 0%, #2e3b4a 45%, #1c2733 55%, #0d1319 100%);
+  --btn-border: #05080c;
   --btn-text: #fff;
 
-  --hero-title-color: #0f0f0f;
-  --hero-tagline-color: #606060;
+  --hero-title-color: #1c2733;
+  --hero-tagline-color: #46586b;
   --hero-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 
   --like-color: #ff0000;
