@@ -16,7 +16,7 @@ type ClubRow = {
   banner_url: string | null;
 };
 
-export const metadata = { title: "Fan Clubs — Feedback" };
+export const metadata = { title: "Fan Clubs - Feedback" };
 
 export default async function ClubsPage() {
   const supabase = await createClient();
@@ -67,7 +67,7 @@ export default async function ClubsPage() {
           Start a Club
           {!user && (
             <span style={{ fontWeight: 400, fontSize: 11 }}>
-              {" — "}
+              {" - "}
               <Link href="/sign-in">Sign in</Link> to create one.
             </span>
           )}

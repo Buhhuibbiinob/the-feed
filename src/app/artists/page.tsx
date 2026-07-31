@@ -15,7 +15,7 @@ type ArtistPostRow = {
   profiles: { username: string; is_verified_artist: boolean } | null;
 };
 
-export const metadata = { title: "Underground Creators — Feedback" };
+export const metadata = { title: "Underground Creators - Feedback" };
 
 export default async function ArtistsPage() {
   const supabase = await createClient();
@@ -49,7 +49,7 @@ export default async function ArtistsPage() {
           Share Your Work
           {!user && (
             <span style={{ fontWeight: 400, fontSize: 11 }}>
-              {" — "}
+              {" - "}
               <Link href="/sign-in">Sign in</Link> to post.
             </span>
           )}

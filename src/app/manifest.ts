@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Feedback",
     short_name: "Feedback",
-    description: "Post reviews of music, movies, and TV — see what the community's watching and listening to.",
+    description: "Post reviews of music, movies, and TV - see what the community's watching and listening to.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

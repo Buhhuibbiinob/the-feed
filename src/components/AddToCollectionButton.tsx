@@ -48,7 +48,7 @@ export function AddToCollectionButton({ postId }: { postId: string }) {
             <div className="track-result">Loading…</div>
           ) : !collections || collections.length === 0 ? (
             <div className="track-result">
-              No collections yet — create one on the Collections page.
+              No collections yet - create one on the Collections page.
             </div>
           ) : (
             collections.map((c) => (

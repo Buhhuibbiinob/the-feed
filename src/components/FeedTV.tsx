@@ -98,7 +98,7 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
       playerRef.current?.destroy?.();
     };
     // The player is created once per clip list and driven afterward via
-    // loadVideoById (see the index effect below) — recreating it on every
+    // loadVideoById (see the index effect below) - recreating it on every
     // index change would restart YouTube's API handshake each time.
   }, [clips]);
 
@@ -124,10 +124,17 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
     setMuted((m) => !m);
   }
 
+  function skipNext() {
+    setIndex((i) => (i + 1) % clips.length);
+  }
+
   return (
-    <div className="panel feedtv-panel">
+    <div className="panel feedtv-panel tone-blue">
       <div className="panel-head">
-        <span>📺 Feed TV</span>
+        <span>
+          📺 <span className="tab-the">the</span>
+          <span className="tab-main">Feed TV</span>
+        </span>
         <span className="feedtv-live">● LIVE</span>
       </div>
       <div className="feedtv-body">
@@ -136,10 +143,13 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
           <div className="feedtv-bug">FEED TV</div>
           <div className="feedtv-controls">
             <button className="feedtv-ctrl-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
-              {paused ? "▶" : "❚❚"}
+              <span>{paused ? "▶" : "❚❚"}</span>
+            </button>
+            <button className="feedtv-ctrl-btn" onClick={skipNext} aria-label="Skip to next">
+              <span>⏭</span>
             </button>
             <button className="feedtv-ctrl-btn" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}>
-              {muted ? "🔇" : "🔊"}
+              <span>{muted ? "🔇" : "🔊"}</span>
             </button>
           </div>
         </div>

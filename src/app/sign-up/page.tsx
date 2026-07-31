@@ -79,7 +79,7 @@ export default function SignUpPage() {
         <div className="panel-head">Not Ready Yet?</div>
         <div className="panel-body">
           <p className="field-hint" style={{ marginBottom: 10 }}>
-            Get an email when we ship new features — no account required.
+            Get an email when we ship new features - no account required.
           </p>
           {waitlistState.error && <div className="form-error">{waitlistState.error}</div>}
           {waitlistState.message && <div className="form-message">{waitlistState.message}</div>}

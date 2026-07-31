@@ -218,6 +218,13 @@ export default async function FeedPage({
     return { mediaType, top, ...bannerCopy[mediaType] };
   });
 
+  const hotTakePost = allPosts.reduce<(typeof allPosts)[number] | null>((best, p) => {
+    const score = (likeCounts.get(p.id) ?? 0) + (commentCounts.get(p.id) ?? 0);
+    const bestScore = best ? (likeCounts.get(best.id) ?? 0) + (commentCounts.get(best.id) ?? 0) : -1;
+    return score > bestScore ? p : best;
+  }, null);
+  const newFavePost = allPosts[0] ?? null;
+
   const feedTvClips: FeedTvClip[] = [];
   const seenVideoIds = new Set<string>();
   for (const post of allPosts) {
@@ -272,18 +279,22 @@ export default async function FeedPage({
           title="On Repeat"
           items={onRepeat}
           emptyMessage="Play something on Spotify and it'll show up here."
+          tone="purple"
         />
       )}
-      <Shelf title="Trending Music" items={newReleases} />
-      <Shelf title="Now Watching" items={nowWatching} />
+      <Shelf title="Trending Music" items={newReleases} tone="green" />
+      <Shelf title="Now Watching" items={nowWatching} tone="pink" />
 
       <div className="content-grid">
         <div className="left-col">
           {user ? (
             <PostForm />
           ) : (
-            <div className="panel">
-              <div className="panel-head">Join the conversation</div>
+            <div className="panel tone-yellow">
+              <div className="panel-head">
+                <span className="tab-the">the</span>
+                <span className="tab-main">Join the conversation</span>
+              </div>
               <div className="panel-body">
                 <p>
                   <Link href="/sign-up">Create an account</Link> or{" "}
@@ -293,9 +304,12 @@ export default async function FeedPage({
             </div>
           )}
 
-          <div className="panel">
+          <div className="panel tone-yellow">
             <div className="panel-head">
-              Recent Reviews
+              <span>
+                <span className="tab-the">the</span>
+                <span className="tab-main">Recent Reviews</span>
+              </span>
               {user && (
                 <span className="feed-filter">
                   <Link href="/" className={!followingOnly ? "active" : ""}>
@@ -312,7 +326,7 @@ export default async function FeedPage({
                 <div className="empty-state" style={{ padding: 16 }}>
                   {followingOnly
                     ? "No reviews yet from people you follow."
-                    : "No reviews yet — be the first to post one."}
+                    : "No reviews yet - be the first to post one."}
                 </div>
               ) : (
                 allPosts.map((post) => (
@@ -336,6 +350,13 @@ export default async function FeedPage({
                     liked={likedByMe.has(post.id)}
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}
+                    sticker={
+                      post.id === newFavePost?.id
+                        ? "new"
+                        : post.id === hotTakePost?.id
+                          ? "hot"
+                          : undefined
+                    }
                   />
                 ))
               )}
@@ -345,8 +366,11 @@ export default async function FeedPage({
 
         <div className="right-col">
           {statusRows && statusRows.length > 0 && (
-            <div className="panel">
-              <div className="panel-head">Live Now</div>
+            <div className="panel tone-orange">
+              <div className="panel-head">
+                <span className="tab-the">the</span>
+                <span className="tab-main">Live Now</span>
+              </div>
               <div className="side-list">
                 {statusRows.map((row) => (
                   <div className="row" key={row.username}>
@@ -355,7 +379,7 @@ export default async function FeedPage({
                       <b>{row.username}</b>
                       <span>
                         {row.status_title}
-                        {row.status_artist && <> — {row.status_artist}</>}
+                        {row.status_artist && <> - {row.status_artist}</>}
                       </span>
                     </div>
                   </div>
@@ -364,8 +388,11 @@ export default async function FeedPage({
             </div>
           )}
 
-          <div className="panel">
-            <div className="panel-head">Today&apos;s Top Tracks</div>
+          <div className="panel tone-green">
+            <div className="panel-head">
+              <span className="tab-the">the</span>
+              <span className="tab-main">Top Tracks</span>
+            </div>
             <div className="side-list">
               {topTracks.length === 0 ? (
                 <div className="empty-state">No music reviews yet.</div>
@@ -385,8 +412,11 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel-head">Top Reviews This Week</div>
+          <div className="panel tone-pink">
+            <div className="panel-head">
+              <span className="tab-the">the</span>
+              <span className="tab-main">Top This Week</span>
+            </div>
             <div className="side-list">
               {topThisWeek.length === 0 ? (
                 <div className="empty-state">Nothing rated this week yet.</div>
@@ -406,8 +436,11 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel-head">Most Active Reviewers</div>
+          <div className="panel tone-purple">
+            <div className="panel-head">
+              <span className="tab-the">the</span>
+              <span className="tab-main">Most Active</span>
+            </div>
             <div className="side-list">
               {topReviewers.length === 0 ? (
                 <div className="empty-state">No reviews yet.</div>
@@ -431,17 +464,23 @@ export default async function FeedPage({
       </div>
 
       <div className="bottom-row">
-        <div className="panel">
-          <div className="panel-head">Community Stats</div>
+        <div className="panel tone-orange">
+          <div className="panel-head">
+            <span className="tab-the">the</span>
+            <span className="tab-main">Community Stats</span>
+          </div>
           <div className="stats-body">
             <div>{postsCount.count ?? 0} reviews posted</div>
             <div>{chatCount.count ?? 0} chat messages sent</div>
           </div>
         </div>
 
-        <div className="panel">
+        <div className="panel tone-blue">
           <div className="panel-head">
-            Live Chat
+            <span>
+              <span className="tab-the">the</span>
+              <span className="tab-main">Live Chat</span>
+            </span>
             <Link href="/chat" className="see-all">
               See All ▸
             </Link>

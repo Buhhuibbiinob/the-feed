@@ -83,6 +83,7 @@ export function PostCard({
   likeCount,
   commentCount,
   hideCommentLink = false,
+  sticker,
 }: {
   post: PostCardData;
   currentUserId: string | null;
@@ -90,6 +91,7 @@ export function PostCard({
   likeCount: number;
   commentCount: number;
   hideCommentLink?: boolean;
+  sticker?: "hot" | "new";
 }) {
   const [editing, setEditing] = useState(false);
   const isOwner = currentUserId === post.userId;
@@ -104,12 +106,14 @@ export function PostCard({
 
   return (
     <div className="post-card">
+      {sticker === "hot" && <span className="sticker-badge hot">🔥 hot take</span>}
+      {sticker === "new" && <span className="sticker-badge new">🆕 new fave</span>}
       <div className="post-card-head">
         {post.coverUrl && <img src={post.coverUrl} alt="" className="cover-thumb" />}
         <span className={`badge ${post.mediaType}`}>{MEDIA_LABELS[post.mediaType]}</span>
         <span className="title">
           {post.title}
-          {post.artist && <> — {post.artist}</>}
+          {post.artist && <> - {post.artist}</>}
         </span>
         {post.rating && <span className="stars">{stars(post.rating)}</span>}
       </div>
@@ -157,12 +161,12 @@ export function PostCard({
         ) : (
           <span className="like-btn">
             <span className="heart">♡</span>
-            <span>{likeCount}</span>
+            <span className="count-badge">{likeCount}</span>
           </span>
         )}
         {!hideCommentLink && (
           <Link href={`/post/${post.id}`} className="comment-link">
-            {commentCount} comment{commentCount === 1 ? "" : "s"}
+            <span className="count-badge">{commentCount}</span> comment{commentCount === 1 ? "" : "s"}
           </Link>
         )}
       </div>

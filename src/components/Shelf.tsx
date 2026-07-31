@@ -14,11 +14,13 @@ export type ShelfItem = {
 export function Shelf({
   title,
   items,
-  emptyMessage = "Nothing here yet — be the first to post one.",
+  emptyMessage = "Nothing here yet - be the first to post one.",
+  tone,
 }: {
   title: string;
   items: ShelfItem[];
   emptyMessage?: string;
+  tone?: "blue" | "purple" | "green" | "pink" | "orange" | "yellow";
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -39,7 +41,7 @@ export function Shelf({
       const norm = Math.max(-1, Math.min(1, delta / (trackRect.width / 2)));
       const side = Math.sign(norm);
       // t tracks actual distance from center (not saturated early) so each
-      // item gets a distinct transform — saturating too fast made every
+      // item gets a distinct transform - saturating too fast made every
       // near-center item collapse onto the same pose and visually stack.
       const t = Math.abs(norm);
       const rotate = side * -68 * t;
@@ -94,9 +96,12 @@ export function Shelf({
   }
 
   return (
-    <div className="panel">
+    <div className={`panel${tone ? ` tone-${tone}` : ""}`}>
       <div className="panel-head">
-        <span>{title}</span>
+        <span>
+          <span className="tab-the">the</span>
+          <span className="tab-main">{title}</span>
+        </span>
       </div>
       <div className="shelf-body coverflow">
         {items.length > 4 && (

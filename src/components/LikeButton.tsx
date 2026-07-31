@@ -15,7 +15,7 @@ export function LikeButton({
       <input type="hidden" name="liked" value={liked ? "true" : "false"} />
       <button type="submit" className={liked ? "like-btn liked" : "like-btn"}>
         <span className="heart">{liked ? "♥" : "♡"}</span>
-        <span>{count}</span>
+        <span className="count-badge">{count}</span>
       </button>
     </form>
   );

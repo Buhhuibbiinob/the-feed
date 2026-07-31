@@ -37,8 +37,8 @@
   --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #e8e8e8 46%, #cccccc 50%, #a0a0a0 100%);
   --acct-btn-border: #999999;
   --acct-btn-text: #2a5a80;
-  --acct-btn-primary-bg: linear-gradient(180deg, #c4c4c4 0%, #8a8a8a 46%, #6a6a6a 50%, #3a3a3a 100%);
-  --acct-btn-primary-border: #1a1a1a;
+  --acct-btn-primary-bg: linear-gradient(180deg, #7fcaff 0%, #2f8ee8 46%, #1f74c8 50%, #0d4f96 100%);
+  --acct-btn-primary-border: #0a3d78;
 
   --panel-border: #c9c9c9;
   --panel-head-bg: linear-gradient(180deg, #f2f2f2, #d3d3d3);
@@ -46,8 +46,8 @@
   --panel-body-bg: #fff;
   --shelf-bg: #fff;
 
-  --btn-bg: linear-gradient(180deg, #c4c4c4 0%, #8a8a8a 46%, #6a6a6a 50%, #3a3a3a 100%);
-  --btn-border: #1a1a1a;
+  --btn-bg: linear-gradient(180deg, #7fcaff 0%, #2f8ee8 46%, #1f74c8 50%, #0d4f96 100%);
+  --btn-border: #0a3d78;
   --btn-text: #fff;
 
   --hero-title-color: #fff;
@@ -432,20 +432,40 @@ a:hover {
   gap: 6px;
 }
 .feedtv-ctrl-btn {
-  width: 30px;
-  height: 30px;
+  position: relative;
+  overflow: hidden;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(20, 20, 20, 0.65);
+  border: 1px solid #0a3d78;
+  background: linear-gradient(180deg, #7fcaff 0%, #2f8ee8 46%, #1f74c8 50%, #0d4f96 100%);
   color: #fff;
   font-size: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 -2px 4px rgba(0, 0, 0, 0.25) inset;
+}
+.feedtv-ctrl-btn::before {
+  content: "";
+  position: absolute;
+  top: 10%;
+  left: 12%;
+  right: 12%;
+  height: 34%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  border-radius: 100px;
+}
+.feedtv-ctrl-btn span {
+  position: relative;
+}
+.feedtv-ctrl-btn:active {
+  transform: translateY(1px);
 }
 .feedtv-ctrl-btn:hover {
-  background: rgba(40, 40, 40, 0.8);
+  filter: brightness(1.08);
 }
 .feedtv-upnext {
   width: 200px;
@@ -917,17 +937,28 @@ a:hover {
 .feed-filter {
   position: relative;
   display: flex;
-  gap: 10px;
-  font-weight: 400;
+  gap: 0;
+  font-weight: 700;
   font-size: 10.5px;
+  background: linear-gradient(180deg, #e2e2e2, #cfcfcf);
+  border: 1px solid #a0a0a0;
+  border-radius: 100px;
+  padding: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) inset;
 }
 .feed-filter a {
-  color: #777;
+  color: #666;
+  padding: 3px 12px;
+  border-radius: 100px;
 }
 .feed-filter a.active {
-  color: #1a1a1a;
-  font-weight: 700;
-  text-decoration: underline;
+  color: #fff;
+  background: linear-gradient(180deg, #7fcaff 0%, #2f8ee8 46%, #1f74c8 50%, #0d4f96 100%);
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+.feed-filter a:hover {
+  text-decoration: none;
 }
 .panel-head::before {
   content: "";
@@ -1148,6 +1179,7 @@ a:hover {
 
 /* ---- Post / review cards ---- */
 .post-card {
+  position: relative;
   border: 1px solid #c9c9c9;
   border-radius: 6px;
   overflow: hidden;
@@ -3233,4 +3265,149 @@ footer .copy {
   --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 
   --like-color: #ff5c7a;
+}
+
+/* ================================================================
+   Homepage color-block / sticker / notification-badge design pass
+   ================================================================ */
+
+/* ---- Sticker-style tilted badges on posts ---- */
+.sticker-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 3;
+  transform: rotate(-7deg);
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 100px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.sticker-badge.hot {
+  background: linear-gradient(160deg, #ff8a3d, #d8447a);
+}
+.sticker-badge.new {
+  background: linear-gradient(160deg, #3ee08a, #0f7a3f);
+}
+
+/* ---- Small red circular notification-count badges ---- */
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  margin-left: 3px;
+  border-radius: 100px;
+  background: linear-gradient(180deg, #ff6b6b, #d81f3a);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- Chunky casual "the X" tab-label text treatment ---- */
+.tab-the {
+  font-weight: 400;
+  text-transform: lowercase;
+  margin-right: 4px;
+  opacity: 0.7;
+}
+.tab-main {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* ---- Color-block section tones ---- */
+.tone-blue {
+  border-color: #2f74c8;
+}
+.tone-blue .panel-head {
+  background: linear-gradient(180deg, #bfe0ff, #7fbdf5);
+  border-color: #2f74c8;
+  color: #08315c;
+}
+.tone-blue .panel-body,
+.tone-blue .shelf-body,
+.tone-blue .side-list,
+.tone-blue .stats-body,
+.tone-blue .chat-preview-body,
+.tone-blue .feedtv-upnext-label {
+  background: #eaf4ff;
+}
+
+.tone-purple {
+  border-color: #8a5fc8;
+}
+.tone-purple .panel-head {
+  background: linear-gradient(180deg, #e6d9ff, #c3a3f0);
+  border-color: #8a5fc8;
+  color: #3a1d66;
+}
+.tone-purple .panel-body,
+.tone-purple .shelf-body,
+.tone-purple .side-list {
+  background: #f4eeff;
+}
+
+.tone-green {
+  border-color: #2f9e5c;
+}
+.tone-green .panel-head {
+  background: linear-gradient(180deg, #cdf5da, #8fdca8);
+  border-color: #2f9e5c;
+  color: #0d4d27;
+}
+.tone-green .panel-body,
+.tone-green .shelf-body,
+.tone-green .side-list {
+  background: #eafff2;
+}
+
+.tone-pink {
+  border-color: #d8447a;
+}
+.tone-pink .panel-head {
+  background: linear-gradient(180deg, #ffd9e6, #f5a3c0);
+  border-color: #d8447a;
+  color: #6b1235;
+}
+.tone-pink .panel-body,
+.tone-pink .shelf-body,
+.tone-pink .side-list {
+  background: #fff0f5;
+}
+
+.tone-orange {
+  border-color: #d8813a;
+}
+.tone-orange .panel-head {
+  background: linear-gradient(180deg, #ffe6c9, #f5bd80);
+  border-color: #d8813a;
+  color: #6b3a0d;
+}
+.tone-orange .panel-body,
+.tone-orange .shelf-body,
+.tone-orange .side-list {
+  background: #fff7ea;
+}
+
+.tone-yellow {
+  border-color: #cbb02a;
+}
+.tone-yellow .panel-head {
+  background: linear-gradient(180deg, #fff3bf, #f0d876);
+  border-color: #cbb02a;
+  color: #5c4c05;
+}
+.tone-yellow .panel-body,
+.tone-yellow .shelf-body,
+.tone-yellow .side-list {
+  background: #fffbe8;
 }

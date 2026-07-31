@@ -92,7 +92,7 @@ type YoutubeSearchItem = {
   };
 };
 
-// Public search — uses a server API key, not a signed-in user's OAuth
+// Public search - uses a server API key, not a signed-in user's OAuth
 // token, so it works for every visitor regardless of whether they've
 // connected their own YouTube account.
 export async function searchVideos(query: string, limit = 8): Promise<YoutubeVideo[]> {

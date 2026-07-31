@@ -77,7 +77,7 @@ export async function signUp(
   }
 
   // Any nav links prefetched while signed out are still sitting in the
-  // client router cache — invalidate the whole layout so every route
+  // client router cache - invalidate the whole layout so every route
   // picks up the new session on next visit, not just "/".
   revalidatePath("/", "layout");
   redirect("/");

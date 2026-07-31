@@ -143,7 +143,7 @@ export function ChatRoom({
       <div className="panel-head">{heading}</div>
       <div className="chat-body" ref={bodyRef}>
         {visibleMessages.length === 0 ? (
-          <div className="empty-state">No messages yet — say something.</div>
+          <div className="empty-state">No messages yet - say something.</div>
         ) : (
           visibleMessages.map((m) => {
             const isOwn = userId === m.userId;

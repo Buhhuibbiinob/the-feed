@@ -61,7 +61,7 @@ export function ArtistPostComments({
         )}
         {comments.length === 0 ? (
           <div className="empty-state" style={{ marginTop: 12 }}>
-            No replies yet — be the first.
+            No replies yet - be the first.
           </div>
         ) : (
           <div className="comment-list">

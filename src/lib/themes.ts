@@ -1,5 +1,5 @@
 // Single source of truth for site themes. Add a new entry here (plus a
-// matching `[data-theme="id"]` block in globals.css) to introduce a theme —
+// matching `[data-theme="id"]` block in globals.css) to introduce a theme -
 // nothing else needs to change to make it selectable in Settings.
 export type Theme = {
   id: string;

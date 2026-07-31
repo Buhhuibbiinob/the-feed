@@ -1,4 +1,4 @@
-// TMDB (themoviedb.org) powers the movie/TV side of New Releases — upcoming
+// TMDB (themoviedb.org) powers the movie/TV side of New Releases - upcoming
 // movies and TV currently on the air, merged and sorted by date.
 export type TmdbItem = {
   id: string;

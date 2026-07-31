@@ -1,4 +1,4 @@
-export const metadata = { title: "Banned — Feedback" };
+export const metadata = { title: "Banned - Feedback" };
 
 export default function BannedPage() {
   return (

@@ -190,7 +190,7 @@ export default async function ProfilePage({
               <div className="profile-status">
                 {status.status_media_type === "music" ? "🎧 Listening to " : "📺 Watching "}
                 <b>{status.status_title}</b>
-                {status.status_artist && <> — {status.status_artist}</>}
+                {status.status_artist && <> - {status.status_artist}</>}
               </div>
             )}
             <div className="profile-counts">

@@ -70,7 +70,7 @@ type ClubReportRow = {
   profiles: { username: string } | null;
 };
 
-export const metadata = { title: "Admin — Feedback" };
+export const metadata = { title: "Admin - Feedback" };
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -140,7 +140,7 @@ export default async function AdminPage() {
     <>
       <div className="page-header">
         <h1>Admin</h1>
-        <div className="tagline">Moderation tools — reported messages, users, bans.</div>
+        <div className="tagline">Moderation tools - reported messages, users, bans.</div>
       </div>
 
       <div className="panel">
@@ -288,7 +288,7 @@ export default async function AdminPage() {
                 ) : (
                   <i>club deleted</i>
                 )}
-                {r.reason && <span> — {r.reason}</span>}
+                {r.reason && <span> - {r.reason}</span>}
                 <span className="chat-msg-actions">
                   <span className="comment-action">reported by {r.profiles?.username ?? "unknown"}</span>
                   {r.clubs && (
@@ -325,7 +325,7 @@ export default async function AdminPage() {
                 ) : (
                   <i>post deleted</i>
                 )}
-                {r.reason && <span> — {r.reason}</span>}
+                {r.reason && <span> - {r.reason}</span>}
                 <span className="chat-msg-actions">
                   <span className="comment-action">reported by {r.profiles?.username ?? "unknown"}</span>
                   {r.artist_posts && (

@@ -19,7 +19,7 @@ function stars(rating: number | null) {
   return "★".repeat(rating) + "☆".repeat(5 - rating);
 }
 
-export const metadata = { title: "New Releases — Feedback" };
+export const metadata = { title: "New Releases - Feedback" };
 
 export default async function NewReleasesPage() {
   const supabase = await createClient();
@@ -44,7 +44,7 @@ export default async function NewReleasesPage() {
         <div className="release-grid">
           {tracks.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              Couldn&apos;t load trending tracks right now — try again later.
+              Couldn&apos;t load trending tracks right now - try again later.
             </div>
           ) : (
             tracks.map((track) => (
@@ -76,7 +76,7 @@ export default async function NewReleasesPage() {
         <div className="release-grid">
           {movies.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              Couldn&apos;t load new movies/TV right now — try again later.
+              Couldn&apos;t load new movies/TV right now - try again later.
             </div>
           ) : (
             movies.map((item) => (
@@ -108,7 +108,7 @@ export default async function NewReleasesPage() {
         <div className="release-grid">
           {reviews.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              No music reviews yet — be the first to post one.
+              No music reviews yet - be the first to post one.
             </div>
           ) : (
             reviews.map((post) => (

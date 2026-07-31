@@ -6,7 +6,7 @@ export type WikiSummary = {
 
 // Pulls a live summary for a club's artist/show from Wikipedia's free,
 // keyless REST API so club pages can show up-to-date background info
-// without depending on Spotify or any paid service. Never throws — a
+// without depending on Spotify or any paid service. Never throws - a
 // missing or unreachable page just means the panel doesn't render.
 export async function getWikipediaSummary(query: string): Promise<WikiSummary | null> {
   try {

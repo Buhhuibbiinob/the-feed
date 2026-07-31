@@ -29,7 +29,7 @@ export function BackgroundPicker() {
         This automatically switches your theme to "Custom Background".
       </div>
       {(clientError || state.error) && <div className="form-error">{clientError ?? state.error}</div>}
-      {state.ok && <div className="form-message">Background saved — refresh to see it everywhere.</div>}
+      {state.ok && <div className="form-message">Background saved - refresh to see it everywhere.</div>}
       <input type="file" name="background_file" accept="image/*" required />
       <div className="form-actions">
         <button className="btn" type="submit" disabled={pending}>

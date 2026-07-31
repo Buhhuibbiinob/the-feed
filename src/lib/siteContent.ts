@@ -11,7 +11,7 @@ export const SITE_CONTENT_FIELDS = [
     key: "feed_tagline",
     label: "Feed page tagline",
     path: "/",
-    default: "Post quick reviews of music, movies, and TV — and see what the community's into right now.",
+    default: "Post quick reviews of music, movies, and TV - and see what the community's into right now.",
   },
   {
     key: "artists_heading",
@@ -24,13 +24,13 @@ export const SITE_CONTENT_FIELDS = [
     label: "Creators page tagline",
     path: "/artists",
     default:
-      "A space for unsigned artists and independent filmmakers to share their work — drop a Spotify, SoundCloud, Apple Music, or YouTube link (short films, music videos, anything you've made or directed) and let people reply. Verified creators get a blue check after admin review.",
+      "A space for unsigned artists and independent filmmakers to share their work - drop a Spotify, SoundCloud, Apple Music, or YouTube link (short films, music videos, anything you've made or directed) and let people reply. Verified creators get a blue check after admin review.",
   },
   {
     key: "artists_empty",
     label: "Creators page empty state",
     path: "/artists",
-    default: "No posts yet — be the first to share your music or film.",
+    default: "No posts yet - be the first to share your music or film.",
   },
   {
     key: "clubs_heading",
@@ -49,7 +49,7 @@ export const SITE_CONTENT_FIELDS = [
     key: "clubs_empty",
     label: "Clubs page empty state",
     path: "/clubs",
-    default: "No clubs yet — post a review and one will be proposed automatically.",
+    default: "No clubs yet - post a review and one will be proposed automatically.",
   },
   {
     key: "chat_heading",
@@ -79,7 +79,7 @@ export const SITE_CONTENT_FIELDS = [
     key: "collections_empty",
     label: "Collections page empty state",
     path: "/collections",
-    default: "No collections yet — start one above.",
+    default: "No collections yet - start one above.",
   },
 ] as const;
 

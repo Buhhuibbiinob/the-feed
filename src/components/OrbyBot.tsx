@@ -27,11 +27,11 @@ type OrbyMessage = { from: "user" | "orby"; text: string };
 
 const GREETING: OrbyMessage = {
   from: "orby",
-  text: "Hi, I'm Orby! Ask me for a recommendation — music, a movie, or a show — and I'll find one for you. I only do recommendations, so that's the only thing I'll answer!",
+  text: "Hi, I'm Orby! Ask me for a recommendation - music, a movie, or a show - and I'll find one for you. I only do recommendations, so that's the only thing I'll answer!",
 };
 
 const OFF_TOPIC_REPLY =
-  "I'm just here to give recommendations — ask me for a song, movie, or show and I'll find one!";
+  "I'm just here to give recommendations - ask me for a song, movie, or show and I'll find one!";
 
 const MUSIC_SEEDS = [
   "today's top hits",
@@ -101,7 +101,7 @@ async function fetchOutsidePick(mediaType: MediaType): Promise<OrbyPick | null> 
 
 function formatRec(pick: OrbyPick): string {
   const kind = pick.mediaType === "music" ? "🎧" : "🎬";
-  const byline = pick.artist ? ` — ${pick.artist}` : "";
+  const byline = pick.artist ? ` - ${pick.artist}` : "";
   if (pick.source === "feed") {
     const ratingClause = pick.rating ? `, rated ${pick.rating}★` : "";
     return `${kind} Orby recommends: **${pick.title}**${byline} (posted by ${pick.username}${ratingClause}).`;
@@ -159,7 +159,7 @@ export function OrbyBot({ candidates }: { candidates: OrbyCandidate[] }) {
       if (outside) return formatRec(outside);
     }
 
-    return "I couldn't find anything to recommend right now — try again in a bit!";
+    return "I couldn't find anything to recommend right now - try again in a bit!";
   }
 
   async function send() {

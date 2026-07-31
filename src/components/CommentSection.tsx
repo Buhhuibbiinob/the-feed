@@ -200,7 +200,7 @@ export function CommentSection({
         )}
         {comments.length === 0 ? (
           <div className="empty-state" style={{ marginTop: 12 }}>
-            No comments yet — be the first.
+            No comments yet - be the first.
           </div>
         ) : (
           <div className="comment-list">

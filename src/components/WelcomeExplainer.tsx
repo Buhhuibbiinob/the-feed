@@ -13,7 +13,7 @@ export function WelcomeExplainer() {
         setVisible(true);
       }
     } catch {
-      // localStorage unavailable (e.g. private browsing) — just skip it
+      // localStorage unavailable (e.g. private browsing) - just skip it
     }
   }, []);
 
@@ -40,20 +40,20 @@ export function WelcomeExplainer() {
         <div className="panel-body">
           <p>
             Feedback is a community feed for rating and sharing the music, movies, and TV you&apos;re
-            into — post a quick review and see what everyone else is watching and listening to.
+            into - post a quick review and see what everyone else is watching and listening to.
           </p>
           <ul className="welcome-modal-list">
             <li>
               <b>Clubs</b>
-              {" — fan clubs for specific artists, movies, and shows. One gets proposed automatically the first time someone reviews something new."}
+              {" - fan clubs for specific artists, movies, and shows. One gets proposed automatically the first time someone reviews something new."}
             </li>
             <li>
               <b>Leaderboard</b>
-              {" — the most active reviewers, ranked by how much they've posted."}
+              {" - the most active reviewers, ranked by how much they've posted."}
             </li>
             <li>
               <b>Wrapped</b>
-              {" — your personal year-in-review: top genres, top posts, and stats about what you rated."}
+              {" - your personal year-in-review: top genres, top posts, and stats about what you rated."}
             </li>
           </ul>
           <div className="form-actions">

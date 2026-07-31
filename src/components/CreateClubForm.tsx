@@ -22,7 +22,7 @@ export function CreateClubForm() {
   if (state.ok && state.clubId) {
     return (
       <div className="form-message">
-        Submitted for review — you can manage it once it's approved.{" "}
+        Submitted for review - you can manage it once it's approved.{" "}
         <Link href={`/clubs/${state.clubId}`}>View your club</Link>
       </div>
     );

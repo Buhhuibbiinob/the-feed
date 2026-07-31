@@ -9,7 +9,7 @@ import { isAdmin } from "@/lib/admin";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const title = "Feedback";
-const description = "Post reviews of music, movies, and TV — see what the community's watching and listening to.";
+const description = "Post reviews of music, movies, and TV - see what the community's watching and listening to.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   // Lets iOS "Add to Home Screen" launch the site full-screen (no Safari
-  // chrome), with its own name and app icon — the PWA / "install as app" flow.
+  // chrome), with its own name and app icon - the PWA / "install as app" flow.
   appleWebApp: {
     capable: true,
     title,
