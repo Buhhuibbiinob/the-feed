@@ -732,10 +732,11 @@ export default async function FeedPage({
           {SITE_LINKS.map((group) => (
             <div className="site-links-group" key={group.heading}>
               <b>{group.heading}</b>
-              <div className="site-links-row">
+              <div className="site-links-rows">
                 {group.links.map((link) => (
-                  <Link key={link.href} href={link.href}>
-                    {link.label}
+                  <Link key={link.href} href={link.href} className="site-links-link">
+                    <span>{link.label}</span>
+                    <span className="site-links-chevron">›</span>
                   </Link>
                 ))}
               </div>

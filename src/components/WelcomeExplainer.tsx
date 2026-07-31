@@ -30,14 +30,14 @@ export function WelcomeExplainer() {
 
   return (
     <div className="welcome-modal-backdrop" onClick={dismiss}>
-      <div className="welcome-modal panel" onClick={(e) => e.stopPropagation()}>
-        <div className="panel-head">
+      <div className="welcome-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="welcome-modal-title">
           Welcome to Feedback
           <button className="welcome-modal-close" onClick={dismiss} aria-label="Close">
             ×
           </button>
         </div>
-        <div className="panel-body">
+        <div className="welcome-modal-body">
           <p>
             Feedback is a community feed for rating and sharing the music, movies, and TV you&apos;re
             into - post a quick review and see what everyone else is watching and listening to.
@@ -56,11 +56,14 @@ export function WelcomeExplainer() {
               {" - your personal year-in-review: top genres, top posts, and stats about what you rated."}
             </li>
           </ul>
-          <div className="form-actions">
-            <button className="btn" onClick={dismiss}>
-              Got it
-            </button>
-          </div>
+        </div>
+        <div className="welcome-modal-actions">
+          <button className="btn welcome-modal-btn-ghost" onClick={dismiss}>
+            Maybe later
+          </button>
+          <button className="btn" onClick={dismiss}>
+            Got it
+          </button>
         </div>
       </div>
     </div>
