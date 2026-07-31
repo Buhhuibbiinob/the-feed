@@ -2403,6 +2403,57 @@ footer .copy {
   --like-color: #e0568f;
 }
 
+/* ---- Party Rock: neon pink/green/yellow glow on black, 2010s club-flyer energy ---- */
+[data-theme="party-rock-2010"] {
+  --body-bg: radial-gradient(circle at 15% 15%, rgba(255, 0, 200, 0.35), transparent 42%),
+    radial-gradient(circle at 85% 20%, rgba(0, 255, 170, 0.3), transparent 45%),
+    radial-gradient(circle at 50% 90%, rgba(255, 230, 0, 0.25), transparent 50%),
+    linear-gradient(160deg, #000000 0%, #0d001a 40%, #1a0022 70%, #000000 100%);
+  --body-glyph-color: rgba(255, 0, 200, 0.12);
+
+  --nav-bg: linear-gradient(180deg, #1a0022, #000000 70%);
+  --nav-border: #ff00c8;
+  --nav-text: #fff;
+  --nav-active-text: #000;
+
+  --subnav-bg: linear-gradient(180deg, #1a0022, #000000);
+  --subnav-border: #00ffaa;
+  --subnav-text: #00ffaa;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff00c8 75%);
+  --wordmark-color: #ff00c8;
+
+  --acct-btn-bg: linear-gradient(180deg, #00ffaa 0%, #00cc88 100%);
+  --acct-btn-border: #008f5f;
+  --acct-btn-text: #000;
+  --acct-btn-primary-bg: linear-gradient(180deg, #ff44dd 0%, #ff00c8 46%, #cc0099 50%, #8f006b 100%);
+  --acct-btn-primary-border: #5c0044;
+
+  --panel-border: #ff00c8;
+  --panel-head-bg: linear-gradient(180deg, #ffe600 0%, #ffb300 100%);
+  --panel-head-border: #cc8f00;
+  --panel-body-bg: #0d001a;
+  --shelf-bg: #0d001a;
+
+  --btn-bg: linear-gradient(180deg, #ff44dd 0%, #ff00c8 46%, #cc0099 50%, #8f006b 100%);
+  --btn-border: #5c0044;
+  --btn-text: #fff;
+
+  --hero-title-color: #ff00c8;
+  --hero-tagline-color: #00ffaa;
+  --hero-text-shadow: 0 0 8px rgba(255, 0, 200, 0.8), 0 0 16px rgba(255, 0, 200, 0.4);
+
+  --like-color: #00ffaa;
+
+  --text: #f0e0ff;
+  --muted: #cc99e0;
+  --link: #00ffaa;
+}
+[data-theme="party-rock-2010"] .panel-head-tab,
+[data-theme="party-rock-2010"] .tab-main {
+  color: #1a0022;
+}
+
 [data-theme="ios-light"] {
   --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 40%),
     radial-gradient(ellipse at 15% 85%, rgba(10, 132, 255, 0.35), transparent 55%),
@@ -3964,6 +4015,7 @@ footer .copy {
 /* ---- 2010-2016: glossy iPhone-5-era skeuomorphic chrome ---- */
 [data-theme="frutiger-aero"] .panel,
 [data-theme="tumblr-fashion"] .panel,
+[data-theme="party-rock-2010"] .panel,
 [data-theme="ios-light"] .panel,
 [data-theme="ios-dark"] .panel,
 [data-theme="frutiger-metro"] .panel,
@@ -3973,6 +4025,7 @@ footer .copy {
 }
 [data-theme="frutiger-aero"] .panel-head,
 [data-theme="tumblr-fashion"] .panel-head,
+[data-theme="party-rock-2010"] .panel-head,
 [data-theme="ios-light"] .panel-head,
 [data-theme="ios-dark"] .panel-head,
 [data-theme="frutiger-metro"] .panel-head,
@@ -3981,12 +4034,14 @@ footer .copy {
 }
 [data-theme="frutiger-aero"] .btn,
 [data-theme="tumblr-fashion"] .btn,
+[data-theme="party-rock-2010"] .btn,
 [data-theme="ios-light"] .btn,
 [data-theme="ios-dark"] .btn,
 [data-theme="frutiger-metro"] .btn,
 [data-theme="discord-dark"] .btn,
 [data-theme="frutiger-aero"] .acct-btn,
 [data-theme="tumblr-fashion"] .acct-btn,
+[data-theme="party-rock-2010"] .acct-btn,
 [data-theme="ios-light"] .acct-btn,
 [data-theme="ios-dark"] .acct-btn,
 [data-theme="frutiger-metro"] .acct-btn,
@@ -3997,12 +4052,14 @@ footer .copy {
 }
 [data-theme="frutiger-aero"] .feature-banner,
 [data-theme="tumblr-fashion"] .feature-banner,
+[data-theme="party-rock-2010"] .feature-banner,
 [data-theme="ios-light"] .feature-banner,
 [data-theme="ios-dark"] .feature-banner,
 [data-theme="frutiger-metro"] .feature-banner,
 [data-theme="discord-dark"] .feature-banner,
 [data-theme="frutiger-aero"] .banner-slot,
 [data-theme="tumblr-fashion"] .banner-slot,
+[data-theme="party-rock-2010"] .banner-slot,
 [data-theme="ios-light"] .banner-slot,
 [data-theme="ios-dark"] .banner-slot,
 [data-theme="frutiger-metro"] .banner-slot,
@@ -4011,6 +4068,7 @@ footer .copy {
 }
 [data-theme="frutiger-aero"] .content-grid,
 [data-theme="tumblr-fashion"] .content-grid,
+[data-theme="party-rock-2010"] .content-grid,
 [data-theme="ios-light"] .content-grid,
 [data-theme="ios-dark"] .content-grid,
 [data-theme="frutiger-metro"] .content-grid,
@@ -4019,6 +4077,7 @@ footer .copy {
 }
 [data-theme="frutiger-aero"] .panel-body,
 [data-theme="tumblr-fashion"] .panel-body,
+[data-theme="party-rock-2010"] .panel-body,
 [data-theme="ios-light"] .panel-body,
 [data-theme="ios-dark"] .panel-body,
 [data-theme="frutiger-metro"] .panel-body,

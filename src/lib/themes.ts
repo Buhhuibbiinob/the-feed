@@ -41,6 +41,12 @@ export const THEMES: Theme[] = [
     category: "era-2010-2016",
   },
   {
+    id: "party-rock-2010",
+    label: "Party Rock",
+    description: "Neon pink/green/yellow glow on black - 2010s club-flyer energy.",
+    category: "era-2010-2016",
+  },
+  {
     id: "ios-light",
     label: "iOS Light",
     description: "Glossy iPhone-5-era skeuomorphic chrome, soft blue accents.",
