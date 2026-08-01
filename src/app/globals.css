@@ -4513,20 +4513,6 @@ footer .copy {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.4),
     0 0 0 1px var(--chrome-low, #8d8d92);
 }
-[data-theme="ios-light"] .panel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-  background-repeat: no-repeat;
-  background-size: 8px 8px;
-  background-position: 7px 7px, calc(100% - 7px) 7px, 7px calc(100% - 7px), calc(100% - 7px) calc(100% - 7px);
-  background-image: radial-gradient(circle at 35% 30%, #fff 0%, #9a9a9e 45%, #5c5c60 62%, transparent 72%),
-    radial-gradient(circle at 35% 30%, #fff 0%, #9a9a9e 45%, #5c5c60 62%, transparent 72%),
-    radial-gradient(circle at 35% 30%, #fff 0%, #9a9a9e 45%, #5c5c60 62%, transparent 72%),
-    radial-gradient(circle at 35% 30%, #fff 0%, #9a9a9e 45%, #5c5c60 62%, transparent 72%);
-}
 /* panel-head-bg is a near-black gradient in this theme, but neither
    .panel-head nor .panel-head-tab (nor their .tab-the/.tab-main/.see-all
    children) ever set an explicit text color - they were inheriting the
@@ -4535,6 +4521,30 @@ footer .copy {
 [data-theme="ios-light"] .panel-head-tab {
   color: #ffffff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+/* Dropped the floating pill-tab look for this theme - it's back to a
+   normal flush header bar like every other panel on the site. */
+[data-theme="ios-light"] .panel-head.tabbed {
+  background: var(--panel-head-bg);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 -4px 6px rgba(0, 0, 0, 0.08) inset;
+  border-bottom: 1px solid var(--panel-head-border);
+  padding: 8px 14px;
+  align-items: center;
+  overflow: hidden;
+}
+[data-theme="ios-light"] .panel-head.tabbed .panel-head-tab {
+  position: static;
+  top: 0;
+  display: flex;
+  flex: 1;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+[data-theme="ios-light"] .panel-head.tabbed .panel-head-tab::before {
+  content: none;
 }
 [data-theme="frutiger-aero"] .feature-banner,
 [data-theme="tumblr-fashion"] .feature-banner,
