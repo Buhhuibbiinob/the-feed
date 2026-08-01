@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { coverGradient } from "@/lib/cover";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
+import { guardBuiltinPage } from "@/lib/pages";
 
 type PostRow = {
   id: string;
@@ -22,6 +23,7 @@ export const metadata = { title: "Wrapped - Feedback" };
 
 export default async function WrappedPage() {
   const supabase = await createClient();
+  await guardBuiltinPage(supabase, "wrapped");
   const {
     data: { user },
   } = await supabase.auth.getUser();

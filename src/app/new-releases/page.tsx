@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { coverGradient } from "@/lib/cover";
 import { getTrendingTracks } from "@/lib/lastfm";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
+import { guardBuiltinPage } from "@/lib/pages";
 
 type PostRow = {
   id: string;
@@ -23,6 +24,7 @@ export const metadata = { title: "New Releases - Feedback" };
 
 export default async function NewReleasesPage() {
   const supabase = await createClient();
+  await guardBuiltinPage(supabase, "new-releases");
   const [tracks, movies, { data: posts }] = await Promise.all([
     getTrendingTracks(20),
     getUpcomingMoviesAndTv(20),

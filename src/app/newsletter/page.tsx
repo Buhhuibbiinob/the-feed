@@ -2,11 +2,13 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedIssues } from "@/lib/newsletter";
 import { NewsletterSubscribeForm } from "@/components/NewsletterSubscribeForm";
+import { guardBuiltinPage } from "@/lib/pages";
 
 export const metadata = { title: "Newsletter - Feedback" };
 
 export default async function NewsletterArchivePage() {
   const supabase = await createClient();
+  await guardBuiltinPage(supabase, "newsletter");
   const issues = await getPublishedIssues(supabase);
 
   return (

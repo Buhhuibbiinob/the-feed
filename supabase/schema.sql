@@ -954,3 +954,42 @@ drop policy if exists "Admins can delete newsletter issues" on public.newsletter
 create policy "Admins can delete newsletter issues"
   on public.newsletter_issues for delete
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- site pages (admin can archive built-in pages, or add custom ones) ----------
+create table if not exists public.site_pages (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  label text not null,
+  kind text not null default 'custom' check (kind in ('builtin', 'custom')),
+  path text not null,
+  content text,
+  archived boolean not null default false,
+  created_by uuid references public.profiles (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.site_pages enable row level security;
+
+drop policy if exists "Non-archived pages are viewable by everyone" on public.site_pages;
+create policy "Non-archived pages are viewable by everyone"
+  on public.site_pages for select
+  using (
+    not archived
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+drop policy if exists "Admins can create site pages" on public.site_pages;
+create policy "Admins can create site pages"
+  on public.site_pages for insert
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can update site pages" on public.site_pages;
+create policy "Admins can update site pages"
+  on public.site_pages for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete site pages" on public.site_pages;
+create policy "Admins can delete site pages"
+  on public.site_pages for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));

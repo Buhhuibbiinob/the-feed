@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/admin";
 import { ArtistPostForm } from "@/components/ArtistPostForm";
 import { ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatforms";
 import { getAllSiteText } from "@/lib/siteContent";
+import { guardBuiltinPage } from "@/lib/pages";
 
 type ArtistPostRow = {
   id: string;
@@ -19,6 +20,7 @@ export const metadata = { title: "Underground Creators - Feedback" };
 
 export default async function ArtistsPage() {
   const supabase = await createClient();
+  await guardBuiltinPage(supabase, "artists");
   const {
     data: { user },
   } = await supabase.auth.getUser();

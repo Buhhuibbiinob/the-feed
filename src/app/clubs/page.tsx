@@ -4,6 +4,7 @@ import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 import { isAdmin } from "@/lib/admin";
 import { getAllSiteText } from "@/lib/siteContent";
 import { CreateClubForm } from "@/components/CreateClubForm";
+import { guardBuiltinPage } from "@/lib/pages";
 
 type ClubRow = {
   id: string;
@@ -20,6 +21,7 @@ export const metadata = { title: "Fan Clubs - Feedback" };
 
 export default async function ClubsPage() {
   const supabase = await createClient();
+  await guardBuiltinPage(supabase, "clubs");
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -8,6 +8,7 @@ import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { isAdmin } from "@/lib/admin";
 import { getNotificationCount } from "@/lib/notifications";
 import { getUnreadDmCount } from "@/lib/messages";
+import { getArchivedBuiltinSlugs, getActiveCustomPages } from "@/lib/pages";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const title = "Feedback";
@@ -84,6 +85,11 @@ export default async function RootLayout({
     unreadDmCount = await getUnreadDmCount(supabase, user.id);
   }
 
+  const [archivedSlugs, customPages] = await Promise.all([
+    getArchivedBuiltinSlugs(supabase),
+    getActiveCustomPages(supabase),
+  ]);
+
   const htmlStyle =
     theme === "custom" && customBackgroundUrl
       ? ({ "--body-bg": `url(${customBackgroundUrl}) center / cover fixed no-repeat` } as React.CSSProperties)
@@ -97,6 +103,8 @@ export default async function RootLayout({
           isAdmin={admin}
           notificationCount={notificationCount}
           unreadDmCount={unreadDmCount}
+          hiddenSlugs={[...archivedSlugs]}
+          customPages={customPages.map((p) => ({ href: p.path, label: p.label }))}
         />
         <div className="wrap">{children}</div>
         <SiteFooter />

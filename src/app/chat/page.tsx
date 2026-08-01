@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ChatRoom, type ChatMessage } from "@/components/ChatRoom";
 import { isAdmin } from "@/lib/admin";
 import { getAllSiteText } from "@/lib/siteContent";
+import { guardBuiltinPage } from "@/lib/pages";
 
 type ChatMessageRow = {
   id: string;
@@ -13,6 +14,7 @@ type ChatMessageRow = {
 
 export default async function ChatPage() {
   const supabase = await createClient();
+  await guardBuiltinPage(supabase, "chat");
   const {
     data: { user },
   } = await supabase.auth.getUser();

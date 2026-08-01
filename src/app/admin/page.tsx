@@ -168,9 +168,12 @@ export default async function AdminPage() {
       </div>
 
       <div className="panel">
-        <div className="panel-body">
+        <div className="panel-body form-actions">
           <Link href="/admin/newsletter" className="btn">
             Manage Weekly Newsletter
+          </Link>
+          <Link href="/admin/pages" className="btn btn-ghost">
+            Manage Pages
           </Link>
         </div>
       </div>

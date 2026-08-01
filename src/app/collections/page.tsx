@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createCollection } from "@/app/actions/collections";
 import { getAllSiteText } from "@/lib/siteContent";
+import { guardBuiltinPage } from "@/lib/pages";
 
 type CollectionRow = {
   id: string;
@@ -16,6 +17,7 @@ export const metadata = { title: "Collections - Feedback" };
 
 export default async function CollectionsPage() {
   const supabase = await createClient();
+  await guardBuiltinPage(supabase, "collections");
   const {
     data: { user },
   } = await supabase.auth.getUser();

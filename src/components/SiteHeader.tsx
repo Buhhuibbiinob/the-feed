@@ -7,13 +7,13 @@ import { signOut } from "@/app/actions/auth";
 import { NotificationBell } from "@/components/NotificationBell";
 
 const MORE_LINKS = [
-  { href: "/new-releases", label: "New Releases" },
-  { href: "/recs", label: "Recs" },
-  { href: "/clubs", label: "Clubs" },
-  { href: "/artists", label: "Creators" },
-  { href: "/collections", label: "Collections" },
-  { href: "/wrapped", label: "Wrapped" },
-  { href: "/newsletter", label: "Newsletter" },
+  { href: "/new-releases", label: "New Releases", slug: "new-releases" },
+  { href: "/recs", label: "Recs", slug: "recs" },
+  { href: "/clubs", label: "Clubs", slug: "clubs" },
+  { href: "/artists", label: "Creators", slug: "artists" },
+  { href: "/collections", label: "Collections", slug: "collections" },
+  { href: "/wrapped", label: "Wrapped", slug: "wrapped" },
+  { href: "/newsletter", label: "Newsletter", slug: "newsletter" },
 ];
 
 export function SiteHeader({
@@ -21,17 +21,29 @@ export function SiteHeader({
   isAdmin = false,
   notificationCount = 0,
   unreadDmCount = 0,
+  hiddenSlugs = [],
+  customPages = [],
 }: {
   username: string | null;
   isAdmin?: boolean;
   notificationCount?: number;
   unreadDmCount?: number;
+  hiddenSlugs?: string[];
+  customPages?: { href: string; label: string }[];
 }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
-  const isMoreActive = MORE_LINKS.some(
+  const hidden = new Set(hiddenSlugs);
+  const showChat = !hidden.has("chat");
+  const showLeaderboard = !hidden.has("leaderboard");
+  const visibleMoreLinks = [
+    ...MORE_LINKS.filter((link) => !hidden.has(link.slug)),
+    ...customPages,
+  ];
+
+  const isMoreActive = visibleMoreLinks.some(
     (link) => pathname === link.href || pathname.startsWith(`${link.href}/`)
   );
 
@@ -59,12 +71,16 @@ export function SiteHeader({
       <Link href="/" className={pathname === "/" ? "active" : ""}>
         Feed
       </Link>
-      <Link href="/chat" className={pathname === "/chat" ? "active" : ""}>
-        Chat
-      </Link>
-      <Link href="/leaderboard" className={pathname === "/leaderboard" ? "active" : ""}>
-        Leaderboard
-      </Link>
+      {showChat && (
+        <Link href="/chat" className={pathname === "/chat" ? "active" : ""}>
+          Chat
+        </Link>
+      )}
+      {showLeaderboard && (
+        <Link href="/leaderboard" className={pathname === "/leaderboard" ? "active" : ""}>
+          Leaderboard
+        </Link>
+      )}
       <div className="nav-more" ref={moreRef}>
         <button
           type="button"
@@ -77,7 +93,7 @@ export function SiteHeader({
         </button>
         {moreOpen && (
           <div className="nav-more-menu">
-            {MORE_LINKS.map((link) => (
+            {visibleMoreLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { highestBadge } from "@/lib/badges";
+import { guardBuiltinPage } from "@/lib/pages";
 
 type ProfileRow = {
   id: string;
@@ -10,6 +11,7 @@ type ProfileRow = {
 
 export default async function LeaderboardPage() {
   const supabase = await createClient();
+  await guardBuiltinPage(supabase, "leaderboard");
 
   const [{ data: profiles }, { data: posts }] = await Promise.all([
     supabase.from("profiles").select("id, username, avatar_url").returns<ProfileRow[]>(),

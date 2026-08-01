@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { OrbyBot, type OrbyCandidate } from "@/components/OrbyBot";
 import type { MediaType } from "@/lib/media";
+import { guardBuiltinPage } from "@/lib/pages";
 
 type PostRow = {
   id: string;
@@ -40,6 +41,7 @@ function toCardData(post: PostRow): PostCardData {
 
 export default async function RecsPage() {
   const supabase = await createClient();
+  await guardBuiltinPage(supabase, "recs");
   const {
     data: { user },
   } = await supabase.auth.getUser();
