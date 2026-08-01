@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { updatePost, deletePost, type PostFormState } from "@/app/actions/posts";
 import { LikeButton } from "@/components/LikeButton";
 import { AddToCollectionButton } from "@/components/AddToCollectionButton";
 import { ShareButton } from "@/components/ShareButton";
 import { PreviewPlayer } from "@/components/PreviewPlayer";
 import { SpoilerText } from "@/components/SpoilerText";
+import { AlertModal } from "@/components/AlertModal";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 
 export type PostCardData = {
@@ -97,6 +98,8 @@ export function PostCard({
   previewId?: string;
 }) {
   const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const deleteFormRef = useRef<HTMLFormElement>(null);
   const isOwner = currentUserId === post.userId;
 
   if (editing) {
@@ -149,9 +152,9 @@ export function PostCard({
                   Edit
                 </button>
                 <span className="sep">|</span>
-                <form action={deletePost} className="inline-form">
+                <form action={deletePost} className="inline-form" ref={deleteFormRef}>
                   <input type="hidden" name="post_id" value={post.id} />
-                  <button type="submit" className="danger">
+                  <button type="button" className="danger" onClick={() => setConfirmingDelete(true)}>
                     Delete
                   </button>
                 </form>
@@ -161,6 +164,18 @@ export function PostCard({
         </div>
         {post.rating && <div className="track-stars">{stars(post.rating)}</div>}
       </div>
+      {confirmingDelete && (
+        <AlertModal
+          title="Delete Review"
+          message={`Delete "${post.title}"? This can't be undone.`}
+          confirmLabel="Delete"
+          onCancel={() => setConfirmingDelete(false)}
+          onConfirm={() => {
+            setConfirmingDelete(false);
+            deleteFormRef.current?.requestSubmit();
+          }}
+        />
+      )}
       <div className="post-card-body">
         <span className={`badge ${post.mediaType}`}>{MEDIA_LABELS[post.mediaType]}</span>
         {(post.spotifyTrackId || post.youtubeVideoId) && (

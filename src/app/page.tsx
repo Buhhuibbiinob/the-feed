@@ -340,32 +340,6 @@ export default async function FeedPage({
         <div className="tagline">{siteText.feed_tagline}</div>
       </div>
 
-      <div className="panel hot-pages-panel">
-        <div className="panel-head tabbed">
-          <span className="panel-head-tab">
-            <span className="tab-the">the</span>
-            <span className="tab-main">Most Active</span>
-          </span>
-        </div>
-        {topReviewers.length === 0 ? (
-          <div className="side-list">
-            <div className="empty-state">No reviews yet.</div>
-          </div>
-        ) : (
-          <div className="hot-pages-strip">
-            {topReviewers.map(([name, { count, avatarUrl }]) => (
-              <div className="hot-pages-item" key={name}>
-                <div className="hot-pages-photo-wrap">
-                  <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
-                  <span className="hot-pages-badge">{count}</span>
-                </div>
-                <span className="hot-pages-name">{name}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       <div className="theslap-top-grid">
         <div className="right-now-widget">
           <div className="right-now-tab">ADVERTISEMENT</div>
@@ -573,6 +547,32 @@ export default async function FeedPage({
                 </>
               )}
             </div>
+          </div>
+
+          <div className="panel hot-pages-panel">
+            <div className="panel-head tabbed">
+              <span className="panel-head-tab">
+                <span className="tab-the">the</span>
+                <span className="tab-main">Most Active</span>
+              </span>
+            </div>
+            {topReviewers.length === 0 ? (
+              <div className="side-list">
+                <div className="empty-state">No reviews yet.</div>
+              </div>
+            ) : (
+              <div className="hot-pages-strip">
+                {topReviewers.map(([name, { count, avatarUrl }]) => (
+                  <div className="hot-pages-item" key={name}>
+                    <div className="hot-pages-photo-wrap">
+                      <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
+                      <span className="hot-pages-badge">{count}</span>
+                    </div>
+                    <span className="hot-pages-name">{name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="panel">

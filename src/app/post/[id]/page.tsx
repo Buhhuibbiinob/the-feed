@@ -151,6 +151,7 @@ export default async function PostPage({
 
       {(post.spotify_track_id || post.youtube_video_id) && (
         <NowPlayingHero
+          postId={post.id}
           coverUrl={post.cover_url}
           title={post.title}
           artist={post.artist}

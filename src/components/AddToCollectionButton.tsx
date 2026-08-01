@@ -39,8 +39,16 @@ export function AddToCollectionButton({ postId }: { postId: string }) {
 
   return (
     <div className="add-to-collection">
-      <button type="button" className="comment-action" onClick={toggleOpen}>
-        Save to collection
+      <button
+        type="button"
+        className="circle-icon-btn green small"
+        onClick={toggleOpen}
+        aria-label="Save to collection"
+        title="Save to collection"
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" />
+        </svg>
       </button>
       {open && (
         <div className="track-results">

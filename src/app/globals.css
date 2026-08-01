@@ -803,6 +803,25 @@ a:hover {
   gap: 32px 20px;
   padding: 16px 8px;
 }
+@media (min-width: 761px) {
+  /* The shelf sits in a narrow sidebar/3-col panel rather than a
+     full-width page, so a smaller minimum column lets 3+ covers fit
+     side by side (matching the iTunes grid reference's density)
+     instead of collapsing to 2 just because the panel itself is
+     narrower than the viewport. */
+  .sk-shelf-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 24px 14px;
+  }
+  .sk-stack,
+  .sk-card {
+    width: 100px;
+    height: 100px;
+  }
+  .sk-card.poster {
+    height: 140px;
+  }
+}
 .sk-shelf-item {
   text-align: center;
   cursor: pointer;
@@ -1484,13 +1503,164 @@ a:hover {
   text-decoration: underline;
 }
 .track-actions button.danger {
-  color: #c0182f;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 1px solid #7a0f1c;
+  background: linear-gradient(180deg, #ff6b6b 0%, #e0392f 46%, #b3211d 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+.track-actions button.danger:hover {
+  text-decoration: none;
 }
 .track-actions .sep {
   color: #999;
 }
 .track-actions .like-btn {
   color: inherit;
+}
+
+/* ---- Small circular chrome icon buttons, matching the iOS UI-kit
+   reference's blue/green/red circular action icons. Used for Share and
+   Save-to-collection in the review-row actions, and repeat/shuffle/share
+   on the Now Playing transport. ---- */
+.circle-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #fff !important;
+  padding: 0 !important;
+}
+.circle-icon-btn svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.4));
+}
+.circle-icon-btn:hover {
+  text-decoration: none !important;
+  filter: brightness(1.08);
+}
+.circle-icon-btn:active {
+  filter: brightness(0.92);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.circle-icon-btn.blue {
+  background: radial-gradient(circle at 32% 26%, #6bb8ff, #2f7fdb 60%, #1a5fc0);
+}
+.circle-icon-btn.green {
+  background: radial-gradient(circle at 32% 26%, #8fe08a, #3a9a2f 60%, #1f6b18);
+}
+.circle-icon-btn.red {
+  background: radial-gradient(circle at 32% 26%, #ff8a8a, #d63a2f 60%, #a3231a);
+}
+.circle-icon-btn.neutral {
+  background: radial-gradient(circle at 32% 26%, #ffffff 0%, #eaeaec 25%, #c7c7cc 55%, #97979c 78%, #6f6f74 100%);
+  color: #3a3a3d !important;
+}
+.circle-icon-btn.neutral svg {
+  filter: none;
+}
+.circle-icon-btn.small {
+  width: 20px;
+  height: 20px;
+}
+.circle-icon-btn.small svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* ---- iOS-style Alert confirmation dialog ---- */
+.alert-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.alert-modal {
+  width: 100%;
+  max-width: 270px;
+  background: linear-gradient(180deg, #fbfbfd, #e9e9ec);
+  border: 1px solid #8d8d92;
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  overflow: hidden;
+  text-align: center;
+}
+.alert-modal-title {
+  padding: 18px 16px 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+.alert-modal-message {
+  padding: 0 16px 16px;
+  font-size: 12.5px;
+  color: #4a4a4d;
+  line-height: 1.4;
+}
+.alert-modal-actions {
+  display: flex;
+  border-top: 1px solid #a8a8ac;
+}
+.alert-modal-actions button {
+  flex: 1;
+  padding: 11px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--link-blue, #2f6fce);
+}
+.alert-modal-actions button + button {
+  border-left: 1px solid #a8a8ac;
+}
+.alert-modal-actions button.destructive {
+  color: #d6392f;
+  font-weight: 700;
+}
+.alert-modal-actions button:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ---- Native <select> dropdowns, gel-chrome to match the rest of the
+   form chrome instead of the bare browser default. ---- */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(180deg, #ffffff 0%, #eef0f2 46%, #d6d9dc 50%, #c2c5c8 100%),
+    linear-gradient(45deg, transparent 50%, #5a5a5d 50%), linear-gradient(135deg, #5a5a5d 50%, transparent 50%);
+  background-position: 0 0, calc(100% - 16px) center, calc(100% - 11px) center;
+  background-size: 100% 100%, 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  border: 1px solid #8d8d92;
+  border-radius: 6px;
+  padding: 6px 26px 6px 9px;
+  font: inherit;
+  color: #222;
+  cursor: pointer;
+}
+select:focus {
+  outline: 2px solid var(--link-blue, #2f6fce);
+  outline-offset: 1px;
 }
 .track-stars {
   font-size: 12px;
@@ -1633,6 +1803,16 @@ a:hover {
   border: 1px solid #888;
   transform: translate(-50%, -50%);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.sk-np-share-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+.circle-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: grayscale(0.3);
 }
 .t-btn {
   width: 48px;
@@ -5000,17 +5180,20 @@ footer .copy {
 }
 
 /* ---- Ported from ios-app-shell.css: iPhone-5-era app shell layout ----
-   Mobile-only (<=760px). Desktop users on the default theme keep the
-   regular full-width top nav - a fixed 480px column with a bottom tab
-   bar makes no sense on a wide screen. Other 28 themes are untouched
-   at every width. */
+   Mobile-only (<=760px). Applies to ALL themes so every theme gets the
+   same app-shell structure (bottom tab bar, top status bar, 480px
+   column); each theme keeps its own colors via the existing --nav-*
+   variables every theme already defines for the old top nav. ios-light
+   additionally hardcodes its own exempted dark-steel-topbar/light-tabbar
+   look below, which - being a more specific [data-theme="ios-light"]
+   selector - wins over this shared base for that theme only. */
 .sk-ios-topbar,
 .sk-ios-tabbar,
 .sk-more-sheet-backdrop {
   display: none;
 }
 @media (max-width: 760px) {
-  [data-theme="ios-light"] .sk-app-shell {
+  .sk-app-shell {
     max-width: 480px;
     margin: 0 auto;
     min-height: 100vh;
@@ -5019,32 +5202,29 @@ footer .copy {
     flex-direction: column;
     position: relative;
   }
-  [data-theme="ios-light"] .sk-app-content {
+  .sk-app-content {
     flex: 1;
     padding-bottom: 74px;
   }
-  [data-theme="ios-light"] .apple-nav {
+  .apple-nav {
     display: none;
   }
-  /* Top status/nav bar is always dark brushed steel, in both light and
-     dark mode - matches the iPod/YouTube-app top chrome reference
-     exactly and is explicitly exempt from the "no dark fill" rule. */
-  [data-theme="ios-light"] .sk-ios-topbar {
+  .sk-ios-topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 11px 12px;
-    background-color: #5c6773;
-    background-image: linear-gradient(180deg, #8a95a0 0%, #5c6773 50%, #465059 100%);
-    border-bottom: 1px solid #333;
+    background: var(--nav-bg);
+    color: var(--nav-text);
+    border-bottom: 1px solid var(--nav-border);
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 3px 8px rgba(0, 0, 0, 0.3);
     position: relative;
   }
-  [data-theme="ios-light"] .sk-ios-back {
+  .sk-ios-back {
     display: flex;
     align-items: center;
     gap: 2px;
-    color: #fff;
+    color: var(--nav-text);
     font-size: 14px;
     font-weight: 600;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
@@ -5053,29 +5233,29 @@ footer .copy {
     border: none;
     padding: 0;
   }
-  [data-theme="ios-light"] .sk-ios-back::before {
+  .sk-ios-back::before {
     content: "";
     width: 8px;
     height: 8px;
-    border-left: 2px solid #fff;
-    border-bottom: 2px solid #fff;
+    border-left: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
     transform: rotate(45deg);
     margin-right: 3px;
   }
-  [data-theme="ios-light"] .sk-ios-title {
+  .sk-ios-title {
     position: absolute;
     left: 0;
     right: 0;
     text-align: center;
-    color: #fff;
+    color: var(--nav-text);
     font-size: 16px;
     font-weight: 700;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
     pointer-events: none;
   }
-  [data-theme="ios-light"] .sk-ios-action {
+  .sk-ios-action {
     position: relative;
-    color: #fff;
+    color: var(--nav-text);
     font-size: 13px;
     font-weight: 600;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
@@ -5084,10 +5264,7 @@ footer .copy {
     cursor: pointer;
     margin-left: auto;
   }
-  /* Bottom tab bar is ALWAYS light gray/white with a blue active state,
-     never a dark/black fill - hard rule, matches the iPod/iTunes/Jessie J
-     reference bottom bars exactly. */
-  [data-theme="ios-light"] .sk-ios-tabbar {
+  .sk-ios-tabbar {
     display: flex;
     position: fixed;
     left: 0;
@@ -5095,13 +5272,12 @@ footer .copy {
     bottom: 0;
     max-width: 480px;
     margin: 0 auto;
-    background-color: #eeeeee;
-    background-image: linear-gradient(180deg, #f7f7f7, #e2e2e4);
-    border-top: 1px solid #b5b5ba;
+    background: var(--nav-bg);
+    border-top: 1px solid var(--nav-border);
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
     z-index: 30;
   }
-  [data-theme="ios-light"] .sk-ios-tab {
+  .sk-ios-tab {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -5109,24 +5285,103 @@ footer .copy {
     gap: 2px;
     padding: 8px 0 6px;
     cursor: pointer;
-    color: #7a7a80;
+    color: var(--subnav-text, var(--nav-text));
     text-decoration: none;
     background: none;
     border: none;
     font-family: inherit;
   }
-  [data-theme="ios-light"] .sk-ios-tab-icon {
+  .sk-ios-tab-icon {
     width: 22px;
     height: 22px;
     opacity: 0.65;
   }
-  [data-theme="ios-light"] .sk-ios-tab-icon svg {
+  .sk-ios-tab-icon svg {
     width: 100%;
     height: 100%;
   }
-  [data-theme="ios-light"] .sk-ios-tab-label {
+  .sk-ios-tab-label {
     font-size: 10px;
     font-weight: 600;
+  }
+  .sk-ios-tab.active {
+    color: var(--nav-active-text, var(--link-blue, #2f6fce));
+  }
+  .sk-ios-tab.active .sk-ios-tab-icon {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
+  }
+  .sk-more-sheet-backdrop {
+    display: flex;
+    align-items: flex-end;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.4);
+  }
+  .sk-more-sheet {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--panel-body-bg, #f4f4f4);
+    border-radius: 14px 14px 0 0;
+    padding: 10px 0 20px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  }
+  .sk-more-sheet a,
+  .sk-more-sheet button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text, #1a1a1a);
+    background: none;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .sk-more-sheet-search {
+    padding: 6px 16px 10px;
+  }
+  .sk-more-sheet-toggle-row {
+    padding: 4px 20px 8px;
+  }
+  .sk-more-sheet-toggle-row .light-dark-toggle {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .sk-more-sheet-divider {
+    height: 1px;
+    background: var(--divider, #d0d0d0);
+    margin: 6px 16px;
+  }
+  /* ios-light exemption: top bar is always dark brushed steel and the
+     bottom tab bar is always light gray/white with a blue active state,
+     regardless of light/dark mode - hard rule from STYLE_GUIDE.md. These
+     out-specify the shared var-driven base above for this theme only. */
+  [data-theme="ios-light"] .sk-ios-topbar {
+    background-color: #5c6773;
+    background-image: linear-gradient(180deg, #8a95a0 0%, #5c6773 50%, #465059 100%);
+    color: #fff;
+    border-bottom-color: #333;
+  }
+  [data-theme="ios-light"] .sk-ios-back,
+  [data-theme="ios-light"] .sk-ios-title,
+  [data-theme="ios-light"] .sk-ios-action {
+    color: #fff;
+  }
+  [data-theme="ios-light"] .sk-ios-tabbar {
+    background-color: #eeeeee;
+    background-image: linear-gradient(180deg, #f7f7f7, #e2e2e4);
+    border-top: 1px solid #b5b5ba;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+  }
+  [data-theme="ios-light"] .sk-ios-tab {
+    color: #7a7a80;
   }
   [data-theme="ios-light"] .sk-ios-tab.active {
     color: var(--link-blue, #2f6fce);
@@ -5135,53 +5390,16 @@ footer .copy {
     opacity: 1;
     filter: drop-shadow(0 0 3px rgba(47, 111, 206, 0.5));
   }
-  [data-theme="ios-light"] .sk-more-sheet-backdrop {
-    display: flex;
-    align-items: flex-end;
-    position: fixed;
-    inset: 0;
-    z-index: 40;
-    background: rgba(0, 0, 0, 0.4);
-  }
   [data-theme="ios-light"] .sk-more-sheet {
-    width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    max-height: 70vh;
-    overflow-y: auto;
     background-color: #f4f4f4;
-    border-radius: 14px 14px 0 0;
-    padding: 10px 0 20px;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
   }
   [data-theme="ios-light"] .sk-more-sheet a,
   [data-theme="ios-light"] .sk-more-sheet button {
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 600;
     color: #1a1a1a;
-    background: none;
-    border: none;
-    font-family: inherit;
-    cursor: pointer;
-  }
-  [data-theme="ios-light"] .sk-more-sheet-search {
-    padding: 6px 16px 10px;
-  }
-  [data-theme="ios-light"] .sk-more-sheet-toggle-row {
-    padding: 4px 20px 8px;
-  }
-  [data-theme="ios-light"] .sk-more-sheet-toggle-row .light-dark-toggle {
-    font-size: 13px;
-    font-weight: 600;
   }
   [data-theme="ios-light"] .sk-more-sheet-divider {
-    height: 1px;
     background: #d0d0d0;
-    margin: 6px 16px;
   }
   [data-theme="ios-light"][data-mode="dark"] .sk-ios-tab {
     color: #8a8a8e;
