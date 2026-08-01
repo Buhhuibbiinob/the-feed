@@ -4520,12 +4520,12 @@ footer .copy {
   z-index: 5;
   pointer-events: none;
   background-repeat: no-repeat;
-  background-size: 9px 9px;
-  background-position: 8px 8px, calc(100% - 8px) 8px, 8px calc(100% - 8px), calc(100% - 8px) calc(100% - 8px);
-  background-image: radial-gradient(circle at 35% 30%, #fff, #9a9a9e 55%, #5c5c60),
-    radial-gradient(circle at 35% 30%, #fff, #9a9a9e 55%, #5c5c60),
-    radial-gradient(circle at 35% 30%, #fff, #9a9a9e 55%, #5c5c60),
-    radial-gradient(circle at 35% 30%, #fff, #9a9a9e 55%, #5c5c60);
+  background-size: 8px 8px;
+  background-position: 7px 7px, calc(100% - 7px) 7px, 7px calc(100% - 7px), calc(100% - 7px) calc(100% - 7px);
+  background-image: radial-gradient(circle at 35% 30%, #fff 0%, #9a9a9e 45%, #5c5c60 62%, transparent 72%),
+    radial-gradient(circle at 35% 30%, #fff 0%, #9a9a9e 45%, #5c5c60 62%, transparent 72%),
+    radial-gradient(circle at 35% 30%, #fff 0%, #9a9a9e 45%, #5c5c60 62%, transparent 72%),
+    radial-gradient(circle at 35% 30%, #fff 0%, #9a9a9e 45%, #5c5c60 62%, transparent 72%);
 }
 [data-theme="frutiger-aero"] .feature-banner,
 [data-theme="tumblr-fashion"] .feature-banner,
