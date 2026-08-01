@@ -168,6 +168,14 @@ export default async function AdminPage() {
       </div>
 
       <div className="panel">
+        <div className="panel-body">
+          <Link href="/admin/newsletter" className="btn">
+            Manage Weekly Newsletter
+          </Link>
+        </div>
+      </div>
+
+      <div className="panel">
         <div className="panel-head">Reported Messages</div>
         <div className="panel-body flush">
           {reports.length === 0 ? (

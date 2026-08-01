@@ -281,6 +281,7 @@ export default async function FeedPage({
         { label: "New Releases", href: "/new-releases" },
         { label: "Recs", href: "/recs" },
         { label: "Wrapped", href: "/wrapped" },
+        { label: "Newsletter", href: "/newsletter" },
         { label: "Live Chat", href: "/chat" },
       ],
     },

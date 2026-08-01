@@ -10,6 +10,7 @@ export function SiteFooter() {
         <Link href="/new-releases">New Releases</Link>
         <Link href="/recs">Recs</Link>
         <Link href="/wrapped">Wrapped</Link>
+        <Link href="/newsletter">Newsletter</Link>
         <Link href="/privacy">Privacy Policy</Link>
         <Link href="/terms">Terms of Service</Link>
       </div>

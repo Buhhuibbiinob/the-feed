@@ -13,6 +13,7 @@ const MORE_LINKS = [
   { href: "/artists", label: "Creators" },
   { href: "/collections", label: "Collections" },
   { href: "/wrapped", label: "Wrapped" },
+  { href: "/newsletter", label: "Newsletter" },
 ];
 
 export function SiteHeader({
