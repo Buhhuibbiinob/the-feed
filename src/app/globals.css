@@ -503,10 +503,7 @@ a:hover {
   letter-spacing: 0.5px;
 }
 .feedtv-body {
-  display: flex;
-  justify-content: center;
-  padding: 20px 14px 14px;
-  background: var(--subnav-bg);
+  padding: 14px;
 }
 /* Old-YouTube-mobile-app player chrome, ported from
    skeuomorphic-components.html's .yt-shell/.yt-topbar/.yt-rate-row/
@@ -515,7 +512,6 @@ a:hover {
 .yt-shell {
   position: relative;
   width: 100%;
-  max-width: 480px;
   background: linear-gradient(180deg, #f6f6f6, #dedee0);
   border: 1px solid #8f8f94;
   border-radius: 8px;
