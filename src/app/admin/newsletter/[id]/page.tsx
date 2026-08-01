@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { getIssueById } from "@/lib/newsletter";
 import { NewsletterEditForm } from "@/components/NewsletterEditForm";
+import { NewsletterSendButton } from "@/components/NewsletterSendButton";
 import { publishNewsletterIssue, unpublishNewsletterIssue, deleteNewsletterIssue } from "@/app/actions/newsletter";
 
 export const metadata = { title: "Edit Issue - Feedback" };
@@ -26,6 +27,10 @@ export default async function AdminNewsletterEditPage({
   const issue = await getIssueById(supabase, id);
   if (!issue) notFound();
 
+  const { count: subscriberCount } = await supabase
+    .from("waitlist_signups")
+    .select("id", { count: "exact", head: true });
+
   return (
     <>
       <div className="page-header">
@@ -45,9 +50,8 @@ export default async function AdminNewsletterEditPage({
         <div className="panel-head">Publish</div>
         <div className="panel-body">
           <p>
-            Subscribers signed up through the sign-up page and the public newsletter page. Sending the
-            actual email still needs an email provider wired up - publishing here makes the issue visible
-            on the public <Link href="/newsletter">/newsletter</Link> archive.
+            Publishing makes the issue visible on the public <Link href="/newsletter">/newsletter</Link>{" "}
+            archive.
           </p>
           <div className="form-actions">
             {issue.status === "published" ? (
@@ -72,6 +76,18 @@ export default async function AdminNewsletterEditPage({
               </button>
             </form>
           </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Send Email</div>
+        <div className="panel-body">
+          <p>
+            Emails everyone who subscribed through the sign-up page or the public newsletter page.
+            Requires a <code>RESEND_API_KEY</code> environment variable - without it, sending will show an
+            error explaining what to add.
+          </p>
+          <NewsletterSendButton issueId={issue.id} subscriberCount={subscriberCount ?? 0} />
         </div>
       </div>
     </>

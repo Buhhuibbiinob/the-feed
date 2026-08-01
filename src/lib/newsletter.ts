@@ -88,3 +88,28 @@ export async function getIssueById(supabase: SupabaseClient, id: string): Promis
   const { data } = await supabase.from("newsletter_issues").select(ISSUE_COLUMNS).eq("id", id).maybeSingle();
   return (data as NewsletterIssue | null) ?? null;
 }
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+export function renderIssueHtml(issue: NewsletterIssue, siteUrl: string): string {
+  const sections = NEWSLETTER_SECTIONS.filter((s) => issue[s.key]);
+  const body = sections
+    .map(
+      (s) =>
+        `<h2 style="font-size:15px;margin:24px 0 6px;">${escapeHtml(s.label)}</h2>` +
+        `<p style="margin:0;white-space:pre-wrap;">${escapeHtml(issue[s.key]!)}</p>`
+    )
+    .join("");
+
+  return (
+    `<div style="font-family:Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a;">` +
+    `<h1 style="font-size:20px;margin-bottom:4px;">${escapeHtml(issue.title)}</h1>` +
+    `<p style="color:#606060;font-size:12px;margin-top:0;">${issue.issue_date}</p>` +
+    (body || `<p>No sections filled in for this issue.</p>`) +
+    `<p style="margin-top:32px;font-size:11px;color:#999;">` +
+    `You're receiving this because you subscribed at <a href="${siteUrl}">Feedback</a>.</p>` +
+    `</div>`
+  );
+}

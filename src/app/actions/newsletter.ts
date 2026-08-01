@@ -4,9 +4,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
-import { NEWSLETTER_SECTIONS } from "@/lib/newsletter";
+import { NEWSLETTER_SECTIONS, getIssueById, renderIssueHtml } from "@/lib/newsletter";
+import { sendBulkEmail } from "@/lib/email";
 
 export type NewsletterFormState = { error?: string; ok?: boolean };
+export type NewsletterSendState = { error?: string; ok?: boolean; sent?: number };
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -88,6 +90,30 @@ export async function unpublishNewsletterIssue(formData: FormData) {
   revalidatePath(`/admin/newsletter/${id}`);
   revalidatePath("/admin/newsletter");
   revalidatePath("/newsletter");
+}
+
+export async function sendNewsletterIssue(
+  _prevState: NewsletterSendState,
+  formData: FormData
+): Promise<NewsletterSendState> {
+  const { user, admin, supabase } = await requireAdmin();
+  if (!user || !admin) return { error: "Admins only." };
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Missing issue id." };
+
+  const issue = await getIssueById(supabase, id);
+  if (!issue) return { error: "Issue not found." };
+
+  const { data: subscriberRows } = await supabase.from("waitlist_signups").select("email");
+  const emails = (subscriberRows ?? []).map((r) => r.email as string);
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mythefeed.com";
+  const html = renderIssueHtml(issue, siteUrl);
+  const result = await sendBulkEmail(issue.title, html, emails);
+
+  if (!result.ok) return { error: result.error };
+  return { ok: true, sent: result.sent };
 }
 
 export async function deleteNewsletterIssue(formData: FormData) {
