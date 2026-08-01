@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/PostCard";
+import { NowPlayingHero } from "@/components/NowPlayingHero";
 import { CommentSection, type CommentData } from "@/components/CommentSection";
 import type { MediaType } from "@/lib/media";
 
@@ -148,6 +149,16 @@ export default async function PostPage({
         </Link>
       </div>
 
+      {(post.spotify_track_id || post.youtube_video_id) && (
+        <NowPlayingHero
+          coverUrl={post.cover_url}
+          title={post.title}
+          artist={post.artist}
+          rating={post.rating}
+          targetId="real-player"
+        />
+      )}
+
       <PostCard
         post={{
           id: post.id,
@@ -168,6 +179,7 @@ export default async function PostPage({
         likeCount={likeCount ?? 0}
         commentCount={comments.reduce((n, c) => n + 1 + c.replies.length, 0)}
         hideCommentLink
+        previewId="real-player"
       />
 
       <CommentSection postId={post.id} comments={comments} currentUserId={user?.id ?? null} />

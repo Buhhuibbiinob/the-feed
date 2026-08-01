@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export type FeedTvClip = {
@@ -17,6 +18,8 @@ type YTPlayer = {
   unMute: () => void;
   loadVideoById: (videoId: string) => void;
   destroy: () => void;
+  getCurrentTime?: () => number;
+  getDuration?: () => number;
 };
 
 type YTPlayerEvent = { data: number };
@@ -63,6 +66,37 @@ function loadYouTubeAPI(): Promise<YTNamespace> {
 
 const STATIC_DURATION_MS = 400;
 
+function formatTime(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 24 24">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+function PauseIcon() {
+  return (
+    <svg viewBox="0 0 24 24">
+      <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+    </svg>
+  );
+}
+function SkipIcon() {
+  return (
+    <svg viewBox="0 0 24 24">
+      <path d="M6 6h2v12H6zm12 0L8 12l10 6z" />
+    </svg>
+  );
+}
+
+type Tab = "playing" | "suggested" | "comments";
+
 export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading?: string }) {
   const playerElRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -70,6 +104,8 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
   const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const [tab, setTab] = useState<Tab>("playing");
+  const [progress, setProgress] = useState({ current: 0, duration: 0 });
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -107,6 +143,15 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
   }, [clips]);
 
   useEffect(() => {
+    const timer = setInterval(() => {
+      const player = playerRef.current;
+      if (!player?.getCurrentTime || !player.getDuration) return;
+      setProgress({ current: player.getCurrentTime(), duration: player.getDuration() });
+    }, 500);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
@@ -140,6 +185,9 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
     setIndex((i) => (i + 1) % clips.length);
   }
 
+  const current = clips[index];
+  const scrubPct = progress.duration > 0 ? Math.min(100, (progress.current / progress.duration) * 100) : 0;
+
   return (
     <div className="panel feedtv-panel">
       <div className="panel-head tabbed">
@@ -147,62 +195,73 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
         <span className="feedtv-live">● LIVE</span>
       </div>
       <div className="feedtv-body">
-        <div className="feedtv-tv">
-          <div className="feedtv-tv-antenna feedtv-tv-antenna-left" />
-          <div className="feedtv-tv-antenna feedtv-tv-antenna-right" />
-          <div className="feedtv-tv-frame">
-            <div className="feedtv-tv-led" />
-            <div className="feedtv-tv-console">
-              <div className="feedtv-player">
-                <div ref={playerElRef} className="feedtv-iframe-target" />
-                {switching && <div className="feedtv-static" />}
-                <div className="feedtv-screen-curve" />
-                <div className="feedtv-controls">
-                  <button className="feedtv-ctrl-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
-                    <span>{paused ? "▶" : "❚❚"}</span>
-                  </button>
-                  <button className="feedtv-ctrl-btn" onClick={skipNext} aria-label="Skip to next">
-                    <span>⏭</span>
-                  </button>
-                  <button
-                    className="feedtv-ctrl-btn wide"
-                    onClick={toggleMute}
-                    aria-label={muted ? "Unmute" : "Mute"}
-                  >
-                    <span>{muted ? "Unmute" : "Mute"}</span>
-                  </button>
-                </div>
-              </div>
-              <div className="feedtv-tv-side-panel">
-                <div className="feedtv-tv-speaker">
-                  {Array.from({ length: 6 }, (_, i) => (
-                    <span key={i} />
-                  ))}
-                </div>
-                <div className="feedtv-tv-knobs">
-                  <span className="feedtv-tv-knob" />
-                  <span className="feedtv-tv-knob" />
-                </div>
-              </div>
+        <div className="yt-shell">
+          <div className="yt-topbar">
+            You<span className="yt-red">Tube</span>
+          </div>
+          <div className="yt-rate-row">
+            <button className="yt-rate-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
+              {paused ? <PlayIcon /> : <PauseIcon />}
+            </button>
+            <button className="yt-rate-btn" onClick={skipNext} aria-label="Skip to next">
+              <SkipIcon />
+            </button>
+            <button className="yt-rate-btn text" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}>
+              {muted ? "Unmute" : "Mute"}
+            </button>
+          </div>
+          <div className="yt-video">
+            <div ref={playerElRef} className="feedtv-iframe-target" />
+            {switching && <div className="feedtv-static" />}
+          </div>
+          <div className="yt-scrub-row">
+            <div className="time">{formatTime(progress.current)}</div>
+            <div className="yt-red-track">
+              <div className="yt-red-fill" style={{ width: `${scrubPct}%` }} />
+              <div className="yt-red-knob" style={{ left: `${scrubPct}%` }} />
+            </div>
+            <div className="time">{formatTime(progress.duration)}</div>
+          </div>
+          <div className="yt-tabs">
+            <div className={tab === "playing" ? "active" : ""} onClick={() => setTab("playing")}>
+              Now Playing
+            </div>
+            <div className={tab === "suggested" ? "active" : ""} onClick={() => setTab("suggested")}>
+              Suggested
+            </div>
+            <div className={tab === "comments" ? "active" : ""} onClick={() => setTab("comments")}>
+              Comments
             </div>
           </div>
-          <div className="feedtv-tv-stand" />
-        </div>
-        <div className="feedtv-upnext">
-          <div className="feedtv-upnext-label">Up Next</div>
-          <div className="feedtv-upnext-strip">
-            {clips.map((clip, i) => (
-              <button
-                key={clip.id}
-                type="button"
-                className={`feedtv-thumb ${i === index ? "active" : ""}`}
-                onClick={() => setIndex(i)}
-              >
-                <img src={`https://img.youtube.com/vi/${clip.youtubeVideoId}/mqdefault.jpg`} alt="" />
-                <span className="feedtv-thumb-title">{clip.title}</span>
-              </button>
-            ))}
-          </div>
+          {tab === "playing" && (
+            <div className="yt-tab-panel">
+              <b>{current.title}</b>
+              {current.artist && <span> - {current.artist}</span>}
+              <span className="yt-tab-sub">posted by {current.username}</span>
+            </div>
+          )}
+          {tab === "suggested" && (
+            <div className="feedtv-upnext">
+              <div className="feedtv-upnext-strip">
+                {clips.map((clip, i) => (
+                  <button
+                    key={clip.id}
+                    type="button"
+                    className={`feedtv-thumb ${i === index ? "active" : ""}`}
+                    onClick={() => setIndex(i)}
+                  >
+                    <img src={`https://img.youtube.com/vi/${clip.youtubeVideoId}/mqdefault.jpg`} alt="" />
+                    <span className="feedtv-thumb-title">{clip.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {tab === "comments" && (
+            <div className="yt-tab-panel">
+              <Link href={`/post/${current.id}`}>View the full review &amp; comments &rarr;</Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

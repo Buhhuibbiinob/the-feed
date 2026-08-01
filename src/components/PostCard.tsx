@@ -85,6 +85,7 @@ export function PostCard({
   commentCount,
   hideCommentLink = false,
   sticker,
+  previewId,
 }: {
   post: PostCardData;
   currentUserId: string | null;
@@ -93,6 +94,7 @@ export function PostCard({
   commentCount: number;
   hideCommentLink?: boolean;
   sticker?: "hot" | "new";
+  previewId?: string;
 }) {
   const [editing, setEditing] = useState(false);
   const isOwner = currentUserId === post.userId;
@@ -109,68 +111,71 @@ export function PostCard({
     <div className="post-card">
       {sticker === "hot" && <span className="sticker-badge hot">hot take</span>}
       {sticker === "new" && <span className="sticker-badge new">new fave</span>}
-      <div className="post-card-head">
-        {post.coverUrl && <img src={post.coverUrl} alt="" className="cover-thumb" />}
-        <span className={`badge ${post.mediaType}`}>{MEDIA_LABELS[post.mediaType]}</span>
-        <span className="title">
-          {post.title}
-          {post.artist && <> - {post.artist}</>}
-        </span>
-        {post.rating && <span className="stars">{stars(post.rating)}</span>}
-      </div>
-      {(post.spotifyTrackId || post.youtubeVideoId) && (
-        <PreviewPlayer
-          spotifyTrackId={post.spotifyTrackId}
-          youtubeVideoId={post.youtubeVideoId}
-          label={post.title}
+      <div className="track-row">
+        <div
+          className="track-thumb"
+          style={post.coverUrl ? { backgroundImage: `url(${post.coverUrl})` } : undefined}
         />
-      )}
+        <div className="track-body">
+          <Link href={`/post/${post.id}`} className="track-title">
+            {post.title}
+            {post.artist && <> - {post.artist}</>}
+          </Link>
+          <div className="track-actions">
+            {currentUserId ? (
+              <LikeButton postId={post.id} liked={liked} count={likeCount} />
+            ) : (
+              <span className="like-btn">
+                <span className="heart">♡</span>
+                <span className="count-badge">{likeCount}</span>
+              </span>
+            )}
+            <span className="sep">|</span>
+            {!hideCommentLink && (
+              <Link href={`/post/${post.id}`}>Comments ({commentCount})</Link>
+            )}
+            <span className="sep">|</span>
+            <ShareButton postId={post.id} title={`${post.title}${post.artist ? ` - ${post.artist}` : ""}`} />
+            {currentUserId && (
+              <>
+                <span className="sep">|</span>
+                <AddToCollectionButton postId={post.id} />
+              </>
+            )}
+            {isOwner && (
+              <>
+                <span className="sep">|</span>
+                <button type="button" onClick={() => setEditing(true)}>
+                  Edit
+                </button>
+                <span className="sep">|</span>
+                <form action={deletePost} className="inline-form">
+                  <input type="hidden" name="post_id" value={post.id} />
+                  <button type="submit" className="danger">
+                    Delete
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+        {post.rating && <div className="track-stars">{stars(post.rating)}</div>}
+      </div>
       <div className="post-card-body">
+        <span className={`badge ${post.mediaType}`}>{MEDIA_LABELS[post.mediaType]}</span>
+        {(post.spotifyTrackId || post.youtubeVideoId) && (
+          <div id={previewId}>
+            <PreviewPlayer
+              spotifyTrackId={post.spotifyTrackId}
+              youtubeVideoId={post.youtubeVideoId}
+              label={post.title}
+            />
+          </div>
+        )}
         <SpoilerText text={post.body} />
         <div className="post-meta">
-          <Link href={`/profile/${post.username}`} className="comment-action">
-            {post.username}
-          </Link>{" "}
-          · {timeAgo(post.createdAt)} ·{" "}
-          <ShareButton postId={post.id} title={`${post.title}${post.artist ? ` - ${post.artist}` : ""}`} />
-          {currentUserId && (
-            <>
-              {" "}
-              · <AddToCollectionButton postId={post.id} />
-            </>
-          )}
-          {isOwner && (
-            <>
-              {" "}
-              ·{" "}
-              <button type="button" className="comment-action" onClick={() => setEditing(true)}>
-                Edit
-              </button>{" "}
-              ·{" "}
-              <form action={deletePost} className="inline-form">
-                <input type="hidden" name="post_id" value={post.id} />
-                <button type="submit" className="comment-action danger">
-                  Delete
-                </button>
-              </form>
-            </>
-          )}
+          <Link href={`/profile/${post.username}`}>{post.username}</Link> · {timeAgo(post.createdAt)}
         </div>
-      </div>
-      <div className="post-actions">
-        {currentUserId ? (
-          <LikeButton postId={post.id} liked={liked} count={likeCount} />
-        ) : (
-          <span className="like-btn">
-            <span className="heart">♡</span>
-            <span className="count-badge">{likeCount}</span>
-          </span>
-        )}
-        {!hideCommentLink && (
-          <Link href={`/post/${post.id}`} className="comment-link">
-            <span className="count-badge">{commentCount}</span> comment{commentCount === 1 ? "" : "s"}
-          </Link>
-        )}
       </div>
     </div>
   );
