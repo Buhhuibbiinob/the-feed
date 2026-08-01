@@ -2146,6 +2146,9 @@ a:hover {
   max-height: 420px;
   overflow-y: auto;
 }
+[data-theme="ios-light"] .chat-body {
+  background: #1a1a1c;
+}
 .chat-row {
   font-size: 11.5px;
   margin-bottom: 7px;
