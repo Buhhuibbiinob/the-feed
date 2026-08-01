@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
 import { NotificationBell } from "@/components/NotificationBell";
+import { LightDarkToggle } from "@/components/LightDarkToggle";
 
 const MORE_LINKS = [
   { href: "/new-releases", label: "New Releases", slug: "new-releases" },
@@ -67,6 +68,7 @@ function MoreIcon() {
 }
 
 export function SiteHeader({
+  theme,
   username,
   isAdmin = false,
   notificationCount = 0,
@@ -74,6 +76,7 @@ export function SiteHeader({
   hiddenSlugs = [],
   customPages = [],
 }: {
+  theme: string;
   username: string | null;
   isAdmin?: boolean;
   notificationCount?: number;
@@ -163,6 +166,7 @@ export function SiteHeader({
           <input type="search" name="q" placeholder="Search Feedback" aria-label="Search" />
         </form>
         <div className="nav-account">
+          {theme === "ios-light" && <LightDarkToggle />}
           {username ? (
             <>
               <NotificationBell initialCount={notificationCount} />
@@ -299,6 +303,14 @@ export function SiteHeader({
                 <Link href="/sign-up" onClick={() => setMoreOpen(false)}>
                   Create Account
                 </Link>
+              </>
+            )}
+            {theme === "ios-light" && (
+              <>
+                <div className="sk-more-sheet-divider" />
+                <div className="sk-more-sheet-toggle-row">
+                  <LightDarkToggle />
+                </div>
               </>
             )}
           </div>

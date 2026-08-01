@@ -97,9 +97,18 @@ export default async function RootLayout({
 
   return (
     <html lang="en" data-theme={theme} style={htmlStyle}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(localStorage.getItem('feedback-mode')==='light')document.documentElement.setAttribute('data-mode','light');}catch(e){}",
+          }}
+        />
+      </head>
       <body>
         <div className="sk-app-shell">
           <SiteHeader
+            theme={theme}
             username={username}
             isAdmin={admin}
             notificationCount={notificationCount}
