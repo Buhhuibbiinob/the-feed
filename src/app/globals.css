@@ -1554,6 +1554,12 @@ a:hover {
 .track-actions .like-btn {
   color: inherit;
 }
+[data-theme="ios-light"] .track-actions {
+  color: #aeaeb2;
+}
+[data-theme="ios-light"] .track-actions .sep {
+  color: #6a6a6e;
+}
 .track-stars {
   font-size: 12px;
   color: var(--star-gold, #d99a1a);
@@ -1683,6 +1689,29 @@ a:hover {
   width: 0%;
   background: var(--scrub-blue, #2f8fe0);
   border-radius: 2px;
+}
+[data-theme="ios-light"] .sk-np-card {
+  background-color: #1a0504;
+  background-image: linear-gradient(180deg, #3a0f0d, #1a0504);
+  border-color: #000;
+}
+[data-theme="ios-light"] .sk-np-title {
+  color: #f2f2f2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+[data-theme="ios-light"] .sk-np-subtitle {
+  color: #cfa8a6;
+}
+[data-theme="ios-light"] .sk-np-art {
+  background-color: #141416;
+  border-color: #000;
+}
+[data-theme="ios-light"] .sk-np-scrub-row {
+  color: #cfa8a6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+[data-theme="ios-light"] .sk-np-scrub-track {
+  background: #3a3a3c;
 }
 .sk-np-scrub-knob {
   position: absolute;
@@ -2889,56 +2918,62 @@ footer .copy {
 }
 
 [data-theme="ios-light"] {
-  /* Y2K iTunes/iPod/early-YouTube chrome tokens - reused exactly from the
-     skeuomorphic component kit rather than re-derived. */
-  --chrome-hi: #fbfbfc;
-  --chrome-mid: #c9c9cc;
-  --chrome-low: #8d8d92;
-  --chrome-dark: #3a3a3d;
-  --chrome-black: #141416;
-  --link-blue: #2f6fce;
-  --link-blue-dark: #1e4f9c;
+  /* Dark mode / red skin: same Y2K brushed-chrome structure as before, just
+     with the bevel scale and accent color flipped from silver/blue to
+     black-chrome/red. */
+  --chrome-hi: #4a4a4d;
+  --chrome-mid: #2c2c2e;
+  --chrome-low: #1a1a1c;
+  --chrome-dark: #0d0d0e;
+  --chrome-black: #000000;
+  --link-blue: #ff453a;
+  --link-blue-dark: #c4291f;
   --scrub-red: #e0261f;
-  --scrub-blue: #2f8fe0;
+  --scrub-blue: #ff453a;
   --star-gold: #e0b400;
-  --divider: #b9b9be;
+  --divider: #3a3a3c;
 
-  --body-bg: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 3px),
-    linear-gradient(180deg, #dcdce0, #b7b7bd 45%, #c7c7cc);
-  --body-glyph-color: rgba(0, 0, 0, 0.05);
+  --text: #f0f0f0;
+  --muted: #9a9a9e;
+  --link: var(--scrub-red);
 
-  --nav-bg: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.4) 0px, rgba(255, 255, 255, 0.4) 1px, transparent 1px, transparent 2px),
+  --body-bg: radial-gradient(ellipse at 15% 85%, rgba(224, 38, 31, 0.18), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(224, 38, 31, 0.12), transparent 50%),
+    linear-gradient(180deg, #1c1c1e 0%, #101012 45%, #000000 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.04);
+
+  --nav-bg: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 2px),
     linear-gradient(180deg, var(--chrome-hi) 0%, var(--chrome-mid) 55%, var(--chrome-low) 100%);
-  --nav-border: #7d7d82;
-  --nav-text: #2a2a2d;
-  --nav-active-text: var(--link-blue);
+  --nav-border: #000000;
+  --nav-text: #f2f2f2;
+  --nav-active-text: var(--scrub-red);
 
-  --subnav-bg: linear-gradient(180deg, #f2f2f3, #d8d8dc);
-  --subnav-border: #97979d;
-  --subnav-text: #4a4a4d;
+  --subnav-bg: linear-gradient(180deg, #2c2c2e, #141416);
+  --subnav-border: #000000;
+  --subnav-text: #aeaeb2;
 
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, var(--scrub-blue) 75%);
-  --wordmark-color: #2a2a2d;
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, var(--scrub-red) 75%);
+  --wordmark-color: #f2f2f2;
 
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #e8e8ea 22%, #d2d2d6 48%, #bcbcc0 52%, #9a9a9f 100%);
-  --acct-btn-border: #7d7d82;
-  --acct-btn-text: #333333;
-  --acct-btn-primary-bg: linear-gradient(180deg, #8ecaff 0%, #4a97ec 22%, #2f7fdb 48%, #1f5fc0 52%, #123c85 100%);
-  --acct-btn-primary-border: #1e4b85;
+  --acct-btn-bg: linear-gradient(180deg, #4a4a4d 0%, #2c2c2e 22%, #1a1a1c 48%, #101012 52%, #000000 100%);
+  --acct-btn-border: #000000;
+  --acct-btn-text: #f2f2f2;
+  --acct-btn-primary-bg: linear-gradient(180deg, #ff6b60 0%, #e0261f 22%, #b3160f 48%, #8a0f09 52%, #5c0805 100%);
+  --acct-btn-primary-border: #4a0603;
 
-  --panel-border: #97979d;
-  --panel-head-bg: linear-gradient(180deg, #6b6b70 0%, #3d3d40 8%, #232325 45%, #0d0d0e 100%);
+  --panel-border: #000000;
+  --panel-head-bg: linear-gradient(180deg, #4a1210 0%, #2c0908 8%, #1a0504 45%, #000000 100%);
   --panel-head-border: #000000;
-  --panel-body-bg: linear-gradient(180deg, #f8f8f9, #dcdce0 12%, #d0d0d4 88%, #bcbcc1);
-  --shelf-bg: #dcdce0;
+  --panel-body-bg: linear-gradient(180deg, #1c1c1e, #141416 12%, #0d0d0e 88%, #000000);
+  --shelf-bg: #1a1a1c;
 
-  --btn-bg: linear-gradient(180deg, #8ecaff 0%, #4a97ec 22%, #2f7fdb 48%, #1f5fc0 52%, #123c85 100%);
-  --btn-border: #1e4b85;
+  --btn-bg: linear-gradient(180deg, #ff6b60 0%, #e0261f 22%, #b3160f 48%, #8a0f09 52%, #5c0805 100%);
+  --btn-border: #4a0603;
   --btn-text: #fff;
 
-  --hero-title-color: #2a2a2d;
-  --hero-tagline-color: #5a5a5e;
-  --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  --hero-title-color: #f2f2f2;
+  --hero-tagline-color: #aeaeb2;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 
   --like-color: var(--scrub-red);
 }
@@ -4259,6 +4294,14 @@ footer .copy {
   font-size: 10px;
   letter-spacing: 0.4px;
 }
+[data-theme="ios-light"] .fun-fact-banner {
+  background: linear-gradient(180deg, #1c1c1e, #101012);
+  border-color: #000;
+  color: #f2f2f2;
+}
+[data-theme="ios-light"] .fun-fact-label {
+  color: #ff453a;
+}
 
 /* ---- "Avatar of the Week"-style reviewer spotlight ---- */
 .spotlight-panel {
@@ -4300,6 +4343,16 @@ footer .copy {
 .spotlight-sub {
   color: #606060;
   font-size: 10.5px;
+}
+[data-theme="ios-light"] .spotlight-panel {
+  background: linear-gradient(160deg, #232325, #101012);
+  border-color: #000;
+}
+[data-theme="ios-light"] .spotlight-name {
+  color: #f2f2f2;
+}
+[data-theme="ios-light"] .spotlight-sub {
+  color: #9a9a9e;
 }
 
 /* ---- Real ON/OFF toggle switch (iOS-style) ---- */
@@ -4876,10 +4929,10 @@ footer .copy {
     align-items: center;
     justify-content: space-between;
     padding: 11px 12px;
-    background-color: #5c6773;
-    background-image: linear-gradient(180deg, #8a95a0 0%, #5c6773 50%, #465059 100%);
-    border-bottom: 1px solid #333;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 3px 8px rgba(0, 0, 0, 0.3);
+    background-color: #1c1010;
+    background-image: linear-gradient(180deg, #4a1512 0%, #240a08 50%, #000000 100%);
+    border-bottom: 1px solid #000;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 3px 8px rgba(0, 0, 0, 0.5);
     position: relative;
   }
   [data-theme="ios-light"] .sk-ios-back {
@@ -4934,10 +4987,10 @@ footer .copy {
     bottom: 0;
     max-width: 480px;
     margin: 0 auto;
-    background-color: #eeeeee;
-    background-image: linear-gradient(180deg, #f7f7f7, #e2e2e4);
-    border-top: 1px solid #b5b5ba;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+    background-color: #1c1c1e;
+    background-image: linear-gradient(180deg, #232325, #0d0d0e);
+    border-top: 1px solid #000;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.4);
     z-index: 30;
   }
   [data-theme="ios-light"] .sk-ios-tab {
@@ -4948,7 +5001,7 @@ footer .copy {
     gap: 2px;
     padding: 8px 0 6px;
     cursor: pointer;
-    color: #7a7a80;
+    color: #8a8a8e;
     text-decoration: none;
     background: none;
     border: none;
@@ -4968,11 +5021,11 @@ footer .copy {
     font-weight: 600;
   }
   [data-theme="ios-light"] .sk-ios-tab.active {
-    color: #2f6fce;
+    color: #ff453a;
   }
   [data-theme="ios-light"] .sk-ios-tab.active .sk-ios-tab-icon {
     opacity: 1;
-    filter: drop-shadow(0 0 3px rgba(47, 111, 206, 0.5));
+    filter: drop-shadow(0 0 3px rgba(224, 38, 31, 0.6));
   }
   [data-theme="ios-light"] .sk-more-sheet-backdrop {
     display: flex;
@@ -4988,10 +5041,10 @@ footer .copy {
     margin: 0 auto;
     max-height: 70vh;
     overflow-y: auto;
-    background-color: #f4f4f4;
+    background-color: #1c1c1e;
     border-radius: 14px 14px 0 0;
     padding: 10px 0 20px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
   }
   [data-theme="ios-light"] .sk-more-sheet a,
   [data-theme="ios-light"] .sk-more-sheet button {
@@ -5001,7 +5054,7 @@ footer .copy {
     padding: 12px 20px;
     font-size: 14px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: #f2f2f2;
     background: none;
     border: none;
     font-family: inherit;
@@ -5012,7 +5065,7 @@ footer .copy {
   }
   [data-theme="ios-light"] .sk-more-sheet-divider {
     height: 1px;
-    background: #d0d0d0;
+    background: #3a3a3c;
     margin: 6px 16px;
   }
 }
