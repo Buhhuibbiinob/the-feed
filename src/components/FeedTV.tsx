@@ -197,7 +197,7 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
       <div className="feedtv-body">
         <div className="yt-shell">
           <div className="yt-topbar">
-            You<span className="yt-red">Tube</span>
+            The Feed<span className="yt-red">TV</span>
           </div>
           <div className="yt-rate-row">
             <button className="yt-rate-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
