@@ -4930,14 +4930,17 @@ footer .copy {
   }
   [data-theme="ios-light"] .sk-ios-tabbar {
     display: flex;
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
+    max-width: 480px;
+    margin: 0 auto;
     background-color: #eeeeee;
     background-image: linear-gradient(180deg, #f7f7f7, #e2e2e4);
     border-top: 1px solid #b5b5ba;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
     z-index: 30;
-    margin-top: auto;
   }
   [data-theme="ios-light"] .sk-ios-tab {
     flex: 1;
