@@ -8,6 +8,10 @@ function PlayIcon() {
   );
 }
 
+function stars(rating: number) {
+  return "★".repeat(rating) + "☆".repeat(5 - rating);
+}
+
 export function NowPlayingHero({
   coverUrl,
   title,
@@ -26,24 +30,31 @@ export function NowPlayingHero({
   }
 
   return (
-    <div className="now-playing-hero">
+    <div className="sk-np-card">
+      <div className="sk-np-title">{title}</div>
+      {(artist || rating) && (
+        <div className="sk-np-subtitle">
+          {artist}
+          {artist && rating ? " · " : ""}
+          {rating ? stars(rating) : ""}
+        </div>
+      )}
       <div
-        className="now-playing-art"
-        style={coverUrl ? { backgroundImage: `url(${coverUrl})` } : undefined}
+        className="sk-np-art"
+        style={coverUrl ? { backgroundImage: `url(${coverUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
       />
-      <div className="now-playing-title">
-        {title}
-        {artist && <span className="now-playing-artist"> - {artist}</span>}
-      </div>
-      {rating && <div className="now-playing-stars">{"★".repeat(rating)}{"☆".repeat(5 - rating)}</div>}
-      <div className="scrub-track">
-        <div className="scrub-fill" />
-        <div className="scrub-knob" />
-      </div>
-      <div className="now-playing-transport">
+      <div className="sk-np-transport">
         <button className="t-btn big" onClick={scrollToPlayer} aria-label="Play">
           <PlayIcon />
         </button>
+      </div>
+      <div className="sk-np-scrub-row">
+        <span>0:00</span>
+        <div className="sk-np-scrub-track">
+          <div className="sk-np-scrub-fill" />
+          <div className="sk-np-scrub-knob" />
+        </div>
+        <span>--:--</span>
       </div>
     </div>
   );

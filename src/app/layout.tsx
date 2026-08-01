@@ -98,16 +98,20 @@ export default async function RootLayout({
   return (
     <html lang="en" data-theme={theme} style={htmlStyle}>
       <body>
-        <SiteHeader
-          username={username}
-          isAdmin={admin}
-          notificationCount={notificationCount}
-          unreadDmCount={unreadDmCount}
-          hiddenSlugs={[...archivedSlugs]}
-          customPages={customPages.map((p) => ({ href: p.path, label: p.label }))}
-        />
-        <div className="wrap">{children}</div>
-        <SiteFooter />
+        <div className="sk-app-shell">
+          <SiteHeader
+            username={username}
+            isAdmin={admin}
+            notificationCount={notificationCount}
+            unreadDmCount={unreadDmCount}
+            hiddenSlugs={[...archivedSlugs]}
+            customPages={customPages.map((p) => ({ href: p.path, label: p.label }))}
+          />
+          <div className="sk-app-content">
+            <div className="wrap">{children}</div>
+            <SiteFooter />
+          </div>
+        </div>
         <WelcomeExplainer />
       </body>
     </html>

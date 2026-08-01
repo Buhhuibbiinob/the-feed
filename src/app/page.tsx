@@ -340,6 +340,32 @@ export default async function FeedPage({
         <div className="tagline">{siteText.feed_tagline}</div>
       </div>
 
+      <div className="panel hot-pages-panel">
+        <div className="panel-head tabbed">
+          <span className="panel-head-tab">
+            <span className="tab-the">the</span>
+            <span className="tab-main">Most Active</span>
+          </span>
+        </div>
+        {topReviewers.length === 0 ? (
+          <div className="side-list">
+            <div className="empty-state">No reviews yet.</div>
+          </div>
+        ) : (
+          <div className="hot-pages-strip">
+            {topReviewers.map(([name, { count, avatarUrl }]) => (
+              <div className="hot-pages-item" key={name}>
+                <div className="hot-pages-photo-wrap">
+                  <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
+                  <span className="hot-pages-badge">{count}</span>
+                </div>
+                <span className="hot-pages-name">{name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="theslap-top-grid">
         <div className="right-now-widget">
           <div className="right-now-tab">ADVERTISEMENT</div>
@@ -373,40 +399,7 @@ export default async function FeedPage({
         <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
       </div>
 
-      <div className="fun-fact-banner">
-        <span className="fun-fact-label">Did You Know</span>
-        <span className="fun-fact-text">{todayFunFact}</span>
-      </div>
-
-      <div className="panel hot-pages-panel">
-        <div className="panel-head tabbed">
-          <span className="panel-head-tab">
-            <span className="tab-the">the</span>
-            <span className="tab-main">Most Active</span>
-          </span>
-        </div>
-        {topReviewers.length === 0 ? (
-          <div className="side-list">
-            <div className="empty-state">No reviews yet.</div>
-          </div>
-        ) : (
-          <div className="hot-pages-strip">
-            {topReviewers.map(([name, { count, avatarUrl }]) => (
-              <div className="hot-pages-item" key={name}>
-                <div className="hot-pages-photo-wrap">
-                  <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
-                  <span className="hot-pages-badge">{count}</span>
-                </div>
-                <span className="hot-pages-name">{name}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
       <div className="theslap-3col">
-        <OrbyBot candidates={orbyCandidates} />
-        <Shelf title="Trending Music" items={newReleases} />
         {topReviewers.length > 0 && (
           <div className="spotlight-panel">
             <span className="spotlight-tag">Top Reviewer</span>
@@ -421,6 +414,13 @@ export default async function FeedPage({
             </span>
           </div>
         )}
+        <Shelf title="Trending Music" items={newReleases} />
+        <OrbyBot candidates={orbyCandidates} />
+      </div>
+
+      <div className="fun-fact-banner">
+        <span className="fun-fact-label">Did You Know</span>
+        <span className="fun-fact-text">{todayFunFact}</span>
       </div>
 
       {topFeedBanner ? (
