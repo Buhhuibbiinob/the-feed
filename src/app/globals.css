@@ -488,6 +488,10 @@ a:hover {
   border-radius: 20px;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
+[data-theme="ios-light"] .wrap {
+  background: linear-gradient(160deg, #151011, #000000);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
 @media (max-width: 720px) {
   .wrap {
     margin: 10px auto 20px;
@@ -707,6 +711,9 @@ a:hover {
   padding: 10px;
   background: #f6f6f6;
 }
+[data-theme="ios-light"] .feedtv-upnext-strip {
+  background: #1a1a1c;
+}
 .feedtv-thumb {
   display: flex;
   align-items: center;
@@ -722,9 +729,15 @@ a:hover {
 .feedtv-thumb:hover {
   background: rgba(0, 0, 0, 0.05);
 }
+[data-theme="ios-light"] .feedtv-thumb:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
 .feedtv-thumb.active {
   border-color: var(--link-blue, #2f6fce);
   background: rgba(47, 111, 206, 0.1);
+}
+[data-theme="ios-light"] .feedtv-thumb.active {
+  background: rgba(224, 38, 31, 0.15);
 }
 .feedtv-thumb img {
   width: 64px;
@@ -743,6 +756,9 @@ a:hover {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+[data-theme="ios-light"] .feedtv-thumb-title {
+  color: #f2f2f2;
 }
 
 /* ---- Feature banner row ---- */
@@ -1477,6 +1493,9 @@ a:hover {
   margin-bottom: 14px;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
 }
+[data-theme="ios-light"] .post-card {
+  background: #1c1c1e;
+}
 /* ---- Winamp-style review row, ported from skeuomorphic-components.html's
    .track-row/.track-thumb/.track-title/.track-actions ---- */
 .track-row {
@@ -1811,6 +1830,9 @@ a:hover {
 .comment-meta b {
   color: #333;
 }
+[data-theme="ios-light"] .comment-meta b {
+  color: #f2f2f2;
+}
 .comment-action {
   background: none;
   border: none;
@@ -1819,6 +1841,9 @@ a:hover {
   font-size: 10.5px;
   color: #3b7bbf;
   cursor: pointer;
+}
+[data-theme="ios-light"] .comment-action {
+  color: #ff453a;
 }
 .comment-action:hover {
   text-decoration: underline;
@@ -2976,6 +3001,76 @@ footer .copy {
   --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 
   --like-color: var(--scrub-red);
+}
+
+/* ---- Dark-mode overrides for components that hardcode a light
+   background/text instead of routing through the theme variables above.
+   Scoped to ios-light only so the other 28 themes are untouched. ---- */
+[data-theme="ios-light"] .side-list,
+[data-theme="ios-light"] .connect-body,
+[data-theme="ios-light"] .track-results,
+[data-theme="ios-light"] .track-selected,
+[data-theme="ios-light"] .stats-body,
+[data-theme="ios-light"] .chat-preview-body,
+[data-theme="ios-light"] .chat-input,
+[data-theme="ios-light"] .chat-blocked-list,
+[data-theme="ios-light"] .dm-thread-body,
+[data-theme="ios-light"] .wrapped-stat,
+[data-theme="ios-light"] .right-now-body {
+  background: #1a1a1c;
+}
+[data-theme="ios-light"] .nav-bell-row:hover,
+[data-theme="ios-light"] .club-row:hover,
+[data-theme="ios-light"] .search-person-row:hover,
+[data-theme="ios-light"] .artist-post-row:hover,
+[data-theme="ios-light"] .event-rsvp-btn:hover,
+[data-theme="ios-light"] .dm-inbox-row:hover,
+[data-theme="ios-light"] .track-result:hover {
+  background: #26262a;
+}
+[data-theme="ios-light"] .nav-bell-row {
+  color: #f2f2f2;
+  border-bottom-color: #2c2c2e;
+}
+[data-theme="ios-light"] .club-row,
+[data-theme="ios-light"] .dm-inbox-row {
+  border-bottom-color: #2c2c2e;
+}
+[data-theme="ios-light"] .yt-tab-panel {
+  background: #1a1a1c;
+  color: #d8d8dc;
+}
+[data-theme="ios-light"] .yt-tab-panel b {
+  color: #f2f2f2;
+}
+[data-theme="ios-light"] .chat-row b {
+  color: #f2f2f2;
+}
+[data-theme="ios-light"] .chat-signed-out {
+  background: #1a1a1c;
+  color: #aeaeb2;
+}
+[data-theme="ios-light"] .dm-bubble {
+  background: #26262a;
+  border-color: #3a3a3c;
+  color: #f2f2f2;
+}
+[data-theme="ios-light"] .artist-post-row-desc {
+  color: #aeaeb2;
+}
+[data-theme="ios-light"] .site-links-body {
+  background: #1a1a1c;
+}
+[data-theme="ios-light"] .site-links-rows {
+  border-color: #3a3a3c;
+}
+[data-theme="ios-light"] .site-links-link {
+  background: linear-gradient(180deg, #232325, #1a1a1c);
+  border-bottom-color: #2c2c2e;
+  color: #f2f2f2;
+}
+[data-theme="ios-light"] .site-links-link:hover {
+  background: linear-gradient(180deg, #2c2c2e, #1c1c1e);
 }
 
 [data-theme="ios-dark"] {
