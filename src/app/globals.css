@@ -2906,8 +2906,6 @@ footer .copy {
   --body-bg: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 3px),
     linear-gradient(180deg, #dcdce0, #b7b7bd 45%, #c7c7cc);
   --body-glyph-color: rgba(0, 0, 0, 0.05);
-  --body-pattern: radial-gradient(circle, rgba(255, 255, 255, 0.3) 3px, transparent 3.5px);
-  --body-pattern-size: 30px 30px;
 
   --nav-bg: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.4) 0px, rgba(255, 255, 255, 0.4) 1px, transparent 1px, transparent 2px),
     linear-gradient(180deg, var(--chrome-hi) 0%, var(--chrome-mid) 55%, var(--chrome-low) 100%);
