@@ -488,10 +488,6 @@ a:hover {
   border-radius: 20px;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
-[data-theme="ios-light"] .wrap {
-  background: linear-gradient(160deg, #151011, #000000);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
-}
 @media (max-width: 720px) {
   .wrap {
     margin: 10px auto 20px;
@@ -638,11 +634,11 @@ a:hover {
   border-right: none;
 }
 .yt-tabs div.active {
-  background-color: #2a2a2a;
-  background-image: linear-gradient(180deg, #4a4a4a, #222);
-  color: #ffffff;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  background-color: transparent;
+  background-image: none;
+  color: var(--link-blue, #2f6fce);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 -3px 0 var(--link-blue, #2f6fce);
 }
 .yt-tab-panel {
   padding: 14px 16px;
@@ -711,9 +707,6 @@ a:hover {
   padding: 10px;
   background: #f6f6f6;
 }
-[data-theme="ios-light"] .feedtv-upnext-strip {
-  background: #1a1a1c;
-}
 .feedtv-thumb {
   display: flex;
   align-items: center;
@@ -729,15 +722,9 @@ a:hover {
 .feedtv-thumb:hover {
   background: rgba(0, 0, 0, 0.05);
 }
-[data-theme="ios-light"] .feedtv-thumb:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
 .feedtv-thumb.active {
   border-color: var(--link-blue, #2f6fce);
   background: rgba(47, 111, 206, 0.1);
-}
-[data-theme="ios-light"] .feedtv-thumb.active {
-  background: rgba(224, 38, 31, 0.15);
 }
 .feedtv-thumb img {
   width: 64px;
@@ -756,9 +743,6 @@ a:hover {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-}
-[data-theme="ios-light"] .feedtv-thumb-title {
-  color: #f2f2f2;
 }
 
 /* ---- Feature banner row ---- */
@@ -1431,9 +1415,6 @@ a:hover {
   margin-bottom: 14px;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
 }
-[data-theme="ios-light"] .post-card {
-  background: #1c1c1e;
-}
 /* ---- Winamp-style review row, ported from skeuomorphic-components.html's
    .track-row/.track-thumb/.track-title/.track-actions ---- */
 .track-row {
@@ -1510,12 +1491,6 @@ a:hover {
 }
 .track-actions .like-btn {
   color: inherit;
-}
-[data-theme="ios-light"] .track-actions {
-  color: #aeaeb2;
-}
-[data-theme="ios-light"] .track-actions .sep {
-  color: #6a6a6e;
 }
 .track-stars {
   font-size: 12px;
@@ -1647,29 +1622,6 @@ a:hover {
   background: var(--scrub-blue, #2f8fe0);
   border-radius: 2px;
 }
-[data-theme="ios-light"] .sk-np-card {
-  background-color: #1a0504;
-  background-image: linear-gradient(180deg, #3a0f0d, #1a0504);
-  border-color: #000;
-}
-[data-theme="ios-light"] .sk-np-title {
-  color: #f2f2f2;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-}
-[data-theme="ios-light"] .sk-np-subtitle {
-  color: #cfa8a6;
-}
-[data-theme="ios-light"] .sk-np-art {
-  background-color: #141416;
-  border-color: #000;
-}
-[data-theme="ios-light"] .sk-np-scrub-row {
-  color: #cfa8a6;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-}
-[data-theme="ios-light"] .sk-np-scrub-track {
-  background: #3a3a3c;
-}
 .sk-np-scrub-knob {
   position: absolute;
   top: 50%;
@@ -1768,9 +1720,6 @@ a:hover {
 .comment-meta b {
   color: #333;
 }
-[data-theme="ios-light"] .comment-meta b {
-  color: #f2f2f2;
-}
 .comment-action {
   background: none;
   border: none;
@@ -1779,9 +1728,6 @@ a:hover {
   font-size: 10.5px;
   color: #3b7bbf;
   cursor: pointer;
-}
-[data-theme="ios-light"] .comment-action {
-  color: #ff453a;
 }
 .comment-action:hover {
   text-decoration: underline;
@@ -2083,9 +2029,6 @@ a:hover {
   gap: 2px;
   max-height: 420px;
   overflow-y: auto;
-}
-[data-theme="ios-light"] .chat-body {
-  background: #1a1a1c;
 }
 .chat-row {
   font-size: 11.5px;
@@ -2890,161 +2833,21 @@ footer .copy {
 }
 
 [data-theme="ios-light"] {
-  /* Dark mode / red skin: same Y2K brushed-chrome structure as before, just
-     with the bevel scale and accent color flipped from silver/blue to
-     black-chrome/red. */
-  --chrome-hi: #4a4a4d;
-  --chrome-mid: #2c2c2e;
-  --chrome-low: #1a1a1c;
-  --chrome-dark: #0d0d0e;
-  --chrome-black: #000000;
-  --link-blue: #ff453a;
-  --link-blue-dark: #c4291f;
-  --scrub-red: #e0261f;
-  --scrub-blue: #ff453a;
-  --star-gold: #e0b400;
-  --divider: #3a3a3c;
-
-  --text: #f0f0f0;
-  --muted: #9a9a9e;
-  --link: var(--scrub-red);
-
-  --body-bg: radial-gradient(ellipse at 15% 85%, rgba(224, 38, 31, 0.18), transparent 55%),
-    radial-gradient(ellipse at 85% 10%, rgba(224, 38, 31, 0.12), transparent 50%),
-    linear-gradient(180deg, #1c1c1e 0%, #101012 45%, #000000 100%);
-  --body-glyph-color: rgba(255, 255, 255, 0.04);
-
-  --nav-bg: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 2px),
-    linear-gradient(180deg, var(--chrome-hi) 0%, var(--chrome-mid) 55%, var(--chrome-low) 100%);
-  --nav-border: #000000;
-  --nav-text: #f2f2f2;
-  --nav-active-text: var(--scrub-red);
-
-  --subnav-bg: linear-gradient(180deg, #2c2c2e, #141416);
-  --subnav-border: #000000;
-  --subnav-text: #aeaeb2;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, var(--scrub-red) 75%);
-  --wordmark-color: #f2f2f2;
-
-  --acct-btn-bg: linear-gradient(180deg, #4a4a4d 0%, #2c2c2e 22%, #1a1a1c 48%, #101012 52%, #000000 100%);
-  --acct-btn-border: #000000;
-  --acct-btn-text: #f2f2f2;
-  --acct-btn-primary-bg: linear-gradient(180deg, #ff6b60 0%, #e0261f 22%, #b3160f 48%, #8a0f09 52%, #5c0805 100%);
-  --acct-btn-primary-border: #4a0603;
-
-  --panel-border: #000000;
-  --panel-head-bg: linear-gradient(180deg, #4a1210 0%, #2c0908 8%, #1a0504 45%, #000000 100%);
-  --panel-head-border: #000000;
-  --panel-body-bg: linear-gradient(180deg, #1c1c1e, #141416 12%, #0d0d0e 88%, #000000);
-  --shelf-bg: #1a1a1c;
-
-  --btn-bg: linear-gradient(180deg, #ff6b60 0%, #e0261f 22%, #b3160f 48%, #8a0f09 52%, #5c0805 100%);
-  --btn-border: #4a0603;
-  --btn-text: #fff;
-
-  --hero-title-color: #f2f2f2;
-  --hero-tagline-color: #aeaeb2;
-  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-
-  --like-color: var(--scrub-red);
-}
-
-/* ---- Dark-mode overrides for components that hardcode a light
-   background/text instead of routing through the theme variables above.
-   Scoped to ios-light only so the other 28 themes are untouched. ---- */
-[data-theme="ios-light"] .side-list,
-[data-theme="ios-light"] .connect-body,
-[data-theme="ios-light"] .track-results,
-[data-theme="ios-light"] .track-selected,
-[data-theme="ios-light"] .stats-body,
-[data-theme="ios-light"] .chat-preview-body,
-[data-theme="ios-light"] .chat-input,
-[data-theme="ios-light"] .chat-blocked-list,
-[data-theme="ios-light"] .dm-thread-body,
-[data-theme="ios-light"] .wrapped-stat,
-[data-theme="ios-light"] .right-now-body {
-  background: #1a1a1c;
-}
-[data-theme="ios-light"] .nav-bell-row:hover,
-[data-theme="ios-light"] .club-row:hover,
-[data-theme="ios-light"] .search-person-row:hover,
-[data-theme="ios-light"] .artist-post-row:hover,
-[data-theme="ios-light"] .event-rsvp-btn:hover,
-[data-theme="ios-light"] .dm-inbox-row:hover,
-[data-theme="ios-light"] .track-result:hover {
-  background: #26262a;
-}
-[data-theme="ios-light"] .nav-bell-row {
-  color: #f2f2f2;
-  border-bottom-color: #2c2c2e;
-}
-[data-theme="ios-light"] .club-row,
-[data-theme="ios-light"] .dm-inbox-row {
-  border-bottom-color: #2c2c2e;
-}
-[data-theme="ios-light"] .yt-tab-panel {
-  background: #1a1a1c;
-  color: #d8d8dc;
-}
-[data-theme="ios-light"] .yt-tab-panel b {
-  color: #f2f2f2;
-}
-[data-theme="ios-light"] .chat-row b {
-  color: #f2f2f2;
-}
-[data-theme="ios-light"] .chat-signed-out {
-  background: #1a1a1c;
-  color: #aeaeb2;
-}
-[data-theme="ios-light"] .dm-bubble {
-  background: #26262a;
-  border-color: #3a3a3c;
-  color: #f2f2f2;
-}
-[data-theme="ios-light"] .artist-post-row-desc {
-  color: #aeaeb2;
-}
-[data-theme="ios-light"] .site-links-body {
-  background: #1a1a1c;
-}
-[data-theme="ios-light"] .site-links-rows {
-  border-color: #3a3a3c;
-}
-[data-theme="ios-light"] .site-links-link {
-  background: linear-gradient(180deg, #232325, #1a1a1c);
-  border-bottom-color: #2c2c2e;
-  color: #f2f2f2;
-}
-[data-theme="ios-light"] .site-links-link:hover {
-  background: linear-gradient(180deg, #2c2c2e, #1c1c1e);
-}
-[data-theme="ios-light"] .ios-toggle {
-  color: #ccc;
-}
-[data-theme="ios-light"] .ios-toggle-track {
-  background: linear-gradient(180deg, #3a3a3c, #1c1c1e 50%, #141416);
-  border-color: #000;
-}
-[data-theme="ios-light"] .ios-toggle-knob {
-  background: linear-gradient(180deg, #4a4a4d, #2c2c2e);
-}
-
-/* ---- Light mode (opt-in via the light/dark toggle, data-mode="light") ----
-   Same red accent, but the neutral chrome/backgrounds go back to
-   white/grey instead of black. Every rule here just needs to out-specify
-   the plain [data-theme="ios-light"] dark rules above, so placement
-   doesn't matter - these always win when data-mode="light" is set. */
-[data-theme="ios-light"][data-mode="light"] {
+  /* Canonical palette per STYLE_GUIDE.md - light brushed-metal chrome,
+     blue accent throughout. This is the default; dark mode is opt-in
+     via the toggle (data-mode="dark" below), same blue accent, darker
+     chrome. */
   --chrome-hi: #fbfbfc;
   --chrome-mid: #c9c9cc;
   --chrome-low: #8d8d92;
   --chrome-dark: #3a3a3d;
   --chrome-black: #141416;
+  --link-blue: #2f6fce;
+  --link-blue-dark: #1e4f9c;
+  --scrub-red: #e0261f;
+  --scrub-blue: #2f8fe0;
+  --star-gold: #e0b400;
   --divider: #b9b9be;
-
-  --text: #2a2a2d;
-  --muted: #666666;
 
   --body-bg: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 3px),
     linear-gradient(180deg, #dcdce0, #b7b7bd 45%, #c7c7cc);
@@ -3054,177 +2857,245 @@ footer .copy {
     linear-gradient(180deg, var(--chrome-hi) 0%, var(--chrome-mid) 55%, var(--chrome-low) 100%);
   --nav-border: #7d7d82;
   --nav-text: #2a2a2d;
+  --nav-active-text: var(--link-blue);
 
   --subnav-bg: linear-gradient(180deg, #f2f2f3, #d8d8dc);
   --subnav-border: #97979d;
   --subnav-text: #4a4a4d;
 
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, var(--scrub-blue) 75%);
   --wordmark-color: #2a2a2d;
 
   --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #e8e8ea 22%, #d2d2d6 48%, #bcbcc0 52%, #9a9a9f 100%);
   --acct-btn-border: #7d7d82;
   --acct-btn-text: #333333;
+  --acct-btn-primary-bg: linear-gradient(180deg, #8ecaff 0%, #4a97ec 22%, #2f7fdb 48%, #1f5fc0 52%, #123c85 100%);
+  --acct-btn-primary-border: #1e4b85;
 
   --panel-border: #97979d;
+  --panel-head-bg: repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.35) 0px, rgba(255, 255, 255, 0.35) 1px, rgba(0, 0, 0, 0.02) 1px, rgba(0, 0, 0, 0.02) 2px),
+    linear-gradient(180deg, #f8f8f9, #dcdce0 12%, #d0d0d4 88%, #bcbcc1);
+  --panel-head-border: #97979d;
   --panel-body-bg: linear-gradient(180deg, #f8f8f9, #dcdce0 12%, #d0d0d4 88%, #bcbcc1);
   --shelf-bg: #dcdce0;
+
+  --btn-bg: linear-gradient(180deg, #8ecaff 0%, #4a97ec 22%, #2f7fdb 48%, #1f5fc0 52%, #123c85 100%);
+  --btn-border: #1e4b85;
+  --btn-text: #fff;
 
   --hero-title-color: #2a2a2d;
   --hero-tagline-color: #5a5a5e;
   --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  --like-color: var(--scrub-red);
 }
-[data-theme="ios-light"][data-mode="light"] .wrap {
-  background: #f4f6fa;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+
+/* ---- Dark mode (opt-in via the light/dark toggle, data-mode="dark") ----
+   Same blue accent as the default, just the neutral chrome/backgrounds
+   go dark instead of light/grey. Every rule here just needs to
+   out-specify the plain [data-theme="ios-light"] rules above, so
+   placement doesn't matter - these always win when data-mode="dark". ---- */
+[data-theme="ios-light"][data-mode="dark"] {
+  --chrome-hi: #4a4a4d;
+  --chrome-mid: #2c2c2e;
+  --chrome-low: #1a1a1c;
+  --chrome-dark: #0d0d0e;
+  --chrome-black: #000000;
+  --link-blue: #0a84ff;
+  --link-blue-dark: #0060df;
+  --scrub-blue: #0a84ff;
+  --divider: #3a3a3c;
+
+  --text: #f0f0f0;
+  --muted: #9a9a9e;
+  --link: var(--link-blue);
+
+  --body-bg: radial-gradient(ellipse at 15% 85%, rgba(10, 132, 255, 0.16), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(10, 132, 255, 0.1), transparent 50%),
+    linear-gradient(180deg, #1c1c1e 0%, #101012 45%, #000000 100%);
+  --body-glyph-color: rgba(255, 255, 255, 0.04);
+
+  --nav-bg: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 2px),
+    linear-gradient(180deg, var(--chrome-hi) 0%, var(--chrome-mid) 55%, var(--chrome-low) 100%);
+  --nav-border: #000000;
+  --nav-text: #f2f2f2;
+  --nav-active-text: var(--link-blue);
+
+  --subnav-bg: linear-gradient(180deg, #2c2c2e, #141416);
+  --subnav-border: #000000;
+  --subnav-text: #aeaeb2;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #fff, var(--link-blue) 75%);
+  --wordmark-color: #f2f2f2;
+
+  --acct-btn-bg: linear-gradient(180deg, #4a4a4d 0%, #2c2c2e 22%, #1a1a1c 48%, #101012 52%, #000000 100%);
+  --acct-btn-border: #000000;
+  --acct-btn-text: #f2f2f2;
+  --acct-btn-primary-bg: linear-gradient(180deg, #6bb8ff 0%, #2f7fdb 22%, #1a5fc0 48%, #0d4a9e 52%, #0a3470 100%);
+  --acct-btn-primary-border: #062a5c;
+
+  --panel-border: #000000;
+  --panel-head-bg: linear-gradient(180deg, #4a4a4d 0%, #2c2c2e 8%, #1a1a1c 45%, #000000 100%);
+  --panel-head-border: #000000;
+  --panel-body-bg: linear-gradient(180deg, #1c1c1e, #141416 12%, #0d0d0e 88%, #000000);
+  --shelf-bg: #1a1a1c;
+
+  --btn-bg: linear-gradient(180deg, #6bb8ff 0%, #2f7fdb 22%, #1a5fc0 48%, #0d4a9e 52%, #0a3470 100%);
+  --btn-border: #062a5c;
+  --btn-text: #fff;
+
+  --hero-title-color: #f2f2f2;
+  --hero-tagline-color: #aeaeb2;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+
+  --like-color: var(--scrub-red);
 }
-[data-theme="ios-light"][data-mode="light"] .feedtv-upnext-strip {
-  background: #f6f6f6;
+[data-theme="ios-light"][data-mode="dark"] .wrap {
+  background: linear-gradient(160deg, #151011, #000000);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
 }
-[data-theme="ios-light"][data-mode="light"] .feedtv-thumb:hover {
-  background: rgba(0, 0, 0, 0.05);
+[data-theme="ios-light"][data-mode="dark"] .feedtv-upnext-strip {
+  background: #1a1a1c;
 }
-[data-theme="ios-light"][data-mode="light"] .feedtv-thumb-title {
-  color: #222;
+[data-theme="ios-light"][data-mode="dark"] .feedtv-thumb:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
-[data-theme="ios-light"][data-mode="light"] .post-card {
-  background: #fff;
+[data-theme="ios-light"][data-mode="dark"] .feedtv-thumb.active {
+  background: rgba(10, 132, 255, 0.15);
 }
-[data-theme="ios-light"][data-mode="light"] .track-actions {
-  color: #444;
+[data-theme="ios-light"][data-mode="dark"] .feedtv-thumb-title {
+  color: #f2f2f2;
 }
-[data-theme="ios-light"][data-mode="light"] .track-actions .sep {
-  color: #999;
+[data-theme="ios-light"][data-mode="dark"] .post-card {
+  background: #1c1c1e;
 }
-[data-theme="ios-light"][data-mode="light"] .sk-np-card {
-  background-color: #9a9a9e;
-  background-image: linear-gradient(180deg, #c9c9cc, #9a9a9e);
+[data-theme="ios-light"][data-mode="dark"] .track-actions {
+  color: #aeaeb2;
+}
+[data-theme="ios-light"][data-mode="dark"] .track-actions .sep {
+  color: #6a6a6e;
+}
+[data-theme="ios-light"][data-mode="dark"] .sk-np-card {
+  background-color: #1a1c1e;
+  background-image: linear-gradient(180deg, #3a3d40, #1a1c1e);
   border-color: #000;
 }
-[data-theme="ios-light"][data-mode="light"] .sk-np-title {
-  color: #262628;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+[data-theme="ios-light"][data-mode="dark"] .sk-np-title {
+  color: #f2f2f2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
-[data-theme="ios-light"][data-mode="light"] .sk-np-subtitle {
-  color: #45454a;
+[data-theme="ios-light"][data-mode="dark"] .sk-np-subtitle {
+  color: #a8b8cf;
 }
-[data-theme="ios-light"][data-mode="light"] .sk-np-art {
-  background-color: #55555a;
-  border-color: #333;
+[data-theme="ios-light"][data-mode="dark"] .sk-np-art {
+  background-color: #141416;
+  border-color: #000;
 }
-[data-theme="ios-light"][data-mode="light"] .sk-np-scrub-row {
-  color: #3a3a3d;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+[data-theme="ios-light"][data-mode="dark"] .sk-np-scrub-row {
+  color: #a8b8cf;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
-[data-theme="ios-light"][data-mode="light"] .sk-np-scrub-track {
-  background: #7a7a80;
+[data-theme="ios-light"][data-mode="dark"] .sk-np-scrub-track {
+  background: #3a3a3c;
 }
-[data-theme="ios-light"][data-mode="light"] .comment-meta b {
-  color: #333;
+[data-theme="ios-light"][data-mode="dark"] .comment-meta b {
+  color: #f2f2f2;
 }
-[data-theme="ios-light"][data-mode="light"] .chat-body {
-  background: #fff;
+[data-theme="ios-light"][data-mode="dark"] .comment-action {
+  color: #0a84ff;
 }
-[data-theme="ios-light"][data-mode="light"] .side-list,
-[data-theme="ios-light"][data-mode="light"] .connect-body,
-[data-theme="ios-light"][data-mode="light"] .track-results,
-[data-theme="ios-light"][data-mode="light"] .stats-body,
-[data-theme="ios-light"][data-mode="light"] .chat-preview-body,
-[data-theme="ios-light"][data-mode="light"] .chat-input,
-[data-theme="ios-light"][data-mode="light"] .chat-blocked-list,
-[data-theme="ios-light"][data-mode="light"] .right-now-body {
-  background: #fff;
+[data-theme="ios-light"][data-mode="dark"] .chat-body {
+  background: #1a1a1c;
 }
-[data-theme="ios-light"][data-mode="light"] .track-selected {
-  background: #f7f7f7;
+[data-theme="ios-light"][data-mode="dark"] .side-list,
+[data-theme="ios-light"][data-mode="dark"] .connect-body,
+[data-theme="ios-light"][data-mode="dark"] .track-results,
+[data-theme="ios-light"][data-mode="dark"] .stats-body,
+[data-theme="ios-light"][data-mode="dark"] .chat-preview-body,
+[data-theme="ios-light"][data-mode="dark"] .chat-input,
+[data-theme="ios-light"][data-mode="dark"] .chat-blocked-list,
+[data-theme="ios-light"][data-mode="dark"] .right-now-body {
+  background: #1a1a1c;
 }
-[data-theme="ios-light"][data-mode="light"] .dm-thread-body {
-  background: #f9f9f9;
+[data-theme="ios-light"][data-mode="dark"] .track-selected {
+  background: #232325;
 }
-[data-theme="ios-light"][data-mode="light"] .wrapped-stat {
-  background: #f5f5f5;
+[data-theme="ios-light"][data-mode="dark"] .dm-thread-body {
+  background: #141416;
 }
-[data-theme="ios-light"][data-mode="light"] .nav-bell-row:hover,
-[data-theme="ios-light"][data-mode="light"] .club-row:hover,
-[data-theme="ios-light"][data-mode="light"] .search-person-row:hover,
-[data-theme="ios-light"][data-mode="light"] .artist-post-row:hover,
-[data-theme="ios-light"][data-mode="light"] .event-rsvp-btn:hover,
-[data-theme="ios-light"][data-mode="light"] .dm-inbox-row:hover {
-  background: #f6f6f6;
+[data-theme="ios-light"][data-mode="dark"] .wrapped-stat {
+  background: #1c1c1e;
 }
-[data-theme="ios-light"][data-mode="light"] .track-result:hover {
-  background: #f2f2f2;
+[data-theme="ios-light"][data-mode="dark"] .nav-bell-row:hover,
+[data-theme="ios-light"][data-mode="dark"] .club-row:hover,
+[data-theme="ios-light"][data-mode="dark"] .search-person-row:hover,
+[data-theme="ios-light"][data-mode="dark"] .artist-post-row:hover,
+[data-theme="ios-light"][data-mode="dark"] .event-rsvp-btn:hover,
+[data-theme="ios-light"][data-mode="dark"] .dm-inbox-row:hover,
+[data-theme="ios-light"][data-mode="dark"] .track-result:hover {
+  background: #26262a;
 }
-[data-theme="ios-light"][data-mode="light"] .nav-bell-row {
-  color: #1a1a1a;
-  border-bottom-color: #ececec;
+[data-theme="ios-light"][data-mode="dark"] .nav-bell-row {
+  color: #f2f2f2;
+  border-bottom-color: #2c2c2e;
 }
-[data-theme="ios-light"][data-mode="light"] .club-row,
-[data-theme="ios-light"][data-mode="light"] .dm-inbox-row {
-  border-bottom-color: #e2e2e2;
+[data-theme="ios-light"][data-mode="dark"] .club-row,
+[data-theme="ios-light"][data-mode="dark"] .dm-inbox-row {
+  border-bottom-color: #2c2c2e;
 }
-[data-theme="ios-light"][data-mode="light"] .yt-tab-panel {
-  background: #f6f6f6;
-  color: #333;
+[data-theme="ios-light"][data-mode="dark"] .chat-row b {
+  color: #f2f2f2;
 }
-[data-theme="ios-light"][data-mode="light"] .yt-tab-panel b {
-  color: #1a1a1a;
+[data-theme="ios-light"][data-mode="dark"] .chat-signed-out {
+  background: #1a1a1c;
+  color: #aeaeb2;
 }
-[data-theme="ios-light"][data-mode="light"] .chat-row b {
-  color: #333333;
+[data-theme="ios-light"][data-mode="dark"] .dm-bubble {
+  background: #26262a;
+  border-color: #3a3a3c;
+  color: #f2f2f2;
 }
-[data-theme="ios-light"][data-mode="light"] .chat-signed-out {
-  background: #fff;
-  color: #666;
+[data-theme="ios-light"][data-mode="dark"] .artist-post-row-desc {
+  color: #aeaeb2;
 }
-[data-theme="ios-light"][data-mode="light"] .dm-bubble {
-  background: #fff;
-  border-color: #e0e0e0;
-  color: #1a1a1a;
+[data-theme="ios-light"][data-mode="dark"] .site-links-body {
+  background: #1a1a1c;
 }
-[data-theme="ios-light"][data-mode="light"] .artist-post-row-desc {
-  color: #444;
+[data-theme="ios-light"][data-mode="dark"] .site-links-rows {
+  border-color: #3a3a3c;
 }
-[data-theme="ios-light"][data-mode="light"] .site-links-body {
-  background: #fff;
+[data-theme="ios-light"][data-mode="dark"] .site-links-link {
+  background: linear-gradient(180deg, #232325, #1a1a1c);
+  border-bottom-color: #2c2c2e;
+  color: #f2f2f2;
 }
-[data-theme="ios-light"][data-mode="light"] .site-links-rows {
-  border-color: #c3ceda;
+[data-theme="ios-light"][data-mode="dark"] .site-links-link:hover {
+  background: linear-gradient(180deg, #2c2c2e, #1c1c1e);
 }
-[data-theme="ios-light"][data-mode="light"] .site-links-link {
-  background: linear-gradient(180deg, #ffffff, #f2f5f8);
-  border-bottom-color: #dbe2ea;
-  color: #1c2733;
+[data-theme="ios-light"][data-mode="dark"] .fun-fact-banner {
+  background: linear-gradient(180deg, #1c1c1e, #101012);
+  border-color: #000;
+  color: #f2f2f2;
 }
-[data-theme="ios-light"][data-mode="light"] .site-links-link:hover {
-  background: linear-gradient(180deg, #eef3f8, #dfe7ee);
+[data-theme="ios-light"][data-mode="dark"] .spotlight-panel {
+  background: linear-gradient(160deg, #232325, #101012);
+  border-color: #000;
 }
-[data-theme="ios-light"][data-mode="light"] .fun-fact-banner {
-  background: linear-gradient(180deg, #fafafa, #ececec);
-  border-color: #dcdcdc;
-  color: #1a1a1a;
+[data-theme="ios-light"][data-mode="dark"] .spotlight-name {
+  color: #f2f2f2;
 }
-[data-theme="ios-light"][data-mode="light"] .fun-fact-label {
-  color: #cc0000;
+[data-theme="ios-light"][data-mode="dark"] .spotlight-sub {
+  color: #9a9a9e;
 }
-[data-theme="ios-light"][data-mode="light"] .spotlight-panel {
-  background: linear-gradient(160deg, #fafafa, #e4e4e4);
-  border-color: #d0d0d0;
+[data-theme="ios-light"][data-mode="dark"] .ios-toggle {
+  color: #ccc;
 }
-[data-theme="ios-light"][data-mode="light"] .spotlight-name {
-  color: #1a1a1a;
+[data-theme="ios-light"][data-mode="dark"] .ios-toggle-track {
+  background: linear-gradient(180deg, #3a3a3c, #1c1c1e 50%, #141416);
+  border-color: #000;
 }
-[data-theme="ios-light"][data-mode="light"] .spotlight-sub {
-  color: #606060;
-}
-[data-theme="ios-light"][data-mode="light"] .ios-toggle {
-  color: #666;
-}
-[data-theme="ios-light"][data-mode="light"] .ios-toggle-track {
-  background: linear-gradient(180deg, #d5d5d5, #f0f0f0 50%, #e8e8e8);
-  border-color: #a8a8a8;
-}
-[data-theme="ios-light"][data-mode="light"] .ios-toggle-knob {
-  background: linear-gradient(180deg, #ffffff, #e8e8e8);
+[data-theme="ios-light"][data-mode="dark"] .ios-toggle-knob {
+  background: linear-gradient(180deg, #4a4a4d, #2c2c2e);
 }
 
 [data-theme="ios-dark"] {
@@ -4543,15 +4414,6 @@ footer .copy {
   font-size: 10px;
   letter-spacing: 0.4px;
 }
-[data-theme="ios-light"] .fun-fact-banner {
-  background: linear-gradient(180deg, #1c1c1e, #101012);
-  border-color: #000;
-  color: #f2f2f2;
-}
-[data-theme="ios-light"] .fun-fact-label {
-  color: #ff453a;
-}
-
 /* ---- "Avatar of the Week"-style reviewer spotlight ---- */
 .spotlight-panel {
   display: flex;
@@ -4592,16 +4454,6 @@ footer .copy {
 .spotlight-sub {
   color: #606060;
   font-size: 10.5px;
-}
-[data-theme="ios-light"] .spotlight-panel {
-  background: linear-gradient(160deg, #232325, #101012);
-  border-color: #000;
-}
-[data-theme="ios-light"] .spotlight-name {
-  color: #f2f2f2;
-}
-[data-theme="ios-light"] .spotlight-sub {
-  color: #9a9a9e;
 }
 
 /* ---- Real ON/OFF toggle switch (iOS-style) ---- */
@@ -4815,12 +4667,13 @@ footer .copy {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.4),
     0 0 0 1px var(--chrome-low, #8d8d92);
 }
-/* panel-head-bg is a near-black gradient in this theme, but neither
-   .panel-head nor .panel-head-tab (nor their .tab-the/.tab-main/.see-all
-   children) ever set an explicit text color - they were inheriting the
-   page's default dark body text, which is unreadable on that background. */
-[data-theme="ios-light"] .panel-head,
-[data-theme="ios-light"] .panel-head-tab {
+/* panel-head-bg is light brushed metal by default (matches skeuomorphic-
+   global.css's .sk-panel exactly - one continuous light metal panel, no
+   separate dark head), so panel-head text stays the inherited dark body
+   text. In dark mode panel-head-bg goes dark chrome, so text needs to
+   flip to white there. */
+[data-theme="ios-light"][data-mode="dark"] .panel-head,
+[data-theme="ios-light"][data-mode="dark"] .panel-head-tab {
   color: #ffffff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
@@ -5173,15 +5026,18 @@ footer .copy {
   [data-theme="ios-light"] .apple-nav {
     display: none;
   }
+  /* Top status/nav bar is always dark brushed steel, in both light and
+     dark mode - matches the iPod/YouTube-app top chrome reference
+     exactly and is explicitly exempt from the "no dark fill" rule. */
   [data-theme="ios-light"] .sk-ios-topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 11px 12px;
-    background-color: #1c1010;
-    background-image: linear-gradient(180deg, #4a1512 0%, #240a08 50%, #000000 100%);
-    border-bottom: 1px solid #000;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 3px 8px rgba(0, 0, 0, 0.5);
+    background-color: #5c6773;
+    background-image: linear-gradient(180deg, #8a95a0 0%, #5c6773 50%, #465059 100%);
+    border-bottom: 1px solid #333;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 3px 8px rgba(0, 0, 0, 0.3);
     position: relative;
   }
   [data-theme="ios-light"] .sk-ios-back {
@@ -5228,6 +5084,9 @@ footer .copy {
     cursor: pointer;
     margin-left: auto;
   }
+  /* Bottom tab bar is ALWAYS light gray/white with a blue active state,
+     never a dark/black fill - hard rule, matches the iPod/iTunes/Jessie J
+     reference bottom bars exactly. */
   [data-theme="ios-light"] .sk-ios-tabbar {
     display: flex;
     position: fixed;
@@ -5236,10 +5095,10 @@ footer .copy {
     bottom: 0;
     max-width: 480px;
     margin: 0 auto;
-    background-color: #1c1c1e;
-    background-image: linear-gradient(180deg, #232325, #0d0d0e);
-    border-top: 1px solid #000;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.4);
+    background-color: #eeeeee;
+    background-image: linear-gradient(180deg, #f7f7f7, #e2e2e4);
+    border-top: 1px solid #b5b5ba;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
     z-index: 30;
   }
   [data-theme="ios-light"] .sk-ios-tab {
@@ -5250,7 +5109,7 @@ footer .copy {
     gap: 2px;
     padding: 8px 0 6px;
     cursor: pointer;
-    color: #8a8a8e;
+    color: #7a7a80;
     text-decoration: none;
     background: none;
     border: none;
@@ -5270,11 +5129,11 @@ footer .copy {
     font-weight: 600;
   }
   [data-theme="ios-light"] .sk-ios-tab.active {
-    color: #ff453a;
+    color: var(--link-blue, #2f6fce);
   }
   [data-theme="ios-light"] .sk-ios-tab.active .sk-ios-tab-icon {
     opacity: 1;
-    filter: drop-shadow(0 0 3px rgba(224, 38, 31, 0.6));
+    filter: drop-shadow(0 0 3px rgba(47, 111, 206, 0.5));
   }
   [data-theme="ios-light"] .sk-more-sheet-backdrop {
     display: flex;
@@ -5290,10 +5149,10 @@ footer .copy {
     margin: 0 auto;
     max-height: 70vh;
     overflow-y: auto;
-    background-color: #1c1c1e;
+    background-color: #f4f4f4;
     border-radius: 14px 14px 0 0;
     padding: 10px 0 20px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
   }
   [data-theme="ios-light"] .sk-more-sheet a,
   [data-theme="ios-light"] .sk-more-sheet button {
@@ -5303,7 +5162,7 @@ footer .copy {
     padding: 12px 20px;
     font-size: 14px;
     font-weight: 600;
-    color: #f2f2f2;
+    color: #1a1a1a;
     background: none;
     border: none;
     font-family: inherit;
@@ -5321,34 +5180,28 @@ footer .copy {
   }
   [data-theme="ios-light"] .sk-more-sheet-divider {
     height: 1px;
-    background: #3a3a3c;
+    background: #d0d0d0;
     margin: 6px 16px;
   }
-  [data-theme="ios-light"][data-mode="light"] .sk-ios-topbar {
-    background-color: #5c6773;
-    background-image: linear-gradient(180deg, #8a95a0 0%, #5c6773 50%, #465059 100%);
-    border-bottom: 1px solid #333;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 3px 8px rgba(0, 0, 0, 0.3);
+  [data-theme="ios-light"][data-mode="dark"] .sk-ios-tab {
+    color: #8a8a8e;
   }
-  [data-theme="ios-light"][data-mode="light"] .sk-ios-tab {
-    color: #7a7a80;
+  [data-theme="ios-light"][data-mode="dark"] .sk-ios-tabbar {
+    background-color: #1c1c1e;
+    background-image: linear-gradient(180deg, #232325, #0d0d0e);
+    border-top: 1px solid #000;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.4);
   }
-  [data-theme="ios-light"][data-mode="light"] .sk-ios-tabbar {
-    background-color: #eeeeee;
-    background-image: linear-gradient(180deg, #f7f7f7, #e2e2e4);
-    border-top: 1px solid #b5b5ba;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+  [data-theme="ios-light"][data-mode="dark"] .sk-more-sheet {
+    background-color: #1c1c1e;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
   }
-  [data-theme="ios-light"][data-mode="light"] .sk-more-sheet {
-    background-color: #f4f4f4;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  [data-theme="ios-light"][data-mode="dark"] .sk-more-sheet a,
+  [data-theme="ios-light"][data-mode="dark"] .sk-more-sheet button {
+    color: #f2f2f2;
   }
-  [data-theme="ios-light"][data-mode="light"] .sk-more-sheet a,
-  [data-theme="ios-light"][data-mode="light"] .sk-more-sheet button {
-    color: #1a1a1a;
-  }
-  [data-theme="ios-light"][data-mode="light"] .sk-more-sheet-divider {
-    background: #d0d0d0;
+  [data-theme="ios-light"][data-mode="dark"] .sk-more-sheet-divider {
+    background: #3a3a3c;
   }
 }
 

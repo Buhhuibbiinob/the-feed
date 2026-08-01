@@ -101,7 +101,7 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{if(localStorage.getItem('feedback-mode')==='light')document.documentElement.setAttribute('data-mode','light');}catch(e){}",
+              "try{if(localStorage.getItem('feedback-mode')==='dark')document.documentElement.setAttribute('data-mode','dark');}catch(e){}",
           }}
         />
       </head>
