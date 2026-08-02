@@ -23,6 +23,9 @@ export default function SignUpPage() {
       <div className="auth-card panel">
         <div className="panel-head">Create Account</div>
         <div className="panel-body">
+          <pre style={{ fontSize: 10, background: "#fee", padding: 8, whiteSpace: "pre-wrap" }}>
+            DEBUG state = {JSON.stringify(state)} | typeof error = {typeof state.error} | pending = {String(pending)}
+          </pre>
           {state.error && <div className="form-error">{state.error}</div>}
           {state.message && <div className="form-message">{state.message}</div>}
           <form action={formAction}>
