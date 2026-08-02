@@ -77,6 +77,15 @@ export async function signUp(
     return { error: error.message };
   }
 
+  // Supabase deliberately doesn't return an error for a duplicate email (to
+  // avoid leaking which emails are registered) - instead data.user comes
+  // back with an empty identities array. Without this check, signing up
+  // with an already-used email silently "succeeds" with no account created
+  // and no email sent, while showing the same message as a real signup.
+  if (data.user && data.user.identities && data.user.identities.length === 0) {
+    return { error: "An account with that email already exists. Try signing in instead." };
+  }
+
   if (!data.session) {
     return { message: "Check your email to confirm your account, then sign in." };
   }

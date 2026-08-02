@@ -9,6 +9,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { PreviewPlayer } from "@/components/PreviewPlayer";
 import { SpoilerText } from "@/components/SpoilerText";
 import { AlertModal } from "@/components/AlertModal";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 
 export type PostCardData = {
@@ -24,6 +25,7 @@ export type PostCardData = {
   youtubeVideoId: string | null;
   username: string;
   userId: string;
+  isVerified?: boolean;
 };
 
 const initialState: PostFormState = {};
@@ -189,7 +191,8 @@ export function PostCard({
         )}
         <SpoilerText text={post.body} />
         <div className="post-meta">
-          <Link href={`/profile/${post.username}`}>{post.username}</Link> · {timeAgo(post.createdAt)}
+          <Link href={`/profile/${post.username}`}>{post.username}</Link>
+          {post.isVerified && <VerifiedBadge />} · {timeAgo(post.createdAt)}
         </div>
       </div>
     </div>

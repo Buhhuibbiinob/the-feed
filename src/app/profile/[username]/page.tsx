@@ -10,6 +10,7 @@ import { MEDIA_LABELS, MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { computeTasteMatch } from "@/lib/taste";
 import { earnedBadges, BADGES } from "@/lib/badges";
 import { computeStreak } from "@/lib/streak";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 type ClubMembershipRow = {
   clubs: { id: string; media_type: MediaType; name: string } | null;
@@ -22,6 +23,10 @@ type ProfileRow = {
   bio: string | null;
   banner_url: string | null;
   created_at: string;
+  is_verified: boolean;
+  bonus_followers: number;
+  bonus_likes: number;
+  name_color: string | null;
 };
 
 type StatusRow = {
@@ -59,7 +64,7 @@ export default async function ProfilePage({
 
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("id, username, avatar_url, bio, banner_url, created_at")
+    .select("id, username, avatar_url, bio, banner_url, created_at, is_verified, bonus_followers, bonus_likes, name_color")
     .eq("username", username)
     .maybeSingle();
 
@@ -127,6 +132,10 @@ export default async function ProfilePage({
   const breakdown: Record<MediaType, number> = { music: 0, movie_tv: 0 };
   for (const post of posts) breakdown[post.media_type]++;
 
+  const realLikesReceived = posts.reduce((sum, post) => sum + (likeCounts.get(post.id) ?? 0), 0);
+  const totalLikesReceived = realLikesReceived + (profile.bonus_likes ?? 0);
+  const totalFollowerCount = (followerCount ?? 0) + (profile.bonus_followers ?? 0);
+
   const isOwnProfile = user?.id === profile.id;
   const badges = earnedBadges(posts.length);
   const nextBadge = BADGES.find((b) => b.threshold > posts.length) ?? null;
@@ -189,7 +198,10 @@ export default async function ProfilePage({
             className="profile-avatar"
           />
           <div className="profile-info">
-            <div className="profile-username">{profile.username}</div>
+            <div className="profile-username" style={profile.name_color ? { color: profile.name_color } : undefined}>
+              {profile.username}
+              {profile.is_verified && <VerifiedBadge />}
+            </div>
             {profile.bio && <div className="profile-bio">{profile.bio}</div>}
             {status?.status_media_type && (
               <div className="profile-status">
@@ -200,8 +212,9 @@ export default async function ProfilePage({
             )}
             <div className="profile-counts">
               <span>{posts.length} reviews</span>
-              <span>{followerCount ?? 0} followers</span>
+              <span>{totalFollowerCount} followers</span>
               <span>{followingCount ?? 0} following</span>
+              <span>{totalLikesReceived} likes</span>
               {tasteMatch !== null && <span className="taste-match">{tasteMatch}% taste match</span>}
               {streak > 1 && <span className="streak-count">{streak} day streak</span>}
             </div>

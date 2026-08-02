@@ -87,6 +87,8 @@ export function SiteHeader({
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const mobileMoreBtnRef = useRef<HTMLButtonElement>(null);
+  const mobileSheetRef = useRef<HTMLDivElement>(null);
 
   const hidden = new Set(hiddenSlugs);
   const showChat = !hidden.has("chat");
@@ -103,12 +105,22 @@ export function SiteHeader({
   useEffect(() => {
     if (!moreOpen) return;
     function handleClickOutside(e: MouseEvent) {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const insideDesktop = moreRef.current && moreRef.current.contains(target);
+      const insideMobileBtn = mobileMoreBtnRef.current && mobileMoreBtnRef.current.contains(target);
+      const insideMobileSheet = mobileSheetRef.current && mobileSheetRef.current.contains(target);
+      if (!insideDesktop && !insideMobileBtn && !insideMobileSheet) {
         setMoreOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    // click (not mousedown/touchstart) - fires only after the browser has
+    // resolved the gesture, so it can't race a tap's own navigation/toggle
+    // the way touchstart does (touchstart fires the instant a finger lands,
+    // before the browser even knows it's a tap vs. a scroll).
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
   }, [moreOpen]);
 
   const [prevPathname, setPrevPathname] = useState(pathname);
@@ -256,6 +268,7 @@ export function SiteHeader({
         )}
         <button
           type="button"
+          ref={mobileMoreBtnRef}
           className={`sk-ios-tab ${isMoreActive || moreOpen ? "active" : ""}`}
           onClick={() => setMoreOpen((open) => !open)}
         >
@@ -267,8 +280,8 @@ export function SiteHeader({
       </div>
 
       {moreOpen && (
-        <div className="sk-more-sheet-backdrop" onClick={() => setMoreOpen(false)}>
-          <div className="sk-more-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sk-more-sheet-backdrop">
+          <div className="sk-more-sheet" ref={mobileSheetRef}>
             <form action="/search" method="get" className="nav-search sk-more-sheet-search">
               <input type="search" name="q" placeholder="Search Feedback" aria-label="Search" />
             </form>

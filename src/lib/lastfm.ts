@@ -14,6 +14,16 @@ type RawLastfmTrack = {
   image?: { size: string; "#text": string }[];
 };
 
+// Last.fm returns this same placeholder image hash for every track that
+// doesn't have real cover art uploaded to their catalog, instead of an
+// empty string - so a plain falsy check doesn't catch it.
+const LASTFM_PLACEHOLDER_HASH = "2a96cbd8b46e442fc41c2b86b821562f";
+
+function realImageUrl(url: string | undefined): string | null {
+  if (!url || url.includes(LASTFM_PLACEHOLDER_HASH)) return null;
+  return url;
+}
+
 export async function getTrendingTracks(limit = 20): Promise<LastfmTrack[]> {
   const apiKey = process.env.LASTFM_API_KEY;
   if (!apiKey) return [];
@@ -34,7 +44,7 @@ export async function getTrendingTracks(limit = 20): Promise<LastfmTrack[]> {
         id: `${t.artist?.name}-${t.name}`,
         name: t.name,
         artist: t.artist!.name!,
-        imageUrl: t.image?.find((i) => i.size === "extralarge")?.["#text"] || null,
+        imageUrl: realImageUrl(t.image?.find((i) => i.size === "extralarge")?.["#text"]),
       }));
   } catch {
     return [];

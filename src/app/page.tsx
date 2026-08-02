@@ -7,6 +7,7 @@ import { FollowingToggle } from "@/components/FollowingToggle";
 import { OrbyBot, type OrbyCandidate } from "@/components/OrbyBot";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
+import { fillMissingArt } from "@/lib/musicArt";
 import type { MediaType } from "@/lib/media";
 import { getAllSiteText } from "@/lib/siteContent";
 
@@ -22,7 +23,7 @@ type PostRow = {
   cover_url: string | null;
   spotify_track_id: string | null;
   youtube_video_id: string | null;
-  profiles: { username: string; avatar_url: string | null } | null;
+  profiles: { username: string; avatar_url: string | null; is_verified: boolean } | null;
 };
 
 type ChatPreviewRow = {
@@ -111,7 +112,7 @@ export default async function FeedPage({
     supabase
       .from("posts")
       .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username, avatar_url)"
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username, avatar_url, is_verified)"
       )
       .order("created_at", { ascending: false })
       .limit(50)
@@ -216,7 +217,8 @@ export default async function FeedPage({
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(0, 5);
 
-  const newReleases: ShelfItem[] = trendingTracks.map((track) => ({
+  const trendingTracksWithArt = await fillMissingArt(trendingTracks);
+  const newReleases: ShelfItem[] = trendingTracksWithArt.map((track) => ({
     id: track.id,
     title: track.name,
     subtitle: track.artist,
@@ -509,6 +511,7 @@ export default async function FeedPage({
                       spotifyTrackId: post.spotify_track_id,
                       youtubeVideoId: post.youtube_video_id,
                       username: post.profiles?.username ?? "unknown",
+                      isVerified: post.profiles?.is_verified ?? false,
                     }}
                     currentUserId={user?.id ?? null}
                     liked={likedByMe.has(post.id)}
