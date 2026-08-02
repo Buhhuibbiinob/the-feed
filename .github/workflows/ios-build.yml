@@ -49,8 +49,9 @@ jobs:
       - name: Boot Simulator and smoke-test launch
         run: |
           set -e
-          RUNTIME=$(xcrun simctl list runtimes | grep iOS | tail -1 | awk -F'-- ' '{print $2}' | tr -d '() ')
-          DEVICE_ID=$(xcrun simctl create "CI iPhone" "iPhone 16" "$RUNTIME")
+          DEVICE_ID=$(xcrun simctl list devices available -j \
+            | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(dev['udid'] for runtime in d.values() for dev in runtime if dev['name']=='iPhone 16'))")
+          echo "Using simulator $DEVICE_ID"
           xcrun simctl boot "$DEVICE_ID"
           xcrun simctl install "$DEVICE_ID" "ios/App/build/Build/Products/Debug-iphonesimulator/App.app"
           xcrun simctl launch "$DEVICE_ID" com.mythefeed.app
