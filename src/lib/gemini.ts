@@ -1,6 +1,9 @@
 // Thin wrapper around Google's Gemini API (free tier via Google AI Studio).
 // Server-only - GEMINI_API_KEY must never reach the client.
-const MODEL = "gemini-2.0-flash";
+// gemini-2.0-flash was shut down by Google on 2026-06-01 (silently returned
+// errors instead of a clear "model retired" message, which is what made
+// this so hard to diagnose) - gemini-3.6-flash is the current stable model.
+const MODEL = "gemini-3.6-flash";
 
 type GeminiResult = { ok: true; text: string } | { ok: false; error: string };
 
@@ -42,7 +45,14 @@ async function callGemini(
 
 export async function askGemini(systemInstruction: string, userMessage: string): Promise<string | null> {
   const result = await callGemini(systemInstruction, userMessage, { maxOutputTokens: 300 });
-  return result.ok ? result.text : null;
+  if (!result.ok) {
+    // Callers fall back silently to keep the UX smooth, so this is the only
+    // place the real reason (quota, missing key, bad model name, etc.)
+    // shows up anywhere - check Vercel's function logs for it.
+    console.error(`[gemini] ${result.error}`);
+    return null;
+  }
+  return result.text;
 }
 
 // Requests structured JSON output (Gemini's native JSON mode, not just
@@ -50,10 +60,14 @@ export async function askGemini(systemInstruction: string, userMessage: string):
 // so callers can fall back cleanly instead of crashing on bad JSON.
 export async function askGeminiJson<T>(systemInstruction: string, userMessage: string): Promise<T | null> {
   const result = await callGemini(systemInstruction, userMessage, { responseMimeType: "application/json" });
-  if (!result.ok) return null;
+  if (!result.ok) {
+    console.error(`[gemini] ${result.error}`);
+    return null;
+  }
   try {
     return JSON.parse(result.text) as T;
-  } catch {
+  } catch (err) {
+    console.error(`[gemini] JSON parse failed: ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
 }
