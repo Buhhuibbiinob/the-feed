@@ -245,6 +245,7 @@ export default async function FeedPage({
       poster: true,
       imageUrl: p.cover_url ?? undefined,
       href: `/post/${p.id}`,
+      rating: p.rating,
     }));
 
   const banners = (["music", "movie_tv"] as const).map((mediaType) => {

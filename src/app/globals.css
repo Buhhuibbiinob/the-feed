@@ -980,67 +980,63 @@ a:hover {
   color: #c7c7cc;
 }
 
-/* ---- DVD-case shelf (Now Watching): a real horizontal shelf of leaning
-   cases, not a grid - spine visible on the left edge of each case,
-   overlapping the next one, resting on a shelf-ledge shadow. Clicking a
-   case is real navigation to the review (via Link), not a label toggle. */
-.sk-dvd-shelf {
+/* ---- DVD-case shelf (Now Watching): a real pile of DVD cases lying flat,
+   stacked directly on top of each other and seen edge-on - each case is a
+   horizontal spine bar with a sliver of its cover art on the left and the
+   title running across it, exactly like a stack of DVDs on a shelf.
+   Clicking a spine is real navigation to the review (via Link). */
+.sk-dvd-stack {
   display: flex;
-  align-items: flex-end;
-  gap: 0;
-  overflow-x: auto;
-  padding: 20px 24px 26px;
-  border-bottom: 6px solid #8d8d92;
-  border-image: linear-gradient(90deg, #6f6f74, #b5b5ba 50%, #6f6f74) 1;
-  box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.4) inset;
-}
-.sk-dvd-item {
-  flex-shrink: 0;
-  width: 100px;
-  text-align: center;
-  margin-left: -18px;
-}
-.sk-dvd-item:first-child {
-  margin-left: 0;
-}
-.sk-dvd-case {
-  display: flex;
-  width: 108px;
-  height: 150px;
-  border-radius: 2px;
+  flex-direction: column;
+  border: 1px solid #1a1a1a;
+  border-radius: 3px;
   overflow: hidden;
-  box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.15) inset;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+.sk-dvd-spine-case {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 12px 0 0;
+  background: linear-gradient(180deg, #3a3a3d, #1c1c1e);
+  border-bottom: 1px solid #000;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
   position: relative;
-  z-index: 1;
 }
-.sk-dvd-shelf .sk-dvd-item:hover .sk-dvd-case {
-  transform: translateY(-6px) rotate(-1deg);
-  box-shadow: 4px 10px 16px rgba(0, 0, 0, 0.55);
-  z-index: 5;
+.sk-dvd-spine-case:hover {
+  background: linear-gradient(180deg, #4a4a4e, #28282a);
 }
-.sk-dvd-spine {
-  width: 10px;
+.sk-dvd-spine-case:last-child {
+  border-bottom: none;
+}
+.sk-dvd-thumb {
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
-  background: linear-gradient(90deg, #1a1a1a, #3a3a3d 40%, #1a1a1a);
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.08) inset;
-}
-.sk-dvd-cover {
-  flex: 1;
   background-color: #2a2a2a;
   background-size: cover;
   background-position: center;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.5);
 }
-.sk-dvd-caption {
-  margin-top: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text, #1a1a1a);
+.sk-dvd-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.sk-dvd-rating {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #ffd54a;
+  letter-spacing: -1px;
 }
 
 /* ---- Connect accounts ---- */

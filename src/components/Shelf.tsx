@@ -11,11 +11,20 @@ export type ShelfItem = {
   poster?: boolean;
   imageUrl?: string;
   href?: string;
+  rating?: number | null;
 };
 
+function stars(rating: number) {
+  return "★".repeat(rating) + "☆".repeat(5 - rating);
+}
+
+// A pile of DVD cases lying flat, stacked one on top of the other and seen
+// edge-on - each case is a horizontal spine bar with a sliver of its cover
+// art on the left and the title running across it, like a real stack of
+// DVDs on a shelf.
 function DvdCaseShelf({ items }: { items: ShelfItem[] }) {
   return (
-    <div className="sk-dvd-shelf">
+    <div className="sk-dvd-stack">
       {items.map((item) => {
         const image = item.imageUrl ? `url(${item.imageUrl})` : coverGradient(item.id);
         const imageStyle = item.imageUrl
@@ -23,22 +32,18 @@ function DvdCaseShelf({ items }: { items: ShelfItem[] }) {
           : { backgroundImage: image };
         const inner = (
           <>
-            <div className="sk-dvd-spine" />
-            <div className="sk-dvd-cover" style={imageStyle} />
+            <div className="sk-dvd-thumb" style={imageStyle} />
+            <div className="sk-dvd-title">{item.title}</div>
+            {item.rating ? <div className="sk-dvd-rating">{stars(item.rating)}</div> : null}
           </>
         );
-        return (
-          <div className="sk-dvd-item" key={item.id}>
-            {item.href ? (
-              <Link href={item.href} className="sk-dvd-case" title={`${item.title} - ${item.subtitle}`}>
-                {inner}
-              </Link>
-            ) : (
-              <div className="sk-dvd-case" title={`${item.title} - ${item.subtitle}`}>
-                {inner}
-              </div>
-            )}
-            <div className="sk-dvd-caption">{item.title}</div>
+        return item.href ? (
+          <Link href={item.href} className="sk-dvd-spine-case" key={item.id} title={`${item.title} - ${item.subtitle}`}>
+            {inner}
+          </Link>
+        ) : (
+          <div className="sk-dvd-spine-case" key={item.id} title={`${item.title} - ${item.subtitle}`}>
+            {inner}
           </div>
         );
       })}

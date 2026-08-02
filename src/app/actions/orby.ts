@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { askGemini } from "@/lib/gemini";
+import { askGeminiDebug } from "@/lib/gemini";
 import { getTrendingTracks } from "@/lib/lastfm";
 
 const SYSTEM_PROMPT_BASE = `You are Orby, a friendly recommendation assistant on Feedback, a music/movie/TV review community site. You ONLY discuss and recommend music, movies, TV shows, underground/indie artists, and short films - nothing else. If asked about anything off-topic, politely redirect back to recommendations in one short sentence and don't answer the off-topic part.
@@ -39,8 +39,11 @@ export async function askOrby(message: string): Promise<string> {
     .join("\n\n");
 
   const systemPrompt = candidateText ? `${SYSTEM_PROMPT_BASE}\n\n${candidateText}` : SYSTEM_PROMPT_BASE;
-  const reply = await askGemini(systemPrompt, trimmed);
-  if (reply) return reply;
+  const result = await askGeminiDebug(systemPrompt, trimmed);
+  if (result.ok) return result.text;
+  // TEMPORARY: surface the real error so we can diagnose why Gemini isn't
+  // working in production. Remove this line once confirmed working.
+  return `[DEBUG: ${result.error}]`;
 
   // Fallback for when GEMINI_API_KEY isn't configured yet, or the call
   // fails. Without Gemini there's no real movie/TV data source anymore
