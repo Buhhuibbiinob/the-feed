@@ -1018,3 +1018,19 @@ drop policy if exists "Admins can delete site pages" on public.site_pages;
 create policy "Admins can delete site pages"
   on public.site_pages for delete
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- general verified badge, admin stat boosts, custom name color ----------
+-- Separate from is_verified_artist (which is specific to the Artists/Creators
+-- page) - this is a general "verified" checkmark shown next to a user's name
+-- everywhere: profile, post cards, comments, chat. bonus_followers/
+-- bonus_likes are admin-set numbers added on top of the real counts, purely
+-- cosmetic. name_color lets admin give any profile (typically their own) a
+-- custom username color sitewide.
+alter table public.profiles add column if not exists is_verified boolean not null default false;
+alter table public.profiles add column if not exists bonus_followers integer not null default 0;
+alter table public.profiles add column if not exists bonus_likes integer not null default 0;
+alter table public.profiles add column if not exists name_color text;
+
+-- ---------- pinned posts ----------
+alter table public.posts add column if not exists pinned boolean not null default false;
+

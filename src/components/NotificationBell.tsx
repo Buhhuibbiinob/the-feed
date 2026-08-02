@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type NotificationItem = {
   id: string;
@@ -28,6 +29,13 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
   const [items, setItems] = useState<NotificationItem[] | null>(null);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    if (open) setOpen(false);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -81,7 +89,6 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
                 key={item.id}
                 href={item.postId ? `/post/${item.postId}` : `/profile/${item.actorUsername}`}
                 className="nav-bell-row"
-                onClick={() => setOpen(false)}
               >
                 <img
                   src={item.actorAvatarUrl || "/avatars/preset-1.svg"}

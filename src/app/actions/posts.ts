@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { findOrCreateClub } from "@/lib/clubs";
+import { checkReviewSafety } from "@/lib/contentSafety";
 
 export type PostFormState = {
   error?: string;
@@ -41,6 +42,10 @@ export async function createPost(
   }
   if (rating !== null && (rating < 1 || rating > 5)) {
     return { error: "Rating must be between 1 and 5." };
+  }
+  const bodySafety = checkReviewSafety(body);
+  if (!bodySafety.allowed) {
+    return { error: bodySafety.reason };
   }
 
   const clubName = mediaType === "music" ? artist : title;
@@ -176,6 +181,10 @@ export async function updatePost(
   }
   if (rating !== null && (rating < 1 || rating > 5)) {
     return { error: "Rating must be between 1 and 5." };
+  }
+  const bodySafety = checkReviewSafety(body);
+  if (!bodySafety.allowed) {
+    return { error: bodySafety.reason };
   }
 
   const { error } = await supabase

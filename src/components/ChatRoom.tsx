@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { reportMessage, blockUser, unblockUser, deleteOwnMessage } from "@/app/actions/moderation";
 import { adminDeleteMessage } from "@/app/actions/admin";
+import { sendChatMessage } from "@/app/actions/chat";
 
 export type ChatMessage = {
   id: string;
@@ -41,6 +42,7 @@ export function ChatRoom({
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
+  const [chatError, setChatError] = useState<string | null>(null);
   const [blocked, setBlocked] = useState(new Set(blockedIds));
   const [reportedIds, setReportedIds] = useState(new Set<string>());
   const usernameCache = useRef(new Map<string, string>());
@@ -112,15 +114,12 @@ export function ChatRoom({
     const body = draft.trim();
     if (!body || !userId) return;
     setDraft("");
+    setChatError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.from("chat_messages").insert({
-      user_id: userId,
-      body,
-      club_id: clubId,
-    });
-    if (error) {
-      console.error(error.message);
+    const result = await sendChatMessage(body, clubId);
+    if (result.error) {
+      setChatError(result.error);
+      setDraft(body);
     }
   }
 
@@ -204,6 +203,7 @@ export function ChatRoom({
       </div>
       {userId ? (
         <>
+          {chatError && <div className="form-error">{chatError}</div>}
           <form
             className="chat-input"
             onSubmit={(e) => {
@@ -233,7 +233,7 @@ export function ChatRoom({
                 >
                   <input type="hidden" name="blocked_id" value={id} />
                   <button type="submit" className="comment-action">
-                    {usernameCache.current.get(id) ?? "user"} (unblock)
+                    {messages.find((m) => m.userId === id)?.username ?? "user"} (unblock)
                   </button>
                 </form>
               ))}

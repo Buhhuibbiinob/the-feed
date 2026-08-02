@@ -156,7 +156,6 @@ export function SiteHeader({
                   key={link.href}
                   href={link.href}
                   className={pathname === link.href || pathname.startsWith(`${link.href}/`) ? "active" : ""}
-                  onClick={() => setMoreOpen(false)}
                 >
                   {link.label}
                 </Link>

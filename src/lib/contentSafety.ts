@@ -52,13 +52,10 @@ const COLLAPSED_BLOCKLIST = [
   "discord",
 ];
 
-// Curated profanity/slur/hate-speech token list, checked against the
-// separator-collapsed text so common evasions ("f.u.c.k", "n1gg3r"-style
-// leetspeak swaps handled via the char-class variants below) still match.
-// Starting set covering the most common severe terms - expand this list as
-// real reports come in from the Report button rather than trying to
-// enumerate every variant up front.
-const PROFANITY_HATE_TOKENS = [
+// General profanity - allowed in reviews and live chat (cussing in a review
+// is fine), but still blocked in usernames/bios/DMs alongside the hate list
+// below.
+const GENERAL_PROFANITY_TOKENS = [
   "fuck",
   "shit",
   "bitch",
@@ -69,6 +66,15 @@ const PROFANITY_HATE_TOKENS = [
   "bastard",
   "dick",
   "pussy",
+];
+
+// Hateful slurs/severe terms - blocked everywhere, including reviews and
+// live chat where general profanity is otherwise allowed. Checked against
+// the separator-collapsed text so common evasions ("f.u.c.k", spaced-out
+// letters) still match. Starting set covering the most common severe
+// terms - expand this list as real reports come in from the Report button
+// rather than trying to enumerate every variant up front.
+const HATE_SLUR_TOKENS = [
   "nigger",
   "nigga",
   "faggot",
@@ -88,13 +94,34 @@ const PROFANITY_HATE_TOKENS = [
 ];
 
 const HATE_PHRASE_RE =
-  /\b(kill\s+all\s+\w+|go\s+back\s+to\s+your\s+country|all\s+\w+\s+should\s+die|white\s+power|black\s+power\s+kill)\b/i;
+  /\b(kill\s+all\s+\w+|go\s+back\s+to\s+your\s+country|all\s+\w+\s+should\s+die|white\s+power|black\s+power\s+kill|kill\s*your\s*self|kys|nobody\s+likes\s+you|go\s+die)\b/i;
 
 const PHONE_ONLY_RE = /(?:\+?\d[\s.-]?){7,}/;
 
+function containsHateSpeech(text: string): boolean {
+  const collapsed = collapseSeparators(text);
+  return HATE_SLUR_TOKENS.some((word) => collapsed.includes(word)) || HATE_PHRASE_RE.test(text);
+}
+
 function containsProfanityOrHate(text: string): boolean {
   const collapsed = collapseSeparators(text);
-  return PROFANITY_HATE_TOKENS.some((word) => collapsed.includes(word)) || HATE_PHRASE_RE.test(text);
+  return (
+    GENERAL_PROFANITY_TOKENS.some((word) => collapsed.includes(word)) ||
+    HATE_SLUR_TOKENS.some((word) => collapsed.includes(word)) ||
+    HATE_PHRASE_RE.test(text)
+  );
+}
+
+// "Just a letter" / low-effort junk: a single character, a run of the same
+// character repeated, or a string with no letters at all (punctuation mash).
+const LOW_EFFORT_RE = /^(.)\1*$/;
+
+function isLowEffort(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < 2) return true;
+  if (LOW_EFFORT_RE.test(trimmed.replace(/\s+/g, ""))) return true;
+  if (!/[a-zA-Z]/.test(trimmed)) return true;
+  return false;
 }
 
 // Usernames: letters, numbers, underscore, period only, 3-20 chars. Keeps
@@ -170,5 +197,36 @@ export function checkMessageSafety(text: string): SafetyCheck {
     return { allowed: false, reason: "Messages can't include bullying or harassment." };
   }
 
+  return { allowed: true };
+}
+
+// Reviews and live chat hold cussing to a lower bar than DMs/usernames -
+// general profanity is fine, but hateful slurs, harassment, and low-effort
+// "just a letter" junk responses still aren't.
+export function checkReviewSafety(text: string): SafetyCheck {
+  const trimmed = text.trim();
+  if (isLowEffort(trimmed)) {
+    return { allowed: false, reason: "Write a real review - not just a single character or symbols." };
+  }
+  if (containsHateSpeech(trimmed)) {
+    return { allowed: false, reason: "Reviews can't include hateful language or slurs." };
+  }
+  if (BULLYING_RE.test(trimmed)) {
+    return { allowed: false, reason: "Reviews can't include bullying or harassment." };
+  }
+  return { allowed: true };
+}
+
+export function checkChatSafety(text: string): SafetyCheck {
+  const trimmed = text.trim();
+  if (isLowEffort(trimmed)) {
+    return { allowed: false, reason: "Write a real message - not just a single character or symbols." };
+  }
+  if (containsHateSpeech(trimmed)) {
+    return { allowed: false, reason: "Chat can't include hateful language or slurs." };
+  }
+  if (BULLYING_RE.test(trimmed)) {
+    return { allowed: false, reason: "Chat can't include bullying or harassment." };
+  }
   return { allowed: true };
 }
