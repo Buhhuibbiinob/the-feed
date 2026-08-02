@@ -3,9 +3,29 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { NEWSLETTER_SECTIONS, getIssueById, renderIssueHtml } from "@/lib/newsletter";
 import { sendBulkEmail } from "@/lib/email";
+
+// Every registered account's email, not just the public "get notified"
+// waitlist - paginated since the admin API caps each page.
+async function getAllAccountEmails(): Promise<string[]> {
+  const admin = createAdminClient();
+  const emails: string[] = [];
+  let page = 1;
+  const perPage = 1000;
+  while (true) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error || !data) break;
+    for (const u of data.users) {
+      if (u.email) emails.push(u.email);
+    }
+    if (data.users.length < perPage) break;
+    page++;
+  }
+  return emails;
+}
 
 export type NewsletterFormState = { error?: string; ok?: boolean };
 export type NewsletterSendState = { error?: string; ok?: boolean; sent?: number };
@@ -106,7 +126,9 @@ export async function sendNewsletterIssue(
   if (!issue) return { error: "Issue not found." };
 
   const { data: subscriberRows } = await supabase.from("waitlist_signups").select("email");
-  const emails = (subscriberRows ?? []).map((r) => r.email as string);
+  const waitlistEmails = (subscriberRows ?? []).map((r) => r.email as string);
+  const accountEmails = await getAllAccountEmails();
+  const emails = [...new Set([...waitlistEmails, ...accountEmails].map((e) => e.toLowerCase()))];
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mythefeed.com";
   const html = renderIssueHtml(issue, siteUrl);

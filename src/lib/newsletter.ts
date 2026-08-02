@@ -95,21 +95,50 @@ function escapeHtml(text: string): string {
 
 export function renderIssueHtml(issue: NewsletterIssue, siteUrl: string): string {
   const sections = NEWSLETTER_SECTIONS.filter((s) => issue[s.key]);
+  const dateline = new Date(issue.issue_date).toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   const body = sections
     .map(
-      (s) =>
-        `<h2 style="font-size:15px;margin:24px 0 6px;">${escapeHtml(s.label)}</h2>` +
-        `<p style="margin:0;white-space:pre-wrap;">${escapeHtml(issue[s.key]!)}</p>`
+      (s, i) =>
+        `<tr><td style="padding:${i === 0 ? "26" : "22"}px 30px 0;">` +
+        `<div style="border-top:2px solid #1a1a1a; padding-top:10px;">` +
+        `<h2 style="font-family:Georgia,'Times New Roman',serif; font-size:13px; font-weight:bold; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 8px; color:#1a1a1a;">${escapeHtml(s.label)}</h2>` +
+        `<p style="font-family:Georgia,'Times New Roman',serif; font-size:15px; line-height:1.6; margin:0; color:#2a2a2a; white-space:pre-wrap;">${escapeHtml(issue[s.key]!)}</p>` +
+        `</div></td></tr>`
     )
     .join("");
 
   return (
-    `<div style="font-family:Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a;">` +
-    `<h1 style="font-size:20px;margin-bottom:4px;">${escapeHtml(issue.title)}</h1>` +
-    `<p style="color:#606060;font-size:12px;margin-top:0;">${issue.issue_date}</p>` +
-    (body || `<p>No sections filled in for this issue.</p>`) +
-    `<p style="margin-top:32px;font-size:11px;color:#999;">` +
-    `You're receiving this because you subscribed at <a href="${siteUrl}">Feedback</a>.</p>` +
-    `</div>`
+    `<div style="background-color:#e8eaf0; padding:30px 12px; font-family:Georgia,'Times New Roman',serif;">` +
+    `<table role="presentation" width="600" cellpadding="0" cellspacing="0" align="center" style="max-width:600px; width:100%; background-color:#fdfcf8; border:1px solid #8d8d92; border-radius:8px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,0.25);">` +
+
+    // Masthead: brushed-steel chrome bar, matching the site's app-shell top bar
+    `<tr><td style="background-color:#5c6773; background-image:linear-gradient(180deg,#8a95a0 0%,#5c6773 50%,#465059 100%); padding:20px 24px; text-align:center;">` +
+    `<div style="font-family:Georgia,'Times New Roman',serif; font-size:34px; font-weight:bold; letter-spacing:2px; color:#ffffff; text-shadow:0 1px 2px rgba(0,0,0,0.5);">FEEDBACK</div>` +
+    `<div style="font-family:Georgia,'Times New Roman',serif; font-size:11px; font-style:italic; color:#e2e6ea; margin-top:4px;">The Weekly Wrap-Up &middot; ${escapeHtml(dateline)}</div>` +
+    `</td></tr>` +
+
+    // Double newspaper rule under the masthead
+    `<tr><td style="padding:14px 30px 0;"><div style="border-top:3px double #1a1a1a;"></div></td></tr>` +
+
+    // Headline
+    `<tr><td style="padding:16px 30px 0; text-align:center;">` +
+    `<h1 style="font-family:Georgia,'Times New Roman',serif; font-size:26px; font-weight:bold; margin:0; color:#1a1a1a; line-height:1.25;">${escapeHtml(issue.title)}</h1>` +
+    `</td></tr>` +
+
+    (body || `<tr><td style="padding:22px 30px 0; font-family:Georgia,'Times New Roman',serif; color:#606060;">No sections filled in for this issue.</td></tr>`) +
+
+    // Footer
+    `<tr><td style="padding:30px 30px 24px;">` +
+    `<div style="border-top:1px solid #c8c8c8; padding-top:14px; text-align:center;">` +
+    `<span style="font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; font-size:11px; color:#9a9a9a;">You're receiving this because you have an account or subscribed at <a href="${siteUrl}" style="color:#2f6fce;">Feedback</a>.</span>` +
+    `</div></td></tr>` +
+
+    `</table></div>`
   );
 }

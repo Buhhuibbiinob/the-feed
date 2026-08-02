@@ -13,12 +13,15 @@ export default async function NewsletterArchivePage() {
 
   return (
     <>
-      <div className="page-header">
-        <h1>The Feedback Weekly</h1>
-        <div className="tagline">
-          Upcoming releases, underground artists, up-and-coming actors, short films, and the artist and
-          filmmaker of the week - updated every weekend.
+      <div className="panel">
+        <div className="newsletter-masthead">
+          <h1 className="newsletter-masthead-title">THE FEEDBACK WEEKLY</h1>
+          <div className="newsletter-masthead-sub">
+            Upcoming releases, underground artists, up-and-coming actors, short films, and the artist and
+            filmmaker of the week &middot; updated every weekend
+          </div>
         </div>
+        <hr className="newsletter-rule" />
       </div>
 
       <div className="panel">

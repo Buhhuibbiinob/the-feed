@@ -24,30 +24,32 @@ export default async function NewsletterIssuePage({
 
   return (
     <>
-      <div className="page-header">
-        <h1>{issue.title}</h1>
-        <div className="tagline">
-          {issue.issue_date}
-          {issue.status === "draft" && " - draft preview"}
+      <div className="panel">
+        <div className="newsletter-masthead">
+          <h1 className="newsletter-masthead-title">FEEDBACK</h1>
+          <div className="newsletter-masthead-sub">
+            The Weekly Wrap-Up &middot; {issue.issue_date}
+            {issue.status === "draft" && " - draft preview"}
+          </div>
         </div>
-      </div>
+        <hr className="newsletter-rule" />
+        <div className="newsletter-headline">{issue.title}</div>
 
-      {sections.length === 0 ? (
-        <div className="panel">
-          <div className="panel-body">
-            <p className="empty-state">This issue doesn&apos;t have any sections filled in yet.</p>
+        {sections.length === 0 ? (
+          <div className="empty-state" style={{ padding: 16 }}>
+            This issue doesn&apos;t have any sections filled in yet.
           </div>
-        </div>
-      ) : (
-        sections.map((section) => (
-          <div className="panel" key={section.key}>
-            <div className="panel-head">{section.label}</div>
-            <div className="panel-body">
-              <p style={{ whiteSpace: "pre-wrap" }}>{issue[section.key]}</p>
-            </div>
+        ) : (
+          <div style={{ paddingBottom: 20 }}>
+            {sections.map((section) => (
+              <div className="newsletter-section" key={section.key}>
+                <div className="newsletter-section-title">{section.label}</div>
+                <p className="newsletter-section-body">{issue[section.key]}</p>
+              </div>
+            ))}
           </div>
-        ))
-      )}
+        )}
+      </div>
     </>
   );
 }
