@@ -996,47 +996,58 @@ a:hover {
 .sk-dvd-spine-case {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 48px;
-  padding: 0 12px 0 0;
-  background: linear-gradient(180deg, #3a3a3d, #1c1c1e);
+  justify-content: center;
+  height: 56px;
+  padding: 0 14px;
+  background-color: #2a2a2a;
+  background-size: cover;
+  background-position: center;
   border-bottom: 1px solid #000;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
   text-decoration: none;
   cursor: pointer;
   position: relative;
+  overflow: hidden;
 }
-.sk-dvd-spine-case:hover {
-  background: linear-gradient(180deg, #4a4a4e, #28282a);
+.sk-dvd-spine-case::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55));
+  pointer-events: none;
+}
+.sk-dvd-spine-case:hover::before {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4));
 }
 .sk-dvd-spine-case:last-child {
   border-bottom: none;
 }
 .sk-dvd-thumb {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  background-color: #2a2a2a;
-  background-size: cover;
-  background-position: center;
-  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.5);
+  display: none;
 }
 .sk-dvd-title {
+  position: relative;
+  z-index: 1;
   flex: 1;
-  font-size: 14px;
+  text-align: center;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.3px;
   color: #fff;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85), 0 0 12px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .sk-dvd-rating {
+  position: relative;
+  z-index: 1;
   flex-shrink: 0;
   font-size: 11px;
   color: #ffd54a;
   letter-spacing: -1px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  margin-left: 8px;
 }
 
 /* ---- Connect accounts ---- */

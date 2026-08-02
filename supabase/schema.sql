@@ -1044,3 +1044,11 @@ alter table public.profiles add column if not exists notifications_seen_at times
 -- ---------- pinned posts ----------
 alter table public.posts add column if not exists pinned boolean not null default false;
 
+-- ---------- Orby daily use limit ----------
+-- Orby calls the Gemini API, which has a rate-limited free-tier quota, so
+-- each signed-in user gets a capped number of Orby messages per calendar
+-- day. orby_use_date is the day the count applies to; the count resets to 0
+-- the first time a user messages Orby on a new day.
+alter table public.profiles add column if not exists orby_use_count integer not null default 0;
+alter table public.profiles add column if not exists orby_use_date date;
+
