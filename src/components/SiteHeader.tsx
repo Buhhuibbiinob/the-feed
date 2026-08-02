@@ -7,15 +7,9 @@ import { signOut } from "@/app/actions/auth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LightDarkToggle } from "@/components/LightDarkToggle";
 
-const MORE_LINKS = [
-  { href: "/new-releases", label: "New Releases", slug: "new-releases" },
-  { href: "/recs", label: "Recs", slug: "recs" },
-  { href: "/clubs", label: "Clubs", slug: "clubs" },
-  { href: "/artists", label: "Creators", slug: "artists" },
-  { href: "/collections", label: "Collections", slug: "collections" },
-  { href: "/wrapped", label: "Wrapped", slug: "wrapped" },
-  { href: "/newsletter", label: "Newsletter", slug: "newsletter" },
-];
+// New Releases, Recs, Clubs, Creators, Wrapped, and Newsletter now live as
+// sections on the homepage feed itself instead of being tucked away here.
+const MORE_LINKS = [{ href: "/collections", label: "Collections", slug: "collections" }];
 
 const TITLES: { match: (p: string) => boolean; title: string }[] = [
   { match: (p) => p === "/", title: "Feed" },
