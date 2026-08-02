@@ -7,7 +7,12 @@ import { createNewsletterIssue } from "@/app/actions/newsletter";
 
 export const metadata = { title: "Newsletter - Feedback" };
 
-export default async function AdminNewsletterPage() {
+export default async function AdminNewsletterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,6 +33,7 @@ export default async function AdminNewsletterPage() {
 
       <div className="panel">
         <div className="panel-body">
+          {error && <div className="form-error">{error}</div>}
           <form action={createNewsletterIssue}>
             <button className="btn" type="submit">
               New Issue

@@ -53,7 +53,10 @@ export async function createNewsletterIssue() {
     .single();
 
   revalidatePath("/admin/newsletter");
-  if (error || !data) redirect("/admin/newsletter");
+  if (error || !data) {
+    console.error(`[newsletter] createNewsletterIssue failed: ${error?.message ?? "no data returned"}`);
+    redirect(`/admin/newsletter?error=${encodeURIComponent(error?.message ?? "Could not create issue - no data returned.")}`);
+  }
   redirect(`/admin/newsletter/${data.id}`);
 }
 
