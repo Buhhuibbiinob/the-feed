@@ -2,9 +2,15 @@
 // client-credentials flow. Used as the cover-art backfill for tracks whose
 // Last.fm entry has no real artwork.
 type ItunesTrack = {
+  wrapperType?: string;
   trackName?: string;
   artistName?: string;
   artworkUrl100?: string;
+};
+
+type ItunesArtist = {
+  artistId?: number;
+  artistName?: string;
 };
 
 type ItunesSearchResult = {
@@ -28,8 +34,8 @@ function stripParens(s: string): string {
 // iTunes' search is a general relevance search, not an exact lookup - for an
 // obscure/mistagged Last.fm track name it can confidently return a
 // completely different song by the same artist (wrong cover art is worse
-// than no cover art), so the top result is only used if its track/artist
-// actually match what was asked for.
+// than no cover art), so a result is only used if its track/artist actually
+// match what was asked for.
 function findMatch(results: ItunesTrack[], trackName: string, artistName: string): ItunesTrack | undefined {
   const wantTrack = normalize(trackName);
   const wantArtist = normalize(artistName);
@@ -50,6 +56,45 @@ function findMatch(results: ItunesTrack[], trackName: string, artistName: string
   });
 }
 
+// Brand-new releases can take a while to surface in iTunes' general search
+// relevance ranking even though the tracks already exist in the catalog -
+// pulling the artist's own track listing directly finds them immediately.
+// Cached per-artist (with a TTL, same idea as the 1hr fetch cache below)
+// since multiple missing tracks in one batch are often by the same artist.
+const artistCatalogCache = new Map<string, { promise: Promise<ItunesTrack[]>; expiresAt: number }>();
+const CATALOG_CACHE_TTL_MS = 3600_000;
+
+async function getArtistCatalog(artistName: string): Promise<ItunesTrack[]> {
+  const key = normalize(artistName);
+  const cached = artistCatalogCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.promise;
+
+  const promise = (async () => {
+    try {
+      const artistParams = new URLSearchParams({ term: artistName, entity: "musicArtist", limit: "3" });
+      const artistRes = await fetch(`https://itunes.apple.com/search?${artistParams.toString()}`);
+      if (!artistRes.ok) return [];
+      const artistData = (await artistRes.json()) as { results?: ItunesArtist[] };
+      const bestArtist = artistData.results?.find((a) => {
+        const gotArtist = normalize(a.artistName ?? "");
+        return gotArtist === key || gotArtist.includes(key) || key.includes(gotArtist);
+      });
+      if (!bestArtist?.artistId) return [];
+
+      const catalogParams = new URLSearchParams({ id: String(bestArtist.artistId), entity: "song", limit: "200" });
+      const catalogRes = await fetch(`https://itunes.apple.com/lookup?${catalogParams.toString()}`);
+      if (!catalogRes.ok) return [];
+      const catalogData = (await catalogRes.json()) as ItunesSearchResult;
+      return (catalogData.results ?? []).filter((r) => r.wrapperType === "track");
+    } catch {
+      return [];
+    }
+  })();
+
+  artistCatalogCache.set(key, { promise, expiresAt: Date.now() + CATALOG_CACHE_TTL_MS });
+  return promise;
+}
+
 export async function searchItunesArt(trackName: string, artistName: string): Promise<string | null> {
   try {
     const params = new URLSearchParams({
@@ -61,10 +106,14 @@ export async function searchItunesArt(trackName: string, artistName: string): Pr
     const res = await fetch(`https://itunes.apple.com/search?${params.toString()}`, {
       next: { revalidate: 3600 },
     });
-    if (!res.ok) return null;
+    const data = res.ok ? ((await res.json()) as ItunesSearchResult) : {};
+    let match = findMatch(data.results ?? [], trackName, artistName);
 
-    const data = (await res.json()) as ItunesSearchResult;
-    const match = findMatch(data.results ?? [], trackName, artistName);
+    if (!match) {
+      const catalog = await getArtistCatalog(artistName);
+      match = findMatch(catalog, trackName, artistName);
+    }
+
     const art = match?.artworkUrl100;
     if (!art) return null;
 
