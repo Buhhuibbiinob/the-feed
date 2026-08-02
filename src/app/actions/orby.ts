@@ -8,7 +8,8 @@ const SYSTEM_PROMPT_BASE = `You are Orby, a friendly recommendation assistant on
 
 Keep replies conversational but brief (2-4 sentences max, like a chat message, not an essay). For music, prefer picking from the REAL trending tracks and underground artists listed below when they fit what the user asked for - don't invent fake artist names or song titles for those. For movies, TV shows, and short films, there's no live candidate list provided - use your own knowledge to recommend real, well-known titles that fit the request. Never fabricate plot details, release dates, or facts you're not confident about - if you're not sure of a detail, don't state it.`;
 
-const DAILY_LIMIT = 20;
+// Genie-in-a-bottle rules: 3 wishes (messages) per user, per day.
+const DAILY_LIMIT = 3;
 
 export async function askOrby(message: string): Promise<string> {
   const trimmed = message.trim();
@@ -30,7 +31,7 @@ export async function askOrby(message: string): Promise<string> {
 
   const usedToday = profile?.orby_use_date === today ? (profile.orby_use_count ?? 0) : 0;
   if (usedToday >= DAILY_LIMIT) {
-    return `You've hit today's limit of ${DAILY_LIMIT} Orby messages - come back tomorrow for more recommendations!`;
+    return `You've used all ${DAILY_LIMIT} of your wishes for today - come back tomorrow for ${DAILY_LIMIT} more!`;
   }
 
   await supabase

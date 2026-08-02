@@ -7,7 +7,7 @@ type OrbyMessage = { from: "user" | "orby"; text: string };
 
 const GREETING: OrbyMessage = {
   from: "orby",
-  text: "Hi, I'm Orby! Ask me for a recommendation - music, a movie, a show, or an underground artist - and I'll find one for you. I only do recommendations, so that's the only thing I'll answer!",
+  text: "Hi, I'm Orby! Ask me for a recommendation - music, a movie, a show, or an underground artist - and I'll find one for you. I only do recommendations, so that's the only thing I'll answer! You get 3 wishes a day, so make them count.",
 };
 
 export function OrbyBot() {
