@@ -4,7 +4,7 @@ import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
 import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
 import { FollowingToggle } from "@/components/FollowingToggle";
-import { OrbyBot, type OrbyCandidate } from "@/components/OrbyBot";
+import { OrbyBot } from "@/components/OrbyBot";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
 import { fillMissingArt } from "@/lib/musicArt";
@@ -127,7 +127,7 @@ export default async function FeedPage({
     supabase.from("chat_messages").select("id", { count: "exact", head: true }),
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
-    getTrendingTracks(10),
+    getTrendingTracks(50),
     supabase
       .from("profiles")
       .select("username, status_media_type, status_title, status_artist")
@@ -217,7 +217,17 @@ export default async function FeedPage({
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(0, 5);
 
-  const trendingTracksWithArt = await fillMissingArt(trendingTracks);
+  // Last.fm's global chart is often dominated by a single mega-popular
+  // artist charting several tracks at once - cap it at 2 per artist so the
+  // shelf reads as a mix instead of one artist's whole discography.
+  const seenArtistCounts = new Map<string, number>();
+  const diverseTracks = trendingTracks.filter((track) => {
+    const count = seenArtistCounts.get(track.artist) ?? 0;
+    if (count >= 2) return false;
+    seenArtistCounts.set(track.artist, count + 1);
+    return true;
+  });
+  const trendingTracksWithArt = await fillMissingArt(diverseTracks.slice(0, 10));
   const newReleases: ShelfItem[] = trendingTracksWithArt.map((track) => ({
     id: track.id,
     title: track.name,
@@ -257,15 +267,6 @@ export default async function FeedPage({
   ];
   const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % FUN_FACTS.length;
   const todayFunFact = FUN_FACTS[dayIndex];
-
-  const orbyCandidates: OrbyCandidate[] = allPosts.slice(0, 30).map((p) => ({
-    id: p.id,
-    title: p.title,
-    artist: p.artist,
-    mediaType: p.media_type,
-    username: p.profiles?.username ?? "unknown",
-    rating: p.rating,
-  }));
 
   const SITE_LINKS: { heading: string; links: { label: string; href: string }[] }[] = [
     {
@@ -391,7 +392,7 @@ export default async function FeedPage({
           </div>
         )}
         <Shelf title="Trending Music" items={newReleases} />
-        <OrbyBot candidates={orbyCandidates} />
+        <OrbyBot />
       </div>
 
       <div className="fun-fact-banner">

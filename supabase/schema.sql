@@ -950,10 +950,13 @@ create table if not exists public.newsletter_issues (
   short_film_releases text,
   artist_of_week text,
   filmmaker_of_week text,
+  cover_image_url text,
   created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
   published_at timestamptz
 );
+
+alter table public.newsletter_issues add column if not exists cover_image_url text;
 
 alter table public.newsletter_issues enable row level security;
 

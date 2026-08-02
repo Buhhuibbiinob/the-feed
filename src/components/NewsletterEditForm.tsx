@@ -21,6 +21,9 @@ export function NewsletterEditForm({ issue }: { issue: NewsletterIssue }) {
       <label className="theme-form-label">Issue date</label>
       <input type="date" name="issue_date" defaultValue={issue.issue_date} />
 
+      <label className="theme-form-label">Cover image URL</label>
+      <input name="cover_image_url" defaultValue={issue.cover_image_url ?? ""} placeholder="https://..." />
+
       {NEWSLETTER_SECTIONS.map((section) => (
         <div key={section.key}>
           <label className="theme-form-label">{section.label}</label>

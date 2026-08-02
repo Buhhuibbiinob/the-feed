@@ -60,10 +60,12 @@ export type NewsletterIssue = {
   title: string;
   created_at: string;
   published_at: string | null;
+  cover_image_url: string | null;
 } & Record<NewsletterSectionKey, string | null>;
 
 const ISSUE_COLUMNS =
-  "id, issue_date, status, title, created_at, published_at, " + NEWSLETTER_SECTIONS.map((s) => s.key).join(", ");
+  "id, issue_date, status, title, created_at, published_at, cover_image_url, " +
+  NEWSLETTER_SECTIONS.map((s) => s.key).join(", ");
 
 export async function getPublishedIssues(supabase: SupabaseClient): Promise<NewsletterIssue[]> {
   const { data } = await supabase
@@ -130,6 +132,10 @@ export function renderIssueHtml(issue: NewsletterIssue, siteUrl: string): string
     `<tr><td style="padding:16px 30px 0; text-align:center;">` +
     `<h1 style="font-family:Georgia,'Times New Roman',serif; font-size:26px; font-weight:bold; margin:0; color:#1a1a1a; line-height:1.25;">${escapeHtml(issue.title)}</h1>` +
     `</td></tr>` +
+
+    (issue.cover_image_url
+      ? `<tr><td style="padding:18px 30px 0;"><img src="${escapeHtml(issue.cover_image_url)}" alt="" width="540" style="width:100%; max-width:540px; display:block; margin:0 auto; border-radius:4px; border:1px solid #d8d8d8;" /></td></tr>`
+      : "") +
 
     (body || `<tr><td style="padding:22px 30px 0; font-family:Georgia,'Times New Roman',serif; color:#606060;">No sections filled in for this issue.</td></tr>`) +
 

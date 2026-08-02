@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
-import { getIssueById } from "@/lib/newsletter";
+import { getIssueById, NEWSLETTER_SECTIONS } from "@/lib/newsletter";
 import { NewsletterEditForm } from "@/components/NewsletterEditForm";
 import { NewsletterSendButton } from "@/components/NewsletterSendButton";
+import { NewsletterGenerateButton } from "@/components/NewsletterGenerateButton";
 import { publishNewsletterIssue, unpublishNewsletterIssue, deleteNewsletterIssue } from "@/app/actions/newsletter";
 
 export const metadata = { title: "Edit Issue - Feedback" };
@@ -41,8 +42,25 @@ export default async function AdminNewsletterEditPage({
       </div>
 
       <div className="panel">
+        <div className="panel-head">Generate with AI</div>
         <div className="panel-body">
-          <NewsletterEditForm issue={issue} />
+          <p>
+            Pulls real data from this week - TMDB upcoming releases, underground creator posts, and
+            top-rated reviews on Feedback - and drafts each section below from it. Grounded in that real
+            data only (won&apos;t invent titles or facts), with sources cited inline. Fills the draft in
+            place - review and edit before publishing or sending. Requires a{" "}
+            <code>GEMINI_API_KEY</code> environment variable.
+          </p>
+          <NewsletterGenerateButton issueId={issue.id} />
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-body">
+          <NewsletterEditForm
+            key={[issue.title, ...NEWSLETTER_SECTIONS.map((s) => issue[s.key])].join("|")}
+            issue={issue}
+          />
         </div>
       </div>
 

@@ -34,6 +34,16 @@ export default async function NewsletterIssuePage({
         </div>
         <hr className="newsletter-rule" />
         <div className="newsletter-headline">{issue.title}</div>
+        {issue.cover_image_url && (
+          <div style={{ padding: "18px 20px 0" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={issue.cover_image_url}
+              alt=""
+              style={{ width: "100%", borderRadius: 4, border: "1px solid #d8d8d8", display: "block" }}
+            />
+          </div>
+        )}
 
         {sections.length === 0 ? (
           <div className="empty-state" style={{ padding: 16 }}>

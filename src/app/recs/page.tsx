@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard, type PostCardData } from "@/components/PostCard";
-import { OrbyBot, type OrbyCandidate } from "@/components/OrbyBot";
+import { OrbyBot } from "@/components/OrbyBot";
 import type { MediaType } from "@/lib/media";
 import { guardBuiltinPage } from "@/lib/pages";
 
@@ -110,26 +110,9 @@ export default async function RecsPage() {
       .slice(0, 10);
   }
 
-  const orbySeen = new Set<string>();
-  const orbyCandidates: OrbyCandidate[] = [...forYou, ...trending, ...allPosts.filter((p) => (p.rating ?? 0) >= 4)]
-    .filter((p) => {
-      if (orbySeen.has(p.id)) return false;
-      orbySeen.add(p.id);
-      return true;
-    })
-    .map((p) => ({
-      id: p.id,
-      title: p.title,
-      artist: p.artist,
-      mediaType: p.media_type,
-      username: p.profiles?.username ?? "unknown",
-      rating: p.rating,
-    }))
-    .slice(0, 30);
-
   return (
     <>
-      <OrbyBot candidates={orbyCandidates} />
+      <OrbyBot />
 
       <div className="panel">
         <div className="panel-head">For You</div>
