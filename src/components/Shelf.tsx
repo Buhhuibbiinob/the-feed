@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { coverGradient } from "@/lib/cover";
 
 export type ShelfItem = {
@@ -9,7 +10,41 @@ export type ShelfItem = {
   subtitle: string;
   poster?: boolean;
   imageUrl?: string;
+  href?: string;
 };
+
+function DvdCaseShelf({ items }: { items: ShelfItem[] }) {
+  return (
+    <div className="sk-dvd-shelf">
+      {items.map((item) => {
+        const image = item.imageUrl ? `url(${item.imageUrl})` : coverGradient(item.id);
+        const imageStyle = item.imageUrl
+          ? { backgroundImage: image, backgroundSize: "cover", backgroundPosition: "center" }
+          : { backgroundImage: image };
+        const inner = (
+          <>
+            <div className="sk-dvd-spine" />
+            <div className="sk-dvd-cover" style={imageStyle} />
+          </>
+        );
+        return (
+          <div className="sk-dvd-item" key={item.id}>
+            {item.href ? (
+              <Link href={item.href} className="sk-dvd-case" title={`${item.title} - ${item.subtitle}`}>
+                {inner}
+              </Link>
+            ) : (
+              <div className="sk-dvd-case" title={`${item.title} - ${item.subtitle}`}>
+                {inner}
+              </div>
+            )}
+            <div className="sk-dvd-caption">{item.title}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function Shelf({
   title,
@@ -23,6 +58,7 @@ export function Shelf({
   tone?: "blue" | "purple" | "green" | "pink" | "orange" | "yellow";
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const isDvdShelf = items.length > 0 && items.every((i) => i.poster);
 
   return (
     <div className={`panel${tone ? ` tone-${tone}` : ""}`}>
@@ -33,11 +69,13 @@ export function Shelf({
         </span>
       </div>
       <div className="shelf-body">
-        <div className="sk-shelf-grid">
-          {items.length === 0 ? (
-            <div className="empty-state">{emptyMessage}</div>
-          ) : (
-            items.map((item) => {
+        {items.length === 0 ? (
+          <div className="empty-state">{emptyMessage}</div>
+        ) : isDvdShelf ? (
+          <DvdCaseShelf items={items} />
+        ) : (
+          <div className="sk-shelf-grid">
+            {items.map((item) => {
               const image = item.imageUrl ? `url(${item.imageUrl})` : coverGradient(item.id);
               const imageStyle = item.imageUrl
                 ? { backgroundImage: image, backgroundSize: "cover", backgroundPosition: "center" }
@@ -54,7 +92,7 @@ export function Shelf({
                   >
                     <div className="sk-stack-sheet sheet-1" />
                     <div className="sk-stack-sheet sheet-2" />
-                    <div className={`sk-card${item.poster ? " poster" : ""}`} style={imageStyle} />
+                    <div className="sk-card" style={imageStyle} />
                     {open && (
                       <div className="sk-stack-label">
                         <b>{item.title}</b>
@@ -64,9 +102,9 @@ export function Shelf({
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
