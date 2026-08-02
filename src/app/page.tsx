@@ -348,7 +348,7 @@ export default async function FeedPage({
       <div className="theslap-top-grid">
         <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
         <div className="right-now-widget">
-          <div className="right-now-tab">ADVERTISEMENT</div>
+          <div className="right-now-tab">DISCOVER</div>
           <div className="right-now-body right-now-ad">
             {upcomingBanner ? (
               <a
@@ -404,7 +404,7 @@ export default async function FeedPage({
 
       {topFeedBanner ? (
         <a href={topFeedBanner.link_url} target="_blank" rel="noreferrer" className="banner-slot-wide">
-          <span className="banner-slot-tag">Sponsored</span>
+          <span className="banner-slot-tag">Discover</span>
           {topFeedBanner.image_url ? (
             <img src={topFeedBanner.image_url} alt={topFeedBanner.artist_name} />
           ) : (
@@ -416,7 +416,7 @@ export default async function FeedPage({
         </a>
       ) : (
         <Link href="/advertise" className="banner-slot-wide">
-          <span className="banner-slot-tag">Sponsored</span>
+          <span className="banner-slot-tag">Discover</span>
           <div className="banner-slot-wide-fallback">
             <b>Advertise on Feedback</b>
             <span>Get your music or film in front of the community - free for now.</span>
@@ -462,7 +462,7 @@ export default async function FeedPage({
 
           {midFeedBanner ? (
             <a href={midFeedBanner.link_url} target="_blank" rel="noreferrer" className="banner-slot-wide">
-              <span className="banner-slot-tag">Sponsored</span>
+              <span className="banner-slot-tag">Discover</span>
               {midFeedBanner.image_url ? (
                 <img src={midFeedBanner.image_url} alt={midFeedBanner.artist_name} />
               ) : (
@@ -474,7 +474,7 @@ export default async function FeedPage({
             </a>
           ) : (
             <Link href="/advertise" className="banner-slot-wide">
-              <span className="banner-slot-tag">Sponsored</span>
+              <span className="banner-slot-tag">Discover</span>
               <div className="banner-slot-wide-fallback">
                 <b>Advertise on Feedback</b>
                 <span>Get your music or film in front of the community - free for now.</span>
@@ -610,7 +610,7 @@ export default async function FeedPage({
           {approvedBanners.length > 0 ? (
             approvedBanners.map((b) => (
               <a href={b.link_url} target="_blank" rel="noreferrer" className="banner-slot" key={b.id}>
-                <span className="banner-slot-tag">Sponsored</span>
+                <span className="banner-slot-tag">Discover</span>
                 {b.image_url ? (
                   <img src={b.image_url} alt={b.artist_name} />
                 ) : (
@@ -623,7 +623,7 @@ export default async function FeedPage({
             ))
           ) : (
             <Link href="/advertise" className="banner-slot">
-              <span className="banner-slot-tag">Sponsored</span>
+              <span className="banner-slot-tag">Discover</span>
               <div className="banner-slot-fallback">
                 <b>Advertise on Feedback</b>
                 <span>Get your music or film in front of the community - free for now.</span>
