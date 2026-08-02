@@ -1,0 +1,64 @@
+name: iOS Build
+
+# Builds the Capacitor iOS app on a GitHub-hosted Mac runner (always has a
+# current Xcode) instead of relying on local Xcode, since this project's
+# native shell can outpace whatever Xcode happens to be installed
+# elsewhere. Unsigned iphonesimulator build - no Apple Developer account
+# or certificates needed. The .app artifact can be downloaded and dragged
+# into any local Simulator, or run in this workflow's own boot+launch step.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ios/**"
+      - "capacitor.config.ts"
+      - "package.json"
+      - ".github/workflows/ios-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Sync native project
+        run: npx cap sync ios
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Build for iOS Simulator (unsigned)
+        working-directory: ios/App
+        run: |
+          xcodebuild \
+            -project App.xcodeproj \
+            -scheme App \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Boot Simulator and smoke-test launch
+        run: |
+          set -e
+          RUNTIME=$(xcrun simctl list runtimes | grep iOS | tail -1 | awk -F'-- ' '{print $2}' | tr -d '() ')
+          DEVICE_ID=$(xcrun simctl create "CI iPhone" "iPhone 16" "$RUNTIME")
+          xcrun simctl boot "$DEVICE_ID"
+          xcrun simctl install "$DEVICE_ID" "ios/App/build/Build/Products/Debug-iphonesimulator/App.app"
+          xcrun simctl launch "$DEVICE_ID" com.mythefeed.app
+          sleep 3
+          xcrun simctl terminate "$DEVICE_ID" com.mythefeed.app || true
+
+      - name: Upload .app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Feedback-ios-simulator-app
+          path: ios/App/build/Build/Products/Debug-iphonesimulator/App.app
