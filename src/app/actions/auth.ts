@@ -106,10 +106,22 @@ async function signUpInner(formData: FormData): Promise<AuthFormState> {
   }
 
   if (error) {
+    console.error(
+      `[signUp] auth.signUp returned error: status=${error.status} code=${error.code} name=${error.name} message=${error.message}`
+    );
     if (error.message.toLowerCase().includes("database error saving new user")) {
       return { error: "That username is already taken." };
     }
-    return { error: error.message };
+    // error.message has been observed to be a bare, unhelpful "{}" in
+    // production (likely Supabase's own auth API returning a malformed
+    // error body, e.g. from an SMTP failure sending the confirmation
+    // email) - fall back to status/code so there's always something
+    // actionable on screen instead of two meaningless characters.
+    const message =
+      error.message && error.message.trim() !== "{}"
+        ? error.message
+        : `Sign up failed (status ${error.status ?? "unknown"}, code ${error.code ?? "unknown"}). This usually means the account-confirmation email couldn't be sent - check the SMTP settings in Supabase Auth.`;
+    return { error: message };
   }
 
   // Supabase deliberately doesn't return an error for a duplicate email (to
