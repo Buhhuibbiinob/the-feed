@@ -24,7 +24,17 @@ async function callGemini(
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemInstruction }] },
           contents: [{ role: "user", parts: [{ text: userMessage }] }],
-          generationConfig: { maxOutputTokens: 2048, temperature: 0.7, ...extraConfig },
+          generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.7,
+            // Gemini 3 models count "thinking" tokens against maxOutputTokens
+            // itself (unlike the docs' general description), so without
+            // capping thinking to "minimal" the model can burn the entire
+            // budget reasoning and leave nothing for the actual answer,
+            // producing responses that cut off after a few words.
+            thinkingConfig: { thinkingLevel: "minimal" },
+            ...extraConfig,
+          },
         }),
       }
     );
@@ -44,7 +54,7 @@ async function callGemini(
 }
 
 export async function askGemini(systemInstruction: string, userMessage: string): Promise<string | null> {
-  const result = await callGemini(systemInstruction, userMessage, { maxOutputTokens: 300 });
+  const result = await callGemini(systemInstruction, userMessage, { maxOutputTokens: 600 });
   if (!result.ok) {
     // Callers fall back silently to keep the UX smooth, so this is the only
     // place the real reason (quota, missing key, bad model name, etc.)
