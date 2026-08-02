@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { coverGradient } from "@/lib/cover";
 import { getTrendingTracks } from "@/lib/lastfm";
+import { fillMissingArt } from "@/lib/musicArt";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { guardBuiltinPage } from "@/lib/pages";
 
@@ -25,7 +26,7 @@ export const metadata = { title: "New Releases - Feedback" };
 export default async function NewReleasesPage() {
   const supabase = await createClient();
   await guardBuiltinPage(supabase, "new-releases");
-  const [tracks, movies, { data: posts }] = await Promise.all([
+  const [rawTracks, movies, { data: posts }] = await Promise.all([
     getTrendingTracks(20),
     getUpcomingMoviesAndTv(20),
     supabase
@@ -37,6 +38,7 @@ export default async function NewReleasesPage() {
       .returns<PostRow[]>(),
   ]);
 
+  const tracks = await fillMissingArt(rawTracks);
   const reviews = posts ?? [];
 
   return (
