@@ -9,9 +9,10 @@
 //  1. Links/URLs of any kind.
 //  2. Contact-info sharing: emails, phone numbers, social handles/usernames,
 //     and "add me on X" - style requests to move the conversation elsewhere.
-//  3. Sexual content and dating/flirtation solicitation.
-//  4. Grooming red flags (asking age, location, to meet up, to keep secrets).
-//  5. Bullying/harassment.
+//  3. Hateful slurs and profanity.
+//  4. Sexual content and dating/flirtation solicitation.
+//  5. Grooming red flags (asking age, location, to meet up, to keep secrets).
+//  6. Bullying/harassment.
 //
 // Usernames and bios (public-facing identity fields, so held to the same
 // no-contact-info bar as DMs) additionally block hateful slurs and profanity.
@@ -183,6 +184,9 @@ export function checkMessageSafety(text: string): SafetyCheck {
       allowed: false,
       reason: "Messages can't include phone numbers, emails, or social media handles/usernames.",
     };
+  }
+  if (containsProfanityOrHate(trimmed)) {
+    return { allowed: false, reason: "Messages can't include hateful slurs or profanity." };
   }
   if (SEXUAL_DATING_RE.test(trimmed)) {
     return { allowed: false, reason: "Messages can't include sexual, dating, or flirtatious content." };
