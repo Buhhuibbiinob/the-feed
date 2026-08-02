@@ -143,11 +143,8 @@ export async function generateNewsletterDraft(
   ].join("\n\n");
 
   const result = await askGeminiJson<GeneratedDraft>(NEWSLETTER_SYSTEM_PROMPT, dataDump, true);
-  if (!result) {
-    return {
-      error:
-        "Couldn't generate a draft - GEMINI_API_KEY may not be set, or Gemini didn't return valid data. Try again, or fill sections in manually.",
-    };
+  if (!result.ok) {
+    return { error: `Couldn't generate a draft: ${result.error}` };
   }
   const draft = result.data;
 

@@ -79,9 +79,14 @@ export async function askGemini(systemInstruction: string, userMessage: string):
   return result.text;
 }
 
+export type AskGeminiJsonResult<T> =
+  | { ok: true; data: T; sources: GroundingChunk[] }
+  | { ok: false; error: string };
+
 // Requests structured JSON output (Gemini's native JSON mode, not just
-// asking nicely in the prompt) and parses it. Returns null on any failure
-// so callers can fall back cleanly instead of crashing on bad JSON.
+// asking nicely in the prompt) and parses it. Returns the real error
+// message on failure (instead of just null) so callers with an admin UI
+// can show the actual reason instead of guessing at one.
 // Pass useGoogleSearch to ground the response in real, current web results
 // (Gemini 3 supports combining Google Search grounding with JSON mode) -
 // grounding sources are returned alongside the parsed JSON.
@@ -89,7 +94,7 @@ export async function askGeminiJson<T>(
   systemInstruction: string,
   userMessage: string,
   useGoogleSearch = false
-): Promise<{ data: T; sources: GroundingChunk[] } | null> {
+): Promise<AskGeminiJsonResult<T>> {
   const result = await callGemini(
     systemInstruction,
     userMessage,
@@ -98,12 +103,13 @@ export async function askGeminiJson<T>(
   );
   if (!result.ok) {
     console.error(`[gemini] ${result.error}`);
-    return null;
+    return { ok: false, error: result.error };
   }
   try {
-    return { data: JSON.parse(result.text) as T, sources: result.groundingChunks };
+    return { ok: true, data: JSON.parse(result.text) as T, sources: result.groundingChunks };
   } catch (err) {
-    console.error(`[gemini] JSON parse failed: ${err instanceof Error ? err.message : String(err)}`);
-    return null;
+    const message = `JSON parse failed: ${err instanceof Error ? err.message : String(err)}`;
+    console.error(`[gemini] ${message}`);
+    return { ok: false, error: message };
   }
 }
