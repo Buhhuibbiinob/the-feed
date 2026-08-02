@@ -52,23 +52,43 @@ export async function signUp(
 
   const supabase = await createClient();
 
-  const { data: existing } = await supabase
-    .from("profiles")
-    .select("id")
-    .ilike("username", username)
-    .maybeSingle();
+  // The Supabase calls below are the only things in this action that can
+  // throw unexpectedly (network hiccup, etc.) - guarded separately from
+  // redirect() further down, since redirect() works by throwing a special
+  // Next.js control-flow signal that a wrapping try/catch must never
+  // swallow (doing so silently breaks the redirect and shows the caught
+  // "error" instead).
+  let existing: { id: string } | null;
+  try {
+    const res = await supabase.from("profiles").select("id").ilike("username", username).maybeSingle();
+    existing = res.data;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[signUp] username lookup threw: ${message}`);
+    return { error: `Something went wrong checking that username. Please try again. (${message})` };
+  }
   if (existing) {
     return { error: "That username is already taken." };
   }
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { username, birthdate },
-      emailRedirectTo: `${siteUrl()}/auth/callback`,
-    },
-  });
+  let data: Awaited<ReturnType<typeof supabase.auth.signUp>>["data"];
+  let error: Awaited<ReturnType<typeof supabase.auth.signUp>>["error"];
+  try {
+    const res = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { username, birthdate },
+        emailRedirectTo: `${siteUrl()}/auth/callback`,
+      },
+    });
+    data = res.data;
+    error = res.error;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[signUp] auth.signUp threw: ${message}`);
+    return { error: `Something went wrong creating your account. Please try again. (${message})` };
+  }
 
   if (error) {
     if (error.message.toLowerCase().includes("database error saving new user")) {
