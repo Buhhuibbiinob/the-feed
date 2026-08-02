@@ -829,6 +829,17 @@ a:hover {
   font-weight: 800;
   font-size: 15px;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+}
+.feature-banner:hover {
+  text-decoration: none;
+}
+.feature-banner-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
 }
 .feature-banner::before {
   content: "";
@@ -837,13 +848,16 @@ a:hover {
   left: 0;
   right: 0;
   height: 55%;
+  z-index: 1;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0));
 }
 .feature-banner .label {
   position: relative;
+  z-index: 2;
 }
 .feature-banner .sub {
   position: relative;
+  z-index: 2;
   font-size: 10.5px;
   font-weight: 400;
   display: block;

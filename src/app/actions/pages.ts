@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { BUILTIN_PAGES } from "@/lib/pages";
+import { SITE_FLAGS } from "@/lib/siteFlags";
 
 export type PageFormState = { error?: string; ok?: boolean };
 
@@ -134,6 +135,22 @@ export async function deleteCustomPage(formData: FormData) {
   if (!id) return;
 
   await supabase.from("site_pages").delete().eq("id", id).eq("kind", "custom");
+
+  revalidatePath("/admin/pages");
+  revalidatePath("/");
+}
+
+export async function setSiteFlag(formData: FormData) {
+  const { user, admin, supabase } = await requireAdmin();
+  if (!user || !admin) return;
+
+  const key = String(formData.get("key") ?? "");
+  const enabled = formData.get("enabled") === "true";
+  if (!SITE_FLAGS.some((f) => f.key === key)) return;
+
+  await supabase
+    .from("site_flags")
+    .upsert({ key, enabled, updated_at: new Date().toISOString() }, { onConflict: "key" });
 
   revalidatePath("/admin/pages");
   revalidatePath("/");

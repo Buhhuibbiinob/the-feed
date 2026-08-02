@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { BUILTIN_PAGES, getArchivedBuiltinSlugs, getAllPagesForAdmin } from "@/lib/pages";
-import { setBuiltinPageArchived, setCustomPageArchived, deleteCustomPage } from "@/app/actions/pages";
+import { SITE_FLAGS, getSiteFlags } from "@/lib/siteFlags";
+import { setBuiltinPageArchived, setCustomPageArchived, deleteCustomPage, setSiteFlag } from "@/app/actions/pages";
 import { CreatePageForm } from "@/components/CreatePageForm";
 
 export const metadata = { title: "Pages - Feedback" };
@@ -18,9 +19,10 @@ export default async function AdminPagesPage() {
     notFound();
   }
 
-  const [archivedSlugs, customPages] = await Promise.all([
+  const [archivedSlugs, customPages, siteFlags] = await Promise.all([
     getArchivedBuiltinSlugs(supabase),
     getAllPagesForAdmin(supabase),
+    getSiteFlags(supabase),
   ]);
 
   return (
@@ -29,6 +31,27 @@ export default async function AdminPagesPage() {
         <h1>Pages</h1>
         <div className="tagline">
           Archive a built-in page to hide it from navigation, or add a custom page of your own.
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Homepage Sections</div>
+        <div className="panel-body flush">
+          {SITE_FLAGS.map((f) => {
+            const enabled = siteFlags[f.key];
+            return (
+              <div className="site-links-link" key={f.key}>
+                <span>{f.label}</span>
+                <form action={setSiteFlag}>
+                  <input type="hidden" name="key" value={f.key} />
+                  <input type="hidden" name="enabled" value={enabled ? "false" : "true"} />
+                  <button type="submit" className={enabled ? "btn" : "btn btn-ghost"}>
+                    {enabled ? "Hide" : "Show"}
+                  </button>
+                </form>
+              </div>
+            );
+          })}
         </div>
       </div>
 

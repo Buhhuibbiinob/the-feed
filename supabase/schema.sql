@@ -1067,3 +1067,27 @@ alter table public.banner_ads alter column link_url drop not null;
 alter table public.banner_ads add column if not exists slot_type text not null default 'sidebar'
   check (slot_type in ('sidebar', 'wide', 'feature'));
 
+-- ---------- homepage section toggles ----------
+-- Lets an admin show/hide individual homepage sections (Artist Spotlight
+-- ads, Wrapped promo, Clubs teaser, etc.) from the admin panel instead of
+-- needing a code change every time - one row per section, missing rows
+-- fall back to each flag's coded default (see src/lib/siteFlags.ts).
+create table if not exists public.site_flags (
+  key text primary key,
+  enabled boolean not null default true,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.site_flags enable row level security;
+
+drop policy if exists "Site flags are viewable by everyone" on public.site_flags;
+create policy "Site flags are viewable by everyone"
+  on public.site_flags for select
+  using (true);
+
+drop policy if exists "Admins can change site flags" on public.site_flags;
+create policy "Admins can change site flags"
+  on public.site_flags for all
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin))
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+

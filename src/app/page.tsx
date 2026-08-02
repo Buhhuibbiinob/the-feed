@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
@@ -13,6 +14,7 @@ import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import type { MediaType } from "@/lib/media";
 import { getAllSiteText } from "@/lib/siteContent";
 import { getPublishedIssues } from "@/lib/newsletter";
+import { getSiteFlags } from "@/lib/siteFlags";
 import { ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatforms";
 
 type PostRow = {
@@ -51,6 +53,33 @@ type ArtistPostRow = {
   profiles: { username: string } | null;
 };
 
+type BannerAdRow = {
+  id: string;
+  artist_name: string;
+  link_url: string | null;
+  image_url: string | null;
+  message: string | null;
+};
+
+// Renders as a real link when the spotlight has one, or a plain
+// non-clickable container when it doesn't (link is optional on submission).
+function BannerLink({
+  href,
+  className,
+  children,
+}: {
+  href: string | null;
+  className: string;
+  children: ReactNode;
+}) {
+  if (!href) return <div className={className}>{children}</div>;
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className={className}>
+      {children}
+    </a>
+  );
+}
+
 function stars(rating: number | null) {
   if (!rating) return null;
   return "★".repeat(rating) + "☆".repeat(5 - rating);
@@ -60,23 +89,6 @@ function isWithinLastWeek(iso: string) {
   return Date.now() - new Date(iso).getTime() <= 7 * 24 * 60 * 60 * 1000;
 }
 
-function topByEngagement(
-  posts: PostRow[],
-  mediaType: PostRow["media_type"],
-  likeCounts: Map<string, number>,
-  commentCounts: Map<string, number>
-) {
-  const score = (p: PostRow) => (likeCounts.get(p.id) ?? 0) + (commentCounts.get(p.id) ?? 0);
-  return posts
-    .filter((p) => p.media_type === mediaType)
-    .sort((a, b) => score(b) - score(a) || (b.rating ?? 0) - (a.rating ?? 0))
-    .at(0);
-}
-
-const bannerCopy: Record<PostRow["media_type"], { eyebrow: string; empty: string }> = {
-  music: { eyebrow: "Liked by the Community", empty: "No music reviews yet" },
-  movie_tv: { eyebrow: "Editor's Pick", empty: "No movie or TV reviews yet" },
-};
 
 export default async function FeedPage({
   searchParams,
@@ -101,8 +113,10 @@ export default async function FeedPage({
     { data: clubRows },
     { data: memberRows },
     { data: artistPostRows },
+    { data: spotlightAdRows },
     siteText,
     newsletterIssues,
+    siteFlags,
   ] = await Promise.all([
     supabase
       .from("posts")
@@ -140,8 +154,17 @@ export default async function FeedPage({
       .order("created_at", { ascending: false })
       .limit(4)
       .returns<ArtistPostRow[]>(),
+    supabase
+      .from("banner_ads")
+      .select("id, artist_name, link_url, image_url, message")
+      .eq("status", "approved")
+      .eq("slot_type", "feature")
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+      .order("created_at", { ascending: true })
+      .returns<BannerAdRow[]>(),
     getAllSiteText(supabase),
     getPublishedIssues(supabase),
+    getSiteFlags(supabase),
   ]);
 
   const clubMemberCounts = new Map<string, number>();
@@ -149,6 +172,16 @@ export default async function FeedPage({
     clubMemberCounts.set(row.club_id, (clubMemberCounts.get(row.club_id) ?? 0) + 1);
   }
   const latestIssue = newsletterIssues[0] ?? null;
+
+  // Two spotlight cards, rotating to a new pair every 6 hours (4x/day) so
+  // a small pool of submissions still feels alive without a cron job.
+  const spotlightPool = spotlightAdRows ?? [];
+  const ROTATION_MS = 6 * 60 * 60 * 1000;
+  const rotationSlot = Math.floor(Date.now() / ROTATION_MS);
+  const artistSpotlights =
+    spotlightPool.length === 0
+      ? []
+      : Array.from({ length: Math.min(2, spotlightPool.length) }, (_, i) => spotlightPool[(rotationSlot + i) % spotlightPool.length]);
 
   let followedIds: Set<string> | null = null;
   if (user && followingOnly) {
@@ -252,11 +285,6 @@ export default async function FeedPage({
       rating: p.rating,
     }));
 
-  const banners = (["music", "movie_tv"] as const).map((mediaType) => {
-    const top = topByEngagement(allPosts, mediaType, likeCounts, commentCounts);
-    return { mediaType, top, ...bannerCopy[mediaType] };
-  });
-
   const hotTakePost = allPosts.reduce<(typeof allPosts)[number] | null>((best, p) => {
     const score = (likeCounts.get(p.id) ?? 0) + (commentCounts.get(p.id) ?? 0);
     const bestScore = best ? (likeCounts.get(best.id) ?? 0) + (commentCounts.get(best.id) ?? 0) : -1;
@@ -312,38 +340,40 @@ export default async function FeedPage({
         <div className="tagline">{siteText.feed_tagline}</div>
       </div>
 
-      <div className="theslap-top-grid">
+      <div className="theslap-top-grid" style={siteFlags.homepage_clubs ? undefined : { gridTemplateColumns: "1fr" }}>
         <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
-        <div className="right-now-widget">
-          <div className="right-now-tab">CLUBS</div>
-          <div className="right-now-body">
-            {(clubRows ?? []).length === 0 ? (
-              <div className="right-now-ad-fallback">
-                <b>Start a fan club</b>
-                <span>Rally people around an artist, movie, or show you love.</span>
-                <Link href="/clubs" className="see-all" style={{ marginTop: 6 }}>
-                  Start one ▸
-                </Link>
-              </div>
-            ) : (
-              <div className="club-chip-list">
-                {(clubRows ?? []).map((club) => (
-                  <Link href={`/clubs/${club.id}`} key={club.id} className="club-chip">
-                    <img src={club.avatar_url || "/avatars/preset-1.svg"} alt="" className="club-chip-avatar" />
-                    <span className="club-chip-name">{club.name}</span>
-                    <span className="club-chip-count">
-                      {clubMemberCounts.get(club.id) ?? 0} member
-                      {(clubMemberCounts.get(club.id) ?? 0) === 1 ? "" : "s"}
-                    </span>
+        {siteFlags.homepage_clubs && (
+          <div className="right-now-widget">
+            <div className="right-now-tab">CLUBS</div>
+            <div className="right-now-body">
+              {(clubRows ?? []).length === 0 ? (
+                <div className="right-now-ad-fallback">
+                  <b>Start a fan club</b>
+                  <span>Rally people around an artist, movie, or show you love.</span>
+                  <Link href="/clubs" className="see-all" style={{ marginTop: 6 }}>
+                    Start one ▸
                   </Link>
-                ))}
-                <Link href="/clubs" className="see-all club-chip-see-all">
-                  See all clubs ▸
-                </Link>
-              </div>
-            )}
+                </div>
+              ) : (
+                <div className="club-chip-list">
+                  {(clubRows ?? []).map((club) => (
+                    <Link href={`/clubs/${club.id}`} key={club.id} className="club-chip">
+                      <img src={club.avatar_url || "/avatars/preset-1.svg"} alt="" className="club-chip-avatar" />
+                      <span className="club-chip-name">{club.name}</span>
+                      <span className="club-chip-count">
+                        {clubMemberCounts.get(club.id) ?? 0} member
+                        {(clubMemberCounts.get(club.id) ?? 0) === 1 ? "" : "s"}
+                      </span>
+                    </Link>
+                  ))}
+                  <Link href="/clubs" className="see-all club-chip-see-all">
+                    See all clubs ▸
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="theslap-3col">
@@ -370,13 +400,15 @@ export default async function FeedPage({
         <span className="fun-fact-text">{todayFunFact}</span>
       </div>
 
-      <Link href="/wrapped" className="wrapped-promo-banner">
-        <span className="wrapped-promo-label">Your Wrapped</span>
-        <span className="wrapped-promo-text">See your year in reviews - updates all year, not just December.</span>
-        <span className="wrapped-promo-cta">View Wrapped ▸</span>
-      </Link>
+      {siteFlags.homepage_wrapped && (
+        <Link href="/wrapped" className="wrapped-promo-banner">
+          <span className="wrapped-promo-label">Your Wrapped</span>
+          <span className="wrapped-promo-text">See your year in reviews - updates all year, not just December.</span>
+          <span className="wrapped-promo-cta">View Wrapped ▸</span>
+        </Link>
+      )}
 
-      {upcomingMovies.length > 0 && (
+      {siteFlags.homepage_new_releases && upcomingMovies.length > 0 && (
         <div className="panel">
           <div className="panel-head tabbed">
             <span className="panel-head-tab">
@@ -405,30 +437,32 @@ export default async function FeedPage({
         </div>
       )}
 
-      <div className="feature-row">
-        {banners.map(({ mediaType, top, eyebrow, empty }) => {
-          const brandGradient =
-            mediaType === "music"
-              ? "linear-gradient(160deg, #3ee08a, #0f7a3f)"
-              : "linear-gradient(160deg, #ff5f8a, #a8123f)";
-          return (
-            <div
-              className="feature-banner"
-              key={mediaType}
-              style={{
-                backgroundImage: top?.cover_url
-                  ? `linear-gradient(180deg, rgba(10, 12, 20, 0.2), rgba(10, 12, 20, 0.72)), url(${top.cover_url})`
-                  : brandGradient,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            >
-              <span className="label">{top ? top.title : eyebrow}</span>
-              <span className="sub">{top ? `${eyebrow} · ${top.profiles?.username ?? "unknown"}` : empty}</span>
-            </div>
-          );
-        })}
-      </div>
+      {siteFlags.homepage_ads && (
+        <div className="feature-row">
+          {artistSpotlights.length > 0 ? (
+            artistSpotlights.map((spotlight) => (
+              <BannerLink href={spotlight.link_url} className="feature-banner" key={spotlight.id}>
+                <span
+                  className="feature-banner-bg"
+                  style={{
+                    backgroundImage: spotlight.image_url
+                      ? `linear-gradient(180deg, rgba(10, 12, 20, 0.2), rgba(10, 12, 20, 0.72)), url(${spotlight.image_url})`
+                      : "linear-gradient(160deg, #7b2ff7, #f107a3)",
+                  }}
+                />
+                <span className="label">{spotlight.artist_name}</span>
+                <span className="sub">{spotlight.message || "Artist Spotlight"}</span>
+              </BannerLink>
+            ))
+          ) : (
+            <Link href="/advertise" className="feature-banner">
+              <span className="feature-banner-bg" style={{ backgroundImage: "linear-gradient(160deg, #7b2ff7, #f107a3)" }} />
+              <span className="label">Artist Spotlight</span>
+              <span className="sub">Feature an artist here - submit at /advertise</span>
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="content-grid">
         <div className="left-col">
@@ -441,34 +475,36 @@ export default async function FeedPage({
           )}
           <Shelf title="Now Watching" items={nowWatching} />
 
-          <div className="panel">
-            <div className="panel-head tabbed">
-              <span className="panel-head-tab">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Underground Creators</span>
-              </span>
-              <Link href="/artists" className="see-all">
-                See All ▸
-              </Link>
-            </div>
-            <div className="panel-body flush">
-              {(artistPostRows ?? []).length === 0 ? (
-                <div className="empty-state" style={{ padding: 16 }}>
-                  No creator posts yet - underground artists and filmmakers can{" "}
-                  <Link href="/artists">share their work here</Link>.
-                </div>
-              ) : (
-                (artistPostRows ?? []).map((post) => (
-                  <div className="chat-row" key={post.id}>
-                    <b>{post.artist_name}</b>{" "}
-                    <span className={`badge ${post.platform}`}>{ARTIST_PLATFORM_LABELS[post.platform]}</span>
-                    {post.description && <span> - {post.description}</span>}
-                    <span className="ts">shared by {post.profiles?.username ?? "unknown"}</span>
+          {siteFlags.homepage_creators && (
+            <div className="panel">
+              <div className="panel-head tabbed">
+                <span className="panel-head-tab">
+                  <span className="tab-the">the</span>
+                  <span className="tab-main">Underground Creators</span>
+                </span>
+                <Link href="/artists" className="see-all">
+                  See All ▸
+                </Link>
+              </div>
+              <div className="panel-body flush">
+                {(artistPostRows ?? []).length === 0 ? (
+                  <div className="empty-state" style={{ padding: 16 }}>
+                    No creator posts yet - underground artists and filmmakers can{" "}
+                    <Link href="/artists">share their work here</Link>.
                   </div>
-                ))
-              )}
+                ) : (
+                  (artistPostRows ?? []).map((post) => (
+                    <div className="chat-row" key={post.id}>
+                      <b>{post.artist_name}</b>{" "}
+                      <span className={`badge ${post.platform}`}>{ARTIST_PLATFORM_LABELS[post.platform]}</span>
+                      {post.description && <span> - {post.description}</span>}
+                      <span className="ts">shared by {post.profiles?.username ?? "unknown"}</span>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="panel">
             <div className="panel-head tabbed">
@@ -595,29 +631,31 @@ export default async function FeedPage({
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel-head tabbed">
-              <span className="panel-head-tab">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Newsletter</span>
-              </span>
-              <Link href="/newsletter" className="see-all">
-                See All ▸
-              </Link>
-            </div>
-            <div className="panel-body">
-              {latestIssue && (
-                <Link href={`/newsletter/${latestIssue.id}`} className="site-links-link" style={{ marginBottom: 10 }}>
-                  <span>{latestIssue.title}</span>
-                  <span className="dm-inbox-time">{latestIssue.issue_date}</span>
+          {siteFlags.homepage_newsletter && (
+            <div className="panel">
+              <div className="panel-head tabbed">
+                <span className="panel-head-tab">
+                  <span className="tab-the">the</span>
+                  <span className="tab-main">Newsletter</span>
+                </span>
+                <Link href="/newsletter" className="see-all">
+                  See All ▸
                 </Link>
-              )}
-              <p className="field-hint" style={{ marginTop: latestIssue ? 10 : 0, marginBottom: 10 }}>
-                Weekly picks on new releases and underground artists - no account required.
-              </p>
-              <NewsletterSubscribeForm />
+              </div>
+              <div className="panel-body">
+                {latestIssue && (
+                  <Link href={`/newsletter/${latestIssue.id}`} className="site-links-link" style={{ marginBottom: 10 }}>
+                    <span>{latestIssue.title}</span>
+                    <span className="dm-inbox-time">{latestIssue.issue_date}</span>
+                  </Link>
+                )}
+                <p className="field-hint" style={{ marginTop: latestIssue ? 10 : 0, marginBottom: 10 }}>
+                  Weekly picks on new releases and underground artists - no account required.
+                </p>
+                <NewsletterSubscribeForm />
+              </div>
             </div>
-          </div>
+          )}
 
           {statusRows && statusRows.length > 0 && (
             <div className="panel">
