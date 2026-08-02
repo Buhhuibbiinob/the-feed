@@ -12,7 +12,7 @@ export async function fillMissingArt<T extends { id: string; name: string; artis
   const results = await Promise.all(
     missing.map(async (track) => ({
       id: track.id,
-      imageUrl: await searchItunesArt(`${track.name} ${track.artist}`),
+      imageUrl: await searchItunesArt(track.name, track.artist),
     }))
   );
   const artById = new Map(results.map((r) => [r.id, r.imageUrl]));
