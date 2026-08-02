@@ -30,6 +30,8 @@ const TITLES: { match: (p: string) => boolean; title: string }[] = [
   { match: (p) => p.startsWith("/post"), title: "Review" },
   { match: (p) => p.startsWith("/sign-in"), title: "Sign In" },
   { match: (p) => p.startsWith("/sign-up"), title: "Create Account" },
+  { match: (p) => p.startsWith("/forgot-password"), title: "Forgot Password" },
+  { match: (p) => p.startsWith("/reset-password"), title: "Reset Password" },
 ];
 
 function titleFor(pathname: string): string {

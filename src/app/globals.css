@@ -4827,7 +4827,8 @@ footer .copy {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: linear-gradient(180deg, #5ac8fa, #2f6fce);
+    background-color: #2f6fce;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.12) 45%, rgba(255, 255, 255, 0) 58%);
     color: #fff;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 0 0 3px var(--nav-bg);
     opacity: 1;
@@ -4837,7 +4838,7 @@ footer .copy {
     height: 20px;
   }
   .sk-ios-tab-post:active .sk-ios-post-fab {
-    background: linear-gradient(180deg, #4ab8ea, #2560b8);
+    background-color: #2560b8;
   }
   .sk-ios-tab-post .sk-ios-tab-label {
     margin-top: 1px;

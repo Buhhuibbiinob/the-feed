@@ -149,6 +149,63 @@ export async function signInWithMagicLink(
   return { message: "Check your email for a magic sign-in link." };
 }
 
+export async function requestPasswordReset(
+  _prevState: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const email = String(formData.get("email") ?? "").trim();
+
+  // Always return the same generic message whether or not the email
+  // matches an account - confirming/denying an email exists on a password
+  // reset form is a classic account-enumeration leak.
+  const genericMessage = "If an account exists for that email, we've sent a password reset link.";
+
+  if (!email) {
+    return { error: "Enter your email address." };
+  }
+
+  const supabase = await createClient();
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl()}/auth/callback?next=/reset-password`,
+  });
+
+  return { message: genericMessage };
+}
+
+export async function updatePassword(
+  _prevState: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirm_password") ?? "");
+
+  if (!password || !confirmPassword) {
+    return { error: "Enter and confirm your new password." };
+  }
+  if (password.length < 6) {
+    return { error: "Password must be at least 6 characters." };
+  }
+  if (password !== confirmPassword) {
+    return { error: "Passwords don't match." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Your reset link has expired or already been used. Request a new one." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/sign-in?reset=success");
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
