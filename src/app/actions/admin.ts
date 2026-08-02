@@ -153,6 +153,47 @@ export async function adminUnverifyArtist(formData: FormData) {
   revalidatePath("/artists");
 }
 
+export async function adminSetVerified(formData: FormData) {
+  const supabase = await requireAdmin();
+  const userId = String(formData.get("user_id") ?? "");
+  if (!userId) return;
+
+  await supabase.from("profiles").update({ is_verified: true }).eq("id", userId);
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+}
+
+export async function adminUnsetVerified(formData: FormData) {
+  const supabase = await requireAdmin();
+  const userId = String(formData.get("user_id") ?? "");
+  if (!userId) return;
+
+  await supabase.from("profiles").update({ is_verified: false }).eq("id", userId);
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+}
+
+export async function adminSetBonusStats(formData: FormData) {
+  const supabase = await requireAdmin();
+  const userId = String(formData.get("user_id") ?? "");
+  if (!userId) return;
+
+  const bonusFollowers = Number(formData.get("bonus_followers") ?? 0) || 0;
+  const bonusLikes = Number(formData.get("bonus_likes") ?? 0) || 0;
+  const nameColor = String(formData.get("name_color") ?? "").trim();
+
+  await supabase
+    .from("profiles")
+    .update({
+      bonus_followers: Math.max(0, Math.floor(bonusFollowers)),
+      bonus_likes: Math.max(0, Math.floor(bonusLikes)),
+      name_color: nameColor || null,
+    })
+    .eq("id", userId);
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+}
+
 export async function adminBanArtistPost(formData: FormData) {
   const supabase = await requireAdmin();
   const postId = String(formData.get("post_id") ?? "");

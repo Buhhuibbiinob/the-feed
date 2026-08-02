@@ -16,6 +16,9 @@ import {
   adminDismissClubReport,
   adminVerifyArtist,
   adminUnverifyArtist,
+  adminSetVerified,
+  adminUnsetVerified,
+  adminSetBonusStats,
   adminBanArtistPost,
   adminUnbanArtistPost,
   adminDeleteArtistPost,
@@ -50,6 +53,10 @@ type ProfileRow = {
   is_admin: boolean;
   banned: boolean;
   is_verified_artist: boolean;
+  is_verified: boolean;
+  bonus_followers: number;
+  bonus_likes: number;
+  name_color: string | null;
 };
 
 type ArtistPostRow = {
@@ -133,7 +140,7 @@ export default async function AdminPage() {
       .returns<DmReportRow[]>(),
     supabase
       .from("profiles")
-      .select("id, username, is_admin, banned, is_verified_artist")
+      .select("id, username, is_admin, banned, is_verified_artist, is_verified, bonus_followers, bonus_likes, name_color")
       .order("username", { ascending: true })
       .returns<ProfileRow[]>(),
     supabase
@@ -277,7 +284,7 @@ export default async function AdminPage() {
         <div className="panel-body flush">
           {profiles.map((p) => (
             <div className="chat-row" key={p.id}>
-              <b>{p.username}</b>
+              <b style={p.name_color ? { color: p.name_color } : undefined}>{p.username}</b>
               {p.is_admin && <span> · admin</span>}
               {p.banned && <span> · banned</span>}
               {p.is_verified_artist && (
@@ -285,6 +292,57 @@ export default async function AdminPage() {
                   ✓
                 </span>
               )}
+              {p.is_verified && (
+                <span className="verified-check" title="Verified">
+                  ✓
+                </span>
+              )}
+              <span className="chat-msg-actions">
+                {p.is_verified ? (
+                  <form action={adminUnsetVerified} className="inline-form">
+                    <input type="hidden" name="user_id" value={p.id} />
+                    <button type="submit" className="comment-action">
+                      Remove verified badge
+                    </button>
+                  </form>
+                ) : (
+                  <form action={adminSetVerified} className="inline-form">
+                    <input type="hidden" name="user_id" value={p.id} />
+                    <button type="submit" className="comment-action">
+                      Grant verified badge
+                    </button>
+                  </form>
+                )}
+              </span>
+              <form action={adminSetBonusStats} className="inline-form" style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 4 }}>
+                <input type="hidden" name="user_id" value={p.id} />
+                <input
+                  type="number"
+                  name="bonus_followers"
+                  defaultValue={p.bonus_followers}
+                  min={0}
+                  placeholder="Bonus followers"
+                  style={{ width: 90, fontSize: 11 }}
+                />
+                <input
+                  type="number"
+                  name="bonus_likes"
+                  defaultValue={p.bonus_likes}
+                  min={0}
+                  placeholder="Bonus likes"
+                  style={{ width: 90, fontSize: 11 }}
+                />
+                <input
+                  type="text"
+                  name="name_color"
+                  defaultValue={p.name_color ?? ""}
+                  placeholder="Name color (#hex)"
+                  style={{ width: 110, fontSize: 11 }}
+                />
+                <button type="submit" className="comment-action">
+                  Save
+                </button>
+              </form>
               {!p.is_admin && (
                 <span className="chat-msg-actions">
                   {p.is_verified_artist ? (
