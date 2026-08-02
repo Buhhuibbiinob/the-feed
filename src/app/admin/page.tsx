@@ -93,7 +93,7 @@ type ClubReportRow = {
 type BannerRow = {
   id: string;
   artist_name: string;
-  link_url: string;
+  link_url: string | null;
   image_url: string | null;
   message: string | null;
   status: "pending" | "approved" | "rejected";
@@ -562,7 +562,13 @@ export default async function AdminPage() {
             pendingBanners.map((b) => (
               <div className="chat-row" key={b.id}>
                 {b.image_url && <img src={b.image_url} alt="" className="cover-thumb" style={{ marginRight: 8 }} />}
-                <b>{b.artist_name}</b> · <a href={b.link_url} target="_blank" rel="noreferrer">{b.link_url}</a>
+                <b>{b.artist_name}</b>
+                {b.link_url && (
+                  <>
+                    {" "}
+                    · <a href={b.link_url} target="_blank" rel="noreferrer">{b.link_url}</a>
+                  </>
+                )}
                 {b.message && <span> - {b.message}</span>}
                 <span> (submitted by {b.profiles?.username ?? "unknown"})</span>
                 <span className="chat-msg-actions">

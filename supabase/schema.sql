@@ -1052,3 +1052,8 @@ alter table public.posts add column if not exists pinned boolean not null defaul
 alter table public.profiles add column if not exists orby_use_count integer not null default 0;
 alter table public.profiles add column if not exists orby_use_date date;
 
+-- ---------- banner ad link is now optional ----------
+-- Not every banner submission (e.g. a one-off event flyer) has a link to
+-- send people to.
+alter table public.banner_ads alter column link_url drop not null;
+

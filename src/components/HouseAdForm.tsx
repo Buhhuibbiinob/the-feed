@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { adminUploadHouseAd, type BannerFormState } from "@/app/actions/banners";
+import { ImageCropField } from "@/components/ImageCropField";
 
 const initialState: BannerFormState = {};
 
@@ -24,13 +25,15 @@ export function HouseAdForm() {
         <input id="house-ad-name" name="artist_name" type="text" required />
       </div>
       <div className="field">
-        <label htmlFor="house-ad-link">Link</label>
-        <input id="house-ad-link" name="link_url" type="url" placeholder="https://…" required />
+        <label htmlFor="house-ad-link">Link (optional)</label>
+        <input id="house-ad-link" name="link_url" type="url" placeholder="https://…" />
       </div>
-      <div className="field">
-        <label htmlFor="house-ad-image">Image (300x250 works best)</label>
-        <input id="house-ad-image" name="image_file" type="file" accept="image/*" required />
-      </div>
+      <ImageCropField
+        id="house-ad-image"
+        name="image_file"
+        label="Image"
+        hint="Pick an image, then drag to reposition and use the slider to zoom/crop it to fit."
+      />
       <div className="field">
         <label htmlFor="house-ad-message">Caption (optional)</label>
         <input id="house-ad-message" name="message" type="text" />

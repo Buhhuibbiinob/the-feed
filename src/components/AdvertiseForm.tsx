@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { submitBannerAd, type BannerFormState } from "@/app/actions/banners";
+import { ImageCropField } from "@/components/ImageCropField";
 
 const initialState: BannerFormState = {};
 
@@ -24,13 +25,15 @@ export function AdvertiseForm() {
         <input id="artist_name" name="artist_name" type="text" required />
       </div>
       <div className="field">
-        <label htmlFor="link_url">Link (your music, site, or socials)</label>
-        <input id="link_url" name="link_url" type="url" placeholder="https://…" required />
+        <label htmlFor="link_url">Link (your music, site, or socials - optional)</label>
+        <input id="link_url" name="link_url" type="url" placeholder="https://…" />
       </div>
-      <div className="field">
-        <label htmlFor="image_file">Banner image (300x250 works best)</label>
-        <input id="image_file" name="image_file" type="file" accept="image/*" />
-      </div>
+      <ImageCropField
+        id="image_file"
+        name="image_file"
+        label="Banner image"
+        hint="Pick an image, then drag to reposition and use the slider to zoom/crop it to fit."
+      />
       <div className="field">
         <label htmlFor="message">Short message (optional)</label>
         <textarea id="message" name="message" placeholder="A line about what you're promoting" />

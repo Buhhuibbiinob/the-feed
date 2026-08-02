@@ -47,8 +47,8 @@ export async function submitBannerAd(
   const linkUrl = String(formData.get("link_url") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
 
-  if (!artistName || !linkUrl) {
-    return { error: "Artist/band name and link are required." };
+  if (!artistName) {
+    return { error: "Artist/band name is required." };
   }
 
   const { data: inserted, error: insertError } = await supabase
@@ -56,7 +56,7 @@ export async function submitBannerAd(
     .insert({
       submitted_by: user.id,
       artist_name: artistName,
-      link_url: linkUrl,
+      link_url: linkUrl || null,
       message: message || null,
     })
     .select("id")
@@ -94,8 +94,8 @@ export async function adminUploadHouseAd(
   const message = String(formData.get("message") ?? "").trim();
   const file = formData.get("image_file");
 
-  if (!artistName || !linkUrl) {
-    return { error: "Name and link are required." };
+  if (!artistName) {
+    return { error: "Name is required." };
   }
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Choose an image." };
@@ -106,7 +106,7 @@ export async function adminUploadHouseAd(
     .insert({
       submitted_by: user.id,
       artist_name: artistName,
-      link_url: linkUrl,
+      link_url: linkUrl || null,
       message: message || null,
       status: "approved",
     })

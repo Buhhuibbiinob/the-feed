@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
@@ -43,10 +44,29 @@ type StatusRow = {
 type BannerAdRow = {
   id: string;
   artist_name: string;
-  link_url: string;
+  link_url: string | null;
   image_url: string | null;
   message: string | null;
 };
+
+// Renders as a real link when the banner has one, or a plain non-clickable
+// container when it doesn't (link is optional on submission).
+function BannerLink({
+  href,
+  className,
+  children,
+}: {
+  href: string | null;
+  className: string;
+  children: ReactNode;
+}) {
+  if (!href) return <div className={className}>{children}</div>;
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className={className}>
+      {children}
+    </a>
+  );
+}
 
 function stars(rating: number | null) {
   if (!rating) return null;
@@ -351,12 +371,7 @@ export default async function FeedPage({
           <div className="right-now-tab">DISCOVER</div>
           <div className="right-now-body right-now-ad">
             {upcomingBanner ? (
-              <a
-                href={upcomingBanner.link_url}
-                target="_blank"
-                rel="noreferrer"
-                className="right-now-ad-link"
-              >
+              <BannerLink href={upcomingBanner.link_url} className="right-now-ad-link">
                 {upcomingBanner.image_url ? (
                   <img src={upcomingBanner.image_url} alt={upcomingBanner.artist_name} />
                 ) : (
@@ -365,7 +380,7 @@ export default async function FeedPage({
                     {upcomingBanner.message && <span>{upcomingBanner.message}</span>}
                   </div>
                 )}
-              </a>
+              </BannerLink>
             ) : (
               <Link href="/advertise" className="right-now-ad-link">
                 <div className="right-now-ad-fallback">
@@ -403,7 +418,7 @@ export default async function FeedPage({
       </div>
 
       {topFeedBanner ? (
-        <a href={topFeedBanner.link_url} target="_blank" rel="noreferrer" className="banner-slot-wide">
+        <BannerLink href={topFeedBanner.link_url} className="banner-slot-wide">
           <span className="banner-slot-tag">Discover</span>
           {topFeedBanner.image_url ? (
             <img src={topFeedBanner.image_url} alt={topFeedBanner.artist_name} />
@@ -413,7 +428,7 @@ export default async function FeedPage({
               {topFeedBanner.message && <span>{topFeedBanner.message}</span>}
             </div>
           )}
-        </a>
+        </BannerLink>
       ) : (
         <Link href="/advertise" className="banner-slot-wide">
           <span className="banner-slot-tag">Discover</span>
@@ -461,7 +476,7 @@ export default async function FeedPage({
           <Shelf title="Now Watching" items={nowWatching} />
 
           {midFeedBanner ? (
-            <a href={midFeedBanner.link_url} target="_blank" rel="noreferrer" className="banner-slot-wide">
+            <BannerLink href={midFeedBanner.link_url} className="banner-slot-wide">
               <span className="banner-slot-tag">Discover</span>
               {midFeedBanner.image_url ? (
                 <img src={midFeedBanner.image_url} alt={midFeedBanner.artist_name} />
@@ -471,7 +486,7 @@ export default async function FeedPage({
                   {midFeedBanner.message && <span>{midFeedBanner.message}</span>}
                 </div>
               )}
-            </a>
+            </BannerLink>
           ) : (
             <Link href="/advertise" className="banner-slot-wide">
               <span className="banner-slot-tag">Discover</span>
@@ -609,7 +624,7 @@ export default async function FeedPage({
 
           {approvedBanners.length > 0 ? (
             approvedBanners.map((b) => (
-              <a href={b.link_url} target="_blank" rel="noreferrer" className="banner-slot" key={b.id}>
+              <BannerLink href={b.link_url} className="banner-slot" key={b.id}>
                 <span className="banner-slot-tag">Discover</span>
                 {b.image_url ? (
                   <img src={b.image_url} alt={b.artist_name} />
@@ -619,7 +634,7 @@ export default async function FeedPage({
                     {b.message && <span>{b.message}</span>}
                   </div>
                 )}
-              </a>
+              </BannerLink>
             ))
           ) : (
             <Link href="/advertise" className="banner-slot">
