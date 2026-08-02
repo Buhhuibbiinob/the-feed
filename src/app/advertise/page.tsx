@@ -21,9 +21,10 @@ export default async function AdvertisePage() {
         <div className="panel-head">Request a Banner</div>
         <div className="panel-body">
           <p className="field-hint" style={{ marginBottom: 12 }}>
-            Free for now. Pick which spot you want - sidebar square, wide in-feed banner, or the
-            homepage feature slot - and crop your image to fit before submitting. Submissions are
-            reviewed before going live and aren&apos;t guaranteed to be approved.
+            Free for now. Pick which spot you want - the big hero banner at the top of the feed, a
+            sidebar square, a wide in-feed banner, or a small Artist Spotlight card - and crop your
+            image to fit before submitting. Submissions are reviewed before going live and
+            aren&apos;t guaranteed to be approved.
           </p>
           {user ? (
             <AdvertiseForm />
