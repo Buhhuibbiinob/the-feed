@@ -66,6 +66,13 @@ function MoreIcon() {
     </svg>
   );
 }
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
 
 export function SiteHeader({
   theme,
@@ -266,6 +273,12 @@ export function SiteHeader({
             <span className="sk-ios-tab-label">Leaderboard</span>
           </Link>
         )}
+        <Link href={username ? "/post/new" : "/sign-in"} className="sk-ios-tab sk-ios-tab-post">
+          <span className="sk-ios-post-fab">
+            <PlusIcon />
+          </span>
+          <span className="sk-ios-tab-label">Post</span>
+        </Link>
         <button
           type="button"
           ref={mobileMoreBtnRef}

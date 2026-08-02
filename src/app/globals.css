@@ -4814,6 +4814,32 @@ footer .copy {
     opacity: 1;
     filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
   }
+  .sk-ios-tab-post {
+    position: relative;
+  }
+  .sk-ios-post-fab {
+    width: 40px;
+    height: 40px;
+    margin-top: -20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #5ac8fa, #2f6fce);
+    color: #fff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 0 0 3px var(--nav-bg);
+    opacity: 1;
+  }
+  .sk-ios-post-fab svg {
+    width: 20px;
+    height: 20px;
+  }
+  .sk-ios-tab-post:active .sk-ios-post-fab {
+    background: linear-gradient(180deg, #4ab8ea, #2560b8);
+  }
+  .sk-ios-tab-post .sk-ios-tab-label {
+    margin-top: 1px;
+  }
   .sk-more-sheet-backdrop {
     display: flex;
     align-items: flex-end;
