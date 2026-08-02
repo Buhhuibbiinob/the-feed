@@ -2,13 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
-import { getIssueById, NEWSLETTER_SECTIONS } from "@/lib/newsletter";
+import { NEWSLETTER_SECTIONS, type NewsletterIssue } from "@/lib/newsletter";
 import { NewsletterEditForm } from "@/components/NewsletterEditForm";
 import { NewsletterSendButton } from "@/components/NewsletterSendButton";
 import { NewsletterGenerateButton } from "@/components/NewsletterGenerateButton";
 import { publishNewsletterIssue, unpublishNewsletterIssue, deleteNewsletterIssue } from "@/app/actions/newsletter";
 
 export const metadata = { title: "Edit Issue - Feedback" };
+
+const ISSUE_COLUMNS =
+  "id, issue_date, status, title, created_at, published_at, cover_image_url, " +
+  NEWSLETTER_SECTIONS.map((s) => s.key).join(", ");
 
 export default async function AdminNewsletterEditPage({
   params,
@@ -25,8 +29,31 @@ export default async function AdminNewsletterEditPage({
     notFound();
   }
 
-  const issue = await getIssueById(supabase, id);
-  if (!issue) notFound();
+  // Queried directly here (rather than via the shared getIssueById helper)
+  // so a real Supabase/RLS error shows up on screen instead of a blind
+  // 404 - that opaque 404 was the actual bug report that led here.
+  const { data: issueData, error: issueError } = await supabase
+    .from("newsletter_issues")
+    .select(ISSUE_COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (issueError) {
+    return (
+      <div className="panel">
+        <div className="panel-head">Couldn&apos;t load this issue</div>
+        <div className="panel-body">
+          <div className="form-error">{issueError.message}</div>
+          <p className="field-hint">
+            This usually means the database is missing a table or column this page needs - check that{" "}
+            <code>supabase/schema.sql</code> has been run against this project.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  if (!issueData) notFound();
+  const issue = issueData as unknown as NewsletterIssue;
 
   const { count: subscriberCount } = await supabase
     .from("waitlist_signups")
