@@ -1031,6 +1031,13 @@ alter table public.profiles add column if not exists bonus_followers integer not
 alter table public.profiles add column if not exists bonus_likes integer not null default 0;
 alter table public.profiles add column if not exists name_color text;
 
+-- ---------- notification read tracking ----------
+-- The notification bell computes its list live from likes/comments/follows
+-- (no dedicated notifications table), so the unread badge count needs a
+-- single timestamp per user marking when they last opened the bell - only
+-- items newer than this count toward the badge.
+alter table public.profiles add column if not exists notifications_seen_at timestamptz;
+
 -- ---------- pinned posts ----------
 alter table public.posts add column if not exists pinned boolean not null default false;
 

@@ -74,14 +74,14 @@ export default async function RootLayout({
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username, theme, custom_background_url")
+      .select("username, theme, custom_background_url, notifications_seen_at")
       .eq("id", user.id)
       .single();
     username = profile?.username ?? null;
     if (isValidTheme(profile?.theme)) theme = profile.theme;
     customBackgroundUrl = profile?.custom_background_url ?? null;
     admin = await isAdmin(supabase, user.id);
-    notificationCount = await getNotificationCount(supabase, user.id);
+    notificationCount = await getNotificationCount(supabase, user.id, profile?.notifications_seen_at ?? null);
     unreadDmCount = await getUnreadDmCount(supabase, user.id);
   }
 

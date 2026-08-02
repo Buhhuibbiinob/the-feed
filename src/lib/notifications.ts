@@ -124,7 +124,13 @@ export async function getNotifications(
     .slice(0, 30);
 }
 
-export async function getNotificationCount(supabase: SupabaseClient, userId: string): Promise<number> {
+export async function getNotificationCount(
+  supabase: SupabaseClient,
+  userId: string,
+  seenAt: string | null = null
+): Promise<number> {
   const items = await getNotifications(supabase, userId);
-  return items.length;
+  if (!seenAt) return items.length;
+  const seenTime = new Date(seenAt).getTime();
+  return items.filter((item) => new Date(item.createdAt).getTime() > seenTime).length;
 }

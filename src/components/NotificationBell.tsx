@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { markNotificationsSeen } from "@/app/actions/notifications";
 
 type NotificationItem = {
   id: string;
@@ -26,6 +27,7 @@ function describe(item: NotificationItem) {
 
 export function NotificationBell({ initialCount }: { initialCount: number }) {
   const [open, setOpen] = useState(false);
+  const [count, setCount] = useState(initialCount);
   const [items, setItems] = useState<NotificationItem[] | null>(null);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -49,13 +51,17 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
   function toggleOpen() {
     const next = !open;
     setOpen(next);
-    if (next && items === null) {
-      setLoading(true);
-      fetch("/api/notifications")
-        .then((r) => r.json())
-        .then((data) => setItems(data.notifications ?? []))
-        .catch(() => setItems([]))
-        .finally(() => setLoading(false));
+    if (next) {
+      setCount(0);
+      void markNotificationsSeen();
+      if (items === null) {
+        setLoading(true);
+        fetch("/api/notifications")
+          .then((r) => r.json())
+          .then((data) => setItems(data.notifications ?? []))
+          .catch(() => setItems([]))
+          .finally(() => setLoading(false));
+      }
     }
   }
 
@@ -70,7 +76,7 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
         aria-label="Notifications"
       >
         Alerts
-        {initialCount > 0 && <span className="nav-bell-badge">{initialCount > 9 ? "9+" : initialCount}</span>}
+        {count > 0 && <span className="nav-bell-badge">{count > 9 ? "9+" : count}</span>}
       </button>
       {open && (
         <div className="nav-bell-menu">

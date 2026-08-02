@@ -92,8 +92,8 @@ body {
   background: var(--body-bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial,
-    sans-serif;
+  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial,
+    sans-serif);
   font-weight: 400;
   font-size: 13px;
   overflow-x: hidden;
@@ -2860,6 +2860,8 @@ footer .copy {
 
 /* ---- MySpace: cobalt blue and black over white panels ---- */
 [data-theme="myspace"] {
+  --font-family: Arial, Helvetica, sans-serif;
+
   --body-bg: radial-gradient(circle at 20% 15%, rgba(0, 102, 255, 0.25), transparent 45%),
     radial-gradient(circle at 80% 80%, rgba(0, 51, 153, 0.3), transparent 50%),
     linear-gradient(160deg, #000000 0%, #001233 45%, #000000 100%);
@@ -2902,6 +2904,8 @@ footer .copy {
 
 /* ---- Twitter: sky blue on white, clean and flat ---- */
 [data-theme="twitter"] {
+  --font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
   --body-bg: radial-gradient(circle at 30% 10%, rgba(29, 155, 240, 0.12), transparent 45%),
     radial-gradient(circle at 80% 85%, rgba(29, 155, 240, 0.08), transparent 50%),
     linear-gradient(160deg, #ffffff 0%, #f5f8fa 100%);
@@ -2944,6 +2948,8 @@ footer .copy {
 
 /* ---- YouTube: brand red on white/black chrome ---- */
 [data-theme="youtube"] {
+  --font-family: Roboto, Arial, Helvetica, sans-serif;
+
   --body-bg: radial-gradient(circle at 25% 10%, rgba(255, 0, 0, 0.1), transparent 45%),
     linear-gradient(160deg, #ffffff 0%, #f1f1f1 100%);
   --body-glyph-color: rgba(255, 0, 0, 0.06);
@@ -2985,6 +2991,8 @@ footer .copy {
 
 /* ---- Y2K McBling: hot pink chrome, Paris Hilton rhinestone bling ---- */
 [data-theme="mcbling"] {
+  --font-family: "Comic Sans MS", "Comic Sans", cursive;
+
   --body-bg: radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.55) 0%, transparent 3%),
     radial-gradient(circle at 32% 55%, rgba(255, 255, 255, 0.5) 0%, transparent 2.4%),
     radial-gradient(circle at 60% 30%, rgba(255, 255, 255, 0.5) 0%, transparent 2.8%),
@@ -3033,6 +3041,8 @@ footer .copy {
 
 /* ---- Scene: hot pink/electric blue on black-and-white high contrast ---- */
 [data-theme="scene"] {
+  --font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+
   --body-bg: radial-gradient(circle at 20% 15%, rgba(255, 0, 153, 0.35), transparent 42%),
     radial-gradient(circle at 80% 25%, rgba(0, 204, 255, 0.3), transparent 45%),
     linear-gradient(160deg, #000000 0%, #1a0014 45%, #000000 100%);
@@ -3075,6 +3085,8 @@ footer .copy {
 
 /* ---- Emo: black and deep crimson, band-tee minimal ---- */
 [data-theme="emo"] {
+  --font-family: Georgia, "Times New Roman", serif;
+
   --body-bg: radial-gradient(circle at 30% 10%, rgba(140, 0, 20, 0.35), transparent 45%),
     radial-gradient(ellipse at 80% 90%, rgba(60, 0, 40, 0.4), transparent 55%),
     linear-gradient(160deg, #050505 0%, #150507 45%, #000000 100%);
@@ -3120,6 +3132,8 @@ footer .copy {
 
 /* ---- Frutiger Metro: glossy Frutiger Aero blended with flat Metro tiles ---- */
 [data-theme="frutiger-metro"] {
+  --font-family: "Segoe UI", Frutiger, Tahoma, sans-serif;
+
   --body-bg: radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.4), transparent 35%),
     radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.22), transparent 30%),
     radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.16), transparent 32%),
@@ -3165,6 +3179,8 @@ footer .copy {
 
 /* ---- Frutiger Aero: glossy blue/green glass, bright specular highlights ---- */
 [data-theme="frutiger-aero"] {
+  --font-family: "Trebuchet MS", Verdana, sans-serif;
+
   --body-bg: radial-gradient(circle at 25% 10%, rgba(255, 255, 255, 0.75), transparent 35%),
     radial-gradient(ellipse at 85% 15%, rgba(255, 255, 255, 0.35), transparent 40%),
     radial-gradient(ellipse at 20% 90%, rgba(190, 255, 150, 0.45), transparent 55%),
@@ -3209,6 +3225,8 @@ footer .copy {
 
 /* ---- Party Rock: neon pink/green/yellow glow on black, 2010s club-flyer energy ---- */
 [data-theme="party-rock-2010"] {
+  --font-family: "Arial Black", Arial, sans-serif;
+
   --body-bg: radial-gradient(circle at 15% 15%, rgba(255, 0, 200, 0.35), transparent 42%),
     radial-gradient(circle at 85% 20%, rgba(0, 255, 170, 0.3), transparent 45%),
     radial-gradient(circle at 50% 90%, rgba(255, 230, 0, 0.25), transparent 50%),
@@ -3260,6 +3278,8 @@ footer .copy {
 
 /* ---- Champagne Bling: Kimora Lee Simmons champagne-gold meets Hello Kitty light pink/light teal ---- */
 [data-theme="champagne-bling"] {
+  --font-family: "Brush Script MT", "Lucida Handwriting", cursive;
+
   --body-bg: radial-gradient(circle at 20% 15%, rgba(255, 214, 240, 0.4), transparent 45%),
     radial-gradient(circle at 80% 20%, rgba(180, 240, 230, 0.35), transparent 45%),
     radial-gradient(ellipse at 50% 90%, rgba(212, 175, 122, 0.3), transparent 55%),
@@ -3303,6 +3323,8 @@ footer .copy {
 
 /* ---- 2018 Swag: black/white streetwear with a bold red accent ---- */
 [data-theme="swag-2018"] {
+  --font-family: "Arial Black", Arial, sans-serif;
+
   --body-bg: radial-gradient(circle at 25% 15%, rgba(226, 35, 26, 0.12), transparent 45%),
     linear-gradient(160deg, #ffffff 0%, #eeeeee 100%);
   --body-glyph-color: rgba(0, 0, 0, 0.05);
@@ -3344,6 +3366,8 @@ footer .copy {
 
 /* ---- 2016: millennial pink and rose gold over marble white ---- */
 [data-theme="mm2016"] {
+  --font-family: "Century Gothic", Futura, "Trebuchet MS", sans-serif;
+
   --body-bg: radial-gradient(circle at 20% 15%, rgba(244, 194, 194, 0.4), transparent 45%),
     radial-gradient(ellipse at 85% 85%, rgba(183, 110, 121, 0.25), transparent 55%),
     linear-gradient(160deg, #fdf6f5 0%, #f7e3e1 45%, #f0d0cd 100%);
@@ -3386,6 +3410,8 @@ footer .copy {
 
 /* ---- Tumblr: stark navy-on-white classic blog look ---- */
 [data-theme="tumblr"] {
+  --font-family: Georgia, "Times New Roman", serif;
+
   --body-bg: radial-gradient(circle at 30% 10%, rgba(0, 25, 53, 0.08), transparent 45%),
     linear-gradient(160deg, #ffffff 0%, #f7f7f7 100%);
   --body-glyph-color: rgba(0, 25, 53, 0.05);
@@ -3427,6 +3453,8 @@ footer .copy {
 
 /* ---- Tropical: Zara Larsson turquoise, coral, and sunny yellow ---- */
 [data-theme="tropical"] {
+  --font-family: "Trebuchet MS", Verdana, sans-serif;
+
   --body-bg: radial-gradient(circle at 20% 10%, rgba(255, 214, 92, 0.35), transparent 45%),
     radial-gradient(ellipse at 85% 85%, rgba(255, 111, 97, 0.35), transparent 55%),
     linear-gradient(160deg, #00c9b1 0%, #00b4d8 45%, #0090c2 100%);
