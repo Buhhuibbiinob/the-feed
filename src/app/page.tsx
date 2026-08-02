@@ -59,6 +59,7 @@ type BannerAdRow = {
   link_url: string | null;
   image_url: string | null;
   message: string | null;
+  slot_type: string;
 };
 
 // Renders as a real link when the spotlight has one, or a plain
@@ -113,7 +114,7 @@ export default async function FeedPage({
     { data: clubRows },
     { data: memberRows },
     { data: artistPostRows },
-    { data: spotlightAdRows },
+    { data: allBannerAdRows },
     siteText,
     newsletterIssues,
     siteFlags,
@@ -156,9 +157,8 @@ export default async function FeedPage({
       .returns<ArtistPostRow[]>(),
     supabase
       .from("banner_ads")
-      .select("id, artist_name, link_url, image_url, message")
+      .select("id, artist_name, link_url, image_url, message, slot_type")
       .eq("status", "approved")
-      .eq("slot_type", "feature")
       .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order("created_at", { ascending: true })
       .returns<BannerAdRow[]>(),
@@ -173,15 +173,21 @@ export default async function FeedPage({
   }
   const latestIssue = newsletterIssues[0] ?? null;
 
-  // Two spotlight cards, rotating to a new pair every 6 hours (4x/day) so
-  // a small pool of submissions still feels alive without a cron job.
-  const spotlightPool = spotlightAdRows ?? [];
+  // Each banner is submitted for one specific shape and only ever rotates
+  // through the placement matching that shape. Rotates to a new pick every
+  // 6 hours (4x/day) per placement, without needing a cron job.
+  const allBanners = allBannerAdRows ?? [];
   const ROTATION_MS = 6 * 60 * 60 * 1000;
   const rotationSlot = Math.floor(Date.now() / ROTATION_MS);
-  const artistSpotlights =
-    spotlightPool.length === 0
-      ? []
-      : Array.from({ length: Math.min(2, spotlightPool.length) }, (_, i) => spotlightPool[(rotationSlot + i) % spotlightPool.length]);
+  const pickAds = (slotType: string, count: number) => {
+    const pool = allBanners.filter((b) => b.slot_type === slotType);
+    if (pool.length === 0) return [];
+    return Array.from({ length: Math.min(count, pool.length) }, (_, i) => pool[(rotationSlot + i) % pool.length]);
+  };
+  const heroAd = pickAds("hero", 1)[0] ?? null;
+  const sidebarAds = pickAds("sidebar", 2);
+  const wideAd = pickAds("wide", 1)[0] ?? null;
+  const artistSpotlights = pickAds("feature", 2);
 
   let followedIds: Set<string> | null = null;
   if (user && followingOnly) {
@@ -340,6 +346,29 @@ export default async function FeedPage({
         <div className="tagline">{siteText.feed_tagline}</div>
       </div>
 
+      {siteFlags.homepage_ad_hero &&
+        (heroAd ? (
+          <BannerLink href={heroAd.link_url} className="banner-slot-hero">
+            <span className="banner-slot-tag">Discover</span>
+            {heroAd.image_url ? (
+              <img src={heroAd.image_url} alt={heroAd.artist_name} />
+            ) : (
+              <div className="banner-slot-hero-fallback">
+                <b>{heroAd.artist_name}</b>
+                {heroAd.message && <span>{heroAd.message}</span>}
+              </div>
+            )}
+          </BannerLink>
+        ) : (
+          <Link href="/advertise" className="banner-slot-hero">
+            <span className="banner-slot-tag">Discover</span>
+            <div className="banner-slot-hero-fallback">
+              <b>Advertise on Feedback</b>
+              <span>Get your music or film in front of the community - free for now.</span>
+            </div>
+          </Link>
+        ))}
+
       <div className="theslap-top-grid" style={siteFlags.homepage_clubs ? undefined : { gridTemplateColumns: "1fr" }}>
         <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
         {siteFlags.homepage_clubs && (
@@ -475,6 +504,29 @@ export default async function FeedPage({
           )}
           <Shelf title="Now Watching" items={nowWatching} />
 
+          {siteFlags.homepage_ad_wide &&
+            (wideAd ? (
+              <BannerLink href={wideAd.link_url} className="banner-slot-wide">
+                <span className="banner-slot-tag">Discover</span>
+                {wideAd.image_url ? (
+                  <img src={wideAd.image_url} alt={wideAd.artist_name} />
+                ) : (
+                  <div className="banner-slot-wide-fallback">
+                    <b>{wideAd.artist_name}</b>
+                    {wideAd.message && <span>{wideAd.message}</span>}
+                  </div>
+                )}
+              </BannerLink>
+            ) : (
+              <Link href="/advertise" className="banner-slot-wide">
+                <span className="banner-slot-tag">Discover</span>
+                <div className="banner-slot-wide-fallback">
+                  <b>Advertise on Feedback</b>
+                  <span>Get your music or film in front of the community - free for now.</span>
+                </div>
+              </Link>
+            ))}
+
           {siteFlags.homepage_creators && (
             <div className="panel">
               <div className="panel-head tabbed">
@@ -578,6 +630,31 @@ export default async function FeedPage({
               )}
             </div>
           </div>
+
+          {siteFlags.homepage_ad_sidebar &&
+            (sidebarAds.length > 0 ? (
+              sidebarAds.map((ad) => (
+                <BannerLink href={ad.link_url} className="banner-slot" key={ad.id}>
+                  <span className="banner-slot-tag">Discover</span>
+                  {ad.image_url ? (
+                    <img src={ad.image_url} alt={ad.artist_name} />
+                  ) : (
+                    <div className="banner-slot-fallback">
+                      <b>{ad.artist_name}</b>
+                      {ad.message && <span>{ad.message}</span>}
+                    </div>
+                  )}
+                </BannerLink>
+              ))
+            ) : (
+              <Link href="/advertise" className="banner-slot">
+                <span className="banner-slot-tag">Discover</span>
+                <div className="banner-slot-fallback">
+                  <b>Advertise on Feedback</b>
+                  <span>Get your music or film in front of the community - free for now.</span>
+                </div>
+              </Link>
+            ))}
 
           <div className="panel hot-pages-panel">
             <div className="panel-head tabbed">

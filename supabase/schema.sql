@@ -1098,3 +1098,12 @@ create policy "Admins can change site flags"
 -- wall of text with a single picture at the top.
 alter table public.newsletter_issues add column if not exists image_urls text[] not null default '{}';
 
+-- ---------- big hero ad slot ----------
+-- Adds a fourth, much larger ad shape (970x250) alongside the existing
+-- sidebar/wide/feature ones - re-creates the check constraint since
+-- "add column if not exists" is a no-op (constraint included) once the
+-- column already exists from an earlier run of this file.
+alter table public.banner_ads drop constraint if exists banner_ads_slot_type_check;
+alter table public.banner_ads add constraint banner_ads_slot_type_check
+  check (slot_type in ('hero', 'sidebar', 'wide', 'feature'));
+

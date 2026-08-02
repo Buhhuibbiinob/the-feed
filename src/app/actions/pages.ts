@@ -148,10 +148,15 @@ export async function setSiteFlag(formData: FormData) {
   const enabled = formData.get("enabled") === "true";
   if (!SITE_FLAGS.some((f) => f.key === key)) return;
 
-  await supabase
+  const { error } = await supabase
     .from("site_flags")
     .upsert({ key, enabled, updated_at: new Date().toISOString() }, { onConflict: "key" });
 
   revalidatePath("/admin/pages");
   revalidatePath("/");
+
+  if (error) {
+    console.error(`[siteFlags] setSiteFlag(${key}) failed: ${error.message}`);
+    redirect(`/admin/pages?error=${encodeURIComponent(error.message)}`);
+  }
 }

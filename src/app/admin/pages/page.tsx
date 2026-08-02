@@ -9,7 +9,12 @@ import { CreatePageForm } from "@/components/CreatePageForm";
 
 export const metadata = { title: "Pages - Feedback" };
 
-export default async function AdminPagesPage() {
+export default async function AdminPagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -33,6 +38,14 @@ export default async function AdminPagesPage() {
           Archive a built-in page to hide it from navigation, or add a custom page of your own.
         </div>
       </div>
+
+      {error && (
+        <div className="panel">
+          <div className="panel-body">
+            <div className="form-error">{error}</div>
+          </div>
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-head">Homepage Sections</div>

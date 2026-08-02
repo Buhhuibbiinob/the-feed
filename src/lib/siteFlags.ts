@@ -1,6 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type SiteFlagKey =
+  | "homepage_ad_hero"
+  | "homepage_ad_sidebar"
+  | "homepage_ad_wide"
   | "homepage_ads"
   | "homepage_wrapped"
   | "homepage_clubs"
@@ -12,7 +15,10 @@ export type SiteFlagKey =
 // is what a section does if it has no row yet in site_flags (e.g. right
 // after this shipped, before anyone's touched the admin toggle).
 export const SITE_FLAGS: { key: SiteFlagKey; label: string; defaultEnabled: boolean }[] = [
-  { key: "homepage_ads", label: "Artist Spotlight (ad placements)", defaultEnabled: true },
+  { key: "homepage_ad_hero", label: "Big hero ad (top of feed, 970x250)", defaultEnabled: true },
+  { key: "homepage_ad_sidebar", label: "Sidebar ad (300x250)", defaultEnabled: true },
+  { key: "homepage_ad_wide", label: "Wide in-feed ad (728x90)", defaultEnabled: true },
+  { key: "homepage_ads", label: "Artist Spotlight (small ad, 240x140)", defaultEnabled: true },
   { key: "homepage_wrapped", label: "Wrapped promo banner", defaultEnabled: false },
   { key: "homepage_clubs", label: "Clubs teaser", defaultEnabled: true },
   { key: "homepage_creators", label: "Underground Creators section", defaultEnabled: true },
