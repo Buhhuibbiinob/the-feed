@@ -62,13 +62,23 @@ export async function askOrby(message: string): Promise<string> {
 
   // Fallback for when GEMINI_API_KEY isn't configured yet, or the call
   // fails - still recommends from the same real data, just without the
-  // conversational reasoning.
-  const pool = [
+  // conversational reasoning - so it still does basic keyword filtering by
+  // media type here rather than pooling everything together blind.
+  const lower = trimmed.toLowerCase();
+  const wantsMusic = /\b(song|track|album|music|artist|band)\b/.test(lower);
+  const wantsScreen = /\b(movie|film|tv|show|series|episode)\b/.test(lower);
+
+  const screenPool = [
     ...movies.map((m) => `${m.title} (${m.date?.slice(0, 4) ?? "?"})`),
     ...shows.map((s) => `${s.title} (${s.date?.slice(0, 4) ?? "?"})`),
-    ...tracks.map((t) => `"${t.name}" by ${t.artist}`),
-    ...underground.map((u) => `${u.artist_name} (underground ${u.platform === "youtube" ? "filmmaker" : "artist"} on Feedback)`),
+    ...underground.filter((u) => u.platform === "youtube").map((u) => `${u.artist_name} (underground filmmaker on Feedback)`),
   ];
+  const musicPool = [
+    ...tracks.map((t) => `"${t.name}" by ${t.artist}`),
+    ...underground.filter((u) => u.platform !== "youtube").map((u) => `${u.artist_name} (underground artist on Feedback)`),
+  ];
+
+  const pool = wantsMusic && !wantsScreen ? musicPool : wantsScreen && !wantsMusic ? screenPool : [...screenPool, ...musicPool];
   if (pool.length === 0) return "I couldn't find anything to recommend right now - try again in a bit!";
   const pick = pool[Math.floor(Math.random() * pool.length)];
   return `Orby recommends: **${pick}**.`;
