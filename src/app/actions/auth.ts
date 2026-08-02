@@ -12,10 +12,25 @@ export type AuthFormState = {
   hint?: "no-account";
 };
 
+function isRedirectSignal(err: unknown): boolean {
+  return typeof err === "object" && err !== null && "digest" in err && String(err.digest).startsWith("NEXT_REDIRECT");
+}
+
 export async function signUp(
   _prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
+  try {
+    return await signUpInner(formData);
+  } catch (err) {
+    if (isRedirectSignal(err)) throw err;
+    const message = err instanceof Error ? err.message : JSON.stringify(err);
+    console.error(`[signUp] unexpected throw: ${message}`);
+    return { error: `Unexpected error creating your account: ${message}` };
+  }
+}
+
+async function signUpInner(formData: FormData): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const username = String(formData.get("username") ?? "").trim();
