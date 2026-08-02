@@ -61,10 +61,11 @@ export type NewsletterIssue = {
   created_at: string;
   published_at: string | null;
   cover_image_url: string | null;
+  image_urls: string[];
 } & Record<NewsletterSectionKey, string | null>;
 
 const ISSUE_COLUMNS =
-  "id, issue_date, status, title, created_at, published_at, cover_image_url, " +
+  "id, issue_date, status, title, created_at, published_at, cover_image_url, image_urls, " +
   NEWSLETTER_SECTIONS.map((s) => s.key).join(", ");
 
 export async function getPublishedIssues(supabase: SupabaseClient): Promise<NewsletterIssue[]> {
@@ -95,6 +96,16 @@ function escapeHtml(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// Gemini is asked to end a section with "Source: <url>" when it cites a
+// real grounded web result - turn that into an actual clickable link
+// rather than leaving a bare URL sitting in the text.
+function linkifySources(escapedText: string): string {
+  return escapedText.replace(
+    /(Source:\s*)(https?:\/\/[^\s<]+)/gi,
+    (_m, prefix: string, url: string) => `${prefix}<a href="${url}" style="color:#2f6fce;">${url}</a>`
+  );
+}
+
 export function renderIssueHtml(issue: NewsletterIssue, siteUrl: string): string {
   const sections = NEWSLETTER_SECTIONS.filter((s) => issue[s.key]);
   const dateline = new Date(issue.issue_date).toLocaleDateString("en-US", {
@@ -110,10 +121,25 @@ export function renderIssueHtml(issue: NewsletterIssue, siteUrl: string): string
         `<tr><td style="padding:${i === 0 ? "26" : "22"}px 30px 0;">` +
         `<div style="border-top:2px solid #1a1a1a; padding-top:10px;">` +
         `<h2 style="font-family:Georgia,'Times New Roman',serif; font-size:13px; font-weight:bold; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 8px; color:#1a1a1a;">${escapeHtml(s.label)}</h2>` +
-        `<p style="font-family:Georgia,'Times New Roman',serif; font-size:15px; line-height:1.6; margin:0; color:#2a2a2a; white-space:pre-wrap;">${escapeHtml(issue[s.key]!)}</p>` +
+        `<p style="font-family:Georgia,'Times New Roman',serif; font-size:15px; line-height:1.6; margin:0; color:#2a2a2a; white-space:pre-wrap;">${linkifySources(escapeHtml(issue[s.key]!))}</p>` +
         `</div></td></tr>`
     )
     .join("");
+
+  const galleryImages = (issue.image_urls ?? []).slice(0, 3);
+  const gallery = galleryImages.length
+    ? `<tr><td style="padding:16px 30px 0;">` +
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>` +
+      galleryImages
+        .map(
+          (url, i) =>
+            `<td width="${Math.floor(100 / galleryImages.length)}%" style="padding:${i === 0 ? "0" : "0 0 0 8"}px;">` +
+            `<img src="${escapeHtml(url)}" alt="" width="170" style="width:100%; display:block; border-radius:4px; border:1px solid #d8d8d8;" />` +
+            `</td>`
+        )
+        .join("") +
+      `</tr></table></td></tr>`
+    : "";
 
   return (
     `<div style="background-color:#e8eaf0; padding:30px 12px; font-family:Georgia,'Times New Roman',serif;">` +
@@ -136,6 +162,8 @@ export function renderIssueHtml(issue: NewsletterIssue, siteUrl: string): string
     (issue.cover_image_url
       ? `<tr><td style="padding:18px 30px 0;"><img src="${escapeHtml(issue.cover_image_url)}" alt="" width="540" style="width:100%; max-width:540px; display:block; margin:0 auto; border-radius:4px; border:1px solid #d8d8d8;" /></td></tr>`
       : "") +
+
+    gallery +
 
     (body || `<tr><td style="padding:22px 30px 0; font-family:Georgia,'Times New Roman',serif; color:#606060;">No sections filled in for this issue.</td></tr>`) +
 

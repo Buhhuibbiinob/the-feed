@@ -62,11 +62,23 @@ export async function createNewsletterIssue() {
 
 type GeneratedDraft = { title: string } & Record<NewsletterSectionKey, string>;
 
-const NEWSLETTER_SYSTEM_PROMPT = `You write the weekly newsletter for Feedback, a music/movie/TV review community site. You will be given real data collected from the site and from TMDB this week - upcoming releases, underground creator posts, and top-rated reviews. Write ONLY using that real data. Never invent artists, titles, release dates, or facts that aren't in the data provided. If a section has no real data to draw from, write exactly "Nothing new to report this week." for that section instead of making something up.
+const NEWSLETTER_SYSTEM_PROMPT = `You write the weekly newsletter for Feedback, a music/movie/TV review community site. You will be given real data collected from the site and from TMDB this week - upcoming releases, underground creator posts, and top-rated reviews. Use that real data as your primary source, and never invent artists, titles, release dates, or facts. If a section has no real data to draw from and you can't find real current info for it either, write exactly "Nothing new to report this week." for that section instead of making something up.
 
-For each section, mention the real source inline so it's clear where the info came from - e.g. "(via TMDB)" for movie/TV data, or "posted by @username" for site content.
+You have Google Search available - use it to pull in real, current, verifiable info (recent releases, upcoming releases, artist news) that goes beyond the data provided, especially for sections where the provided data is thin. When you use something you found via search, end that section with a new line reading exactly "Source: <the real URL>" - only include a Source line when you actually have a real URL from search, never a made-up one.
 
-Keep each section to 2-4 short sentences, friendly and punchy, not corporate. Respond with JSON matching this exact shape: { "title": string, "upcoming_releases": string, "underground_releases": string, "upcoming_artists": string, "upcoming_actors": string, "upcoming_short_films": string, "short_film_releases": string, "artist_of_week": string, "filmmaker_of_week": string }`;
+For data that came from the provided site/TMDB data instead of search, mention the source inline - e.g. "(via TMDB)" for movie/TV data, or "posted by @username" for site content.
+
+Keep each section to 2-4 short sentences, friendly and punchy, not corporate. Do not use em dashes - use a comma or period instead. Do not use emojis. Respond with JSON matching this exact shape: { "title": string, "upcoming_releases": string, "underground_releases": string, "upcoming_artists": string, "upcoming_actors": string, "upcoming_short_films": string, "short_film_releases": string, "artist_of_week": string, "filmmaker_of_week": string }`;
+
+// Safety net in case the model doesn't follow the em dash / emoji
+// instructions perfectly.
+function sanitizeCopy(text: string): string {
+  return text
+    .replace(/—/g, " - ")
+    .replace(/\p{Extended_Pictographic}/gu, "")
+    .replace(/[\u{1F3FB}-\u{1F3FF}\u{FE0F}\u{200D}]/gu, "")
+    .trim();
+}
 
 export async function generateNewsletterDraft(
   _prevState: NewsletterFormState,
@@ -130,20 +142,29 @@ export async function generateNewsletterDraft(
       : "Top-rated reviews this week: none yet.",
   ].join("\n\n");
 
-  const draft = await askGeminiJson<GeneratedDraft>(NEWSLETTER_SYSTEM_PROMPT, dataDump);
-  if (!draft) {
+  const result = await askGeminiJson<GeneratedDraft>(NEWSLETTER_SYSTEM_PROMPT, dataDump, true);
+  if (!result) {
     return {
       error:
         "Couldn't generate a draft - GEMINI_API_KEY may not be set, or Gemini didn't return valid data. Try again, or fill sections in manually.",
     };
   }
+  const draft = result.data;
 
-  const coverImageUrl =
-    topPosts.find((p) => p.cover_url)?.cover_url ?? upcoming.find((u) => u.imageUrl)?.imageUrl ?? null;
+  const realImages = [
+    ...topPosts.filter((p) => p.cover_url).map((p) => p.cover_url!),
+    ...upcoming.filter((u) => u.imageUrl).map((u) => u.imageUrl!),
+  ];
+  const coverImageUrl = realImages[0] ?? null;
+  const imageUrls = [...new Set(realImages.slice(1, 4))];
 
-  const update: Record<string, string | null> = { title: draft.title, cover_image_url: coverImageUrl };
+  const update: Record<string, string | null | string[]> = {
+    title: sanitizeCopy(draft.title),
+    cover_image_url: coverImageUrl,
+    image_urls: imageUrls,
+  };
   for (const s of NEWSLETTER_SECTIONS) {
-    update[s.key] = draft[s.key] ?? null;
+    update[s.key] = draft[s.key] ? sanitizeCopy(draft[s.key]) : null;
   }
 
   await supabase.from("newsletter_issues").update(update).eq("id", id);

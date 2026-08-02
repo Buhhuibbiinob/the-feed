@@ -5,12 +5,17 @@
 // this so hard to diagnose) - gemini-3.6-flash is the current stable model.
 const MODEL = "gemini-3.6-flash";
 
-type GeminiResult = { ok: true; text: string } | { ok: false; error: string };
+type GroundingChunk = { uri: string; title: string };
+
+type GeminiResult =
+  | { ok: true; text: string; groundingChunks: GroundingChunk[] }
+  | { ok: false; error: string };
 
 async function callGemini(
   systemInstruction: string,
   userMessage: string,
-  extraConfig: Record<string, unknown> = {}
+  extraConfig: Record<string, unknown> = {},
+  options: { useGoogleSearch?: boolean } = {}
 ): Promise<GeminiResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return { ok: false, error: "GEMINI_API_KEY is not set." };
@@ -24,6 +29,7 @@ async function callGemini(
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemInstruction }] },
           contents: [{ role: "user", parts: [{ text: userMessage }] }],
+          ...(options.useGoogleSearch ? { tools: [{ google_search: {} }] } : {}),
           generationConfig: {
             maxOutputTokens: 2048,
             temperature: 0.7,
@@ -43,11 +49,19 @@ async function callGemini(
       return { ok: false, error: `Gemini API returned ${res.status}: ${body.slice(0, 300)}` };
     }
     const data = (await res.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
+      candidates?: {
+        content?: { parts?: { text?: string }[] };
+        groundingMetadata?: { groundingChunks?: { web?: { uri?: string; title?: string } }[] };
+      }[];
     };
     const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim();
     if (!text) return { ok: false, error: `Gemini returned no text. Raw: ${JSON.stringify(data).slice(0, 300)}` };
-    return { ok: true, text };
+
+    const groundingChunks: GroundingChunk[] = (data.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [])
+      .filter((c) => c.web?.uri)
+      .map((c) => ({ uri: c.web!.uri!, title: c.web!.title ?? c.web!.uri! }));
+
+    return { ok: true, text, groundingChunks };
   } catch (err) {
     return { ok: false, error: `Gemini request threw: ${err instanceof Error ? err.message : String(err)}` };
   }
@@ -68,14 +82,26 @@ export async function askGemini(systemInstruction: string, userMessage: string):
 // Requests structured JSON output (Gemini's native JSON mode, not just
 // asking nicely in the prompt) and parses it. Returns null on any failure
 // so callers can fall back cleanly instead of crashing on bad JSON.
-export async function askGeminiJson<T>(systemInstruction: string, userMessage: string): Promise<T | null> {
-  const result = await callGemini(systemInstruction, userMessage, { responseMimeType: "application/json" });
+// Pass useGoogleSearch to ground the response in real, current web results
+// (Gemini 3 supports combining Google Search grounding with JSON mode) -
+// grounding sources are returned alongside the parsed JSON.
+export async function askGeminiJson<T>(
+  systemInstruction: string,
+  userMessage: string,
+  useGoogleSearch = false
+): Promise<{ data: T; sources: GroundingChunk[] } | null> {
+  const result = await callGemini(
+    systemInstruction,
+    userMessage,
+    { responseMimeType: "application/json" },
+    { useGoogleSearch }
+  );
   if (!result.ok) {
     console.error(`[gemini] ${result.error}`);
     return null;
   }
   try {
-    return JSON.parse(result.text) as T;
+    return { data: JSON.parse(result.text) as T, sources: result.groundingChunks };
   } catch (err) {
     console.error(`[gemini] JSON parse failed: ${err instanceof Error ? err.message : String(err)}`);
     return null;

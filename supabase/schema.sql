@@ -1091,3 +1091,10 @@ create policy "Admins can change site flags"
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin))
   with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
 
+-- ---------- newsletter issue photo strip ----------
+-- cover_image_url is the one hero image; image_urls holds a few more real
+-- cover/poster images pulled from the same data used to draft the issue,
+-- so the email reads like an actual illustrated newsletter instead of a
+-- wall of text with a single picture at the top.
+alter table public.newsletter_issues add column if not exists image_urls text[] not null default '{}';
+

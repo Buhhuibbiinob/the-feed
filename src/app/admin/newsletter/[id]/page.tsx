@@ -11,7 +11,7 @@ import { publishNewsletterIssue, unpublishNewsletterIssue, deleteNewsletterIssue
 export const metadata = { title: "Edit Issue - Feedback" };
 
 const ISSUE_COLUMNS =
-  "id, issue_date, status, title, created_at, published_at, cover_image_url, " +
+  "id, issue_date, status, title, created_at, published_at, cover_image_url, image_urls, " +
   NEWSLETTER_SECTIONS.map((s) => s.key).join(", ");
 
 export default async function AdminNewsletterEditPage({
