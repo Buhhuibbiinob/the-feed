@@ -2,7 +2,7 @@
 // Server-only - GEMINI_API_KEY must never reach the client.
 const MODEL = "gemini-2.0-flash";
 
-export type GeminiResult = { ok: true; text: string } | { ok: false; error: string };
+type GeminiResult = { ok: true; text: string } | { ok: false; error: string };
 
 async function callGemini(
   systemInstruction: string,
@@ -56,11 +56,4 @@ export async function askGeminiJson<T>(systemInstruction: string, userMessage: s
   } catch {
     return null;
   }
-}
-
-// Temporary diagnostic variant that surfaces the actual failure reason
-// instead of swallowing it - used to debug why GEMINI_API_KEY isn't
-// working in production. Remove once confirmed working.
-export async function askGeminiDebug(systemInstruction: string, userMessage: string): Promise<GeminiResult> {
-  return callGemini(systemInstruction, userMessage, { maxOutputTokens: 300 });
 }

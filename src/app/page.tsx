@@ -346,6 +346,7 @@ export default async function FeedPage({
       </div>
 
       <div className="theslap-top-grid">
+        <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
         <div className="right-now-widget">
           <div className="right-now-tab">ADVERTISEMENT</div>
           <div className="right-now-body right-now-ad">
@@ -375,7 +376,6 @@ export default async function FeedPage({
             )}
           </div>
         </div>
-        <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
       </div>
 
       <div className="theslap-3col">

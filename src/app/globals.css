@@ -4227,41 +4227,41 @@ footer .copy {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 18px;
+  gap: 4px;
+  padding: 10px;
   margin-bottom: 16px;
   border-radius: 12px;
   background: linear-gradient(160deg, #fafafa, #e4e4e4);
   border: 1px solid #d0d0d0;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
   text-align: center;
 }
 .spotlight-tag {
-  font-size: 9.5px;
+  font-size: 8px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #fff;
   background: var(--btn-bg);
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 100px;
 }
 .spotlight-avatar {
-  width: 64px;
-  height: 64px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #fff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  margin-top: 4px;
+  border: 2px solid #fff;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+  margin-top: 2px;
 }
 .spotlight-name {
   color: #1a1a1a;
-  font-size: 14px;
+  font-size: 12px;
 }
 .spotlight-sub {
   color: #606060;
-  font-size: 10.5px;
+  font-size: 9.5px;
 }
 
 /* ---- Real ON/OFF toggle switch (iOS-style) ---- */
@@ -4462,7 +4462,7 @@ footer .copy {
    ================================================================ */
 .theslap-top-grid {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 1fr 240px;
   gap: 16px;
   margin-bottom: 16px;
   align-items: stretch;
