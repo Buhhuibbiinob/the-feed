@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { coverGradient } from "@/lib/cover";
 
 export type ShelfItem = {
@@ -19,6 +22,8 @@ export function Shelf({
   emptyMessage?: string;
   tone?: "blue" | "purple" | "green" | "pink" | "orange" | "yellow";
 }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
   return (
     <div className={`panel${tone ? ` tone-${tone}` : ""}`}>
       <div className="panel-head tabbed">
@@ -37,13 +42,26 @@ export function Shelf({
               const imageStyle = item.imageUrl
                 ? { backgroundImage: image, backgroundSize: "cover", backgroundPosition: "center" }
                 : { backgroundImage: image };
+              const open = openId === item.id;
               return (
                 <div className="sk-shelf-item" key={item.id}>
-                  <div className="sk-stack">
+                  <div
+                    className="sk-stack"
+                    onClick={() => setOpenId(open ? null : item.id)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${item.title} - ${item.subtitle}`}
+                  >
+                    <div className="sk-stack-sheet sheet-1" />
+                    <div className="sk-stack-sheet sheet-2" />
                     <div className={`sk-card${item.poster ? " poster" : ""}`} style={imageStyle} />
+                    {open && (
+                      <div className="sk-stack-label">
+                        <b>{item.title}</b>
+                        <span>{item.subtitle}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="sk-shelf-name">{item.title}</div>
-                  <div className="sk-shelf-artist">{item.subtitle}</div>
                 </div>
               );
             })

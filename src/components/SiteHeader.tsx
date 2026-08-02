@@ -122,86 +122,88 @@ export function SiteHeader({
   return (
     <>
       <div className="apple-nav">
-        <div className="brand">
-          <img src="/f-logo.PNG" alt="" className="brand-logo" />
-          <span className="wordmark">Feedback</span>
-        </div>
-        <Link href="/" className={pathname === "/" ? "active" : ""}>
-          Feed
-        </Link>
-        {showChat && (
-          <Link href="/chat" className={pathname === "/chat" ? "active" : ""}>
-            Chat
+        <div className="apple-nav-inner">
+          <div className="brand">
+            <img src="/f-logo.PNG" alt="" className="brand-logo" />
+            <span className="wordmark">Feedback</span>
+          </div>
+          <Link href="/" className={pathname === "/" ? "active" : ""}>
+            Feed
           </Link>
-        )}
-        {showLeaderboard && (
-          <Link href="/leaderboard" className={pathname === "/leaderboard" ? "active" : ""}>
-            Leaderboard
-          </Link>
-        )}
-        <div className="nav-more" ref={moreRef}>
-          <button
-            type="button"
-            className={`nav-more-btn ${isMoreActive ? "active" : ""}`}
-            onClick={() => setMoreOpen((open) => !open)}
-            aria-haspopup="true"
-            aria-expanded={moreOpen}
-          >
-            More <span className="nav-more-caret">▾</span>
-          </button>
-          {moreOpen && (
-            <div className="nav-more-menu">
-              {visibleMoreLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={pathname === link.href || pathname.startsWith(`${link.href}/`) ? "active" : ""}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+          {showChat && (
+            <Link href="/chat" className={pathname === "/chat" ? "active" : ""}>
+              Chat
+            </Link>
           )}
-        </div>
-        <form action="/search" method="get" className="nav-search">
-          <input type="search" name="q" placeholder="Search Feedback" aria-label="Search" />
-        </form>
-        <div className="nav-account">
-          {theme === "ios-light" && <LightDarkToggle />}
-          {username ? (
-            <>
-              <NotificationBell initialCount={notificationCount} />
-              <Link href="/messages" className="nav-bell-btn">
-                Messages
-                {unreadDmCount > 0 && (
-                  <span className="nav-bell-badge">{unreadDmCount > 9 ? "9+" : unreadDmCount}</span>
+          {showLeaderboard && (
+            <Link href="/leaderboard" className={pathname === "/leaderboard" ? "active" : ""}>
+              Leaderboard
+            </Link>
+          )}
+          <div className="nav-more" ref={moreRef}>
+            <button
+              type="button"
+              className={`nav-more-btn ${isMoreActive ? "active" : ""}`}
+              onClick={() => setMoreOpen((open) => !open)}
+              aria-haspopup="true"
+              aria-expanded={moreOpen}
+            >
+              More <span className="nav-more-caret">▾</span>
+            </button>
+            {moreOpen && (
+              <div className="nav-more-menu">
+                {visibleMoreLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={pathname === link.href || pathname.startsWith(`${link.href}/`) ? "active" : ""}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+          <form action="/search" method="get" className="nav-search">
+            <input type="search" name="q" placeholder="Search Feedback" aria-label="Search" />
+          </form>
+          <div className="nav-account">
+            {theme === "ios-light" && <LightDarkToggle />}
+            {username ? (
+              <>
+                <NotificationBell initialCount={notificationCount} />
+                <Link href="/messages" className="nav-bell-btn">
+                  Messages
+                  {unreadDmCount > 0 && (
+                    <span className="nav-bell-badge">{unreadDmCount > 9 ? "9+" : unreadDmCount}</span>
+                  )}
+                </Link>
+                <Link href={`/profile/${username}`} className="nav-user">
+                  Hi, {username}
+                </Link>
+                {isAdmin && (
+                  <Link href="/admin" className="acct-btn">
+                    <span>Admin</span>
+                  </Link>
                 )}
-              </Link>
-              <Link href={`/profile/${username}`} className="nav-user">
-                Hi, {username}
-              </Link>
-              {isAdmin && (
-                <Link href="/admin" className="acct-btn">
-                  <span>Admin</span>
+                <Link href="/settings" className="acct-btn">
+                  <span>Settings</span>
                 </Link>
-              )}
-              <Link href="/settings" className="acct-btn">
-                <span>Settings</span>
-              </Link>
-              <button className="acct-btn primary" onClick={() => signOut()}>
-                <span>Sign Out</span>
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/sign-in" className="acct-btn sk-btn-secondary">
-                <span>Sign In</span>
-              </Link>
-              <Link href="/sign-up" className="acct-btn primary sk-btn">
-                <span>Create Account</span>
-              </Link>
-            </>
-          )}
+                <button className="acct-btn primary" onClick={() => signOut()}>
+                  <span>Sign Out</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/sign-in" className="acct-btn sk-btn-secondary">
+                  <span>Sign In</span>
+                </Link>
+                <Link href="/sign-up" className="acct-btn primary sk-btn">
+                  <span>Create Account</span>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
