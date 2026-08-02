@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getThread, markThreadRead } from "@/lib/messages";
 import { MessageComposer } from "@/components/MessageComposer";
+import { blockUser, unblockUser, reportDirectMessage } from "@/app/actions/moderation";
 
 function timeAgo(iso: string) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -36,13 +37,27 @@ export default async function MessageThreadPage({
   if (!otherProfile) notFound();
   if (otherProfile.id === user.id) redirect("/messages");
 
+  const { data: blockRow } = await supabase
+    .from("blocked_users")
+    .select("blocker_id")
+    .eq("blocker_id", user.id)
+    .eq("blocked_id", otherProfile.id)
+    .maybeSingle();
+  const iBlockedThem = !!blockRow;
+
   await markThreadRead(supabase, user.id, otherProfile.id);
   const messages = await getThread(supabase, user.id, otherProfile.id);
 
   return (
     <div className="panel">
-      <div className="panel-head">
+      <div className="panel-head dm-thread-head">
         <Link href={`/profile/${otherProfile.username}`}>{otherProfile.username}</Link>
+        <form action={iBlockedThem ? unblockUser : blockUser} className="inline-form">
+          <input type="hidden" name="blocked_id" value={otherProfile.id} />
+          <button type="submit" className="comment-action danger">
+            {iBlockedThem ? "Unblock" : "Block"}
+          </button>
+        </form>
       </div>
       <div className="panel-body flush dm-thread-body">
         {messages.length === 0 ? (
@@ -54,14 +69,30 @@ export default async function MessageThreadPage({
             <div key={m.id} className={`dm-bubble-row ${m.senderId === user.id ? "mine" : ""}`}>
               <div className="dm-bubble">
                 <div>{m.body}</div>
-                <span className="dm-bubble-time">{timeAgo(m.createdAt)}</span>
+                <div className="dm-bubble-foot">
+                  <span className="dm-bubble-time">{timeAgo(m.createdAt)}</span>
+                  {m.senderId !== user.id && (
+                    <form action={reportDirectMessage} className="inline-form">
+                      <input type="hidden" name="message_id" value={m.id} />
+                      <button type="submit" className="dm-report-btn">
+                        Report
+                      </button>
+                    </form>
+                  )}
+                </div>
               </div>
             </div>
           ))
         )}
       </div>
       <div className="panel-body">
-        <MessageComposer recipientId={otherProfile.id} recipientUsername={otherProfile.username} />
+        {iBlockedThem ? (
+          <div className="empty-state">
+            You&apos;ve blocked {otherProfile.username}. Unblock them to send messages again.
+          </div>
+        ) : (
+          <MessageComposer recipientId={otherProfile.id} recipientUsername={otherProfile.username} />
+        )}
       </div>
     </div>
   );

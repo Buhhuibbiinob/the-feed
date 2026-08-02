@@ -111,9 +111,11 @@ export function SiteHeader({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [moreOpen]);
 
-  useEffect(() => {
-    setMoreOpen(false);
-  }, [pathname]);
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    if (moreOpen) setMoreOpen(false);
+  }
 
   const isHome = pathname === "/";
 
@@ -270,39 +272,25 @@ export function SiteHeader({
               <input type="search" name="q" placeholder="Search Feedback" aria-label="Search" />
             </form>
             {visibleMoreLinks.map((link) => (
-              <Link key={link.href} href={link.href} onClick={() => setMoreOpen(false)}>
+              <Link key={link.href} href={link.href}>
                 {link.label}
               </Link>
             ))}
             <div className="sk-more-sheet-divider" />
             {username ? (
               <>
-                <Link href={`/profile/${username}`} onClick={() => setMoreOpen(false)}>
-                  Profile
-                </Link>
-                <Link href="/messages" onClick={() => setMoreOpen(false)}>
-                  Messages
-                </Link>
-                {isAdmin && (
-                  <Link href="/admin" onClick={() => setMoreOpen(false)}>
-                    Admin
-                  </Link>
-                )}
-                <Link href="/settings" onClick={() => setMoreOpen(false)}>
-                  Settings
-                </Link>
+                <Link href={`/profile/${username}`}>Profile</Link>
+                <Link href="/messages">Messages</Link>
+                {isAdmin && <Link href="/admin">Admin</Link>}
+                <Link href="/settings">Settings</Link>
                 <button type="button" onClick={() => signOut()}>
                   Sign Out
                 </button>
               </>
             ) : (
               <>
-                <Link href="/sign-in" onClick={() => setMoreOpen(false)}>
-                  Sign In
-                </Link>
-                <Link href="/sign-up" onClick={() => setMoreOpen(false)}>
-                  Create Account
-                </Link>
+                <Link href="/sign-in">Sign In</Link>
+                <Link href="/sign-up">Create Account</Link>
               </>
             )}
             {theme === "ios-light" && (

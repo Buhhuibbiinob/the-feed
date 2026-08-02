@@ -17,6 +17,20 @@ export async function reportMessage(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export async function reportDirectMessage(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const messageId = String(formData.get("message_id") ?? "");
+  if (!messageId) return;
+
+  await supabase.from("dm_reports").insert({ message_id: messageId, reporter_id: user.id });
+  revalidatePath("/admin");
+}
+
 export async function blockUser(formData: FormData) {
   const supabase = await createClient();
   const {

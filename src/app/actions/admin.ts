@@ -35,6 +35,24 @@ export async function adminDismissReport(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export async function adminDeleteDirectMessage(formData: FormData) {
+  const supabase = await requireAdmin();
+  const messageId = String(formData.get("message_id") ?? "");
+  if (!messageId) return;
+
+  await supabase.from("direct_messages").delete().eq("id", messageId);
+  revalidatePath("/admin");
+}
+
+export async function adminDismissDmReport(formData: FormData) {
+  const supabase = await requireAdmin();
+  const reportId = String(formData.get("report_id") ?? "");
+  if (!reportId) return;
+
+  await supabase.from("dm_reports").delete().eq("id", reportId);
+  revalidatePath("/admin");
+}
+
 export async function adminBanUser(formData: FormData) {
   const supabase = await requireAdmin();
   const userId = String(formData.get("user_id") ?? "");

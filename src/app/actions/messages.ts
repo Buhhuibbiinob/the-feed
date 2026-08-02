@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { checkMessageSafety } from "@/lib/contentSafety";
 
 export type MessageFormState = {
   error?: string;
@@ -30,6 +31,11 @@ export async function sendMessage(
   }
   if (recipientId === user.id) {
     return { error: "You can't message yourself." };
+  }
+
+  const safety = checkMessageSafety(body);
+  if (!safety.allowed) {
+    return { error: safety.reason };
   }
 
   const { error } = await supabase.from("direct_messages").insert({

@@ -2,11 +2,12 @@
 // matching `[data-theme="id"]` block in globals.css) to introduce a theme -
 // nothing else needs to change to make it selectable in Settings.
 //
-// `category` groups themes in the Settings picker tabs. "color" themes only
-// swap the color/gradient tokens; "era-90s-2000s" and "era-2010-2016" themes
-// also carry real structural CSS (border radius, bevel depth, spacing) in
-// globals.css so they feel period-authentic, not just recolored.
-export type ThemeCategory = "color" | "era-90s-2000s" | "era-2010-2016";
+// Every theme is colors-only (swaps the color/gradient tokens) except
+// ios-light, the default, which also carries its own real structural CSS
+// (border radius, bevel depth, spacing) in globals.css. Everything else
+// shares the site's normal default shapes/spacing so switching themes never
+// reshapes anything - only recolors it.
+export type ThemeCategory = "color";
 
 export type Theme = {
   id: string;
@@ -17,178 +18,94 @@ export type Theme = {
 
 export const THEMES: Theme[] = [
   {
-    id: "default",
-    label: "Classic Aqua",
-    description: "The original brushed-metal, deep-teal look.",
+    id: "ios-light",
+    label: "Default",
+    description: "Glossy brushed-metal chrome, soft blue accents. Has its own light/dark mode switch in Settings.",
+    category: "color",
+  },
+  {
+    id: "myspace",
+    label: "MySpace",
+    description: "Cobalt blue and black over white profile panels.",
+    category: "color",
+  },
+  {
+    id: "twitter",
+    label: "Twitter",
+    description: "Sky blue on clean white, flat and minimal.",
+    category: "color",
+  },
+  {
+    id: "youtube",
+    label: "YouTube",
+    description: "Brand red on white and black chrome.",
+    category: "color",
+  },
+  {
+    id: "mcbling",
+    label: "Y2K McBling",
+    description: "Hot pink chrome and rhinestones, Paris Hilton bling era.",
+    category: "color",
+  },
+  {
+    id: "scene",
+    label: "Scene",
+    description: "Hot pink and electric blue on black-and-white high contrast.",
+    category: "color",
+  },
+  {
+    id: "emo",
+    label: "Emo",
+    description: "Black and deep crimson, band-tee minimal.",
+    category: "color",
+  },
+  {
+    id: "frutiger-metro",
+    label: "Frutiger Metro",
+    description: "Glossy Frutiger Aero blended with flat Metro tiles.",
     category: "color",
   },
   {
     id: "frutiger-aero",
     label: "Frutiger Aero",
     description: "Glossy blue/green glass with bright specular highlights.",
-    category: "era-2010-2016",
-  },
-  {
-    id: "y2k-futuristic",
-    label: "Y2K Futuristic",
-    description: "Chrome and silver with holographic accent gradients.",
-    category: "era-90s-2000s",
-  },
-  {
-    id: "tumblr-fashion",
-    label: "Tumblr Fashion",
-    description: "Soft grunge, pastel-goth pinks and lavenders.",
-    category: "era-2010-2016",
+    category: "color",
   },
   {
     id: "party-rock-2010",
     label: "Party Rock",
     description: "Neon pink/green/yellow glow on black - 2010s club-flyer energy.",
-    category: "era-2010-2016",
-  },
-  {
-    id: "ios-light",
-    label: "iOS Light",
-    description: "Glossy iPhone-5-era skeuomorphic chrome, soft blue accents.",
-    category: "era-2010-2016",
-  },
-  {
-    id: "ios-dark",
-    label: "iOS Dark",
-    description: "The same glossy skeuomorphic look after sunset.",
-    category: "era-2010-2016",
-  },
-  {
-    id: "tuscan",
-    label: "Tuscan",
-    description: "Warm olive and terracotta, Windows-XP-Tuscany style.",
-    category: "era-90s-2000s",
-  },
-  {
-    id: "frutiger-metro",
-    label: "Frutiger Metro",
-    description: "Glossy Frutiger Aero blended with flat Metro tiles.",
-    category: "era-2010-2016",
-  },
-  {
-    id: "mcbling",
-    label: "McBling",
-    description: "Hot pink chrome, rhinestones, and swirl bling patterns.",
-    category: "era-90s-2000s",
-  },
-  {
-    id: "vaporwave",
-    label: "Vaporwave",
-    description: "Pink, purple, and cyan retro-digital dreamscape.",
     category: "color",
   },
   {
-    id: "win95",
-    label: "Windows 95",
-    description: "Classic gray beveled UI over a teal desktop background.",
-    category: "era-90s-2000s",
-  },
-  {
-    id: "synthwave",
-    label: "Synthwave",
-    description: "Neon sunset grid over a purple horizon, 80s outrun style.",
+    id: "champagne-bling",
+    label: "Champagne Bling",
+    description: "Kimora Lee Simmons champagne-gold meets Hello Kitty pink and teal.",
     category: "color",
   },
   {
-    id: "dark-academia",
-    label: "Dark Academia",
-    description: "Burgundy, oxblood leather, and mossy library shelves.",
+    id: "swag-2018",
+    label: "2018 Swag",
+    description: "Black-and-white streetwear with a bold red accent.",
     category: "color",
   },
   {
-    id: "cottagecore",
-    label: "Cottagecore",
-    description: "Cream linens, sage green, and dried wildflowers.",
+    id: "mm2016",
+    label: "2016",
+    description: "Millennial pink and rose gold over marble white.",
     category: "color",
   },
   {
-    id: "solarized-dark",
-    label: "Solarized Dark",
-    description: "The classic low-contrast developer palette, teal on slate.",
+    id: "tumblr",
+    label: "Tumblr",
+    description: "Stark navy-on-white classic blog look.",
     category: "color",
   },
   {
-    id: "matcha-zen",
-    label: "Matcha Zen",
-    description: "Calm matcha green and rice-paper cream, minimal and quiet.",
+    id: "tropical",
+    label: "Tropical",
+    description: "Zara Larsson turquoise, coral, and sunny yellow.",
     category: "color",
-  },
-  {
-    id: "halloween-gothic",
-    label: "Halloween Gothic",
-    description: "Black and violet with a pumpkin-orange glow.",
-    category: "color",
-  },
-  {
-    id: "winxp-bliss",
-    label: "Windows XP Bliss",
-    description: "Green rolling hills under a wide blue sky.",
-    category: "era-90s-2000s",
-  },
-  {
-    id: "discord-dark",
-    label: "Discord Dark",
-    description: "Blurple accents on charcoal, the modern chat-app look.",
-    category: "era-2010-2016",
-  },
-  {
-    id: "nordic-frost",
-    label: "Nordic Frost",
-    description: "Pale glacier blues and cool grays, Scandinavian calm.",
-    category: "color",
-  },
-  {
-    id: "film-reel",
-    label: "Film Reel",
-    description: "Chrome and gold movie-projector look with sprocket-hole dots.",
-    category: "color",
-  },
-  {
-    id: "movie-marquee",
-    label: "Movie Marquee",
-    description: "Broadway red and gold, lit up like a theater marquee.",
-    category: "color",
-  },
-  {
-    id: "golden-hollywood",
-    label: "Golden Age Hollywood",
-    description: "Black and gold Art Deco glamour with chevron trim.",
-    category: "color",
-  },
-  {
-    id: "drive-in-dusk",
-    label: "Drive-In Dusk",
-    description: "Dusky drive-in movie sky scattered with stars.",
-    category: "color",
-  },
-  {
-    id: "popcorn-bucket",
-    label: "Popcorn Bucket",
-    description: "Cheerful red-and-white striped movie-theater snack look.",
-    category: "color",
-  },
-  {
-    id: "crt-tv",
-    label: "CRT Television",
-    description: "Phosphor-green scanlines glowing off an old tube TV.",
-    category: "era-90s-2000s",
-  },
-  {
-    id: "static-signal",
-    label: "Static Signal",
-    description: "Grayscale off-air TV static, dialed in and buzzing.",
-    category: "era-90s-2000s",
-  },
-  {
-    id: "vhs-rewind",
-    label: "VHS Rewind",
-    description: "Purple and teal retro tape aesthetic with tracking lines.",
-    category: "era-90s-2000s",
   },
   {
     id: "custom",
@@ -198,11 +115,7 @@ export const THEMES: Theme[] = [
   },
 ];
 
-export const THEME_CATEGORIES: { id: ThemeCategory; label: string }[] = [
-  { id: "color", label: "Colors" },
-  { id: "era-90s-2000s", label: "90s-2000s" },
-  { id: "era-2010-2016", label: "2010-2016" },
-];
+export const THEME_CATEGORIES: { id: ThemeCategory; label: string }[] = [{ id: "color", label: "Colors" }];
 
 export const THEME_IDS = new Set(THEMES.map((t) => t.id));
 export const DEFAULT_THEME = "ios-light";

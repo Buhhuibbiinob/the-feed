@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { siteUrl } from "@/lib/site";
+import { checkUsernameSafety } from "@/lib/contentSafety";
 
 export type AuthFormState = {
   error?: string;
@@ -26,6 +27,10 @@ export async function signUp(
   }
   if (password.length < 6) {
     return { error: "Password must be at least 6 characters." };
+  }
+  const usernameSafety = checkUsernameSafety(username);
+  if (!usernameSafety.allowed) {
+    return { error: usernameSafety.reason };
   }
   if (!termsAccepted) {
     return { error: "You must agree to the Privacy Policy and Terms of Service." };

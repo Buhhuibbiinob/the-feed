@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { MAX_AVATAR_BYTES, MAX_BANNER_BYTES, MAX_BACKGROUND_BYTES, megabytes, isImageFile, guessContentType } from "@/lib/uploads";
+import { checkBioSafety } from "@/lib/contentSafety";
 
 export type ProfileFormState = {
   error?: string;
@@ -107,6 +108,11 @@ export async function updateBio(
   if (!user) return { error: "You must be signed in." };
 
   const bio = String(formData.get("bio") ?? "").slice(0, 500);
+
+  const bioSafety = checkBioSafety(bio);
+  if (!bioSafety.allowed) {
+    return { error: bioSafety.reason };
+  }
 
   const { error } = await supabase.from("profiles").update({ bio }).eq("id", user.id);
   if (error) return { error: error.message };

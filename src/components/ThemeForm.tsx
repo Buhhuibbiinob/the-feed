@@ -2,15 +2,13 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { updateTheme, type ThemeFormState } from "@/app/actions/theme";
-import { THEMES, THEME_CATEGORIES, type ThemeCategory } from "@/lib/themes";
+import { THEMES } from "@/lib/themes";
 
 const initialState: ThemeFormState = {};
 
 export function ThemeForm({ currentTheme }: { currentTheme: string }) {
   const [state, action, pending] = useActionState(updateTheme, initialState);
   const [selected, setSelected] = useState(currentTheme);
-  const currentCategory = THEMES.find((t) => t.id === currentTheme)?.category ?? "color";
-  const [activeTab, setActiveTab] = useState<ThemeCategory>(currentCategory);
 
   useEffect(() => {
     if (!state.ok) return;
@@ -25,33 +23,17 @@ export function ThemeForm({ currentTheme }: { currentTheme: string }) {
   function shuffle() {
     const others = THEMES.filter((t) => t.id !== selected);
     const random = others[Math.floor(Math.random() * others.length)];
-    setActiveTab(random.category);
     pick(random.id);
   }
-
-  const visibleThemes = THEMES.filter((t) => t.category === activeTab);
 
   return (
     <form action={action} className="theme-form">
       <label className="theme-form-label">Site theme</label>
 
-      <div className="theme-tabs">
-        {THEME_CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            className={`theme-tab ${activeTab === cat.id ? "active" : ""}`}
-            onClick={() => setActiveTab(cat.id)}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
       <input type="hidden" name="theme" value={selected} />
 
       <div className="theme-swatches">
-        {visibleThemes.map((theme) => (
+        {THEMES.map((theme) => (
           <div
             className={`theme-swatch ${selected === theme.id ? "selected" : ""}`}
             data-theme={theme.id}

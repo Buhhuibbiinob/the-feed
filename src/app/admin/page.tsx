@@ -5,6 +5,8 @@ import { isAdmin } from "@/lib/admin";
 import {
   adminDeleteMessage,
   adminDismissReport,
+  adminDeleteDirectMessage,
+  adminDismissDmReport,
   adminBanUser,
   adminUnbanUser,
   adminRemoveUser,
@@ -32,6 +34,13 @@ type ReportRow = {
   id: string;
   created_at: string;
   chat_messages: { id: string; body: string; user_id: string; profiles: { username: string } | null } | null;
+  profiles: { username: string } | null;
+};
+
+type DmReportRow = {
+  id: string;
+  created_at: string;
+  direct_messages: { id: string; body: string; sender_id: string; profiles: { username: string } | null } | null;
   profiles: { username: string } | null;
 };
 
@@ -99,6 +108,7 @@ export default async function AdminPage() {
 
   const [
     { data: reportRows },
+    { data: dmReportRows },
     { data: profileRows },
     { data: pendingClubRows },
     { data: clubReportRows },
@@ -114,6 +124,13 @@ export default async function AdminPage() {
       )
       .order("created_at", { ascending: false })
       .returns<ReportRow[]>(),
+    supabase
+      .from("dm_reports")
+      .select(
+        "id, created_at, direct_messages(id, body, sender_id, profiles(username)), profiles!dm_reports_reporter_id_fkey(username)"
+      )
+      .order("created_at", { ascending: false })
+      .returns<DmReportRow[]>(),
     supabase
       .from("profiles")
       .select("id, username, is_admin, banned, is_verified_artist")
@@ -151,6 +168,7 @@ export default async function AdminPage() {
   ]);
 
   const reports = reportRows ?? [];
+  const dmReports = dmReportRows ?? [];
   const profiles = profileRows ?? [];
   const pendingClubs = pendingClubRows ?? [];
   const clubReports = clubReportRows ?? [];
@@ -204,6 +222,44 @@ export default async function AdminPage() {
                     </form>
                   )}
                   <form action={adminDismissReport} className="inline-form">
+                    <input type="hidden" name="report_id" value={r.id} />
+                    <button type="submit" className="comment-action">
+                      Dismiss
+                    </button>
+                  </form>
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Reported Direct Messages</div>
+        <div className="panel-body flush">
+          {dmReports.length === 0 ? (
+            <div className="empty-state" style={{ padding: 16 }}>No reports right now.</div>
+          ) : (
+            dmReports.map((r) => (
+              <div className="chat-row" key={r.id}>
+                {r.direct_messages ? (
+                  <>
+                    <b>{r.direct_messages.profiles?.username ?? "unknown"}:</b> {r.direct_messages.body}
+                  </>
+                ) : (
+                  <i>message deleted</i>
+                )}
+                <span className="chat-msg-actions">
+                  <span className="comment-action">reported by {r.profiles?.username ?? "unknown"}</span>
+                  {r.direct_messages && (
+                    <form action={adminDeleteDirectMessage} className="inline-form">
+                      <input type="hidden" name="message_id" value={r.direct_messages.id} />
+                      <button type="submit" className="comment-action danger">
+                        Remove message
+                      </button>
+                    </form>
+                  )}
+                  <form action={adminDismissDmReport} className="inline-form">
                     <input type="hidden" name="report_id" value={r.id} />
                     <button type="submit" className="comment-action">
                       Dismiss

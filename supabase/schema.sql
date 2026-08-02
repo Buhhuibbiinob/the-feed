@@ -911,6 +911,31 @@ create policy "Recipients can mark messages read"
 create index if not exists direct_messages_conversation_idx
   on public.direct_messages (least(sender_id, recipient_id), greatest(sender_id, recipient_id), created_at);
 
+-- ---------- dm_reports (direct message moderation) ----------
+create table if not exists public.dm_reports (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references public.direct_messages (id) on delete cascade,
+  reporter_id uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+alter table public.dm_reports enable row level security;
+
+drop policy if exists "Users can insert their own dm reports" on public.dm_reports;
+create policy "Users can insert their own dm reports"
+  on public.dm_reports for insert
+  with check (auth.uid() = reporter_id);
+
+drop policy if exists "Admins can view dm reports" on public.dm_reports;
+create policy "Admins can view dm reports"
+  on public.dm_reports for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete dm reports" on public.dm_reports;
+create policy "Admins can delete dm reports"
+  on public.dm_reports for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
 -- ---------- weekly newsletter issues ----------
 create table if not exists public.newsletter_issues (
   id uuid primary key default gen_random_uuid(),
