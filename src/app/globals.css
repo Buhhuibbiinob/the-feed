@@ -1855,25 +1855,26 @@ select:focus {
   color: #fff;
   padding: 2px 8px;
   border-radius: 100px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0) 55%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 .badge.music {
-  background: linear-gradient(160deg, #3ee08a, #0f7a3f);
+  background-color: #1e9a52;
 }
 .badge.movie_tv {
-  background: linear-gradient(160deg, #ff5f8a, #a8123f);
+  background-color: #d81457;
 }
 .badge.spotify {
-  background: linear-gradient(160deg, #3ee08a, #0f7a3f);
+  background-color: #1e9a52;
 }
 .badge.soundcloud {
-  background: linear-gradient(160deg, #ff8a3d, #d4530a);
+  background-color: #e8660a;
 }
 .badge.apple_music {
-  background: linear-gradient(160deg, #fc5c8a, #b81d5c);
+  background-color: #d81a5f;
 }
 .badge.youtube {
-  background: linear-gradient(160deg, #ff4d4d, #a80f0f);
+  background-color: #d81f1f;
 }
 .verified-check {
   display: inline-flex;
@@ -3998,15 +3999,16 @@ footer .copy {
   color: #fff;
   padding: 4px 10px;
   border-radius: 100px;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0) 55%);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
   white-space: nowrap;
   pointer-events: none;
 }
 .sticker-badge.hot {
-  background: linear-gradient(160deg, #ff8a3d, #d8447a);
+  background-color: #e8558a;
 }
 .sticker-badge.new {
-  background: linear-gradient(160deg, #3ee08a, #0f7a3f);
+  background-color: #1e9a52;
 }
 
 /* ---- Small red circular notification-count badges ---- */
