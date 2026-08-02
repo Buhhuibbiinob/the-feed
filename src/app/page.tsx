@@ -47,7 +47,15 @@ type BannerAdRow = {
   link_url: string | null;
   image_url: string | null;
   message: string | null;
+  slot_type: string;
 };
+
+// Picks `count` items from `pool`, walking forward from rotationSlot with
+// wraparound - a new set every rotation window without extra scheduling.
+function rotatePick<T>(pool: T[], count: number, rotationSlot: number): T[] {
+  if (pool.length === 0) return [];
+  return Array.from({ length: count }, (_, i) => pool[(rotationSlot + i) % pool.length]);
+}
 
 // Renders as a real link when the banner has one, or a plain non-clickable
 // container when it doesn't (link is optional on submission).
@@ -158,7 +166,7 @@ export default async function FeedPage({
       .returns<StatusRow[]>(),
     supabase
       .from("banner_ads")
-      .select("id, artist_name, link_url, image_url, message")
+      .select("id, artist_name, link_url, image_url, message, slot_type")
       .eq("status", "approved")
       .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order("created_at", { ascending: true })
@@ -335,28 +343,21 @@ export default async function FeedPage({
     if (feedTvClips.length >= 10) break;
   }
 
-  // Rotate through every approved banner in the pool - a new pick every 6
-  // hours (4x/day), so a handful of images naturally cycle through the day
-  // without needing a cron job or extra scheduling UI. Two ad spots pull
-  // from different offsets in the rotation so they don't just repeat the
-  // same image.
+  // Each banner is submitted for one specific shape (sidebar square, wide
+  // in-feed, or homepage feature) and only ever rotates through the
+  // placement matching that shape - no more stretching a square crop into
+  // a wide banner slot. Rotates to a new pick every 6 hours (4x/day) per
+  // placement, without needing a cron job or extra scheduling UI.
   const allBanners = bannerAdRows ?? [];
+  const sidebarPool = allBanners.filter((b) => b.slot_type === "sidebar");
+  const widePool = allBanners.filter((b) => b.slot_type === "wide");
+  const featurePool = allBanners.filter((b) => b.slot_type === "feature");
   const ROTATION_MS = 6 * 60 * 60 * 1000;
   const rotationSlot = Math.floor(Date.now() / ROTATION_MS);
-  const sidebarBannerCount = Math.min(2, allBanners.length);
-  const approvedBanners =
-    allBanners.length === 0
-      ? []
-      : Array.from(
-          { length: sidebarBannerCount },
-          (_, i) => allBanners[(rotationSlot + i) % allBanners.length]
-        );
-  const midFeedBanner =
-    allBanners.length === 0 ? null : allBanners[(rotationSlot + sidebarBannerCount) % allBanners.length];
-  const topFeedBanner =
-    allBanners.length === 0 ? null : allBanners[(rotationSlot + sidebarBannerCount + 1) % allBanners.length];
-  const upcomingBanner =
-    allBanners.length === 0 ? null : allBanners[(rotationSlot + sidebarBannerCount + 2) % allBanners.length];
+
+  const approvedBanners = rotatePick(sidebarPool, Math.min(2, sidebarPool.length), rotationSlot);
+  const [topFeedBanner, midFeedBanner] = rotatePick(widePool, widePool.length === 0 ? 0 : 2, rotationSlot);
+  const upcomingBanner = rotatePick(featurePool, featurePool.length === 0 ? 0 : 1, rotationSlot)[0] ?? null;
 
   return (
     <>

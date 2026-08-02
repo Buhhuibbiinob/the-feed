@@ -1057,3 +1057,13 @@ alter table public.profiles add column if not exists orby_use_date date;
 -- send people to.
 alter table public.banner_ads alter column link_url drop not null;
 
+-- ---------- banner ad slot type (submitter picks the shape) ----------
+-- Banners used to be pooled and rotated across all three ad shapes
+-- (sidebar square, in-feed wide, homepage feature) regardless of what
+-- aspect ratio the uploaded image actually was - stretching one crop into
+-- three very different boxes. Now the submitter picks which shape they're
+-- uploading for and crops to match, and each placement only rotates
+-- through banners submitted for that specific shape.
+alter table public.banner_ads add column if not exists slot_type text not null default 'sidebar'
+  check (slot_type in ('sidebar', 'wide', 'feature'));
+

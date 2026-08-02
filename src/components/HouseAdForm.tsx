@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { adminUploadHouseAd, type BannerFormState } from "@/app/actions/banners";
 import { ImageCropField } from "@/components/ImageCropField";
+import { BANNER_SLOTS, bannerSlotInfo, type BannerSlotType } from "@/lib/bannerSlots";
 
 const initialState: BannerFormState = {};
 
@@ -10,6 +11,8 @@ export function HouseAdForm() {
   const [state, formAction, pending] = useActionState(adminUploadHouseAd, initialState);
   const [formKey, setFormKey] = useState(0);
   const [lastOk, setLastOk] = useState(state.ok);
+  const [slotType, setSlotType] = useState<BannerSlotType>("sidebar");
+  const slot = bannerSlotInfo(slotType);
 
   if (state.ok !== lastOk) {
     setLastOk(state.ok);
@@ -28,10 +31,28 @@ export function HouseAdForm() {
         <label htmlFor="house-ad-link">Link (optional)</label>
         <input id="house-ad-link" name="link_url" type="url" placeholder="https://…" />
       </div>
+      <div className="field">
+        <label htmlFor="house-ad-slot-type">Where should this run?</label>
+        <select
+          id="house-ad-slot-type"
+          name="slot_type"
+          value={slotType}
+          onChange={(e) => setSlotType(e.target.value as BannerSlotType)}
+        >
+          {BANNER_SLOTS.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label} - {s.width} × {s.height}px
+            </option>
+          ))}
+        </select>
+      </div>
       <ImageCropField
+        key={slotType}
         id="house-ad-image"
         name="image_file"
         label="Image"
+        targetWidth={slot.width}
+        targetHeight={slot.height}
         hint="Pick an image, then drag to reposition and use the slider to zoom/crop it to fit."
       />
       <div className="field">

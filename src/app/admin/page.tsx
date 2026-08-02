@@ -96,6 +96,7 @@ type BannerRow = {
   link_url: string | null;
   image_url: string | null;
   message: string | null;
+  slot_type: string;
   status: "pending" | "approved" | "rejected";
   expires_at: string | null;
   profiles: { username: string } | null;
@@ -168,7 +169,7 @@ export default async function AdminPage() {
       .returns<ArtistPostReportRow[]>(),
     supabase
       .from("banner_ads")
-      .select("id, artist_name, link_url, image_url, message, status, expires_at, profiles(username)")
+      .select("id, artist_name, link_url, image_url, message, slot_type, status, expires_at, profiles(username)")
       .order("created_at", { ascending: false })
       .returns<BannerRow[]>(),
     getAllSiteText(supabase),
@@ -562,7 +563,7 @@ export default async function AdminPage() {
             pendingBanners.map((b) => (
               <div className="chat-row" key={b.id}>
                 {b.image_url && <img src={b.image_url} alt="" className="cover-thumb" style={{ marginRight: 8 }} />}
-                <b>{b.artist_name}</b>
+                <b>{b.artist_name}</b> <span className="field-hint">[{b.slot_type}]</span>
                 {b.link_url && (
                   <>
                     {" "}

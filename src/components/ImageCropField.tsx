@@ -6,28 +6,32 @@ type Offset = { x: number; y: number };
 type NaturalSize = { w: number; h: number };
 
 // A pick-then-crop file field: the user chooses a raw image, then can pan
-// (drag) and zoom (slider) it within a fixed-aspect-ratio box before it's
-// submitted. The cropped result is rendered to a canvas and swapped onto a
-// hidden file input under `name`, so the surrounding <form action={...}>
-// keeps working exactly as before - no submit-handler changes needed.
+// (drag) and zoom (slider) it within a box matching the target slot's real
+// aspect ratio before it's submitted. The cropped result is rendered to a
+// canvas at the slot's real pixel size and swapped onto a hidden file
+// input under `name`, so the surrounding <form action={...}> keeps working
+// unchanged. Pass a different `key` from the parent when the target size
+// changes so the crop state resets cleanly for the new shape.
 export function ImageCropField({
   id,
   name,
   label,
   hint,
-  aspectRatio = 300 / 250,
-  boxWidth = 300,
+  targetWidth,
+  targetHeight,
 }: {
   id: string;
   name: string;
   label: string;
   hint?: string;
-  aspectRatio?: number;
-  boxWidth?: number;
+  targetWidth: number;
+  targetHeight: number;
 }) {
+  const aspectRatio = targetWidth / targetHeight;
+  // On-screen crop box is capped to a manageable size - the exported image
+  // is still rendered at the real targetWidth/targetHeight.
+  const boxWidth = Math.min(targetWidth, 320);
   const boxHeight = Math.round(boxWidth / aspectRatio);
-  const outputWidth = boxWidth * 3;
-  const outputHeight = boxHeight * 3;
 
   const pickerInputRef = useRef<HTMLInputElement>(null);
   const submitInputRef = useRef<HTMLInputElement>(null);
@@ -66,17 +70,17 @@ export function ImageCropField({
       const target = submitInputRef.current;
       if (!img || !target) return;
       const canvas = document.createElement("canvas");
-      canvas.width = outputWidth;
-      canvas.height = outputHeight;
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, outputWidth, outputHeight);
+      ctx.fillRect(0, 0, targetWidth, targetHeight);
       const sx = -offset.x / scale;
       const sy = -offset.y / scale;
       const sW = boxWidth / scale;
       const sH = boxHeight / scale;
-      ctx.drawImage(img, sx, sy, sW, sH, 0, 0, outputWidth, outputHeight);
+      ctx.drawImage(img, sx, sy, sW, sH, 0, 0, targetWidth, targetHeight);
       canvas.toBlob(
         (blob) => {
           if (!blob) return;
@@ -90,7 +94,7 @@ export function ImageCropField({
       );
     }, 120);
     return () => clearTimeout(timer);
-  }, [srcUrl, naturalSize, offset, scale, boxWidth, boxHeight, outputWidth, outputHeight]);
+  }, [srcUrl, naturalSize, offset, scale, boxWidth, boxHeight, targetWidth, targetHeight]);
 
   function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -157,7 +161,9 @@ export function ImageCropField({
 
   return (
     <div className="field">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id}>
+        {label} ({targetWidth} × {targetHeight}px)
+      </label>
       <input
         ref={pickerInputRef}
         id={id}

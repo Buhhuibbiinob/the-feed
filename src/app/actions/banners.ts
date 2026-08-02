@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { isImageFile, guessContentType, MAX_CLUB_IMAGE_BYTES, megabytes } from "@/lib/uploads";
+import { BANNER_SLOTS } from "@/lib/bannerSlots";
+
+function parseSlotType(formData: FormData): string {
+  const raw = String(formData.get("slot_type") ?? "");
+  return BANNER_SLOTS.some((s) => s.value === raw) ? raw : "sidebar";
+}
 
 export type BannerFormState = { error?: string; ok?: boolean };
 
@@ -46,6 +52,7 @@ export async function submitBannerAd(
   const artistName = String(formData.get("artist_name") ?? "").trim();
   const linkUrl = String(formData.get("link_url") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
+  const slotType = parseSlotType(formData);
 
   if (!artistName) {
     return { error: "Artist/band name is required." };
@@ -58,6 +65,7 @@ export async function submitBannerAd(
       artist_name: artistName,
       link_url: linkUrl || null,
       message: message || null,
+      slot_type: slotType,
     })
     .select("id")
     .single();
@@ -92,6 +100,7 @@ export async function adminUploadHouseAd(
   const artistName = String(formData.get("artist_name") ?? "").trim();
   const linkUrl = String(formData.get("link_url") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
+  const slotType = parseSlotType(formData);
   const file = formData.get("image_file");
 
   if (!artistName) {
@@ -108,6 +117,7 @@ export async function adminUploadHouseAd(
       artist_name: artistName,
       link_url: linkUrl || null,
       message: message || null,
+      slot_type: slotType,
       status: "approved",
     })
     .select("id")
