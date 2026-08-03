@@ -7,7 +7,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { NEWSLETTER_SECTIONS, getIssueById, renderIssueHtml, type NewsletterSectionKey } from "@/lib/newsletter";
 import { sendBulkEmail } from "@/lib/email";
-import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
+import { getUpcomingMoviesAndTv, getTrendingPeople } from "@/lib/tmdb";
+import { getAlbumsReleasedBetween } from "@/lib/appleMusic";
+import { getTrendingTracks } from "@/lib/lastfm";
+import { searchVideos } from "@/lib/youtube";
 import { askGeminiJson } from "@/lib/gemini";
 
 // Every registered account's email, not just the public "get notified"
@@ -70,7 +73,16 @@ THIS ISSUE COVERS THAT ONE WEEK ONLY. Every item you mention must fall in one of
 - Things that are COMING UP: between ${weekStart} and ${horizon}.
 Anything outside those dates does not belong in this issue, no matter how interesting or how highly it ranks in search results. Do not mention older releases, past news, retrospectives, or anniversaries. If you are not certain a thing falls inside the window, leave it out.
 
-You will be given real data already scoped to that window - upcoming releases from TMDB, underground creator posts, and top-rated reviews. Use it as your primary source, and never invent artists, titles, release dates, or facts. If a section has no real data to draw from and you can't find real info inside the date window for it either, write exactly "Nothing new to report this week." for that section instead of padding it with something older or made up.
+You will be given real data already scoped to that window, gathered from several sources: album releases from Apple Music, charting tracks from Last.fm, upcoming movies and TV plus trending people from TMDB, short films published on YouTube, and the site's own underground creator posts and top-rated reviews. Use it as your primary source, and never invent artists, titles, release dates, or facts.
+
+Every section should draw on whichever of those sources fits it, not only on site content:
+- Upcoming Releases: TMDB movie/TV releases, plus notable albums due out.
+- Underground Artist Releases and Up-and-Coming Artists: site creator posts first, then Last.fm and Apple Music entries a reader may not know yet.
+- Up-and-Coming Actors: the TMDB trending people list.
+- Upcoming Short Films and Short Film Releases: the YouTube short films, plus site creator posts from filmmakers.
+- Artist of the Week and Filmmaker of the Week: pick one real name from the data and say why this week specifically.
+
+Only write exactly "Nothing new to report this week." when a section genuinely has no usable data from ANY source above and search turns up nothing inside the window. Do not use it as a default. If a source list is non-empty, that section has something to write about.
 
 You have Google Search available - use it to pull in real, verifiable info from inside the date window above, especially where the provided data is thin. Prefer searches that name the current month and year. When you use something you found via search, end that section with a new line reading exactly "Source: <the real URL>" - only include a Source line when you actually have a real URL from search, never a made-up one.
 
@@ -149,8 +161,20 @@ export async function generateNewsletterDraft(
   // Exclusive upper bound: midnight at the start of the following Monday.
   const weekEndIso = localMidnightUtc(addDays(weekEndStr, 1), NEWSLETTER_TZ).toISOString();
 
-  const [upcomingAll, artistPostsRes, topPostsRes] = await Promise.all([
+  // Pull from every real source available, not just the site's own posts -
+  // sections like Up-and-Coming Actors and Short Film Releases have no
+  // site-generated equivalent, so without outside data they can only ever
+  // come back as "Nothing new to report". Each source fails independently:
+  // one dead API must not blank out the whole issue.
+  const [upcomingAll, trendingPeople, newAlbums, trendingTracks, shortFilms, artistPostsRes, topPostsRes] =
+    await Promise.all([
     getUpcomingMoviesAndTv(30).catch(() => []),
+    getTrendingPeople(10).catch(() => []),
+    getAlbumsReleasedBetween(weekStartStr, weekEndStr).catch(() => []),
+    getTrendingTracks(15).catch(() => []),
+    searchVideos("short film", 8, { publishedAfter: weekStartIso, publishedBefore: weekEndIso, order: "viewCount" }).catch(
+      () => []
+    ),
     supabase
       .from("artist_posts")
       .select("artist_name, platform, description, created_at")
@@ -196,6 +220,24 @@ export async function generateNewsletterDraft(
     upcoming.length
       ? `Releasing between ${weekStartStr} and ${horizonStr} (via TMDB):\n${upcoming.map((u) => `- ${u.title} (${u.mediaType}, ${u.date ?? "date TBA"})`).join("\n")}`
       : `Releases between ${weekStartStr} and ${horizonStr} (via TMDB): none.`,
+    newAlbums.length
+      ? `Albums released this week (via Apple Music):\n${newAlbums
+          .map((a) => `- "${a.name}" by ${a.artistName} (released ${a.releaseDate})${a.url ? ` ${a.url}` : ""}`)
+          .join("\n")}`
+      : "Albums released this week (via Apple Music): none.",
+    trendingTracks.length
+      ? `Charting tracks right now (via Last.fm):\n${trendingTracks.map((t) => `- "${t.name}" by ${t.artist}`).join("\n")}`
+      : "Charting tracks (via Last.fm): none available.",
+    trendingPeople.length
+      ? `People trending this week (via TMDB) - use for the actors section:\n${trendingPeople
+          .map((p) => `- ${p.name}${p.department ? ` (${p.department})` : ""}${p.knownFor.length ? `, known for ${p.knownFor.slice(0, 3).join(", ")}` : ""}`)
+          .join("\n")}`
+      : "People trending this week (via TMDB): none available.",
+    shortFilms.length
+      ? `Short films published on YouTube during ${weekLabel}:\n${shortFilms
+          .map((v) => `- "${v.title}" by ${v.channelTitle} https://www.youtube.com/watch?v=${v.id}`)
+          .join("\n")}`
+      : `Short films published on YouTube during ${weekLabel}: none found.`,
     artistPosts.length
       ? `Underground creator posts on Feedback during ${weekLabel}:\n${artistPosts
           .map((a) => `- ${a.artist_name} (${a.platform === "youtube" ? "short film" : "music"})${a.description ? `: ${a.description.slice(0, 150)}` : ""}`)

@@ -177,3 +177,32 @@ export async function getUpcomingMoviesAndTv(limit = 20): Promise<TmdbItem[]> {
     .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
     .slice(0, limit);
 }
+
+export type TmdbPerson = {
+  id: string;
+  name: string;
+  department: string | null;
+  knownFor: string[];
+};
+
+type RawTmdbPerson = {
+  id: number;
+  name: string;
+  known_for_department?: string;
+  known_for?: { title?: string; name?: string }[];
+};
+
+// Trending people this week - the only real source on this site for the
+// "Up-and-Coming Actors" section, which has no site-generated equivalent.
+export async function getTrendingPeople(limit = 10): Promise<TmdbPerson[]> {
+  const data = await tmdbFetch<{ results: RawTmdbPerson[] }>("/trending/person/week");
+  return (data?.results ?? [])
+    .filter((p) => p.name)
+    .slice(0, limit)
+    .map((p) => ({
+      id: `person-${p.id}`,
+      name: p.name,
+      department: p.known_for_department ?? null,
+      knownFor: (p.known_for ?? []).map((k) => k.title || k.name || "").filter(Boolean),
+    }));
+}

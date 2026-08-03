@@ -95,13 +95,20 @@ type YoutubeSearchItem = {
 // Public search - uses a server API key, not a signed-in user's OAuth
 // token, so it works for every visitor regardless of whether they've
 // connected their own YouTube account.
-export async function searchVideos(query: string, limit = 8): Promise<YoutubeVideo[]> {
+export async function searchVideos(
+  query: string,
+  limit = 8,
+  options: { publishedAfter?: string; publishedBefore?: string; order?: string } = {}
+): Promise<YoutubeVideo[]> {
   const params = new URLSearchParams({
     key: API_KEY,
     q: query,
     part: "snippet",
     type: "video",
     maxResults: String(limit),
+    ...(options.publishedAfter ? { publishedAfter: options.publishedAfter } : {}),
+    ...(options.publishedBefore ? { publishedBefore: options.publishedBefore } : {}),
+    ...(options.order ? { order: options.order } : {}),
   });
   const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`, {
     // Identical query returns identical results for everyone browsing the
