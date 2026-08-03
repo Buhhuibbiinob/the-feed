@@ -6,7 +6,7 @@ import { signIn, signInWithMagicLink, type AuthFormState } from "@/app/actions/a
 
 const initialState: AuthFormState = {};
 
-export function SignInForm({ justReset }: { justReset: boolean }) {
+export function SignInForm({ justReset, linkError }: { justReset: boolean; linkError?: string | null }) {
   const [mode, setMode] = useState<"password" | "magic">("password");
   const [passwordState, passwordAction, passwordPending] = useActionState(
     signIn,
@@ -26,6 +26,7 @@ export function SignInForm({ justReset }: { justReset: boolean }) {
         {justReset && !state.error && (
           <div className="form-message">Password updated - sign in with your new password.</div>
         )}
+        {linkError && !state.error && <div className="form-error">{linkError}</div>}
         {state.error && (
           <div className="form-error">
             {state.error}

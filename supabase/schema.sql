@@ -1107,3 +1107,33 @@ alter table public.banner_ads drop constraint if exists banner_ads_slot_type_che
 alter table public.banner_ads add constraint banner_ads_slot_type_check
   check (slot_type in ('hero', 'sidebar', 'wide', 'feature'));
 
+
+-- ---------- newsletter_subscribers ----------
+-- Everyone who should receive The Feedback Weekly. Account holders are
+-- added here automatically at signup (see signUp in app/actions/auth.ts);
+-- waitlist_signups stays separate since that's the pre-account "get
+-- notified" capture. unsubscribed_at is set instead of deleting the row so
+-- a re-signup can't silently resubscribe someone who opted out.
+create table if not exists public.newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  user_id uuid references public.profiles (id) on delete set null,
+  source text not null default 'signup',
+  unsubscribed_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists newsletter_subscribers_email_lower_idx
+  on public.newsletter_subscribers (lower(email));
+
+alter table public.newsletter_subscribers enable row level security;
+
+drop policy if exists "Anyone can subscribe to the newsletter" on public.newsletter_subscribers;
+create policy "Anyone can subscribe to the newsletter"
+  on public.newsletter_subscribers for insert
+  with check (true);
+
+drop policy if exists "Admins can view newsletter subscribers" on public.newsletter_subscribers;
+create policy "Admins can view newsletter subscribers"
+  on public.newsletter_subscribers for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));

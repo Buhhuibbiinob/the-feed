@@ -3,8 +3,11 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { siteUrl } from "@/lib/site";
 import { checkUsernameSafety } from "@/lib/contentSafety";
+import { sendEmail } from "@/lib/email";
+import { renderConfirmEmail, renderWelcomeEmail } from "@/lib/emailTemplates";
 
 export type AuthFormState = {
   error?: string;
@@ -86,62 +89,78 @@ async function signUpInner(formData: FormData): Promise<AuthFormState> {
     return { error: "That username is already taken." };
   }
 
-  let data: Awaited<ReturnType<typeof supabase.auth.signUp>>["data"];
-  let error: Awaited<ReturnType<typeof supabase.auth.signUp>>["error"];
+  // Deliberately NOT supabase.auth.signUp() - that makes Supabase send its
+  // own plain default confirmation email. generateLink creates the user and
+  // hands back a confirmation token WITHOUT sending anything, so we can send
+  // our own branded template through Resend instead.
+  const admin = createAdminClient();
+  let linkData: Awaited<ReturnType<typeof admin.auth.admin.generateLink>>["data"];
+  let linkError: Awaited<ReturnType<typeof admin.auth.admin.generateLink>>["error"];
   try {
-    const res = await supabase.auth.signUp({
+    const res = await admin.auth.admin.generateLink({
+      type: "signup",
       email,
       password,
-      options: {
-        data: { username, birthdate },
-        emailRedirectTo: `${siteUrl()}/auth/callback`,
-      },
+      options: { data: { username, birthdate } },
     });
-    data = res.data;
-    error = res.error;
+    linkData = res.data;
+    linkError = res.error;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(`[signUp] auth.signUp threw: ${message}`);
+    console.error(`[signUp] generateLink threw: ${message}`);
     return { error: `Something went wrong creating your account. Please try again. (${message})` };
   }
 
-  if (error) {
+  if (linkError) {
     console.error(
-      `[signUp] auth.signUp returned error: status=${error.status} code=${error.code} name=${error.name} message=${error.message}`
+      `[signUp] generateLink error: status=${linkError.status} code=${linkError.code} message=${linkError.message}`
     );
-    if (error.message.toLowerCase().includes("database error saving new user")) {
+    const lower = (linkError.message ?? "").toLowerCase();
+    if (lower.includes("already been registered") || lower.includes("already exists")) {
+      return { error: "An account with that email already exists. Try signing in instead." };
+    }
+    if (lower.includes("database error saving new user")) {
       return { error: "That username is already taken." };
     }
-    // error.message has been observed to be a bare, unhelpful "{}" in
-    // production (likely Supabase's own auth API returning a malformed
-    // error body, e.g. from an SMTP failure sending the confirmation
-    // email) - fall back to status/code so there's always something
-    // actionable on screen instead of two meaningless characters.
-    const message =
-      error.message && error.message.trim() !== "{}"
-        ? error.message
-        : `Sign up failed (status ${error.status ?? "unknown"}, code ${error.code ?? "unknown"}). This usually means the account-confirmation email couldn't be sent - check the SMTP settings in Supabase Auth.`;
-    return { error: message };
+    return { error: linkError.message || `Sign up failed (status ${linkError.status ?? "unknown"}).` };
   }
 
-  // Supabase deliberately doesn't return an error for a duplicate email (to
-  // avoid leaking which emails are registered) - instead data.user comes
-  // back with an empty identities array. Without this check, signing up
-  // with an already-used email silently "succeeds" with no account created
-  // and no email sent, while showing the same message as a real signup.
-  if (data.user && data.user.identities && data.user.identities.length === 0) {
-    return { error: "An account with that email already exists. Try signing in instead." };
+  const hashedToken = linkData?.properties?.hashed_token;
+  const newUserId = linkData?.user?.id;
+  if (!hashedToken) {
+    console.error("[signUp] generateLink returned no hashed_token");
+    return { error: "Couldn't generate a confirmation link. Please try again." };
   }
 
-  if (!data.session) {
-    return { message: "Check your email to confirm your account, then sign in." };
+  // Point at our own callback with the token hash rather than Supabase's
+  // action_link. Our route verifies it server-side and writes the session
+  // cookies, so confirming the email signs them straight in.
+  const confirmUrl = `${siteUrl()}/auth/callback?token_hash=${encodeURIComponent(hashedToken)}&type=signup`;
+
+  const confirmSend = await sendEmail("Confirm your Feedback account", renderConfirmEmail(confirmUrl), email);
+  if (!confirmSend.ok) {
+    // The account exists but they'd never get the link and couldn't retry
+    // with the same email - roll it back so the retry works.
+    console.error(`[signUp] confirmation email failed, rolling back user: ${confirmSend.error}`);
+    if (newUserId) await admin.auth.admin.deleteUser(newUserId).catch(() => {});
+    return { error: `We couldn't send your confirmation email: ${confirmSend.error}` };
   }
 
-  // Any nav links prefetched while signed out are still sitting in the
-  // client router cache - invalidate the whole layout so every route
-  // picks up the new session on next visit, not just "/".
-  revalidatePath("/", "layout");
-  redirect("/");
+  // Subscribe them to the weekly newsletter and send the welcome issue.
+  // Best-effort: a failure here must not break an otherwise good signup.
+  const { error: subError } = await admin
+    .from("newsletter_subscribers")
+    .upsert({ email, user_id: newUserId ?? null, source: "signup" }, { onConflict: "email" });
+  if (subError) console.error(`[signUp] newsletter subscribe failed: ${subError.message}`);
+
+  const welcomeSend = await sendEmail(
+    "Welcome to Feedback",
+    renderWelcomeEmail(username, siteUrl()),
+    email
+  );
+  if (!welcomeSend.ok) console.error(`[signUp] welcome email failed: ${welcomeSend.error}`);
+
+  return { message: "Check your email to confirm your account - the link signs you straight in." };
 }
 
 export async function signIn(

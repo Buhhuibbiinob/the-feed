@@ -4,6 +4,28 @@ export type SendEmailResult = { ok: true; sent: number } | { ok: false; error: s
 
 const BATCH_SIZE = 100;
 
+// Single transactional send (confirmation, welcome). Kept separate from the
+// bulk path so a newsletter blast can't be confused with a per-user email.
+export async function sendEmail(
+  subject: string,
+  html: string,
+  toEmail: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, error: "RESEND_API_KEY isn't set." };
+
+  const resend = new Resend(apiKey);
+  const from = process.env.RESEND_FROM_EMAIL || "Feedback <onboarding@resend.dev>";
+
+  try {
+    const { error } = await resend.emails.send({ from, to: toEmail, subject, html });
+    if (error) return { ok: false, error: error.message || "Resend rejected the request." };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 export async function sendBulkEmail(
   subject: string,
   html: string,

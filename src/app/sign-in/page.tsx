@@ -3,8 +3,8 @@ import { SignInForm } from "@/components/SignInForm";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string }>;
+  searchParams: Promise<{ reset?: string; error?: string }>;
 }) {
-  const { reset } = await searchParams;
-  return <SignInForm justReset={reset === "success"} />;
+  const { reset, error } = await searchParams;
+  return <SignInForm justReset={reset === "success"} linkError={error ?? null} />;
 }

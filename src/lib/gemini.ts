@@ -1,9 +1,29 @@
 // Thin wrapper around Google's Gemini API (free tier via Google AI Studio).
 // Server-only - GEMINI_API_KEY must never reach the client.
-// gemini-2.0-flash was shut down by Google on 2026-06-01 (silently returned
-// errors instead of a clear "model retired" message, which is what made
-// this so hard to diagnose) - gemini-3.6-flash is the current stable model.
-const MODEL = "gemini-3.6-flash";
+// gemini-2.0-flash was shut down by Google on 2026-06-01 (it silently
+// returned quota errors rather than a clear "model retired" message, which
+// is what made that so hard to diagnose). Heads up: gemini-2.5-flash is
+// itself scheduled to shut down 2026-10-16 - set GEMINI_MODEL to move off
+// it (e.g. gemini-3.6-flash) without a code change.
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+// Free-tier quota spikes come back as 429; 500/503 are transient upstream
+// blips. Both are worth retrying, and neither should crash the caller's UI.
+const RETRY_STATUSES = new Set([429, 500, 503]);
+const RETRY_DELAYS_MS = [5_000, 11_000];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Gemini 2.5 takes thinkingConfig.thinkingBudget; Gemini 3 replaced it with
+// thinkingLevel and rejects the request outright if it gets the legacy key
+// (or both at once). Either way the goal is the same: keep the model from
+// spending the whole maxOutputTokens budget thinking and leaving nothing
+// for the visible answer.
+function thinkingConfigFor(model: string): Record<string, unknown> {
+  return model.startsWith("gemini-2.5")
+    ? { thinkingBudget: 0 }
+    : { thinkingLevel: "minimal" };
+}
 
 type GroundingChunk = { uri: string; title: string };
 
@@ -20,51 +40,70 @@ async function callGemini(
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return { ok: false, error: "GEMINI_API_KEY is not set." };
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstruction }] },
-          contents: [{ role: "user", parts: [{ text: userMessage }] }],
-          ...(options.useGoogleSearch ? { tools: [{ google_search: {} }] } : {}),
-          generationConfig: {
-            maxOutputTokens: 2048,
-            temperature: 0.7,
-            // Gemini 3 models count "thinking" tokens against maxOutputTokens
-            // itself (unlike the docs' general description), so without
-            // capping thinking to "minimal" the model can burn the entire
-            // budget reasoning and leave nothing for the actual answer,
-            // producing responses that cut off after a few words.
-            thinkingConfig: { thinkingLevel: "minimal" },
-            ...extraConfig,
-          },
-        }),
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: systemInstruction }] },
+    contents: [{ role: "user", parts: [{ text: userMessage }] }],
+    ...(options.useGoogleSearch ? { tools: [{ google_search: {} }] } : {}),
+    generationConfig: {
+      maxOutputTokens: 2048,
+      temperature: 0.7,
+      thinkingConfig: thinkingConfigFor(MODEL),
+      ...extraConfig,
+    },
+  });
+
+  // Retry rate limits and transient upstream errors with a growing pause
+  // rather than surfacing a crash - a free-tier 429 is usually a short
+  // burst, not a hard wall.
+  let lastError = "";
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body }
+      );
+
+      if (!res.ok) {
+        const errorBody = await res.text().catch(() => "");
+        lastError = `Gemini API returned ${res.status}: ${errorBody.slice(0, 300)}`;
+        if (RETRY_STATUSES.has(res.status) && attempt < RETRY_DELAYS_MS.length) {
+          console.warn(`[gemini] ${res.status} on attempt ${attempt + 1}, retrying in ${RETRY_DELAYS_MS[attempt]}ms`);
+          await sleep(RETRY_DELAYS_MS[attempt]);
+          continue;
+        }
+        if (res.status === 429) {
+          return {
+            ok: false,
+            error: `Gemini is rate limited right now (429) and didn't recover after ${RETRY_DELAYS_MS.length + 1} attempts. Wait a minute and try again, or raise the quota for ${MODEL} in Google AI Studio.`,
+          };
+        }
+        return { ok: false, error: lastError };
       }
-    );
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      return { ok: false, error: `Gemini API returned ${res.status}: ${body.slice(0, 300)}` };
+
+      const data = (await res.json()) as {
+        candidates?: {
+          content?: { parts?: { text?: string }[] };
+          groundingMetadata?: { groundingChunks?: { web?: { uri?: string; title?: string } }[] };
+        }[];
+      };
+      const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim();
+      if (!text) return { ok: false, error: `Gemini returned no text. Raw: ${JSON.stringify(data).slice(0, 300)}` };
+
+      const groundingChunks: GroundingChunk[] = (data.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [])
+        .filter((c) => c.web?.uri)
+        .map((c) => ({ uri: c.web!.uri!, title: c.web!.title ?? c.web!.uri! }));
+
+      return { ok: true, text, groundingChunks };
+    } catch (err) {
+      lastError = `Gemini request threw: ${err instanceof Error ? err.message : String(err)}`;
+      if (attempt < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
     }
-    const data = (await res.json()) as {
-      candidates?: {
-        content?: { parts?: { text?: string }[] };
-        groundingMetadata?: { groundingChunks?: { web?: { uri?: string; title?: string } }[] };
-      }[];
-    };
-    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim();
-    if (!text) return { ok: false, error: `Gemini returned no text. Raw: ${JSON.stringify(data).slice(0, 300)}` };
-
-    const groundingChunks: GroundingChunk[] = (data.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [])
-      .filter((c) => c.web?.uri)
-      .map((c) => ({ uri: c.web!.uri!, title: c.web!.title ?? c.web!.uri! }));
-
-    return { ok: true, text, groundingChunks };
-  } catch (err) {
-    return { ok: false, error: `Gemini request threw: ${err instanceof Error ? err.message : String(err)}` };
   }
+
+  return { ok: false, error: lastError || "Gemini request failed." };
 }
 
 export async function askGemini(systemInstruction: string, userMessage: string): Promise<string | null> {

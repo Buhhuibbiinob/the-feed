@@ -243,8 +243,17 @@ export async function sendNewsletterIssue(
 
   const { data: subscriberRows } = await supabase.from("waitlist_signups").select("email");
   const waitlistEmails = (subscriberRows ?? []).map((r) => r.email as string);
+
+  const { data: newsletterRows } = await supabase
+    .from("newsletter_subscribers")
+    .select("email")
+    .is("unsubscribed_at", null);
+  const newsletterEmails = (newsletterRows ?? []).map((r) => r.email as string);
+
   const accountEmails = await getAllAccountEmails();
-  const emails = [...new Set([...waitlistEmails, ...accountEmails].map((e) => e.toLowerCase()))];
+  const emails = [
+    ...new Set([...waitlistEmails, ...newsletterEmails, ...accountEmails].map((e) => e.toLowerCase())),
+  ];
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mythefeed.com";
   const html = renderIssueHtml(issue, siteUrl);
