@@ -32,6 +32,7 @@ import { ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatfor
 import { SITE_CONTENT_FIELDS, getAllSiteText } from "@/lib/siteContent";
 import { SiteContentForm } from "@/components/SiteContentForm";
 import { HouseAdForm } from "@/components/HouseAdForm";
+import { SendSignInLinksButton } from "@/components/SendSignInLinksButton";
 
 type ReportRow = {
   id: string;
@@ -590,6 +591,20 @@ export default async function AdminPage() {
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Email Everyone a Sign-In Link</div>
+        <div className="panel-body">
+          <p className="field-hint" style={{ marginBottom: 12 }}>
+            One-off recovery send for after the confirmation and reset links were landing on the home
+            page. Emails every account a fresh magic sign-in link. Each link is a live credential that
+            signs that person straight in, expires in about an hour, and works once, so the email also
+            points people at the forgot-password page in case theirs has expired by the time they read
+            it. Test addresses are skipped.
+          </p>
+          <SendSignInLinksButton />
         </div>
       </div>
 

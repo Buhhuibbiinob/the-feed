@@ -57,6 +57,21 @@ export function renderMagicLinkEmail(loginUrl: string): string {
   );
 }
 
+// One-off send to existing users after the confirm/reset links were fixed.
+// Carries a live magic link, but magic links expire in about an hour, so it
+// also spells out the self-serve route for anyone reading it later.
+export function renderReturningSignInEmail(loginUrl: string, siteUrl: string): string {
+  return shell(
+    `<tr><td style="padding:32px 28px; text-align:center;">` +
+      `<h1 style="margin:0 0 12px; font-size:22px; font-weight:600; color:#0f0f0f;">Here's a fresh sign-in link</h1>` +
+      `<p style="margin:0 0 24px; font-size:14px; line-height:1.5; color:#606060;">A problem was stopping some confirmation and password reset links from working, so you may not have been able to get into your account. That's fixed now. Use the button below to sign straight in.</p>` +
+      `<a href="${loginUrl}" style="${RED_BUTTON}">Sign In</a>` +
+      `<p style="margin:24px 0 0; font-size:12px; line-height:1.5; color:#606060;">This link expires in about an hour and can only be used once. If it's already expired, just go to <a href="${siteUrl}/forgot-password" style="color:#2f6fce;">${siteUrl}/forgot-password</a> and request a new one, that works now too.</p>` +
+      `<p style="margin:20px 0 0; font-size:11px; color:#909090;">Didn't sign up for Feedback? You can safely ignore this email.</p>` +
+      `</td></tr>`
+  );
+}
+
 export function renderWelcomeEmail(username: string, siteUrl: string): string {
   return shell(
     `<tr><td style="padding:32px 28px;">` +
