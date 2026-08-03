@@ -17,6 +17,25 @@ const RETRY_DELAYS_MS = [5_000, 11_000];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+type QuotaViolation = { quotaId?: string; quotaMetric?: string };
+type ErrorDetail = { violations?: QuotaViolation[] };
+
+// A Gemini 429 body names the exact limit that was hit (base model requests
+// vs. the separate, much smaller Google Search grounding quota). Pulling it
+// out turns "rate limited" into something actionable.
+function quotaDetail(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: { details?: ErrorDetail[] } };
+    const ids = (parsed.error?.details ?? [])
+      .flatMap((d) => d.violations ?? [])
+      .map((v) => v.quotaId || v.quotaMetric)
+      .filter((v): v is string => Boolean(v));
+    return ids.length ? ` Quota hit: ${[...new Set(ids)].join(", ")}.` : "";
+  } catch {
+    return "";
+  }
+}
+
 // Gemini 2.5 takes thinkingConfig.thinkingBudget; Gemini 3 replaced it with
 // thinkingLevel and rejects the request outright if it gets the legacy key
 // (or both at once). Either way the goal is the same: keep the model from
@@ -77,7 +96,11 @@ async function callGemini(
         if (res.status === 429) {
           return {
             ok: false,
-            error: `Gemini is rate limited right now (429) and didn't recover after ${RETRY_DELAYS_MS.length + 1} attempts. Wait a minute and try again, or raise the quota for ${MODEL} in Google AI Studio.`,
+            error:
+              `Gemini is rate limited (429) and didn't recover after ${RETRY_DELAYS_MS.length + 1} attempts.` +
+              quotaDetail(errorBody) +
+              (options.useGoogleSearch ? " This request used Google Search grounding, which has its own much smaller free-tier quota than the model itself." : "") +
+              ` Wait for the quota window to reset, or raise it for ${MODEL} in Google AI Studio.`,
           };
         }
         return { ok: false, error: lastError };

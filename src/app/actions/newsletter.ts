@@ -142,9 +142,22 @@ export async function generateNewsletterDraft(
       : "Top-rated reviews this week: none yet.",
   ].join("\n\n");
 
-  const result = await askGeminiJson<GeneratedDraft>(NEWSLETTER_SYSTEM_PROMPT, dataDump, true);
+  // Google Search grounding has its own free-tier quota, far smaller than
+  // the model's own. When only that is exhausted, fall back to an ungrounded
+  // draft rather than failing: the TMDB/site data dump below is the primary
+  // source anyway, and search was only ever an enhancement on top of it.
+  let result = await askGeminiJson<GeneratedDraft>(NEWSLETTER_SYSTEM_PROMPT, dataDump, true);
+  let usedGrounding = true;
+  if (!result.ok && result.error.includes("429")) {
+    console.warn("[newsletter] grounded generation rate limited, retrying without Google Search");
+    result = await askGeminiJson<GeneratedDraft>(NEWSLETTER_SYSTEM_PROMPT, dataDump, false);
+    usedGrounding = false;
+  }
   if (!result.ok) {
     return { error: `Couldn't generate a draft: ${result.error}` };
+  }
+  if (!usedGrounding) {
+    console.warn("[newsletter] draft generated without Google Search grounding");
   }
   const draft = result.data;
 
