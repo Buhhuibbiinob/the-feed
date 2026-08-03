@@ -62,12 +62,12 @@ export async function createNewsletterIssue() {
 
 type GeneratedDraft = { title: string } & Record<NewsletterSectionKey, string>;
 
-function newsletterSystemPrompt(weekAgo: string, today: string, horizon: string): string {
-  return `You write the weekly newsletter for Feedback, a music/movie/TV review community site. Today is ${today}.
+function newsletterSystemPrompt(weekStart: string, weekEnd: string, horizon: string): string {
+  return `You write the weekly newsletter for Feedback, a music/movie/TV review community site. This issue covers the week of ${weekStart} (Monday) through ${weekEnd} (Sunday).
 
-THIS ISSUE COVERS ONE WEEK ONLY. Every item you mention must fall in one of these two windows:
-- Things that HAPPENED: between ${weekAgo} and ${today}.
-- Things that are COMING UP: between ${today} and ${horizon}.
+THIS ISSUE COVERS THAT ONE WEEK ONLY. Every item you mention must fall in one of these two windows:
+- Things that HAPPENED: between ${weekStart} and ${weekEnd}.
+- Things that are COMING UP: between ${weekStart} and ${horizon}.
 Anything outside those dates does not belong in this issue, no matter how interesting or how highly it ranks in search results. Do not mention older releases, past news, retrospectives, or anniversaries. If you are not certain a thing falls inside the window, leave it out.
 
 You will be given real data already scoped to that window - upcoming releases from TMDB, underground creator posts, and top-rated reviews. Use it as your primary source, and never invent artists, titles, release dates, or facts. If a section has no real data to draw from and you can't find real info inside the date window for it either, write exactly "Nothing new to report this week." for that section instead of padding it with something older or made up.
@@ -77,6 +77,42 @@ You have Google Search available - use it to pull in real, verifiable info from 
 For data that came from the provided site/TMDB data instead of search, mention the source inline - e.g. "(via TMDB)" for movie/TV data, or "posted by @username" for site content.
 
 Keep each section to 2-4 short sentences, friendly and punchy, not corporate. Do not use em dashes - use a comma or period instead. Do not use emojis. Respond with JSON matching this exact shape: { "title": string, "upcoming_releases": string, "underground_releases": string, "upcoming_artists": string, "upcoming_actors": string, "upcoming_short_films": string, "short_film_releases": string, "artist_of_week": string, "filmmaker_of_week": string }`;
+}
+
+// The week is a real Monday-to-Sunday calendar week in the site's own
+// timezone, not a rolling 7 days and not UTC. This matters: late on a
+// Sunday evening in the US it is already Monday in UTC, so a UTC-based
+// week would silently roll the issue forward and cover the week that has
+// barely started instead of the one just finished.
+const NEWSLETTER_TZ = process.env.NEWSLETTER_TIMEZONE || "America/Los_Angeles";
+
+function localDateStr(d: Date, tz: string): string {
+  return d.toLocaleDateString("en-CA", { timeZone: tz }); // en-CA formats as YYYY-MM-DD
+}
+
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(`${dateStr}T12:00:00Z`); // midday avoids DST edge cases
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+// Monday = 0 ... Sunday = 6, so subtracting this lands on the week's Monday.
+function mondayOffset(dateStr: string, tz: string): number {
+  const weekday = new Date(`${dateStr}T12:00:00Z`).toLocaleDateString("en-US", {
+    timeZone: tz,
+    weekday: "short",
+  });
+  const order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const index = order.indexOf(weekday);
+  return index === -1 ? 0 : index;
+}
+
+// The UTC instant of local midnight on a given day, for querying timestamptz.
+function localMidnightUtc(dateStr: string, tz: string): Date {
+  const utcMidnight = new Date(`${dateStr}T00:00:00Z`);
+  const shifted = new Date(utcMidnight.toLocaleString("en-US", { timeZone: tz }));
+  const asUtc = new Date(utcMidnight.toLocaleString("en-US", { timeZone: "UTC" }));
+  return new Date(utcMidnight.getTime() + (asUtc.getTime() - shifted.getTime()));
 }
 
 // Safety net in case the model doesn't follow the em dash / emoji
@@ -99,17 +135,19 @@ export async function generateNewsletterDraft(
   const id = String(formData.get("id") ?? "");
   if (!id) return { error: "Missing issue id." };
 
-  // Everything in an issue is scoped to the week it covers: site activity
-  // from the last 7 days, and releases landing within the next 14 (a strict
-  // 7-day forward window leaves "Upcoming Releases" empty most weeks, since
-  // TMDB dates cluster on Fridays).
-  const now = new Date();
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const horizon = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-  const weekAgoIso = weekAgo.toISOString();
-  const todayStr = now.toISOString().slice(0, 10);
-  const weekAgoStr = weekAgo.toISOString().slice(0, 10);
-  const horizonStr = horizon.toISOString().slice(0, 10);
+  // The Monday-to-Sunday week we're currently in (e.g. generating any time
+  // during Jul 27 - Aug 2 produces the Jul 27 - Aug 2 issue). Upcoming
+  // releases look 14 days past the week's end: a strict 7-day forward
+  // window leaves that section empty most weeks, since TMDB release dates
+  // cluster on Fridays.
+  const todayLocal = localDateStr(new Date(), NEWSLETTER_TZ);
+  const weekStartStr = addDays(todayLocal, -mondayOffset(todayLocal, NEWSLETTER_TZ));
+  const weekEndStr = addDays(weekStartStr, 6);
+  const horizonStr = addDays(weekEndStr, 14);
+
+  const weekStartIso = localMidnightUtc(weekStartStr, NEWSLETTER_TZ).toISOString();
+  // Exclusive upper bound: midnight at the start of the following Monday.
+  const weekEndIso = localMidnightUtc(addDays(weekEndStr, 1), NEWSLETTER_TZ).toISOString();
 
   const [upcomingAll, artistPostsRes, topPostsRes] = await Promise.all([
     getUpcomingMoviesAndTv(30).catch(() => []),
@@ -117,22 +155,24 @@ export async function generateNewsletterDraft(
       .from("artist_posts")
       .select("artist_name, platform, description, created_at")
       .eq("status", "active")
-      .gte("created_at", weekAgoIso)
+      .gte("created_at", weekStartIso)
+      .lt("created_at", weekEndIso)
       .order("created_at", { ascending: false })
       .limit(15),
     supabase
       .from("posts")
       .select("title, artist, media_type, rating, cover_url, created_at, profiles(username)")
-      .gte("created_at", weekAgoIso)
+      .gte("created_at", weekStartIso)
+      .lt("created_at", weekEndIso)
       .not("rating", "is", null)
       .order("rating", { ascending: false })
       .limit(10),
   ]);
 
   // TMDB's "upcoming" list runs months out - keep only what actually lands
-  // in this issue's window.
+  // between the start of this week and the horizon.
   const upcoming = upcomingAll
-    .filter((u) => u.date && u.date >= todayStr && u.date <= horizonStr)
+    .filter((u) => u.date && u.date >= weekStartStr && u.date <= horizonStr)
     .slice(0, 15);
 
   const artistPosts =
@@ -150,24 +190,25 @@ export async function generateNewsletterDraft(
   const usernameOf = (p: (typeof topPosts)[number]) =>
     Array.isArray(p.profiles) ? p.profiles[0]?.username : p.profiles?.username;
 
+  const weekLabel = `${weekStartStr} (Monday) to ${weekEndStr} (Sunday)`;
   const dataDump = [
-    `Issue window: activity from ${weekAgoStr} to ${todayStr}; upcoming through ${horizonStr}.`,
+    `Issue week: ${weekLabel}. Upcoming releases run through ${horizonStr}.`,
     upcoming.length
-      ? `Releasing between ${todayStr} and ${horizonStr} (via TMDB):\n${upcoming.map((u) => `- ${u.title} (${u.mediaType}, ${u.date ?? "date TBA"})`).join("\n")}`
-      : `Releases between ${todayStr} and ${horizonStr} (via TMDB): none.`,
+      ? `Releasing between ${weekStartStr} and ${horizonStr} (via TMDB):\n${upcoming.map((u) => `- ${u.title} (${u.mediaType}, ${u.date ?? "date TBA"})`).join("\n")}`
+      : `Releases between ${weekStartStr} and ${horizonStr} (via TMDB): none.`,
     artistPosts.length
-      ? `Underground creator posts on Feedback since ${weekAgoStr}:\n${artistPosts
+      ? `Underground creator posts on Feedback during ${weekLabel}:\n${artistPosts
           .map((a) => `- ${a.artist_name} (${a.platform === "youtube" ? "short film" : "music"})${a.description ? `: ${a.description.slice(0, 150)}` : ""}`)
           .join("\n")}`
-      : `Underground creator posts since ${weekAgoStr}: none.`,
+      : `Underground creator posts during ${weekLabel}: none.`,
     topPosts.length
-      ? `Top-rated reviews on Feedback since ${weekAgoStr}:\n${topPosts
+      ? `Top-rated reviews on Feedback during ${weekLabel}:\n${topPosts
           .map((p) => `- "${p.title}"${p.artist ? ` by ${p.artist}` : ""} (${p.media_type}, ${p.rating}★, reviewed by @${usernameOf(p) ?? "unknown"})`)
           .join("\n")}`
-      : `Top-rated reviews since ${weekAgoStr}: none yet.`,
+      : `Top-rated reviews during ${weekLabel}: none yet.`,
   ].join("\n\n");
 
-  const systemPrompt = newsletterSystemPrompt(weekAgoStr, todayStr, horizonStr);
+  const systemPrompt = newsletterSystemPrompt(weekStartStr, weekEndStr, horizonStr);
 
   // Google Search grounding has its own free-tier quota, far smaller than
   // the model's own. When only that is exhausted, fall back to an ungrounded
@@ -197,6 +238,9 @@ export async function generateNewsletterDraft(
 
   const update: Record<string, string | null | string[]> = {
     title: sanitizeCopy(draft.title),
+    // Date the issue by the Sunday it covers, so it matches its own window.
+    // Still editable by hand on the form afterwards.
+    issue_date: weekEndStr,
     cover_image_url: coverImageUrl,
     image_urls: imageUrls,
   };
