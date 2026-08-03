@@ -62,13 +62,22 @@ export async function createNewsletterIssue() {
 
 type GeneratedDraft = { title: string } & Record<NewsletterSectionKey, string>;
 
-const NEWSLETTER_SYSTEM_PROMPT = `You write the weekly newsletter for Feedback, a music/movie/TV review community site. You will be given real data collected from the site and from TMDB this week - upcoming releases, underground creator posts, and top-rated reviews. Use that real data as your primary source, and never invent artists, titles, release dates, or facts. If a section has no real data to draw from and you can't find real current info for it either, write exactly "Nothing new to report this week." for that section instead of making something up.
+function newsletterSystemPrompt(weekAgo: string, today: string, horizon: string): string {
+  return `You write the weekly newsletter for Feedback, a music/movie/TV review community site. Today is ${today}.
 
-You have Google Search available - use it to pull in real, current, verifiable info (recent releases, upcoming releases, artist news) that goes beyond the data provided, especially for sections where the provided data is thin. When you use something you found via search, end that section with a new line reading exactly "Source: <the real URL>" - only include a Source line when you actually have a real URL from search, never a made-up one.
+THIS ISSUE COVERS ONE WEEK ONLY. Every item you mention must fall in one of these two windows:
+- Things that HAPPENED: between ${weekAgo} and ${today}.
+- Things that are COMING UP: between ${today} and ${horizon}.
+Anything outside those dates does not belong in this issue, no matter how interesting or how highly it ranks in search results. Do not mention older releases, past news, retrospectives, or anniversaries. If you are not certain a thing falls inside the window, leave it out.
+
+You will be given real data already scoped to that window - upcoming releases from TMDB, underground creator posts, and top-rated reviews. Use it as your primary source, and never invent artists, titles, release dates, or facts. If a section has no real data to draw from and you can't find real info inside the date window for it either, write exactly "Nothing new to report this week." for that section instead of padding it with something older or made up.
+
+You have Google Search available - use it to pull in real, verifiable info from inside the date window above, especially where the provided data is thin. Prefer searches that name the current month and year. When you use something you found via search, end that section with a new line reading exactly "Source: <the real URL>" - only include a Source line when you actually have a real URL from search, never a made-up one.
 
 For data that came from the provided site/TMDB data instead of search, mention the source inline - e.g. "(via TMDB)" for movie/TV data, or "posted by @username" for site content.
 
 Keep each section to 2-4 short sentences, friendly and punchy, not corporate. Do not use em dashes - use a comma or period instead. Do not use emojis. Respond with JSON matching this exact shape: { "title": string, "upcoming_releases": string, "underground_releases": string, "upcoming_artists": string, "upcoming_actors": string, "upcoming_short_films": string, "short_film_releases": string, "artist_of_week": string, "filmmaker_of_week": string }`;
+}
 
 // Safety net in case the model doesn't follow the em dash / emoji
 // instructions perfectly.
@@ -90,26 +99,41 @@ export async function generateNewsletterDraft(
   const id = String(formData.get("id") ?? "");
   if (!id) return { error: "Missing issue id." };
 
-  const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
-  const weekSince = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  // Everything in an issue is scoped to the week it covers: site activity
+  // from the last 7 days, and releases landing within the next 14 (a strict
+  // 7-day forward window leaves "Upcoming Releases" empty most weeks, since
+  // TMDB dates cluster on Fridays).
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const horizon = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const weekAgoIso = weekAgo.toISOString();
+  const todayStr = now.toISOString().slice(0, 10);
+  const weekAgoStr = weekAgo.toISOString().slice(0, 10);
+  const horizonStr = horizon.toISOString().slice(0, 10);
 
-  const [upcoming, artistPostsRes, topPostsRes] = await Promise.all([
-    getUpcomingMoviesAndTv(15).catch(() => []),
+  const [upcomingAll, artistPostsRes, topPostsRes] = await Promise.all([
+    getUpcomingMoviesAndTv(30).catch(() => []),
     supabase
       .from("artist_posts")
       .select("artist_name, platform, description, created_at")
       .eq("status", "active")
-      .gte("created_at", since)
+      .gte("created_at", weekAgoIso)
       .order("created_at", { ascending: false })
       .limit(15),
     supabase
       .from("posts")
       .select("title, artist, media_type, rating, cover_url, created_at, profiles(username)")
-      .gte("created_at", weekSince)
+      .gte("created_at", weekAgoIso)
       .not("rating", "is", null)
       .order("rating", { ascending: false })
       .limit(10),
   ]);
+
+  // TMDB's "upcoming" list runs months out - keep only what actually lands
+  // in this issue's window.
+  const upcoming = upcomingAll
+    .filter((u) => u.date && u.date >= todayStr && u.date <= horizonStr)
+    .slice(0, 15);
 
   const artistPosts =
     (artistPostsRes.data as { artist_name: string; platform: string; description: string | null }[] | null) ?? [];
@@ -127,30 +151,33 @@ export async function generateNewsletterDraft(
     Array.isArray(p.profiles) ? p.profiles[0]?.username : p.profiles?.username;
 
   const dataDump = [
+    `Issue window: activity from ${weekAgoStr} to ${todayStr}; upcoming through ${horizonStr}.`,
     upcoming.length
-      ? `Upcoming from TMDB:\n${upcoming.map((u) => `- ${u.title} (${u.mediaType}, ${u.date ?? "date TBA"})`).join("\n")}`
-      : "Upcoming from TMDB: none available.",
+      ? `Releasing between ${todayStr} and ${horizonStr} (via TMDB):\n${upcoming.map((u) => `- ${u.title} (${u.mediaType}, ${u.date ?? "date TBA"})`).join("\n")}`
+      : `Releases between ${todayStr} and ${horizonStr} (via TMDB): none.`,
     artistPosts.length
-      ? `Underground creator posts on Feedback (last 14 days):\n${artistPosts
+      ? `Underground creator posts on Feedback since ${weekAgoStr}:\n${artistPosts
           .map((a) => `- ${a.artist_name} (${a.platform === "youtube" ? "short film" : "music"})${a.description ? `: ${a.description.slice(0, 150)}` : ""}`)
           .join("\n")}`
-      : "Underground creator posts: none this period.",
+      : `Underground creator posts since ${weekAgoStr}: none.`,
     topPosts.length
-      ? `Top-rated reviews on Feedback this week:\n${topPosts
+      ? `Top-rated reviews on Feedback since ${weekAgoStr}:\n${topPosts
           .map((p) => `- "${p.title}"${p.artist ? ` by ${p.artist}` : ""} (${p.media_type}, ${p.rating}★, reviewed by @${usernameOf(p) ?? "unknown"})`)
           .join("\n")}`
-      : "Top-rated reviews this week: none yet.",
+      : `Top-rated reviews since ${weekAgoStr}: none yet.`,
   ].join("\n\n");
+
+  const systemPrompt = newsletterSystemPrompt(weekAgoStr, todayStr, horizonStr);
 
   // Google Search grounding has its own free-tier quota, far smaller than
   // the model's own. When only that is exhausted, fall back to an ungrounded
   // draft rather than failing: the TMDB/site data dump below is the primary
   // source anyway, and search was only ever an enhancement on top of it.
-  let result = await askGeminiJson<GeneratedDraft>(NEWSLETTER_SYSTEM_PROMPT, dataDump, true);
+  let result = await askGeminiJson<GeneratedDraft>(systemPrompt, dataDump, true);
   let usedGrounding = true;
   if (!result.ok && result.error.includes("429")) {
     console.warn("[newsletter] grounded generation rate limited, retrying without Google Search");
-    result = await askGeminiJson<GeneratedDraft>(NEWSLETTER_SYSTEM_PROMPT, dataDump, false);
+    result = await askGeminiJson<GeneratedDraft>(systemPrompt, dataDump, false);
     usedGrounding = false;
   }
   if (!result.ok) {
