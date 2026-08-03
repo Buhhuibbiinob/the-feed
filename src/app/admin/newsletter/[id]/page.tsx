@@ -6,6 +6,7 @@ import { NEWSLETTER_SECTIONS, type NewsletterIssue } from "@/lib/newsletter";
 import { NewsletterEditForm } from "@/components/NewsletterEditForm";
 import { NewsletterSendButton } from "@/components/NewsletterSendButton";
 import { NewsletterGenerateButton } from "@/components/NewsletterGenerateButton";
+import { getNewsletterRecipients } from "@/lib/newsletterRecipients";
 import { publishNewsletterIssue, unpublishNewsletterIssue, deleteNewsletterIssue } from "@/app/actions/newsletter";
 
 export const metadata = { title: "Edit Issue - Feedback" };
@@ -55,9 +56,9 @@ export default async function AdminNewsletterEditPage({
   if (!issueData) notFound();
   const issue = issueData as unknown as NewsletterIssue;
 
-  const { count: subscriberCount } = await supabase
-    .from("waitlist_signups")
-    .select("id", { count: "exact", head: true });
+  // Count the exact list the send will use, not just the waitlist - the
+  // button used to say "(3)" while actually mailing every account too.
+  const subscriberCount = (await getNewsletterRecipients(supabase)).length;
 
   return (
     <>
@@ -128,11 +129,11 @@ export default async function AdminNewsletterEditPage({
         <div className="panel-head">Send Email</div>
         <div className="panel-body">
           <p>
-            Emails everyone who subscribed through the sign-up page or the public newsletter page.
+            Emails every account holder plus anyone who subscribed through the sign-up page or the public newsletter page. Addresses that can’t receive mail (leftover test addresses) are skipped automatically.
             Requires a <code>RESEND_API_KEY</code> environment variable - without it, sending will show an
             error explaining what to add.
           </p>
-          <NewsletterSendButton issueId={issue.id} subscriberCount={subscriberCount ?? 0} />
+          <NewsletterSendButton issueId={issue.id} subscriberCount={subscriberCount} />
         </div>
       </div>
     </>

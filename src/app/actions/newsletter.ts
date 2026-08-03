@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { NEWSLETTER_SECTIONS, getIssueById, renderIssueHtml, type NewsletterSectionKey } from "@/lib/newsletter";
 import { sendBulkEmail } from "@/lib/email";
@@ -12,25 +11,8 @@ import { getAlbumsReleasedBetween } from "@/lib/appleMusic";
 import { getTrendingTracks } from "@/lib/lastfm";
 import { searchVideos } from "@/lib/youtube";
 import { askGeminiJson } from "@/lib/gemini";
-
-// Every registered account's email, not just the public "get notified"
-// waitlist - paginated since the admin API caps each page.
-async function getAllAccountEmails(): Promise<string[]> {
-  const admin = createAdminClient();
-  const emails: string[] = [];
-  let page = 1;
-  const perPage = 1000;
-  while (true) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-    if (error || !data) break;
-    for (const u of data.users) {
-      if (u.email) emails.push(u.email);
-    }
-    if (data.users.length < perPage) break;
-    page++;
-  }
-  return emails;
-}
+import { getNewsletterRecipients } from "@/lib/newsletterRecipients";
+import { siteUrl } from "@/lib/site";
 
 export type NewsletterFormState = { error?: string; ok?: boolean };
 export type NewsletterSendState = { error?: string; ok?: boolean; sent?: number };
@@ -392,22 +374,9 @@ export async function sendNewsletterIssue(
   const issue = await getIssueById(supabase, id);
   if (!issue) return { error: "Issue not found." };
 
-  const { data: subscriberRows } = await supabase.from("waitlist_signups").select("email");
-  const waitlistEmails = (subscriberRows ?? []).map((r) => r.email as string);
+  const emails = await getNewsletterRecipients(supabase);
 
-  const { data: newsletterRows } = await supabase
-    .from("newsletter_subscribers")
-    .select("email")
-    .is("unsubscribed_at", null);
-  const newsletterEmails = (newsletterRows ?? []).map((r) => r.email as string);
-
-  const accountEmails = await getAllAccountEmails();
-  const emails = [
-    ...new Set([...waitlistEmails, ...newsletterEmails, ...accountEmails].map((e) => e.toLowerCase())),
-  ];
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mythefeed.com";
-  const html = renderIssueHtml(issue, siteUrl);
+  const html = renderIssueHtml(issue, siteUrl());
   const result = await sendBulkEmail(issue.title, html, emails);
 
   if (!result.ok) return { error: result.error };
