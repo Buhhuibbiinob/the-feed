@@ -173,11 +173,36 @@ export async function generateNewsletterDraft(
     cover_image_url: coverImageUrl,
     image_urls: imageUrls,
   };
+  const filledSections: string[] = [];
   for (const s of NEWSLETTER_SECTIONS) {
-    update[s.key] = draft[s.key] ? sanitizeCopy(draft[s.key]) : null;
+    const value = draft[s.key] ? sanitizeCopy(draft[s.key]) : null;
+    update[s.key] = value;
+    if (value) filledSections.push(s.key);
   }
 
-  await supabase.from("newsletter_issues").update(update).eq("id", id);
+  if (filledSections.length === 0) {
+    return {
+      error:
+        "Gemini replied but every section came back empty. Try again - if it keeps happening the model may be returning a different JSON shape than expected.",
+    };
+  }
+
+  let { error: updateError } = await supabase.from("newsletter_issues").update(update).eq("id", id);
+
+  // image_urls is a newer column - if the database hasn't had schema.sql
+  // re-run since it was added, the whole update fails and the draft is
+  // silently lost. Save everything else rather than throwing the draft away.
+  if (updateError && updateError.message.toLowerCase().includes("image_urls")) {
+    console.warn("[newsletter] image_urls column missing, saving draft without it");
+    const withoutImages = { ...update };
+    delete withoutImages.image_urls;
+    ({ error: updateError } = await supabase.from("newsletter_issues").update(withoutImages).eq("id", id));
+  }
+
+  if (updateError) {
+    console.error(`[newsletter] saving draft failed: ${updateError.message}`);
+    return { error: `Gemini wrote the draft but saving it failed: ${updateError.message}` };
+  }
 
   revalidatePath(`/admin/newsletter/${id}`);
   return { ok: true };
