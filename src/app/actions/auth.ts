@@ -7,7 +7,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { siteUrl } from "@/lib/site";
 import { checkUsernameSafety } from "@/lib/contentSafety";
 import { sendEmail } from "@/lib/email";
-import { renderConfirmEmail, renderWelcomeEmail } from "@/lib/emailTemplates";
+import {
+  renderConfirmEmail,
+  renderWelcomeEmail,
+  renderResetEmail,
+  renderMagicLinkEmail,
+} from "@/lib/emailTemplates";
 
 export type AuthFormState = {
   error?: string;
@@ -202,14 +207,24 @@ export async function signInWithMagicLink(
     return { error: "Enter an email address first." };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: `${siteUrl()}/auth/callback` },
-  });
+  // Same approach as signup: generate the token ourselves and send our own
+  // email, so the link points straight at our callback instead of bouncing
+  // through Supabase's verify endpoint (which silently drops users on the
+  // site's home page when the redirect URL isn't allowlisted).
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email });
 
-  if (error) {
-    return { error: error.message };
+  if (error || !data?.properties?.hashed_token) {
+    console.error(`[magicLink] generateLink failed: ${error?.message ?? "no hashed_token"}`);
+    // Don't confirm whether the address has an account.
+    return { message: "Check your email for a magic sign-in link." };
+  }
+
+  const loginUrl = `${siteUrl()}/auth/callback?token_hash=${encodeURIComponent(data.properties.hashed_token)}&type=magiclink`;
+  const send = await sendEmail("Your Feedback sign-in link", renderMagicLinkEmail(loginUrl), email);
+  if (!send.ok) {
+    console.error(`[magicLink] send failed: ${send.error}`);
+    return { error: `We couldn't send your sign-in link: ${send.error}` };
   }
 
   return { message: "Check your email for a magic sign-in link." };
@@ -230,10 +245,28 @@ export async function requestPasswordReset(
     return { error: "Enter your email address." };
   }
 
-  const supabase = await createClient();
-  await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl()}/auth/callback?next=/reset-password`,
-  });
+  // Generate the recovery token ourselves and send our own branded email.
+  // supabase.auth.resetPasswordForEmail() sends Supabase's default email,
+  // whose link goes to Supabase's verify endpoint first - and if the
+  // redirect URL isn't in the project's allowlist, Supabase quietly falls
+  // back to the Site URL, dumping the user on the home page instead of the
+  // reset form. Our own link skips that hop entirely.
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.generateLink({ type: "recovery", email });
+
+  if (error || !data?.properties?.hashed_token) {
+    // Log it, but never tell the caller - that would reveal whether the
+    // address has an account.
+    console.error(`[passwordReset] generateLink failed: ${error?.message ?? "no hashed_token"}`);
+    return { message: genericMessage };
+  }
+
+  const resetUrl = `${siteUrl()}/auth/callback?token_hash=${encodeURIComponent(
+    data.properties.hashed_token
+  )}&type=recovery&next=${encodeURIComponent("/reset-password")}`;
+
+  const send = await sendEmail("Reset your Feedback password", renderResetEmail(resetUrl), email);
+  if (!send.ok) console.error(`[passwordReset] send failed: ${send.error}`);
 
   return { message: genericMessage };
 }

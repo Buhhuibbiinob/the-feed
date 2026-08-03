@@ -25,8 +25,9 @@ export async function GET(request: NextRequest) {
       // Nav links prefetched while signed out are still in the client router
       // cache - invalidate the layout so the header renders as signed in.
       revalidatePath("/", "layout");
-      const target = next ?? (type === "recovery" ? "/reset-password" : "/?verified=true");
-      return NextResponse.redirect(`${origin}${target}`);
+      const defaultTarget =
+        type === "recovery" ? "/reset-password" : type === "signup" ? "/?verified=true" : "/";
+      return NextResponse.redirect(`${origin}${next ?? defaultTarget}`);
     }
     console.error(`[auth/callback] verifyOtp failed (type=${type}): ${error.message}`);
     return NextResponse.redirect(`${origin}/sign-in?error=${encodeURIComponent(error.message)}`);

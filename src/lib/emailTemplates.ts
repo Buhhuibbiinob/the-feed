@@ -35,6 +35,28 @@ export function renderConfirmEmail(confirmUrl: string): string {
   );
 }
 
+export function renderResetEmail(resetUrl: string): string {
+  return shell(
+    `<tr><td style="padding:32px 28px; text-align:center;">` +
+      `<h1 style="margin:0 0 12px; font-size:22px; font-weight:600; color:#0f0f0f;">Reset your password</h1>` +
+      `<p style="margin:0 0 24px; font-size:14px; line-height:1.5; color:#606060;">Click below to choose a new password. This link can only be used once, and expires in an hour.</p>` +
+      `<a href="${resetUrl}" style="${RED_BUTTON}">Reset Password</a>` +
+      `<p style="margin:28px 0 0; font-size:11px; color:#909090;">Didn't ask to reset your password? You can safely ignore this email, your password won't change.</p>` +
+      `</td></tr>`
+  );
+}
+
+export function renderMagicLinkEmail(loginUrl: string): string {
+  return shell(
+    `<tr><td style="padding:32px 28px; text-align:center;">` +
+      `<h1 style="margin:0 0 12px; font-size:22px; font-weight:600; color:#0f0f0f;">Your sign-in link</h1>` +
+      `<p style="margin:0 0 24px; font-size:14px; line-height:1.5; color:#606060;">Click below to sign in to Feedback. No password needed. This link can only be used once.</p>` +
+      `<a href="${loginUrl}" style="${RED_BUTTON}">Sign In</a>` +
+      `<p style="margin:28px 0 0; font-size:11px; color:#909090;">Didn't try to sign in? You can safely ignore this email.</p>` +
+      `</td></tr>`
+  );
+}
+
 export function renderWelcomeEmail(username: string, siteUrl: string): string {
   return shell(
     `<tr><td style="padding:32px 28px;">` +
