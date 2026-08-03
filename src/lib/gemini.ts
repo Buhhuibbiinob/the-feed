@@ -1,11 +1,14 @@
 // Thin wrapper around Google's Gemini API (free tier via Google AI Studio).
 // Server-only - GEMINI_API_KEY must never reach the client.
-// gemini-2.0-flash was shut down by Google on 2026-06-01 (it silently
-// returned quota errors rather than a clear "model retired" message, which
-// is what made that so hard to diagnose). Heads up: gemini-2.5-flash is
-// itself scheduled to shut down 2026-10-16 - set GEMINI_MODEL to move off
-// it (e.g. gemini-3.6-flash) without a code change.
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// Model history on this project, so nobody re-treads it:
+//  - gemini-2.0-flash: shut down 2026-06-01. Returned quota-ish errors
+//    rather than a clear "retired" message, which made it hard to diagnose.
+//  - gemini-2.5-flash: 404s on this API key ("no longer available to new
+//    users"), so it is not a usable fallback here despite still existing.
+//  - gemini-3.6-flash: current, works on this key. 429s from it are free-tier
+//    quota spikes, which the retry/backoff below handles.
+// Override with GEMINI_MODEL to move models without a code change.
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 
 // Free-tier quota spikes come back as 429; 500/503 are transient upstream
 // blips. Both are worth retrying, and neither should crash the caller's UI.
