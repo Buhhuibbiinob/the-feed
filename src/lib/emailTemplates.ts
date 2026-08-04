@@ -84,7 +84,7 @@ export function renderWelcomeEmail(username: string, siteUrl: string): string {
       `<li>If you make music or films yourself, share your own work</li>` +
       `</ul>` +
       `<div style="text-align:center;"><a href="${siteUrl}" style="${RED_BUTTON}">Open Feedback</a></div>` +
-      `<p style="margin:28px 0 0; font-size:11px; color:#909090; text-align:center;">You're getting this because you created a Feedback account. Reply to this email to unsubscribe from the weekly newsletter.</p>` +
+      `<p style="margin:28px 0 0; font-size:11px; color:#909090; text-align:center;">You're getting this because you created a Feedback account.</p>` +
       `</td></tr>`
   );
 }

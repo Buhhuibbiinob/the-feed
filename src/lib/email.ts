@@ -4,6 +4,12 @@ export type SendEmailResult = { ok: true; sent: number } | { ok: false; error: s
 
 const BATCH_SIZE = 100;
 
+// mythefeed.com is verified in Resend (DKIM + SPF), so mail goes out as the
+// real brand rather than the shared onboarding@resend.dev sandbox domain.
+// "Enable Receiving" is off in Resend, so this address can't take replies -
+// no email should invite one until inbound is turned on.
+const DEFAULT_FROM = "Feedback <noreply@mythefeed.com>";
+
 // RFC2606 reserved domains and the like: these can never receive mail, and
 // Resend rejects them outright. A batch send fails as a whole if any single
 // recipient is invalid, so one leftover test address would otherwise block
@@ -27,7 +33,7 @@ export async function sendEmail(
   if (!apiKey) return { ok: false, error: "RESEND_API_KEY isn't set." };
 
   const resend = new Resend(apiKey);
-  const from = process.env.RESEND_FROM_EMAIL || "Feedback <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM;
 
   try {
     const { error } = await resend.emails.send({ from, to: toEmail, subject, html });
@@ -66,7 +72,7 @@ export async function sendBulkEmail(
   }
 
   const resend = new Resend(apiKey);
-  const from = process.env.RESEND_FROM_EMAIL || "Feedback <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM;
 
   let sent = 0;
   for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
