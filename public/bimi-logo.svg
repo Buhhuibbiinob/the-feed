@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  BIMI logo for mythefeed.com.
+
+  Must be SVG Tiny 1.2 "Portable/Secure" (baseProfile="tiny-ps") or mail
+  providers reject it: square viewBox, a <title>, a solid (non-transparent)
+  background, no scripts, no external references, no animation, and no x/y
+  attributes on the root element.
+
+  Deliberately a flat mark rather than a trace of the 3D PNG logo: this
+  renders around 30px in an inbox, where bevels and gradients turn to mud.
+-->
+<svg version="1.2" baseProfile="tiny-ps" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Feedback</title>
+  <rect x="0" y="0" width="512" height="512" fill="#E60000"/>
+  <g fill="#FFFFFF">
+    <rect x="176" y="128" width="64" height="256"/>
+    <rect x="176" y="128" width="160" height="60"/>
+    <rect x="176" y="222" width="128" height="56"/>
+  </g>
+</svg>
