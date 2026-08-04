@@ -5,6 +5,7 @@ import { getTrendingTracks } from "@/lib/lastfm";
 import { fillMissingArt } from "@/lib/musicArt";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { guardBuiltinPage } from "@/lib/pages";
+import { Stars } from "@/components/Stars";
 
 type PostRow = {
   id: string;
@@ -15,11 +16,6 @@ type PostRow = {
   created_at: string;
   profiles: { username: string } | null;
 };
-
-function stars(rating: number | null) {
-  if (!rating) return null;
-  return "★".repeat(rating) + "☆".repeat(5 - rating);
-}
 
 export const metadata = { title: "New Releases - Feedback" };
 
@@ -127,7 +123,7 @@ export default async function NewReleasesPage() {
                 />
                 <div className="release-title">{post.title}</div>
                 <div className="release-sub">{post.artist || post.profiles?.username || "unknown"}</div>
-                {post.rating && <div className="release-stars">{stars(post.rating)}</div>}
+                {post.rating && <div className="release-stars"><Stars rating={post.rating} /></div>}
               </Link>
             ))
           )}

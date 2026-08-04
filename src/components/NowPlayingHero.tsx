@@ -1,6 +1,7 @@
 "use client";
 
 import { ShareButton } from "@/components/ShareButton";
+import { Stars } from "@/components/Stars";
 
 function PlayIcon() {
   return (
@@ -24,10 +25,6 @@ function ShuffleIcon() {
       <path d="M14.83 13.41 16.25 12l1.42 1.42a1 1 0 0 1 0 1.41L15.25 17.4l-1.41-1.41 1.17-1.17-1.18-1.18ZM10.59 9.17 9.17 10.59 6 7.42V6h1.42l3.17 3.17ZM17.67 6H16v1.42l1.42 1.41 1.41-1.41L17.67 6ZM6 18h1.42l7.41-7.42-1.41-1.41L6.58 16.58H6V18Z" />
     </svg>
   );
-}
-
-function stars(rating: number) {
-  return "★".repeat(rating) + "☆".repeat(5 - rating);
 }
 
 export function NowPlayingHero({
@@ -56,7 +53,7 @@ export function NowPlayingHero({
         <div className="sk-np-subtitle">
           {artist}
           {artist && rating ? " · " : ""}
-          {rating ? stars(rating) : ""}
+          <Stars rating={rating} />
         </div>
       )}
       <div

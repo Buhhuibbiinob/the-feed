@@ -11,6 +11,7 @@ import { SpoilerText } from "@/components/SpoilerText";
 import { AlertModal } from "@/components/AlertModal";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
+import { Stars } from "@/components/Stars";
 
 export type PostCardData = {
   id: string;
@@ -29,11 +30,6 @@ export type PostCardData = {
 };
 
 const initialState: PostFormState = {};
-
-function stars(rating: number | null) {
-  if (!rating) return null;
-  return "★".repeat(rating) + "☆".repeat(5 - rating);
-}
 
 function timeAgo(iso: string) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -164,7 +160,7 @@ export function PostCard({
             )}
           </div>
         </div>
-        {post.rating && <div className="track-stars">{stars(post.rating)}</div>}
+        {post.rating && <div className="track-stars"><Stars rating={post.rating} /></div>}
       </div>
       {confirmingDelete && (
         <AlertModal

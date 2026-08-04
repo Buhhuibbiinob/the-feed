@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { coverGradient } from "@/lib/cover";
+import { Stars } from "@/components/Stars";
 
 export type ShelfItem = {
   id: string;
@@ -13,10 +14,6 @@ export type ShelfItem = {
   href?: string;
   rating?: number | null;
 };
-
-function stars(rating: number) {
-  return "★".repeat(rating) + "☆".repeat(5 - rating);
-}
 
 // A pile of DVD cases lying flat, stacked one on top of the other and seen
 // edge-on - each case is a horizontal spine bar with the full cover art as
@@ -32,7 +29,7 @@ function DvdCaseShelf({ items }: { items: ShelfItem[] }) {
         const inner = (
           <>
             <div className="sk-dvd-title">{item.title}</div>
-            {item.rating ? <div className="sk-dvd-rating">{stars(item.rating)}</div> : null}
+            {item.rating ? <div className="sk-dvd-rating"><Stars rating={item.rating} /></div> : null}
           </>
         );
         return item.href ? (

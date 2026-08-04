@@ -16,6 +16,7 @@ import { getAllSiteText } from "@/lib/siteContent";
 import { getPublishedIssues } from "@/lib/newsletter";
 import { getSiteFlags } from "@/lib/siteFlags";
 import { ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatforms";
+import { Stars } from "@/components/Stars";
 
 type PostRow = {
   id: string;
@@ -79,11 +80,6 @@ function BannerLink({
       {children}
     </a>
   );
-}
-
-function stars(rating: number | null) {
-  if (!rating) return null;
-  return "★".repeat(rating) + "☆".repeat(5 - rating);
 }
 
 function isWithinLastWeek(iso: string) {
@@ -699,7 +695,7 @@ export default async function FeedPage({
                     <div className="info">
                       <b>{post.title}</b>
                       <span>
-                        {post.profiles?.username ?? "unknown"} · {stars(post.rating)}
+                        {post.profiles?.username ?? "unknown"} · <Stars rating={post.rating} />
                       </span>
                     </div>
                   </div>
@@ -776,7 +772,7 @@ export default async function FeedPage({
                     <div className="info">
                       <b>{post.title}</b>
                       <span>
-                        {post.profiles?.username ?? "unknown"} · {stars(post.rating)}
+                        {post.profiles?.username ?? "unknown"} · <Stars rating={post.rating} />
                       </span>
                     </div>
                   </div>
