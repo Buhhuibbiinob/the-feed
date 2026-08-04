@@ -6,9 +6,9 @@ const BATCH_SIZE = 100;
 
 // mythefeed.com is verified in Resend (DKIM + SPF), so mail goes out as the
 // real brand rather than the shared onboarding@resend.dev sandbox domain.
-// "Enable Receiving" is off in Resend, so this address can't take replies -
-// no email should invite one until inbound is turned on.
-const DEFAULT_FROM = "Feedback <noreply@mythefeed.com>";
+// Note that "Enable Receiving" is off in Resend, so this address can't
+// accept replies - no email should invite one until inbound is turned on.
+const DEFAULT_FROM = "Feedback <newsletter@mythefeed.com>";
 
 // RFC2606 reserved domains and the like: these can never receive mail, and
 // Resend rejects them outright. A batch send fails as a whole if any single
