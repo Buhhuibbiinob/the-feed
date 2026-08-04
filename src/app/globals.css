@@ -5209,3 +5209,13 @@ footer .copy {
     radial-gradient(circle at 78% 18%, rgba(90, 220, 195, 0.18), transparent 40%),
     linear-gradient(112deg, transparent 34%, rgba(255, 255, 255, 0.1) 46%, transparent 58%);
 }
+
+/* Cover Flow reflections inside the release grids. The reflection is
+   absolutely positioned so it doesn't affect layout, which means the card
+   has to reserve the space itself or the mirrored art lands on the title. */
+.release-card .sk-reflect {
+  margin-bottom: 22px;
+}
+.release-card .sk-reflect::after {
+  height: 34%;
+}

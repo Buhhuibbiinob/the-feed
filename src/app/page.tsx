@@ -17,6 +17,7 @@ import { getPublishedIssues } from "@/lib/newsletter";
 import { getSiteFlags } from "@/lib/siteFlags";
 import { ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatforms";
 import { Stars } from "@/components/Stars";
+import { CoverArt } from "@/components/CoverArt";
 
 type PostRow = {
   id: string;
@@ -447,14 +448,7 @@ export default async function FeedPage({
           <div className="release-grid" style={{ padding: 16 }}>
             {upcomingMovies.map((item) => (
               <div className="release-card" key={item.id}>
-                <div
-                  className="release-cover"
-                  style={{
-                    backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : undefined,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
+                <CoverArt imageUrl={item.imageUrl} seed={item.id} />
                 <div className="release-title">{item.title}</div>
               </div>
             ))}

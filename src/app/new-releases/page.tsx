@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { coverGradient } from "@/lib/cover";
 import { getTrendingTracks } from "@/lib/lastfm";
 import { fillMissingArt } from "@/lib/musicArt";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { guardBuiltinPage } from "@/lib/pages";
 import { Stars } from "@/components/Stars";
+import { CoverArt } from "@/components/CoverArt";
 
 type PostRow = {
   id: string;
@@ -55,14 +55,7 @@ export default async function NewReleasesPage() {
                 className="release-card"
                 key={track.id}
               >
-                <div
-                  className="release-cover"
-                  style={{
-                    backgroundImage: track.imageUrl ? `url(${track.imageUrl})` : coverGradient(track.id),
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
+                <CoverArt imageUrl={track.imageUrl} seed={track.id} />
                 <div className="release-title">{track.name}</div>
                 <div className="release-sub">{track.artist}</div>
               </a>
@@ -87,14 +80,7 @@ export default async function NewReleasesPage() {
                 className="release-card"
                 key={item.id}
               >
-                <div
-                  className="release-cover"
-                  style={{
-                    backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : coverGradient(item.id),
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
+                <CoverArt imageUrl={item.imageUrl} seed={item.id} />
                 <div className="release-title">{item.title}</div>
                 <div className="release-sub">{item.date ?? (item.mediaType === "tv" ? "TV" : "Movie")}</div>
               </a>
@@ -113,14 +99,7 @@ export default async function NewReleasesPage() {
           ) : (
             reviews.map((post) => (
               <Link href={`/post/${post.id}`} className="release-card" key={post.id}>
-                <div
-                  className="release-cover"
-                  style={{
-                    backgroundImage: post.cover_url ? `url(${post.cover_url})` : coverGradient(post.id),
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
+                <CoverArt imageUrl={post.cover_url} seed={post.id} />
                 <div className="release-title">{post.title}</div>
                 <div className="release-sub">{post.artist || post.profiles?.username || "unknown"}</div>
                 {post.rating && <div className="release-stars"><Stars rating={post.rating} /></div>}
