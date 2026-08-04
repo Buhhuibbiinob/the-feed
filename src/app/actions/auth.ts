@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { siteUrl } from "@/lib/site";
 import { checkUsernameSafety } from "@/lib/contentSafety";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, FROM_NEWSLETTER } from "@/lib/email";
 import {
   renderConfirmEmail,
   renderWelcomeEmail,
@@ -158,10 +158,14 @@ async function signUpInner(formData: FormData): Promise<AuthFormState> {
     .upsert({ email, user_id: newUserId ?? null, source: "signup" }, { onConflict: "email" });
   if (subError) console.error(`[signUp] newsletter subscribe failed: ${subError.message}`);
 
+  // Sent from the newsletter address, not the transactional one - this is
+  // the newsletter's own welcome, and the reply-to/filtering expectations
+  // that come with it should match.
   const welcomeSend = await sendEmail(
     "Welcome to Feedback",
     renderWelcomeEmail(username, siteUrl()),
-    email
+    email,
+    { from: FROM_NEWSLETTER }
   );
   if (!welcomeSend.ok) console.error(`[signUp] welcome email failed: ${welcomeSend.error}`);
 

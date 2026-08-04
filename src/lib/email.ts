@@ -6,9 +6,20 @@ const BATCH_SIZE = 100;
 
 // mythefeed.com is verified in Resend (DKIM + SPF), so mail goes out as the
 // real brand rather than the shared onboarding@resend.dev sandbox domain.
-// Note that "Enable Receiving" is off in Resend, so this address can't
-// accept replies - no email should invite one until inbound is turned on.
-const DEFAULT_FROM = "Feedback <newsletter@mythefeed.com>";
+//
+// Two distinct senders, deliberately NOT sharing one variable. They used to
+// both read RESEND_FROM_EMAIL, which meant whatever that held won for every
+// message - so sign-in links went out as "newsletter" and newsletters went
+// out as "hello". A password reset arriving from a newsletter address also
+// reads as marketing and gets filtered with it, which is the last thing
+// that should happen to a reset link.
+//
+// Note "Enable Receiving" is off in Resend, so neither address accepts
+// replies - no email should invite one until inbound is turned on.
+export const FROM_TRANSACTIONAL =
+  process.env.RESEND_FROM_TRANSACTIONAL || "Feedback <hello@mythefeed.com>";
+export const FROM_NEWSLETTER =
+  process.env.RESEND_FROM_NEWSLETTER || "Feedback <newsletter@mythefeed.com>";
 
 // RFC2606 reserved domains and the like: these can never receive mail, and
 // Resend rejects them outright. A batch send fails as a whole if any single
@@ -27,13 +38,14 @@ export function isSendableEmail(email: string): boolean {
 export async function sendEmail(
   subject: string,
   html: string,
-  toEmail: string
+  toEmail: string,
+  options: { from?: string } = {}
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { ok: false, error: "RESEND_API_KEY isn't set." };
 
   const resend = new Resend(apiKey);
-  const from = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM;
+  const from = options.from ?? FROM_TRANSACTIONAL;
 
   try {
     const { error } = await resend.emails.send({ from, to: toEmail, subject, html });
@@ -72,7 +84,7 @@ export async function sendBulkEmail(
   }
 
   const resend = new Resend(apiKey);
-  const from = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM;
+  const from = FROM_NEWSLETTER;
 
   let sent = 0;
   for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
