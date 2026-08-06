@@ -46,8 +46,16 @@ export function NowPlayingHero({
     document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
+  // The cover art drives two layers: the blurred backdrop (via the
+  // --np-art custom property, read by .sk-np-card::before) and the sharp
+  // artwork sitting on top of it.
+  const artUrl = coverUrl ? `url(${coverUrl})` : undefined;
+
   return (
-    <div className="sk-np-card">
+    <div
+      className={`sk-np-card${coverUrl ? " has-art" : ""}`}
+      style={artUrl ? ({ "--np-art": artUrl } as React.CSSProperties) : undefined}
+    >
       <div className="sk-np-title">{title}</div>
       {(artist || rating) && (
         <div className="sk-np-subtitle">
