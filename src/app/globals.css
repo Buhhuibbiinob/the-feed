@@ -5490,3 +5490,11 @@ button.btn-ghost {
 [data-mode="dark"] .track-actions-muted {
   color: #7d7d82;
 }
+
+/* Each pipe-row entry carries its own leading separator, so hiding an
+   entry can't leave an orphaned "|" behind. */
+.track-action-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}

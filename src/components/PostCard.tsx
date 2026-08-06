@@ -123,38 +123,46 @@ export function PostCard({
             {post.artist && <> - {post.artist}</>}
           </Link>
           <div className="track-actions">
-            {currentUserId ? (
-              <LikeButton postId={post.id} liked={liked} count={likeCount} asLink />
-            ) : (
-              <span className="track-actions-muted">Rate ({likeCount})</span>
-            )}
-            <span className="sep">|</span>
-            {!hideCommentLink && (
-              <Link href={`/post/${post.id}`}>Comment ({commentCount})</Link>
-            )}
-            <span className="sep">|</span>
-            <ShareButton postId={post.id} title={`${post.title}${post.artist ? ` - ${post.artist}` : ""}`} asLink />
-            {currentUserId && (
-              <>
-                <span className="sep">|</span>
-                <AddToCollectionButton postId={post.id} asLink />
-              </>
-            )}
-            {isOwner && (
-              <>
-                <span className="sep">|</span>
-                <button type="button" onClick={() => setEditing(true)}>
+            {/* Built as a list so a pipe only ever appears BETWEEN two real
+                items. Hard-coding separators around a conditional item
+                leaves a stray "| |" whenever that item is hidden. */}
+            {[
+              currentUserId ? (
+                <LikeButton key="rate" postId={post.id} liked={liked} count={likeCount} asLink />
+              ) : (
+                <span key="rate" className="track-actions-muted">Rate ({likeCount})</span>
+              ),
+              hideCommentLink ? null : (
+                <Link key="comment" href={`/post/${post.id}`}>Comment ({commentCount})</Link>
+              ),
+              currentUserId ? <AddToCollectionButton key="save" postId={post.id} asLink /> : null,
+              <ShareButton
+                key="share"
+                postId={post.id}
+                title={`${post.title}${post.artist ? ` - ${post.artist}` : ""}`}
+                asLink
+              />,
+              isOwner ? (
+                <button key="edit" type="button" onClick={() => setEditing(true)}>
                   Edit
                 </button>
-                <span className="sep">|</span>
-                <form action={deletePost} className="inline-form" ref={deleteFormRef}>
+              ) : null,
+              isOwner ? (
+                <form key="delete" action={deletePost} className="inline-form" ref={deleteFormRef}>
                   <input type="hidden" name="post_id" value={post.id} />
                   <button type="button" className="danger" onClick={() => setConfirmingDelete(true)}>
                     Delete
                   </button>
                 </form>
-              </>
-            )}
+              ) : null,
+            ]
+              .filter(Boolean)
+              .map((item, i) => (
+                <span className="track-action-item" key={i}>
+                  {i > 0 && <span className="sep">|</span>}
+                  {item}
+                </span>
+              ))}
           </div>
         </div>
         {post.rating && <div className="track-stars"><Stars rating={post.rating} /></div>}
