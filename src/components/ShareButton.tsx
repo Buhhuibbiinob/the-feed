@@ -18,7 +18,16 @@ function CheckIcon() {
   );
 }
 
-export function ShareButton({ postId, title }: { postId: string; title: string }) {
+export function ShareButton({
+  postId,
+  title,
+  asLink = false,
+}: {
+  postId: string;
+  title: string;
+  /** Render as a plain underlined text link for the old-blog action row. */
+  asLink?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
@@ -38,6 +47,14 @@ export function ShareButton({ postId, title }: { postId: string; title: string }
     } catch {
       // clipboard unavailable - nothing more we can do
     }
+  }
+
+  if (asLink) {
+    return (
+      <button type="button" onClick={share}>
+        {copied ? "Copied!" : "Share"}
+      </button>
+    );
   }
 
   return (

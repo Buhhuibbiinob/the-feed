@@ -124,23 +124,20 @@ export function PostCard({
           </Link>
           <div className="track-actions">
             {currentUserId ? (
-              <LikeButton postId={post.id} liked={liked} count={likeCount} />
+              <LikeButton postId={post.id} liked={liked} count={likeCount} asLink />
             ) : (
-              <span className="like-btn">
-                <span className="heart">♡</span>
-                <span className="count-badge">{likeCount}</span>
-              </span>
+              <span className="track-actions-muted">Rate ({likeCount})</span>
             )}
             <span className="sep">|</span>
             {!hideCommentLink && (
-              <Link href={`/post/${post.id}`}>Comments ({commentCount})</Link>
+              <Link href={`/post/${post.id}`}>Comment ({commentCount})</Link>
             )}
             <span className="sep">|</span>
-            <ShareButton postId={post.id} title={`${post.title}${post.artist ? ` - ${post.artist}` : ""}`} />
+            <ShareButton postId={post.id} title={`${post.title}${post.artist ? ` - ${post.artist}` : ""}`} asLink />
             {currentUserId && (
               <>
                 <span className="sep">|</span>
-                <AddToCollectionButton postId={post.id} />
+                <AddToCollectionButton postId={post.id} asLink />
               </>
             )}
             {isOwner && (
