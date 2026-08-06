@@ -1137,3 +1137,14 @@ drop policy if exists "Admins can view newsletter subscribers" on public.newslet
 create policy "Admins can view newsletter subscribers"
   on public.newsletter_subscribers for select
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- AI bot accounts ----------
+-- Personas that post reviews, chat, and like posts so the site isn't empty
+-- while the real community is still small. They're real rows in profiles
+-- (so leaderboard, feed and chat need no special-casing) but flagged, so
+-- the UI can label them and sends can exclude them.
+alter table public.profiles add column if not exists is_bot boolean not null default false;
+alter table public.profiles add column if not exists bot_persona text;
+alter table public.profiles add column if not exists bot_active boolean not null default true;
+
+create index if not exists profiles_is_bot_idx on public.profiles (is_bot) where is_bot;

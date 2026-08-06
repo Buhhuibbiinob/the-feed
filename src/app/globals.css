@@ -5655,3 +5655,26 @@ button.btn,
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 0 0 1px rgba(255, 255, 255, 0.4),
     0 16px 32px rgba(0, 0, 0, 0.36), 0 4px 8px rgba(0, 0, 0, 0.24);
 }
+
+/* ---- Public BOT tag ----
+   Bot accounts post in the same places real members do, so their name is
+   always tagged. Deliberately legible rather than subtle: an unlabelled
+   bot review is just a fake review. */
+.badge-bot {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 5px;
+  padding: 1px 6px;
+  border-radius: 100px;
+  background-color: #6b6b72;
+  background-image: linear-gradient(180deg, #9a9aa2 0%, #75757c 46%, #5e5e65 54%, #45454b 100%);
+  border: 1px solid #3c3c42;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 1px 2px rgba(0, 0, 0, 0.35);
+  vertical-align: middle;
+}

@@ -31,7 +31,7 @@ type PostRow = {
   cover_url: string | null;
   spotify_track_id: string | null;
   youtube_video_id: string | null;
-  profiles: { username: string; avatar_url: string | null; is_verified: boolean } | null;
+  profiles: { username: string; avatar_url: string | null; is_verified: boolean; is_bot: boolean } | null;
 };
 
 type StatusRow = {
@@ -119,7 +119,7 @@ export default async function FeedPage({
     supabase
       .from("posts")
       .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username, avatar_url, is_verified)"
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username, avatar_url, is_verified, is_bot)"
       )
       .order("created_at", { ascending: false })
       .limit(50)
@@ -581,6 +581,7 @@ export default async function FeedPage({
                       youtubeVideoId: post.youtube_video_id,
                       username: post.profiles?.username ?? "unknown",
                       isVerified: post.profiles?.is_verified ?? false,
+                      isBot: post.profiles?.is_bot ?? false,
                     }}
                     currentUserId={user?.id ?? null}
                     liked={likedByMe.has(post.id)}

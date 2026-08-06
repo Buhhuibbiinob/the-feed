@@ -25,7 +25,7 @@ export const FROM_NEWSLETTER =
 // Resend rejects them outright. A batch send fails as a whole if any single
 // recipient is invalid, so one leftover test address would otherwise block
 // the entire list.
-const UNDELIVERABLE_RE = /@(example|test|invalid|localhost)\.(com|org|net|invalid)$|@localhost$/i;
+const UNDELIVERABLE_RE = /@(example|test|invalid|localhost)\.(com|org|net|invalid)$|@localhost$|\.invalid$/i;
 
 export function isSendableEmail(email: string): boolean {
   const trimmed = email?.trim() ?? "";

@@ -27,6 +27,7 @@ export type PostCardData = {
   username: string;
   userId: string;
   isVerified?: boolean;
+  isBot?: boolean;
 };
 
 const initialState: PostFormState = {};
@@ -193,7 +194,8 @@ export function PostCard({
         <SpoilerText text={post.body} />
         <div className="post-meta">
           <Link href={`/profile/${post.username}`}>{post.username}</Link>
-          {post.isVerified && <VerifiedBadge />} · {timeAgo(post.createdAt)}
+          {post.isVerified && <VerifiedBadge />}
+          {post.isBot && <span className="badge-bot">BOT</span>} · {timeAgo(post.createdAt)}
         </div>
       </div>
     </div>

@@ -9,7 +9,8 @@ export type SiteFlagKey =
   | "homepage_clubs"
   | "homepage_creators"
   | "homepage_newsletter"
-  | "homepage_new_releases";
+  | "homepage_new_releases"
+  | "bots_enabled";
 
 // Registry of every homepage section an admin can toggle. `defaultEnabled`
 // is what a section does if it has no row yet in site_flags (e.g. right
@@ -24,6 +25,7 @@ export const SITE_FLAGS: { key: SiteFlagKey; label: string; defaultEnabled: bool
   { key: "homepage_creators", label: "Underground Creators section", defaultEnabled: true },
   { key: "homepage_newsletter", label: "Newsletter panel", defaultEnabled: true },
   { key: "homepage_new_releases", label: "New Movies & TV strip", defaultEnabled: true },
+  { key: "bots_enabled", label: "AI bot accounts (reviews, chat, likes)", defaultEnabled: false },
 ];
 
 export async function getSiteFlags(supabase: SupabaseClient): Promise<Record<SiteFlagKey, boolean>> {

@@ -33,6 +33,9 @@ import { SITE_CONTENT_FIELDS, getAllSiteText } from "@/lib/siteContent";
 import { SiteContentForm } from "@/components/SiteContentForm";
 import { HouseAdForm } from "@/components/HouseAdForm";
 import { SendSignInLinksButton } from "@/components/SendSignInLinksButton";
+import { BotAdminPanel } from "@/components/BotAdminPanel";
+import { listBots } from "@/app/actions/bots";
+import { getSiteFlags } from "@/lib/siteFlags";
 
 type ReportRow = {
   id: string;
@@ -186,6 +189,8 @@ export default async function AdminPage() {
   const banners = bannerRows ?? [];
   const pendingBanners = banners.filter((b) => b.status === "pending");
   const approvedBanners = banners.filter((b) => b.status === "approved");
+
+  const [bots, siteFlags] = await Promise.all([listBots(), getSiteFlags(supabase)]);
 
   return (
     <>
@@ -591,6 +596,19 @@ export default async function AdminPage() {
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">AI Bot Accounts</div>
+        <div className="panel-body">
+          <p className="field-hint" style={{ marginBottom: 12 }}>
+            Personas that post reviews, chat, and like real members&apos; posts so the site isn&apos;t empty
+            while the community is still small. They appear everywhere a normal account does - feed,
+            leaderboard, chat - but are tagged BOT publicly, so nobody mistakes their reviews for real
+            member opinions.
+          </p>
+          <BotAdminPanel bots={bots} enabled={siteFlags.bots_enabled} />
         </div>
       </div>
 
