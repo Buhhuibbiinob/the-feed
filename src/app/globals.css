@@ -5498,3 +5498,160 @@ button.btn-ghost {
   align-items: center;
   gap: 5px;
 }
+
+/* ================================================================
+   PUSH HARDER: full 2007-era treatment
+   Aqua pinstripes, letterpress type, double-bevel frames, glass sweep
+   across artwork, brushed environment behind the app.
+   ================================================================ */
+
+/* ---- Brushed environment behind the whole app ----
+   Fine vertical brush lines plus a broad light source, so the page
+   itself reads as an anodised surface the windows sit on. */
+body {
+  background-attachment: fixed;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0 1px, rgba(0, 0, 0, 0.03) 1px 2px),
+    radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, 0.85), transparent 60%),
+    radial-gradient(ellipse at 12% 8%, rgba(150, 215, 255, 0.3), transparent 45%),
+    radial-gradient(ellipse at 88% 4%, rgba(160, 240, 220, 0.26), transparent 42%),
+    linear-gradient(180deg, #dfe3e8 0%, #c8ccd2 40%, #b3b8bf 100%);
+}
+[data-mode="dark"] body {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0.22) 1px 2px),
+    radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, 0.16), transparent 60%),
+    radial-gradient(ellipse at 12% 8%, rgba(60, 140, 210, 0.24), transparent 45%),
+    linear-gradient(180deg, #3a3d42 0%, #26282c 45%, #131417 100%);
+}
+
+/* ---- Panels as physical windows: double bevel + Aqua pinstripes ---- */
+.panel {
+  border: 1px solid #8e939a;
+  border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 14px 30px rgba(0, 0, 0, 0.34), 0 3px 8px rgba(0, 0, 0, 0.22);
+}
+/* The classic pinstripe: 1px light band every 4px across panel bodies. */
+.panel-body,
+.side-list,
+.chat-preview-body,
+.stats-body {
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.55) 0 1px,
+    rgba(0, 0, 0, 0.012) 1px 4px
+  );
+}
+[data-mode="dark"] .panel {
+  border-color: #17181a;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 16px 34px rgba(0, 0, 0, 0.7), 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+[data-mode="dark"] .panel-body,
+[data-mode="dark"] .side-list,
+[data-mode="dark"] .chat-preview-body,
+[data-mode="dark"] .stats-body {
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.045) 0 1px,
+    rgba(0, 0, 0, 0.12) 1px 4px
+  );
+}
+
+/* ---- Letterpress type: headings stamped into the surface ---- */
+.panel-head,
+.panel-head-tab,
+.tab-main,
+.right-now-tab,
+.leaderboard-row b,
+.side-list b {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 -1px 0 rgba(0, 0, 0, 0.16);
+}
+[data-mode="dark"] .panel-head,
+[data-mode="dark"] .panel-head-tab,
+[data-mode="dark"] .tab-main,
+[data-mode="dark"] .right-now-tab,
+[data-mode="dark"] .side-list b {
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.page-header h1 {
+  font-size: 40px;
+}
+
+/* ---- Nav: heavier brushed aluminium with a deep seam ---- */
+.apple-nav {
+  background-image:
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0 1px, rgba(0, 0, 0, 0.05) 1px 2px),
+    linear-gradient(180deg, #fdfdfd 0%, #e8e8ea 44%, #cfcfd4 52%, #a9a9b0 100%);
+  border-bottom: 1px solid #6f7076;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 -6px 10px rgba(0, 0, 0, 0.12) inset,
+    0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* ---- Artwork: white photo frame + raking glass sweep ---- */
+.release-cover,
+.track-thumb,
+.sk-np-art {
+  position: relative;
+  border: 3px solid #fff;
+  background-clip: padding-box;
+}
+.release-cover::after,
+.track-thumb::before,
+.sk-np-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.16) 26%,
+    rgba(255, 255, 255, 0) 46%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+[data-mode="dark"] .release-cover,
+[data-mode="dark"] .track-thumb,
+[data-mode="dark"] .sk-np-art {
+  border-color: #2c2c30;
+}
+
+/* ---- Buttons: taller, wetter gumdrops ---- */
+.btn,
+button.btn,
+.new-post-btn {
+  padding: 9px 24px;
+  font-size: 12.5px;
+}
+
+/* ---- Bigger, more dimensional stars ---- */
+.sk-stars {
+  font-size: 15px;
+  gap: 2px;
+}
+.sk-stars-on {
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5)) drop-shadow(0 0 4px rgba(255, 190, 60, 0.55));
+}
+
+/* ---- Striped list rows, inset like an iTunes track listing ---- */
+.side-list .row:nth-child(even),
+.leaderboard-row:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.035);
+}
+[data-mode="dark"] .side-list .row:nth-child(even),
+[data-mode="dark"] .leaderboard-row:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.045);
+}
+
+/* ---- Feature/spotlight cards: deeper frame ---- */
+.feature-banner,
+.banner-slot,
+.banner-slot-wide,
+.banner-slot-hero,
+.spotlight-panel,
+.right-now-widget {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 16px 32px rgba(0, 0, 0, 0.36), 0 4px 8px rgba(0, 0, 0, 0.24);
+}
