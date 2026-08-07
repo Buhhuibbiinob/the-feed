@@ -5648,10 +5648,9 @@ button.btn,
     0 16px 32px rgba(0, 0, 0, 0.36), 0 4px 8px rgba(0, 0, 0, 0.24);
 }
 
-/* ---- Public BOT tag ----
-   Bot accounts post in the same places real members do, so their name is
-   always tagged. Deliberately legible rather than subtle: an unlabelled
-   bot review is just a fake review. */
+/* ---- Admin-only BOT tag ----
+   Only ever rendered inside the admin panel's bot list, so an admin can
+   tell a bot account from a real member's. Bots are not tagged publicly. */
 .badge-bot {
   display: inline-flex;
   align-items: center;

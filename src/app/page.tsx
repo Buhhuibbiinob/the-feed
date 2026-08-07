@@ -32,12 +32,7 @@ type PostRow = {
   cover_url: string | null;
   spotify_track_id: string | null;
   youtube_video_id: string | null;
-  profiles: {
-    username: string;
-    avatar_url: string | null;
-    is_verified: boolean;
-    is_bot?: boolean;
-  } | null;
+  profiles: { username: string; avatar_url: string | null; is_verified: boolean } | null;
 };
 
 type StatusRow = {
@@ -96,29 +91,22 @@ function isWithinLastWeek(iso: string) {
 const POST_COLUMNS =
   "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id";
 
-// profiles.is_bot only exists once the bot block at the bottom of
-// supabase/schema.sql has been run. PostgREST rejects the whole select when
-// one column is missing, which would blank the entire feed over a name tag,
-// so drop the tag and keep the reviews.
+// A failed select here comes back as null data, which silently renders as an
+// empty feed - exactly how a missing column once emptied the whole homepage.
+// Say so in the log instead of swallowing it.
 async function fetchFeedPosts(supabase: Awaited<ReturnType<typeof createClient>>): Promise<PostRow[]> {
-  const run = (profileColumns: string) =>
-    supabase
-      .from("posts")
-      .select(`${POST_COLUMNS}, profiles!posts_user_id_fkey(${profileColumns})`)
-      .order("created_at", { ascending: false })
-      .limit(50)
-      .returns<PostRow[]>();
+  const { data, error } = await supabase
+    .from("posts")
+    .select(`${POST_COLUMNS}, profiles!posts_user_id_fkey(username, avatar_url, is_verified)`)
+    .order("created_at", { ascending: false })
+    .limit(50)
+    .returns<PostRow[]>();
 
-  const tagged = await run("username, avatar_url, is_verified, is_bot");
-  if (!tagged.error) return tagged.data ?? [];
-  console.error(`[feed] posts query failed, retrying without is_bot: ${tagged.error.message}`);
-
-  const untagged = await run("username, avatar_url, is_verified");
-  if (untagged.error) {
-    console.error(`[feed] posts query failed: ${untagged.error.message}`);
+  if (error) {
+    console.error(`[feed] posts query failed: ${error.message}`);
     return [];
   }
-  return untagged.data ?? [];
+  return data ?? [];
 }
 
 // Feed TV is only worth showing with something on it. Members' own clips
@@ -615,7 +603,6 @@ export default async function FeedPage({
                       youtubeVideoId: post.youtube_video_id,
                       username: post.profiles?.username ?? "unknown",
                       isVerified: post.profiles?.is_verified ?? false,
-                      isBot: post.profiles?.is_bot ?? false,
                     }}
                     currentUserId={user?.id ?? null}
                     liked={likedByMe.has(post.id)}

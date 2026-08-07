@@ -7,6 +7,7 @@ import { isAdmin } from "@/lib/admin";
 import { getSiteFlags } from "@/lib/siteFlags";
 import { askGemini } from "@/lib/gemini";
 import { getTrendingTracks } from "@/lib/lastfm";
+import { searchVideos } from "@/lib/youtube";
 
 export type BotState = { error?: string; ok?: boolean; summary?: string };
 
@@ -169,6 +170,11 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
         `Write your review of the song "${track.name}" by ${track.artist}.`
       );
       if (body) {
+        // Attach the track's video the way a member would paste a link, so
+        // the review has something to play and Feed TV has a lineup - its
+        // clips come from posts carrying a youtube_video_id.
+        const [video] = await searchVideos(`${track.name} ${track.artist} official video`, 1);
+
         const { error } = await adminClient.from("posts").insert({
           user_id: bot.id,
           media_type: "music",
@@ -177,6 +183,7 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
           body: body.trim(),
           rating: 3 + Math.floor(Math.random() * 3), // 3-5, never a fake pan
           cover_url: track.imageUrl ?? null,
+          youtube_video_id: video?.id ?? null,
         });
         if (error) console.error(`[bots] review insert failed: ${error.message}`);
         else done.push(`reviewed "${track.name}"`);

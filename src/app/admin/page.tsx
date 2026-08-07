@@ -605,8 +605,8 @@ export default async function AdminPage() {
           <p className="field-hint" style={{ marginBottom: 12 }}>
             Personas that post reviews, chat, and like real members&apos; posts so the site isn&apos;t empty
             while the community is still small. They appear everywhere a normal account does - feed,
-            leaderboard, chat - but are tagged BOT publicly, so nobody mistakes their reviews for real
-            member opinions.
+            leaderboard, chat - and are indistinguishable from real members to visitors. Only this
+            panel shows which accounts are bots.
           </p>
           <BotAdminPanel bots={bots} enabled={siteFlags.bots_enabled} />
         </div>
