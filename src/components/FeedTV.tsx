@@ -7,8 +7,11 @@ export type FeedTvClip = {
   id: string;
   title: string;
   artist: string | null;
-  username: string;
   youtubeVideoId: string;
+  // Both null when the clip is a chart filler rather than something a
+  // member actually posted, so the panel never implies a review exists.
+  username: string | null;
+  postId: string | null;
 };
 
 type YTPlayer = {
@@ -237,7 +240,9 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
             <div className="yt-tab-panel">
               <b>{current.title}</b>
               {current.artist && <span> - {current.artist}</span>}
-              <span className="yt-tab-sub">posted by {current.username}</span>
+              <span className="yt-tab-sub">
+                {current.username ? `posted by ${current.username}` : "charting right now"}
+              </span>
             </div>
           )}
           {tab === "suggested" && (
@@ -259,7 +264,11 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
           )}
           {tab === "comments" && (
             <div className="yt-tab-panel">
-              <Link href={`/post/${current.id}`}>View the full review &amp; comments &rarr;</Link>
+              {current.postId ? (
+                <Link href={`/post/${current.postId}`}>View the full review &amp; comments &rarr;</Link>
+              ) : (
+                <Link href="/post/new">Nobody&apos;s reviewed this yet - be the first &rarr;</Link>
+              )}
             </div>
           )}
         </div>

@@ -9,6 +9,7 @@ import { OrbyBot } from "@/components/OrbyBot";
 import { NewsletterSubscribeForm } from "@/components/NewsletterSubscribeForm";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
+import { searchVideos } from "@/lib/youtube";
 import { fillMissingArt } from "@/lib/musicArt";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import type { MediaType } from "@/lib/media";
@@ -31,7 +32,12 @@ type PostRow = {
   cover_url: string | null;
   spotify_track_id: string | null;
   youtube_video_id: string | null;
-  profiles: { username: string; avatar_url: string | null; is_verified: boolean; is_bot: boolean } | null;
+  profiles: {
+    username: string;
+    avatar_url: string | null;
+    is_verified: boolean;
+    is_bot?: boolean;
+  } | null;
 };
 
 type StatusRow = {
@@ -87,6 +93,73 @@ function isWithinLastWeek(iso: string) {
   return Date.now() - new Date(iso).getTime() <= 7 * 24 * 60 * 60 * 1000;
 }
 
+const POST_COLUMNS =
+  "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id";
+
+// profiles.is_bot only exists once the bot block at the bottom of
+// supabase/schema.sql has been run. PostgREST rejects the whole select when
+// one column is missing, which would blank the entire feed over a name tag,
+// so drop the tag and keep the reviews.
+async function fetchFeedPosts(supabase: Awaited<ReturnType<typeof createClient>>): Promise<PostRow[]> {
+  const run = (profileColumns: string) =>
+    supabase
+      .from("posts")
+      .select(`${POST_COLUMNS}, profiles!posts_user_id_fkey(${profileColumns})`)
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .returns<PostRow[]>();
+
+  const tagged = await run("username, avatar_url, is_verified, is_bot");
+  if (!tagged.error) return tagged.data ?? [];
+  console.error(`[feed] posts query failed, retrying without is_bot: ${tagged.error.message}`);
+
+  const untagged = await run("username, avatar_url, is_verified");
+  if (untagged.error) {
+    console.error(`[feed] posts query failed: ${untagged.error.message}`);
+    return [];
+  }
+  return untagged.data ?? [];
+}
+
+// Feed TV is only worth showing with something on it. Members' own clips
+// come first; anything left over is filled from the tracks currently
+// charting, labelled as such so it never reads as a member's post.
+const FEEDTV_TARGET_CLIPS = 4;
+const FEEDTV_FILL_CACHE_SECONDS = 6 * 60 * 60;
+
+async function fillFeedTvLineup(
+  clips: FeedTvClip[],
+  tracks: { id: string; name: string; artist: string }[]
+): Promise<FeedTvClip[]> {
+  const missing = FEEDTV_TARGET_CLIPS - clips.length;
+  if (missing <= 0) return clips;
+
+  const found = await Promise.all(
+    tracks.slice(0, missing).map(async (track) => {
+      const [video] = await searchVideos(`${track.name} ${track.artist} official video`, 1, {
+        revalidateSeconds: FEEDTV_FILL_CACHE_SECONDS,
+      });
+      if (!video) return null;
+      return {
+        id: `chart-${video.id}`,
+        title: track.name,
+        artist: track.artist,
+        youtubeVideoId: video.id,
+        username: null,
+        postId: null,
+      } satisfies FeedTvClip;
+    })
+  );
+
+  const seen = new Set(clips.map((clip) => clip.youtubeVideoId));
+  for (const clip of found) {
+    if (!clip || seen.has(clip.youtubeVideoId)) continue;
+    seen.add(clip.youtubeVideoId);
+    clips.push(clip);
+  }
+  return clips;
+}
+
 
 export default async function FeedPage({
   searchParams,
@@ -101,7 +174,7 @@ export default async function FeedPage({
   } = await supabase.auth.getUser();
 
   const [
-    { data: posts },
+    posts,
     postsCount,
     { data: likeRows },
     { data: commentRows },
@@ -116,14 +189,7 @@ export default async function FeedPage({
     newsletterIssues,
     siteFlags,
   ] = await Promise.all([
-    supabase
-      .from("posts")
-      .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username, avatar_url, is_verified, is_bot)"
-      )
-      .order("created_at", { ascending: false })
-      .limit(50)
-      .returns<PostRow[]>(),
+    fetchFeedPosts(supabase),
     supabase.from("posts").select("id", { count: "exact", head: true }),
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
@@ -195,7 +261,7 @@ export default async function FeedPage({
     followedIds = new Set((followRows ?? []).map((r) => r.followed_id));
   }
 
-  const allPosts = followedIds ? (posts ?? []).filter((p) => followedIds!.has(p.user_id)) : posts ?? [];
+  const allPosts = followedIds ? posts.filter((p) => followedIds!.has(p.user_id)) : posts;
 
   const likeCounts = new Map<string, number>();
   const likedByMe = new Set<string>();
@@ -321,20 +387,22 @@ export default async function FeedPage({
     },
   ];
 
-  const feedTvClips: FeedTvClip[] = [];
+  const memberClips: FeedTvClip[] = [];
   const seenVideoIds = new Set<string>();
   for (const post of allPosts) {
     if (!post.youtube_video_id || seenVideoIds.has(post.youtube_video_id)) continue;
     seenVideoIds.add(post.youtube_video_id);
-    feedTvClips.push({
+    memberClips.push({
       id: post.id,
       title: post.title,
       artist: post.artist,
-      username: post.profiles?.username ?? "unknown",
       youtubeVideoId: post.youtube_video_id,
+      username: post.profiles?.username ?? "unknown",
+      postId: post.id,
     });
-    if (feedTvClips.length >= 10) break;
+    if (memberClips.length >= 10) break;
   }
+  const feedTvClips = await fillFeedTvLineup(memberClips, trendingTracks);
 
   return (
     <>
@@ -365,42 +433,6 @@ export default async function FeedPage({
             </div>
           </Link>
         ))}
-
-      <div className="theslap-top-grid" style={siteFlags.homepage_clubs ? undefined : { gridTemplateColumns: "1fr" }}>
-        <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
-        {siteFlags.homepage_clubs && (
-          <div className="right-now-widget">
-            <div className="right-now-tab">CLUBS</div>
-            <div className="right-now-body">
-              {(clubRows ?? []).length === 0 ? (
-                <div className="right-now-ad-fallback">
-                  <b>Start a fan club</b>
-                  <span>Rally people around an artist, movie, or show you love.</span>
-                  <Link href="/clubs" className="see-all" style={{ marginTop: 6 }}>
-                    Start one ▸
-                  </Link>
-                </div>
-              ) : (
-                <div className="club-chip-list">
-                  {(clubRows ?? []).map((club) => (
-                    <Link href={`/clubs/${club.id}`} key={club.id} className="club-chip">
-                      <img src={club.avatar_url || "/avatars/preset-1.svg"} alt="" className="club-chip-avatar" />
-                      <span className="club-chip-name">{club.name}</span>
-                      <span className="club-chip-count">
-                        {clubMemberCounts.get(club.id) ?? 0} member
-                        {(clubMemberCounts.get(club.id) ?? 0) === 1 ? "" : "s"}
-                      </span>
-                    </Link>
-                  ))}
-                  <Link href="/clubs" className="see-all club-chip-see-all">
-                    See all clubs ▸
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
 
       <div className="theslap-3col">
         {topReviewers.length > 0 && (
@@ -485,6 +517,8 @@ export default async function FeedPage({
 
       <div className="content-grid">
         <div className="left-col">
+          <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
+
           {spotifyConnected && (
             <Shelf
               title="On Repeat"
@@ -621,6 +655,39 @@ export default async function FeedPage({
               )}
             </div>
           </div>
+
+          {siteFlags.homepage_clubs && (
+            <div className="right-now-widget">
+              <div className="right-now-tab">CLUBS</div>
+              <div className="right-now-body">
+                {(clubRows ?? []).length === 0 ? (
+                  <div className="right-now-ad-fallback">
+                    <b>Start a fan club</b>
+                    <span>Rally people around an artist, movie, or show you love.</span>
+                    <Link href="/clubs" className="see-all" style={{ marginTop: 6 }}>
+                      Start one ▸
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="club-chip-list">
+                    {(clubRows ?? []).map((club) => (
+                      <Link href={`/clubs/${club.id}`} key={club.id} className="club-chip">
+                        <img src={club.avatar_url || "/avatars/preset-1.svg"} alt="" className="club-chip-avatar" />
+                        <span className="club-chip-name">{club.name}</span>
+                        <span className="club-chip-count">
+                          {clubMemberCounts.get(club.id) ?? 0} member
+                          {(clubMemberCounts.get(club.id) ?? 0) === 1 ? "" : "s"}
+                        </span>
+                      </Link>
+                    ))}
+                    <Link href="/clubs" className="see-all club-chip-see-all">
+                      See all clubs ▸
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {siteFlags.homepage_ad_sidebar &&
             (sidebarAds.length > 0 ? (

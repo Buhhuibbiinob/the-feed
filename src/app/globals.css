@@ -4619,20 +4619,13 @@ footer .copy {
 }
 
 /* ================================================================
-   TheSlap-style top grid: narrow "Right Now" widget + main video,
-   then full-width rows, then a 3-column row - matching the actual
-   reference layout, not just its colors.
+   TheSlap-style rows: full-width bands, then a 3-column row - matching
+   the actual reference layout, not just its colors.
    ================================================================ */
-.theslap-top-grid {
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  gap: 16px;
-  margin-bottom: 16px;
-  align-items: stretch;
-}
 .right-now-widget {
   display: flex;
   flex-direction: column;
+  margin-bottom: 18px;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28), 0 2px 0 rgba(255, 255, 255, 0.4) inset;
@@ -4765,7 +4758,6 @@ footer .copy {
 }
 
 @media (max-width: 900px) {
-  .theslap-top-grid,
   .theslap-3col,
   .site-links-body {
     grid-template-columns: 1fr;

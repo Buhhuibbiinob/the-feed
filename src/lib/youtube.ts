@@ -98,7 +98,15 @@ type YoutubeSearchItem = {
 export async function searchVideos(
   query: string,
   limit = 8,
-  options: { publishedAfter?: string; publishedBefore?: string; order?: string } = {}
+  options: {
+    publishedAfter?: string;
+    publishedBefore?: string;
+    order?: string;
+    // Each search costs 100 units of a 10k/day quota, so callers that run
+    // on every page render (rather than on a user's keystroke) can hold
+    // their results for longer than the default half hour.
+    revalidateSeconds?: number;
+  } = {}
 ): Promise<YoutubeVideo[]> {
   const params = new URLSearchParams({
     key: API_KEY,
@@ -113,7 +121,7 @@ export async function searchVideos(
   const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`, {
     // Identical query returns identical results for everyone browsing the
     // same title, so cache it the same way Spotify search results are cached.
-    next: { revalidate: 1800 },
+    next: { revalidate: options.revalidateSeconds ?? 1800 },
   });
   if (!res.ok) return [];
   const data = (await res.json()) as { items: YoutubeSearchItem[] };
