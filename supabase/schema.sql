@@ -1175,3 +1175,26 @@ create policy "Admins can change theme tokens"
   on public.site_theme_tokens for all
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin))
   with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- Site-wide settings ----------
+-- Small key/value store for single site-wide choices that aren't booleans
+-- (site_flags) and aren't editable copy (site_content). Currently the
+-- site-wide theme and whether it's forced on everyone or just the default.
+create table if not exists public.site_settings (
+  key text primary key,
+  value text not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.site_settings enable row level security;
+
+drop policy if exists "Site settings are viewable by everyone" on public.site_settings;
+create policy "Site settings are viewable by everyone"
+  on public.site_settings for select
+  using (true);
+
+drop policy if exists "Admins can change site settings" on public.site_settings;
+create policy "Admins can change site settings"
+  on public.site_settings for all
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin))
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));

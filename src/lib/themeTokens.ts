@@ -7,6 +7,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type ThemeTokenGroup = {
   label: string;
   hint: string;
+  /** Shown up front. Everything else folds away under "Advanced", so the
+   *  editor opens as a handful of choices rather than thirty CSS fields. */
+  basic?: boolean;
   tokens: { name: string; label: string; placeholder: string }[];
 };
 
@@ -23,6 +26,7 @@ export const THEME_TOKEN_GROUPS: ThemeTokenGroup[] = [
   },
   {
     label: "Type",
+    basic: true,
     hint: "Display face and the heading treatment.",
     tokens: [
       { name: "--font-family", label: "Body font stack", placeholder: "Arial, Helvetica, sans-serif" },
@@ -35,6 +39,7 @@ export const THEME_TOKEN_GROUPS: ThemeTokenGroup[] = [
   },
   {
     label: "Background",
+    basic: true,
     hint: "Base gradient, plus a texture layer drawn over it.",
     tokens: [
       { name: "--body-bg", label: "Page background", placeholder: "linear-gradient(160deg, #000, #003)" },
@@ -79,6 +84,7 @@ export const THEME_TOKEN_GROUPS: ThemeTokenGroup[] = [
   },
   {
     label: "Detail",
+    basic: true,
     hint: "Stars, artwork frames, list stripes, accents.",
     tokens: [
       { name: "--star-on", label: "Filled star", placeholder: "linear-gradient(180deg, #ffd75e, #f0a800)" },
@@ -112,6 +118,20 @@ export function isSafeTokenValue(value: string): boolean {
   return true;
 }
 
+// Written by the upload flow rather than typed into the editor, so it is
+// allowed to contain a url() that free-text tokens are not. Kept out of
+// EDITABLE_TOKENS deliberately: nothing an admin types can reach it.
+export const UPLOADED_TOKENS = new Set(["--body-image"]);
+
+/** An uploaded background value. Must be a url() pointing at https, with
+ *  no room for a second declaration - the URL itself came from our own
+ *  storage bucket, but the shape is still checked on the way back out. */
+export function isSafeUploadedValue(value: string): boolean {
+  if (value.length > 600) return false;
+  if (/[;{}<>]/.test(value)) return false;
+  return /^url\("https:\/\/[^"]+"\)[a-z0-9 /%._-]*$/i.test(value);
+}
+
 export type ThemeTokenRow = { theme: string; token: string; value: string };
 
 /** Overrides for one theme, as a style object ready to spread onto <html>. */
@@ -132,7 +152,11 @@ export async function getThemeTokenOverrides(
   for (const row of data ?? []) {
     const token = String(row.token);
     const value = String(row.value);
-    if (EDITABLE_TOKENS.has(token) && isSafeTokenValue(value)) style[token] = value;
+    if (UPLOADED_TOKENS.has(token)) {
+      if (isSafeUploadedValue(value)) style[token] = value;
+    } else if (EDITABLE_TOKENS.has(token) && isSafeTokenValue(value)) {
+      style[token] = value;
+    }
   }
   return style;
 }

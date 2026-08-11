@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { findOrCreateClub } from "@/lib/clubs";
 import { checkReviewSafety } from "@/lib/contentSafety";
+import { isAdmin } from "@/lib/admin";
 
 export type PostFormState = {
   error?: string;
@@ -187,11 +188,14 @@ export async function updatePost(
     return { error: bodySafety.reason };
   }
 
-  const { error } = await supabase
-    .from("posts")
-    .update({ title, body, rating })
-    .eq("id", postId)
-    .eq("user_id", user.id);
+  // Admins can edit anyone's post, which is what makes a bot's wording
+  // fixable without deleting and regenerating it. The owner filter is added
+  // for everyone else rather than replaced, so a non-admin still can't touch
+  // someone else's post by supplying its id.
+  const edit = supabase.from("posts").update({ title, body, rating }).eq("id", postId);
+  const { error } = (await isAdmin(supabase, user.id))
+    ? await edit
+    : await edit.eq("user_id", user.id);
 
   if (error) {
     return { error: error.message };
@@ -213,7 +217,16 @@ export async function deletePost(formData: FormData) {
   const postId = String(formData.get("post_id") ?? "");
   if (!postId) return;
 
-  await supabase.from("posts").delete().eq("id", postId).eq("user_id", user.id);
+  // Admins can remove anyone's post; everyone else only their own. The
+  // owner check stays in the query rather than being replaced by it, so a
+  // non-admin can't delete someone else's post even if the id is guessed.
+  const query = supabase.from("posts").delete().eq("id", postId);
+  if (await isAdmin(supabase, user.id)) {
+    await query;
+  } else {
+    await query.eq("user_id", user.id);
+  }
 
   revalidatePath("/");
+  revalidatePath("/leaderboard");
 }

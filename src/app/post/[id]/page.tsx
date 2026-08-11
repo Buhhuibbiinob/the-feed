@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/admin";
 import { PostCard } from "@/components/PostCard";
 import { NowPlayingHero } from "@/components/NowPlayingHero";
 import { CommentSection, type CommentData } from "@/components/CommentSection";
@@ -104,6 +105,7 @@ export default async function PostPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
 
   const { data: postData } = await supabase
     .from("posts")

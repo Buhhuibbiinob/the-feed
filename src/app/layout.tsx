@@ -4,12 +4,13 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
+import { DEFAULT_THEME } from "@/lib/themes";
 import { isAdmin } from "@/lib/admin";
 import { getNotificationCount } from "@/lib/notifications";
 import { getUnreadDmCount } from "@/lib/messages";
 import { getArchivedBuiltinSlugs, getActiveCustomPages } from "@/lib/pages";
 import { getThemeTokenOverrides } from "@/lib/themeTokens";
+import { getSiteTheme, resolveTheme } from "@/lib/siteSettings";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const title = "Feedback";
@@ -67,7 +68,7 @@ export default async function RootLayout({
   } = await supabase.auth.getUser();
 
   let username: string | null = null;
-  let theme = DEFAULT_THEME;
+  let personalTheme: string | null = null;
   let admin = false;
   let customBackgroundUrl: string | null = null;
   let notificationCount = 0;
@@ -79,17 +80,19 @@ export default async function RootLayout({
       .eq("id", user.id)
       .single();
     username = profile?.username ?? null;
-    if (isValidTheme(profile?.theme)) theme = profile.theme;
+    personalTheme = profile?.theme ?? null;
     customBackgroundUrl = profile?.custom_background_url ?? null;
     admin = await isAdmin(supabase, user.id);
     notificationCount = await getNotificationCount(supabase, user.id, profile?.notifications_seen_at ?? null);
     unreadDmCount = await getUnreadDmCount(supabase, user.id);
   }
 
-  const [archivedSlugs, customPages] = await Promise.all([
+  const [archivedSlugs, customPages, siteTheme] = await Promise.all([
     getArchivedBuiltinSlugs(supabase),
     getActiveCustomPages(supabase),
+    getSiteTheme(supabase),
   ]);
+  const theme = resolveTheme(siteTheme, personalTheme, DEFAULT_THEME);
 
   // Admin token overrides come first so the custom background, which is a
   // per-user upload rather than a theme setting, always wins over them.

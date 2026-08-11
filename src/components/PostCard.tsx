@@ -79,6 +79,7 @@ function EditForm({ post, onDone }: { post: PostCardData; onDone: () => void }) 
 export function PostCard({
   post,
   currentUserId,
+  viewerIsAdmin = false,
   liked,
   likeCount,
   commentCount,
@@ -88,6 +89,9 @@ export function PostCard({
 }: {
   post: PostCardData;
   currentUserId: string | null;
+  /** Lets an admin remove anyone's post from wherever it appears. The
+   *  server action enforces this too - this only decides what's shown. */
+  viewerIsAdmin?: boolean;
   liked: boolean;
   likeCount: number;
   commentCount: number;
@@ -99,6 +103,8 @@ export function PostCard({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const deleteFormRef = useRef<HTMLFormElement>(null);
   const isOwner = currentUserId === post.userId;
+  const canDelete = isOwner || viewerIsAdmin;
+  const canEdit = isOwner || viewerIsAdmin;
 
   if (editing) {
     return (
@@ -142,16 +148,16 @@ export function PostCard({
                 title={`${post.title}${post.artist ? ` - ${post.artist}` : ""}`}
                 asLink
               />,
-              isOwner ? (
+              canEdit ? (
                 <button key="edit" type="button" onClick={() => setEditing(true)}>
-                  Edit
+                  {isOwner ? "Edit" : "Edit (admin)"}
                 </button>
               ) : null,
-              isOwner ? (
+              canDelete ? (
                 <form key="delete" action={deletePost} className="inline-form" ref={deleteFormRef}>
                   <input type="hidden" name="post_id" value={post.id} />
                   <button type="button" className="danger" onClick={() => setConfirmingDelete(true)}>
-                    Delete
+                    {isOwner ? "Delete" : "Delete (admin)"}
                   </button>
                 </form>
               ) : null,

@@ -244,11 +244,70 @@ export async function adminDeleteBot(formData: FormData) {
 // The voice line in each persona is doing the heavy lifting here. These
 // prompts mostly exist to stop the model's defaults - even length, tidy
 // punctuation, a summarising last sentence - from sanding that voice off.
-const HUMAN_RULES = `Write the way that person actually types, including their capitalisation and punctuation habits. Vary the length: some posts are one line, some are three. Never end on a neat summarising sentence. Do not use em dashes. Do not use emojis. Do not use hashtags. Do not name the artist and title back like a header - you are replying to something you just heard, not writing a blurb.`;
+// The failure mode here is not bad writing, it's TIDY writing. Left alone a
+// model produces balanced sentences, correct apostrophes, one observation per
+// clause and a closing verdict - which is exactly what nobody types into a
+// phone. These rules attack that shape directly.
+const HUMAN_RULES = `How to write it:
+- Mostly lowercase. Capitals only where that person would actually bother.
+- Punctuation optional and inconsistent. Missing apostrophes (dont, thats, im, its), a comma where a full stop belongs, or nothing at all at the end.
+- Abbreviate constantly: u, ur, rn, tbh, ngl, fr, idk, prob, bc, tho, def.
+- Phonetic and dropped letters where it sounds right: goin, kinda, sumn, prolly, rlly, nah, lowkey, deadass.
+- Filler is fine and good: like, idk, i mean, sooo, ok but, wait.
+- Leave a small mess in about a third of posts: a doubled word, a missing letter, a sentence that stops halfway then restarts, a stray correction on the next line.
+- Length is uneven. Sometimes four words. Sometimes a run-on that goes three clauses too long.
+- No em dashes, no emojis, no hashtags.
 
-const REVIEW_PROMPT = `You are a member of Feedback, a music/movie/TV review community. Write a short review in the voice described, 1-4 sentences, specific about what you actually heard. Do not invent facts about the track beyond how it sounds and how it made you feel. ${HUMAN_RULES} Reply with ONLY the review text, no title, no quotes.`;
+What NOT to do, because it reads as machine-written instantly:
+- Do not analyse production, mix, vocals, drums, cinematography, pacing or performances. Nobody posting casually says "the low end is warm" or "the third act drags".
+- Do not name the title and artist back like a header.
+- Do not end on a verdict or a summary line. Just stop.
+- Do not be even-handed. Have one reaction and only that one.
+- Do not explain why you feel it. The feeling is the whole post.`;
 
-const CHAT_PROMPT = `You are a member of Feedback, a music/movie/TV review community, writing one live-chat message in the voice described. One or two lines, the way you'd actually drop a message into a busy room. ${HUMAN_RULES} Reply with ONLY the message.`;
+/** Removes every bot account and everything they posted, in one go.
+ *  Only ever targets rows flagged is_bot, so real members are untouchable
+ *  by this even if the flag were somehow wrong about who is a bot. */
+export async function adminDeleteAllBots(_prev: BotState, _formData: FormData): Promise<BotState> {
+  const { user, admin } = await requireAdmin();
+  if (!user || !admin) return { error: "Admins only." };
+
+  const adminClient = createAdminClient();
+  const { data: targets } = await adminClient.from("profiles").select("id").eq("is_bot", true);
+
+  const ids = (targets ?? []).map((r) => String(r.id));
+  if (ids.length === 0) return { error: "There are no bots to remove." };
+
+  let removed = 0;
+  for (const id of ids) {
+    // Deleting the auth user cascades to the profile, and posts, chat and
+    // likes cascade from there.
+    const { error } = await adminClient.auth.admin.deleteUser(id);
+    if (error) console.error(`[bots] delete failed for ${id}: ${error.message}`);
+    else removed++;
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/chat");
+  revalidatePath("/leaderboard");
+
+  const failed = ids.length - removed;
+  return {
+    ok: true,
+    summary: `Removed ${removed} bot${removed === 1 ? "" : "s"} and everything they posted.${
+      failed ? ` ${failed} could not be removed.` : ""
+    }`,
+  };
+}
+
+const REVIEW_PROMPT = `You are a member of Feedback posting a quick reaction. This is a text to a friend, not a review. 1-3 lines. React to the vibe and how it hit you, nothing technical. Do not invent facts about it. ${HUMAN_RULES}
+
+Reply with ONLY the post text, no title, no quotes.`;
+
+const CHAT_PROMPT = `You are a member of Feedback dropping one message into a busy live chat. One or two lines, mid-conversation, like you've been in the room a while. ${HUMAN_RULES}
+
+Reply with ONLY the message.`;
 
 type ReviewSubject = {
   mediaType: "music" | "movie_tv";

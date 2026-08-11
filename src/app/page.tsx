@@ -16,6 +16,7 @@ import type { MediaType } from "@/lib/media";
 import { getAllSiteText } from "@/lib/siteContent";
 import { getPublishedIssues } from "@/lib/newsletter";
 import { getSiteFlags } from "@/lib/siteFlags";
+import { isAdmin } from "@/lib/admin";
 import { ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatforms";
 import { Stars } from "@/components/Stars";
 import { CoverArt } from "@/components/CoverArt";
@@ -191,6 +192,7 @@ export default async function FeedPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
 
   const [
     posts,
@@ -876,6 +878,7 @@ export default async function FeedPage({
                       isVerified: post.profiles?.is_verified ?? false,
                     }}
                     currentUserId={user?.id ?? null}
+                    viewerIsAdmin={viewerIsAdmin}
                     liked={likedByMe.has(post.id)}
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}

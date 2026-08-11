@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import {
   adminCreateBot,
   adminCreateBotsBulk,
+  adminDeleteAllBots,
   adminUpdateBot,
   adminUpdateBotProfile,
   adminDeleteBot,
@@ -18,6 +19,7 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
   const [createState, createAction, creating] = useActionState(adminCreateBot, initialState);
   const [bulkState, bulkAction, bulkCreating] = useActionState(adminCreateBotsBulk, initialState);
   const [runState, runAction, running] = useActionState(adminRunBotActivity, initialState);
+  const [purgeState, purgeAction, purging] = useActionState(adminDeleteAllBots, initialState);
 
   return (
     <>
@@ -142,6 +144,16 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
           ))
         )}
       </div>
+
+      {bots.length > 0 && (
+        <form action={purgeAction} style={{ marginBottom: 20 }}>
+          {purgeState.error && <div className="form-error">{purgeState.error}</div>}
+          {purgeState.ok && <div className="form-message">{purgeState.summary}</div>}
+          <button type="submit" className="comment-action danger" disabled={purging}>
+            {purging ? "Removing…" : `Remove all ${bots.length} bots and everything they posted`}
+          </button>
+        </form>
+      )}
 
       <form action={bulkAction} style={{ marginBottom: 20 }}>
         {bulkState.error && <div className="form-error">{bulkState.error}</div>}

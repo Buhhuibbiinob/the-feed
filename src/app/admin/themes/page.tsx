@@ -5,6 +5,8 @@ import { isAdmin } from "@/lib/admin";
 import { THEMES, DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { getAllThemeTokens } from "@/lib/themeTokens";
 import { ThemeTokenForm } from "@/components/ThemeTokenForm";
+import { getSiteTheme } from "@/lib/siteSettings";
+import { setSiteTheme } from "@/app/actions/themeTokens";
 
 export const metadata = { title: "Themes - Feedback" };
 
@@ -24,7 +26,10 @@ export default async function AdminThemesPage({
   }
 
   const selected = isValidTheme(requested) ? requested : DEFAULT_THEME;
-  const allTokens = await getAllThemeTokens(supabase);
+  const [allTokens, siteTheme] = await Promise.all([
+    getAllThemeTokens(supabase),
+    getSiteTheme(supabase),
+  ]);
   const overrides = Object.fromEntries(allTokens.get(selected) ?? []);
   const selectedTheme = THEMES.find((t) => t.id === selected)!;
 
@@ -39,7 +44,41 @@ export default async function AdminThemesPage({
       </div>
 
       <div className="panel">
-        <div className="panel-head">Pick a theme</div>
+        <div className="panel-head">Theme for the whole site</div>
+        <div className="panel-body">
+          <p className="field-hint" style={{ marginTop: 0 }}>
+            {siteTheme.theme
+              ? siteTheme.forced
+                ? `Everyone sees ${THEMES.find((t) => t.id === siteTheme.theme)?.label ?? siteTheme.theme}. Their own theme setting is ignored while this is on.`
+                : `New accounts and anyone who hasn't picked start on ${THEMES.find((t) => t.id === siteTheme.theme)?.label ?? siteTheme.theme}. People who've chosen keep their own.`
+              : "No site theme set - everyone gets their own choice, defaulting to Default."}
+          </p>
+          <form action={setSiteTheme}>
+            <div className="field">
+              <label htmlFor="site-theme">Site theme</label>
+              <select id="site-theme" name="theme" defaultValue={siteTheme.theme ?? ""}>
+                <option value="">No site theme (everyone chooses)</option>
+                {THEMES.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-actions">
+              <button className="btn" type="submit" name="forced" value="false">
+                Set as the starting theme
+              </button>
+              <button className="btn btn-ghost" type="submit" name="forced" value="true">
+                Force on everyone
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Pick a theme to edit</div>
         <div className="panel-body flush">
           {THEMES.map((t) => {
             const count = allTokens.get(t.id)?.size ?? 0;
@@ -80,6 +119,7 @@ export default async function AdminThemesPage({
         theme={selected}
         themeLabel={selectedTheme.label}
         overrides={overrides}
+        hasBackground={Boolean(overrides["--body-image"])}
       />
     </>
   );
