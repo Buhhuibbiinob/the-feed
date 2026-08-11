@@ -43,20 +43,20 @@ export const THEMES: Theme[] = [
   },
   {
     id: "mcbling",
-    label: "Y2K McBling",
-    description: "Hot pink chrome and rhinestones, Paris Hilton bling era.",
+    label: "Leopard Bling",
+    description: "Leopard print in gold and hot pink under glossy chrome. The bling-era phone theme.",
     category: "color",
   },
   {
     id: "scene",
     label: "Scene",
-    description: "Hot pink and electric blue on black-and-white high contrast.",
+    description: "Zebra diagonals, hot pink and electric cyan on black.",
     category: "color",
   },
   {
     id: "emo",
-    label: "Emo",
-    description: "Black and deep crimson, band-tee minimal.",
+    label: "A Great Chaos",
+    description: "Black, blood red and sickly teal under VHS scanlines. Horror-site energy.",
     category: "color",
   },
   {
@@ -68,13 +68,13 @@ export const THEMES: Theme[] = [
   {
     id: "frutiger-aero",
     label: "Frutiger Aero",
-    description: "Glossy blue/green glass with bright specular highlights.",
+    description: "Sky over grass, sun flare and water beads. Glossy Vista glass.",
     category: "color",
   },
   {
     id: "party-rock-2010",
-    label: "Party Rock",
-    description: "Neon pink/green/yellow glow on black - 2010s club-flyer energy.",
+    label: "Blacklight",
+    description: "Neon pink and green glowing off a dark club grid, UV-lit.",
     category: "color",
   },
   {
@@ -85,8 +85,8 @@ export const THEMES: Theme[] = [
   },
   {
     id: "swag-2018",
-    label: "2018 Swag",
-    description: "Black-and-white streetwear with a bold red accent.",
+    label: "Streetwear",
+    description: "Box-logo red on stark black and white, with hard offset shadows.",
     category: "color",
   },
   {
@@ -103,8 +103,26 @@ export const THEMES: Theme[] = [
   },
   {
     id: "tropical",
-    label: "Tropical",
-    description: "Zara Larsson turquoise, coral, and sunny yellow.",
+    label: "Y2K Green",
+    description: "Lime and cyan halftone circles, the mid-2000s music poster.",
+    category: "color",
+  },
+  {
+    id: "zebra-bling",
+    label: "Zebra Bling",
+    description: "Black-and-white zebra stripes under glossy bubblegum pink.",
+    category: "color",
+  },
+  {
+    id: "plur-rave",
+    label: "PLUR",
+    description: "Kandi pastels, bloom and lens flare washed over a festival photo.",
+    category: "color",
+  },
+  {
+    id: "ios7-rainbow",
+    label: "Rainbow",
+    description: "Every colour at once - swirls and halftone over white, iOS 7 era.",
     category: "color",
   },
   {

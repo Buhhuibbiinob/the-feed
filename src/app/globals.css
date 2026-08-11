@@ -6647,3 +6647,178 @@ body {
   --hero-tagline-color: #4f6c8a;
   --hero-text-shadow: none;
 }
+
+/* ================================================================
+   Density: stop the top row and Feed TV eating the whole page
+   ================================================================ */
+
+/* Feed TV was rendering a full-width 16:9 player, roughly 675px tall in
+   the left column, which pushed the actual feed off the first screen.
+   Cap the player itself rather than the panel, so the chrome stays
+   proportional instead of stretching around a small video. */
+.feedtv-panel .yt-shell {
+  max-width: var(--feedtv-width);
+  margin: 0 auto;
+}
+.feedtv-body {
+  padding: 10px;
+}
+.feedtv-upnext-strip {
+  max-height: 168px;
+}
+:root {
+  --feedtv-width: 420px;
+}
+
+/* The three-column row stretched every panel to match the tallest, and
+   the tallest was a shelf with four rows of stacked cover art - so the
+   Top Reviewer card and Orby were mostly empty space. Cap the row and
+   let the shelf scroll inside it. */
+.theslap-3col > .panel,
+.theslap-3col > .spotlight-panel {
+  max-height: 330px;
+}
+.theslap-3col .shelf-body {
+  overflow-y: auto;
+}
+.theslap-3col .sk-shelf-grid {
+  gap: 12px 8px;
+  padding: 10px 6px;
+}
+.theslap-3col .spotlight-avatar {
+  width: 54px;
+  height: 54px;
+}
+
+/* ================================================================
+   The three reference looks nothing covered yet
+   ================================================================ */
+
+/* Zebra Bling - the messaging-app icon: zebra under bubblegum gloss. */
+[data-theme="zebra-bling"] {
+  --font-family: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
+  --font-display: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
+  --body-bg: #f4f4f4;
+  --body-texture: repeating-linear-gradient(
+      74deg,
+      #101010 0 16px,
+      #fafafa 16px 30px,
+      #101010 30px 38px,
+      #fafafa 38px 62px
+    );
+  --body-texture-size: auto;
+  --wrap-bg: rgba(255, 240, 248, 0.9);
+  --wrap-radius: 26px;
+  --wrap-shadow: 0 0 0 4px #ff6fb5, 0 25px 60px rgba(0, 0, 0, 0.6);
+  --panel-radius: 22px;
+  --panel-frame: #ff6fb5;
+  --panel-shadow: 0 2px 0 rgba(255, 255, 255, 0.95) inset, 0 10px 24px rgba(180, 40, 110, 0.35);
+  --panel-body-bg: #fff6fb;
+  --panel-head-bg: linear-gradient(180deg, #ffc2e0 0%, #ff8ec8 46%, #f558a8 54%, #d62f85 100%);
+  --panel-head-text: #ffffff;
+  --panel-head-letterpress: 0 1px 0 rgba(255, 255, 255, 0.6);
+  --nav-bg: linear-gradient(180deg, #2a2a2a, #0d0d0d);
+  --nav-text: #ffffff;
+  --nav-seam: #ff6fb5;
+  --btn-image: linear-gradient(180deg, #ffd0e8 0%, #ff8ec8 46%, #f558a8 54%, #c92878 100%);
+  --btn-border: #a81f63;
+  --btn-radius: 999px;
+  --btn-letterpress: 0 1px 0 rgba(255, 255, 255, 0.55);
+  --art-frame: 4px solid #ffffff;
+  --row-stripe: rgba(255, 111, 181, 0.12);
+  --star-on: linear-gradient(180deg, #ffffff, #ff8ec8 55%, #d62f85);
+  --hero-title-color: #c92878;
+  --hero-tagline-color: #6a6a6a;
+  --hero-size: 36px;
+  --like-color: #f558a8;
+  --sidebar-width: 280px;
+  --wrap-max: 1080px;
+}
+
+/* PLUR - washed-out festival photo: bloom, flare, kandi pastels. */
+[data-theme="plur-rave"] {
+  --font-family: "Avenir Next", "Century Gothic", Futura, sans-serif;
+  --font-display: "Avenir Next", "Century Gothic", Futura, sans-serif;
+  --body-bg: linear-gradient(155deg, #f7d9ff 0%, #c9a8f5 34%, #f5b0d8 62%, #eaf6a8 100%);
+  --body-texture:
+    radial-gradient(circle 60px at 22% 26%, rgba(255, 255, 255, 0.7), transparent 100%),
+    radial-gradient(circle 34px at 34% 18%, rgba(255, 210, 255, 0.65), transparent 100%),
+    radial-gradient(circle 78px at 72% 62%, rgba(255, 255, 255, 0.5), transparent 100%),
+    radial-gradient(circle 26px at 84% 30%, rgba(200, 255, 240, 0.7), transparent 100%),
+    radial-gradient(circle 46px at 12% 78%, rgba(255, 240, 160, 0.6), transparent 100%),
+    linear-gradient(118deg, transparent 40%, rgba(255, 255, 255, 0.45) 50%, transparent 60%);
+  --body-texture-size: auto;
+  --wrap-bg: rgba(255, 255, 255, 0.62);
+  --wrap-radius: 28px;
+  --wrap-shadow: 0 25px 70px rgba(150, 90, 190, 0.45), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  --panel-radius: 22px;
+  --panel-frame: rgba(255, 255, 255, 0.9);
+  --panel-shadow: 0 2px 0 rgba(255, 255, 255, 0.95) inset, 0 14px 32px rgba(150, 90, 190, 0.3);
+  --panel-body-bg: rgba(255, 255, 255, 0.86);
+  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #f2d4ff 50%, #d9a8f0 100%);
+  --panel-head-text: #6b2f8a;
+  --nav-bg: linear-gradient(180deg, #ffffff, #f0d8ff);
+  --nav-text: #6b2f8a;
+  --nav-seam: rgba(255, 255, 255, 0.9);
+  --btn-image: linear-gradient(180deg, #ffffff 0%, #f0b8e8 48%, #c77ae0 100%);
+  --btn-border: #a655c9;
+  --btn-text: #4a1a63;
+  --btn-radius: 999px;
+  --art-frame: 5px solid rgba(255, 255, 255, 0.95);
+  --row-stripe: rgba(201, 168, 245, 0.18);
+  --star-on: linear-gradient(180deg, #fff2a8, #ff9ed8 60%, #a8e6ff);
+  --star-on-filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.9));
+  --hero-title-color: #6b2f8a;
+  --hero-tagline-color: #9a5ab5;
+  --hero-size: 38px;
+  --hero-weight: 300;
+  --hero-spacing: 2px;
+  --like-color: #e05bb8;
+  --content-gap: 26px;
+  --wrap-max: 1160px;
+}
+
+/* Rainbow - iOS 7 era: white ground, every colour, halftone swirls. */
+[data-theme="ios7-rainbow"] {
+  --font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --body-bg: #ffffff;
+  --body-texture:
+    radial-gradient(circle 90px at 12% 16%, rgba(255, 90, 130, 0.5), transparent 100%),
+    radial-gradient(circle 70px at 30% 8%, rgba(255, 200, 60, 0.5), transparent 100%),
+    radial-gradient(circle 110px at 72% 20%, rgba(80, 200, 255, 0.45), transparent 100%),
+    radial-gradient(circle 80px at 88% 54%, rgba(140, 230, 120, 0.45), transparent 100%),
+    radial-gradient(circle 96px at 46% 78%, rgba(190, 130, 255, 0.4), transparent 100%),
+    radial-gradient(circle 60px at 8% 68%, rgba(255, 150, 90, 0.4), transparent 100%),
+    repeating-radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 7px);
+  --body-texture-size: auto;
+  --wrap-bg: rgba(255, 255, 255, 0.86);
+  --wrap-radius: 18px;
+  --wrap-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
+  --panel-radius: 14px;
+  --panel-frame: #e6e6ea;
+  --panel-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  --panel-body-bg: #ffffff;
+  --panel-head-bg: linear-gradient(90deg, #ff5a82, #ffc83c 25%, #50c8ff 55%, #8ce678 78%, #be82ff 100%);
+  --panel-head-text: #ffffff;
+  --panel-head-letterpress: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --nav-text: #1a1a1c;
+  --nav-seam: #50c8ff;
+  --btn-image: linear-gradient(90deg, #ff5a82, #be82ff);
+  --btn-border: transparent;
+  --btn-text: #ffffff;
+  --btn-radius: 999px;
+  --btn-shadow: 0 4px 12px rgba(190, 130, 255, 0.4);
+  --art-frame: none;
+  --row-stripe: rgba(80, 200, 255, 0.09);
+  --star-on: linear-gradient(180deg, #ffc83c, #ff5a82);
+  --hero-title-color: #1a1a1c;
+  --hero-tagline-color: #6b6b72;
+  --hero-size: 40px;
+  --hero-weight: 200;
+  --hero-spacing: -1px;
+  --letterpress: none;
+  --like-color: #ff5a82;
+  --wrap-max: 1200px;
+}
