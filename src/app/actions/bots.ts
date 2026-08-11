@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { getSiteFlags } from "@/lib/siteFlags";
 import { askGemini } from "@/lib/gemini";
-import { getTrendingTracks, getTrackFromAnyEra } from "@/lib/lastfm";
+import { getTrendingTracks, getTrackFromAnyEra, getDeepCut, getSceneTrack } from "@/lib/lastfm";
 import { discoverMovies, discoverTv } from "@/lib/tmdb";
 import { searchVideos } from "@/lib/youtube";
 import { generatePersona, generateUsername } from "@/lib/botVoices";
@@ -369,7 +369,57 @@ const randomOf = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)
  * movie source degrades to how this worked before rather than posting
  * nothing.
  */
-async function pickReviewSubject(): Promise<ReviewSubject | null> {
+/**
+ * Artists the community has actually reviewed, newest first. Discovery
+ * starts from real taste on the site rather than a list I picked, so the
+ * pool drifts toward whatever this place is into.
+ */
+async function communitySeedArtists(adminClient: AdminClient): Promise<string[]> {
+  const { data } = await adminClient
+    .from("posts")
+    .select("artist")
+    .eq("media_type", "music")
+    .not("artist", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(120);
+
+  const seen = new Set<string>();
+  for (const row of data ?? []) {
+    const name = String(row.artist ?? "").trim();
+    if (name) seen.add(name);
+  }
+  return [...seen];
+}
+
+/**
+ * What a bot reviews, weighted toward finds rather than charts.
+ *
+ * Half the time a deep cut - one step out from an artist this community
+ * already posts, and past that artist's most-played few, which is where
+ * the records worth surfacing sit. A quarter from a scene tag. The rest
+ * split between the decades and what's charting now, so the feed still
+ * has some common ground in it.
+ */
+async function pickTrack(adminClient: AdminClient) {
+  const roll = Math.random();
+
+  if (roll < 0.5) {
+    const seeds = await communitySeedArtists(adminClient).catch(() => []);
+    const cut = await getDeepCut(seeds).catch(() => null);
+    if (cut) return cut;
+  }
+  if (roll < 0.75) {
+    const scene = await getSceneTrack().catch(() => null);
+    if (scene) return scene;
+  }
+  const era = await getTrackFromAnyEra().catch(() => null);
+  if (era) return era;
+
+  const chart = await getTrendingTracks(30).catch(() => []);
+  return chart.length ? chart[Math.floor(Math.random() * chart.length)] : null;
+}
+
+async function pickReviewSubject(adminClient: AdminClient): Promise<ReviewSubject | null> {
   const wantsScreen = Math.random() < 0.5;
 
   if (wantsScreen) {
@@ -391,9 +441,7 @@ async function pickReviewSubject(): Promise<ReviewSubject | null> {
     }
   }
 
-  // Any era, not just what's charting this week - a bot is as likely to
-  // pull a 1977 record as something from this month.
-  const track = await getTrackFromAnyEra().catch(() => null);
+  const track = await pickTrack(adminClient);
   if (!track) return null;
   return {
     mediaType: "music",
@@ -438,7 +486,7 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
   // 1. Review something real - a charting track, or a film/show that's
   //    actually out - so bots can never invent a release. Which of the two
   //    is a coin flip, so the feed doesn't fill up with only music.
-  const subject = await pickReviewSubject();
+  const subject = await pickReviewSubject(adminClient);
   if (subject) {
     const { data: already } = await adminClient
       .from("posts")

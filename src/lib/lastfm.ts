@@ -119,3 +119,147 @@ export async function getTrackFromAnyEra(): Promise<LastfmTrack | null> {
   }
   return tracks[Math.floor(Math.random() * tracks.length)];
 }
+
+// Tags that surface scenes rather than charts. The decade buckets give
+// range; these give depth - the corners of Last.fm where the listener
+// counts are small and the records are the reason people are there.
+export const DISCOVERY_TAGS = [
+  "hyperpop",
+  "digicore",
+  "bedroom pop",
+  "underground hip hop",
+  "experimental",
+  "shoegaze",
+  "dream pop",
+  "art pop",
+  "glitch",
+  "ambient pop",
+  "midwest emo",
+  "jungle",
+  "breakcore",
+  "neo-soul",
+  "alternative r&b",
+  "post-punk",
+  "slowcore",
+  "plugg",
+];
+
+/**
+ * Artists to start discovery from when the community hasn't posted enough
+ * to seed it themselves. Deliberately small and specific rather than a
+ * canon: these are the corner of the map worth walking out from.
+ */
+export const SEED_ARTISTS = [
+  "2hollis",
+  "Lucy Bedroque",
+  "f5ve",
+  "Canelle",
+  "Jane Remover",
+  "underscores",
+  "quannnic",
+  "Ecco2k",
+  "Bladee",
+  "yeule",
+  "Alice Longyu Gao",
+  "Frost Children",
+  "Nourished by Time",
+  "MJ Lenderman",
+  "Wisp",
+  "d4vd",
+  "brakence",
+  "glaive",
+  "Sematary",
+  "Aidan Bissett",
+];
+
+type RawArtist = { name?: string };
+
+/** Artists Last.fm considers adjacent to this one. The engine behind
+ *  "more artists like that". */
+export async function getSimilarArtists(artist: string, limit = 20): Promise<string[]> {
+  const apiKey = process.env.LASTFM_API_KEY;
+  if (!apiKey) return [];
+
+  try {
+    const res = await fetch(
+      `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=${encodeURIComponent(
+        artist
+      )}&api_key=${apiKey}&format=json&limit=${limit}`,
+      { next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return [];
+    const data = (await res.json()) as { similarartists?: { artist?: RawArtist[] } };
+    return (data.similarartists?.artist ?? [])
+      .map((a) => a.name)
+      .filter((n): n is string => Boolean(n));
+  } catch {
+    return [];
+  }
+}
+
+/** One artist's top tracks, most played first. */
+export async function getArtistTopTracks(artist: string, limit = 30): Promise<LastfmTrack[]> {
+  const apiKey = process.env.LASTFM_API_KEY;
+  if (!apiKey) return [];
+
+  try {
+    const res = await fetch(
+      `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${encodeURIComponent(
+        artist
+      )}&api_key=${apiKey}&format=json&limit=${limit}`,
+      { next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return [];
+    const data = (await res.json()) as { toptracks?: { track?: RawLastfmTrack[] } };
+    return (data.toptracks?.track ?? [])
+      .filter((t) => t.name)
+      .map((t) => ({
+        id: `${t.artist?.name ?? artist}-${t.name}`,
+        name: t.name,
+        artist: t.artist?.name ?? artist,
+        imageUrl: realImageUrl(t.image?.find((i) => i.size === "extralarge")?.["#text"]),
+      }));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * A deep cut: walk one step out from a seed artist to somebody adjacent,
+ * then take a track from PAST their most-played few.
+ *
+ * Skipping the top of the list is the whole point. An artist's #1 track is
+ * the one everybody already knows; index 3 onward is where the record
+ * someone would actually be pleased to be reminded of lives.
+ */
+export async function getDeepCut(seeds: string[]): Promise<LastfmTrack | null> {
+  const pool = seeds.length ? seeds : SEED_ARTISTS;
+  const seed = pool[Math.floor(Math.random() * pool.length)];
+
+  // Half the time review the seed artist themselves, half the time step out
+  // to a neighbour, so the pool widens over time instead of orbiting a
+  // fixed list.
+  let artist = seed;
+  if (Math.random() < 0.5) {
+    const similar = await getSimilarArtists(seed, 20).catch(() => []);
+    if (similar.length) artist = similar[Math.floor(Math.random() * similar.length)];
+  }
+
+  const tracks = await getArtistTopTracks(artist, 30).catch(() => []);
+  if (tracks.length === 0) return null;
+
+  const deep = tracks.slice(3);
+  const from = deep.length >= 3 ? deep : tracks;
+  return from[Math.floor(Math.random() * from.length)];
+}
+
+/** A track from one of the scene tags rather than a decade or a chart. */
+export async function getSceneTrack(): Promise<LastfmTrack | null> {
+  const tag = DISCOVERY_TAGS[Math.floor(Math.random() * DISCOVERY_TAGS.length)];
+  const tracks = await getTracksByTag(tag, 50).catch(() => []);
+  if (tracks.length === 0) return null;
+  // Skip the handful everyone already knows from each scene.
+  const deep = tracks.slice(5);
+  const from = deep.length >= 5 ? deep : tracks;
+  return from[Math.floor(Math.random() * from.length)];
+}
