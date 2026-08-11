@@ -6,12 +6,17 @@ export type LastfmTrack = {
   name: string;
   artist: string;
   imageUrl: string | null;
+  /** Last.fm listener count where the endpoint reports it. Discovery uses
+   *  this to actually exclude hits rather than only skipping list positions:
+   *  a popular artist's fourth-most-played track is still a hit. */
+  listeners?: number;
 };
 
 type RawLastfmTrack = {
   name: string;
   artist?: { name?: string };
   image?: { size: string; "#text": string }[];
+  listeners?: string;
 };
 
 // Last.fm returns this same placeholder image hash for every track that
@@ -45,6 +50,7 @@ export async function getTrendingTracks(limit = 20): Promise<LastfmTrack[]> {
         name: t.name,
         artist: t.artist!.name!,
         imageUrl: realImageUrl(t.image?.find((i) => i.size === "extralarge")?.["#text"]),
+        listeners: t.listeners ? Number(t.listeners) : undefined,
       }));
   } catch {
     return [];
@@ -96,6 +102,7 @@ export async function getTracksByTag(tag: string, limit = 50): Promise<LastfmTra
         // Tag charts don't carry usable art, so this is filled in later from
         // the video thumbnail rather than left as Last.fm's placeholder.
         imageUrl: realImageUrl(t.image?.find((i) => i.size === "extralarge")?.["#text"]),
+        listeners: t.listeners ? Number(t.listeners) : undefined,
       }));
   } catch {
     return [];
@@ -117,7 +124,10 @@ export async function getTrackFromAnyEra(): Promise<LastfmTrack | null> {
     const fallback = await getTrendingTracks(30).catch(() => []);
     return fallback.length ? fallback[Math.floor(Math.random() * fallback.length)] : null;
   }
-  return tracks[Math.floor(Math.random() * tracks.length)];
+  // Even a decade bucket gets the hit filter, or "the 80s" is just the same
+  // twenty songs everybody can already hum.
+  const found = excludeHits(tracks);
+  return found[Math.floor(Math.random() * found.length)];
 }
 
 // Tags that surface scenes rather than charts. The decade buckets give
@@ -218,10 +228,26 @@ export async function getArtistTopTracks(artist: string, limit = 30): Promise<La
         name: t.name,
         artist: t.artist?.name ?? artist,
         imageUrl: realImageUrl(t.image?.find((i) => i.size === "extralarge")?.["#text"]),
+        listeners: t.listeners ? Number(t.listeners) : undefined,
       }));
   } catch {
     return [];
   }
+}
+
+// Above this many Last.fm listeners a track is a hit, not a find. Chosen so
+// a genuinely underground record passes and anything with radio history
+// doesn't - roughly, a track everyone recognises clears a million.
+const HIT_LISTENER_CEILING = 400_000;
+
+/** Drops tracks big enough that surfacing them isn't a discovery. Tracks
+ *  with no listener data are kept, since the endpoint not reporting it is
+ *  not evidence of popularity. */
+export function excludeHits(tracks: LastfmTrack[]): LastfmTrack[] {
+  const found = tracks.filter((t) => t.listeners === undefined || t.listeners < HIT_LISTENER_CEILING);
+  // If filtering wiped everything, the artist simply has no obscure tracks -
+  // better to return their catalogue than nothing at all.
+  return found.length > 0 ? found : tracks;
 }
 
 /**
@@ -248,8 +274,8 @@ export async function getDeepCut(seeds: string[]): Promise<LastfmTrack | null> {
   const tracks = await getArtistTopTracks(artist, 30).catch(() => []);
   if (tracks.length === 0) return null;
 
-  const deep = tracks.slice(3);
-  const from = deep.length >= 3 ? deep : tracks;
+  const deep = excludeHits(tracks.slice(3));
+  const from = deep.length >= 3 ? deep : excludeHits(tracks);
   return from[Math.floor(Math.random() * from.length)];
 }
 
@@ -258,8 +284,9 @@ export async function getSceneTrack(): Promise<LastfmTrack | null> {
   const tag = DISCOVERY_TAGS[Math.floor(Math.random() * DISCOVERY_TAGS.length)];
   const tracks = await getTracksByTag(tag, 50).catch(() => []);
   if (tracks.length === 0) return null;
-  // Skip the handful everyone already knows from each scene.
-  const deep = tracks.slice(5);
-  const from = deep.length >= 5 ? deep : tracks;
+  // Skip the handful everyone already knows from each scene, then drop
+  // anything that's a hit regardless of where it sat in the list.
+  const deep = excludeHits(tracks.slice(5));
+  const from = deep.length >= 5 ? deep : excludeHits(tracks);
   return from[Math.floor(Math.random() * from.length)];
 }

@@ -394,21 +394,21 @@ async function communitySeedArtists(adminClient: AdminClient): Promise<string[]>
 /**
  * What a bot reviews, weighted toward finds rather than charts.
  *
- * Half the time a deep cut - one step out from an artist this community
- * already posts, and past that artist's most-played few, which is where
- * the records worth surfacing sit. A quarter from a scene tag. The rest
- * split between the decades and what's charting now, so the feed still
- * has some common ground in it.
+ * Most of the time a deep cut - one step out from an artist this community
+ * already posts, past that artist's most-played few, and with anything over
+ * the listener ceiling dropped. Then scene tags. Only the last sliver comes
+ * from the decades or the live chart, so the feed isn't wall-to-wall
+ * obscurities but isn't led by them either.
  */
 async function pickTrack(adminClient: AdminClient) {
   const roll = Math.random();
 
-  if (roll < 0.5) {
+  if (roll < 0.6) {
     const seeds = await communitySeedArtists(adminClient).catch(() => []);
     const cut = await getDeepCut(seeds).catch(() => null);
     if (cut) return cut;
   }
-  if (roll < 0.75) {
+  if (roll < 0.85) {
     const scene = await getSceneTrack().catch(() => null);
     if (scene) return scene;
   }
