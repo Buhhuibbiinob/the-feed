@@ -10,6 +10,7 @@ export type SiteFlagKey =
   | "homepage_creators"
   | "homepage_newsletter"
   | "homepage_new_releases"
+  | "homepage_shuffle"
   | "bots_enabled";
 
 // Registry of every homepage section an admin can toggle. `defaultEnabled`
@@ -25,6 +26,11 @@ export const SITE_FLAGS: { key: SiteFlagKey; label: string; defaultEnabled: bool
   { key: "homepage_creators", label: "Underground Creators section", defaultEnabled: true },
   { key: "homepage_newsletter", label: "Newsletter panel", defaultEnabled: true },
   { key: "homepage_new_releases", label: "New Movies & TV strip", defaultEnabled: true },
+  {
+    key: "homepage_shuffle",
+    label: "Shuffle the homepage layout daily",
+    defaultEnabled: false,
+  },
   { key: "bots_enabled", label: "AI bot accounts (reviews, chat, likes)", defaultEnabled: false },
 ];
 

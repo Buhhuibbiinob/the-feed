@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
@@ -86,6 +86,37 @@ function BannerLink({
 
 function isWithinLastWeek(iso: string) {
   return Date.now() - new Date(iso).getTime() <= 7 * 24 * 60 * 60 * 1000;
+}
+
+type LayoutBlock = { key: string; node: ReactNode };
+
+/**
+ * Orders the homepage's movable blocks. Seeded off the day number rather
+ * than Math.random, which matters three ways: every visitor sees the same
+ * page as each other, a refresh doesn't reshuffle it under someone
+ * mid-scroll, and the server and client agree so React doesn't scream about
+ * a hydration mismatch. It re-rolls on its own at midnight.
+ *
+ * Blocks that are conditionally rendered come in as null and are dropped, so
+ * a hidden section can't leave a gap in the order.
+ */
+function orderBlocks(blocks: LayoutBlock[], shuffle: boolean): LayoutBlock[] {
+  const present = blocks.filter((b) => b.node);
+  if (!shuffle) return present;
+
+  const ordered = [...present];
+  let seed = Math.floor(Date.now() / 86_400_000);
+  const next = () => {
+    // Numerical Recipes LCG - small, deterministic, and good enough to
+    // reorder eight cards.
+    seed = (seed * 1_664_525 + 1_013_904_223) % 4_294_967_296;
+    return seed / 4_294_967_296;
+  };
+  for (let i = ordered.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1));
+    [ordered[i], ordered[j]] = [ordered[j], ordered[i]];
+  }
+  return ordered;
 }
 
 const POST_COLUMNS =
@@ -392,6 +423,289 @@ export default async function FeedPage({
   }
   const feedTvClips = await fillFeedTvLineup(memberClips, trendingTracks);
 
+  // Pulled out of the JSX so the shuffle can reorder them as values. Each is
+  // null when its flag is off, which orderBlocks drops.
+  const leftWideAd = !siteFlags.homepage_ad_wide ? null : wideAd ? (
+    <BannerLink href={wideAd.link_url} className="banner-slot-wide">
+      <span className="banner-slot-tag">Discover</span>
+      {wideAd.image_url ? (
+        <img src={wideAd.image_url} alt={wideAd.artist_name} />
+      ) : (
+        <div className="banner-slot-wide-fallback">
+          <b>{wideAd.artist_name}</b>
+          {wideAd.message && <span>{wideAd.message}</span>}
+        </div>
+      )}
+    </BannerLink>
+  ) : (
+    <Link href="/advertise" className="banner-slot-wide">
+      <span className="banner-slot-tag">Discover</span>
+      <div className="banner-slot-wide-fallback">
+        <b>Advertise on Feedback</b>
+        <span>Get your music or film in front of the community - free for now.</span>
+      </div>
+    </Link>
+  );
+
+
+  // Sidebar blocks as values so the daily shuffle can reorder them.
+  const sideClubs = (
+    <>
+  {siteFlags.homepage_clubs && (
+    <div className="right-now-widget">
+      <div className="right-now-tab">CLUBS</div>
+      <div className="right-now-body">
+        {(clubRows ?? []).length === 0 ? (
+          <div className="right-now-ad-fallback">
+            <b>Start a fan club</b>
+            <span>Rally people around an artist, movie, or show you love.</span>
+            <Link href="/clubs" className="see-all" style={{ marginTop: 6 }}>
+              Start one ▸
+            </Link>
+          </div>
+        ) : (
+          <div className="club-chip-list">
+            {(clubRows ?? []).map((club) => (
+              <Link href={`/clubs/${club.id}`} key={club.id} className="club-chip">
+                <img src={club.avatar_url || "/avatars/preset-1.svg"} alt="" className="club-chip-avatar" />
+                <span className="club-chip-name">{club.name}</span>
+                <span className="club-chip-count">
+                  {clubMemberCounts.get(club.id) ?? 0} member
+                  {(clubMemberCounts.get(club.id) ?? 0) === 1 ? "" : "s"}
+                </span>
+              </Link>
+            ))}
+            <Link href="/clubs" className="see-all club-chip-see-all">
+              See all clubs ▸
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+    </>
+  );
+  const sideSidebarAds = (
+    <>
+  {siteFlags.homepage_ad_sidebar &&
+    (sidebarAds.length > 0 ? (
+      sidebarAds.map((ad) => (
+        <BannerLink href={ad.link_url} className="banner-slot" key={ad.id}>
+          <span className="banner-slot-tag">Discover</span>
+          {ad.image_url ? (
+            <img src={ad.image_url} alt={ad.artist_name} />
+          ) : (
+            <div className="banner-slot-fallback">
+              <b>{ad.artist_name}</b>
+              {ad.message && <span>{ad.message}</span>}
+            </div>
+          )}
+        </BannerLink>
+      ))
+    ) : (
+      <Link href="/advertise" className="banner-slot">
+        <span className="banner-slot-tag">Discover</span>
+        <div className="banner-slot-fallback">
+          <b>Advertise on Feedback</b>
+          <span>Get your music or film in front of the community - free for now.</span>
+        </div>
+      </Link>
+    ))}
+    </>
+  );
+  const sideMostActive = (
+    <>
+  <div className="panel hot-pages-panel">
+    <div className="panel-head tabbed">
+      <span className="panel-head-tab">
+        <span className="tab-the">the</span>
+        <span className="tab-main">Most Active</span>
+      </span>
+    </div>
+    {topReviewers.length === 0 ? (
+      <div className="side-list">
+        <div className="empty-state">No reviews yet.</div>
+      </div>
+    ) : (
+      <div className="hot-pages-strip">
+        {topReviewers.map(([name, { count, avatarUrl }]) => (
+          <div className="hot-pages-item" key={name}>
+            <div className="hot-pages-photo-wrap">
+              <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
+              <span className="hot-pages-badge">{count}</span>
+            </div>
+            <span className="hot-pages-name">{name}</span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+    </>
+  );
+  const sideTopTracks = (
+    <>
+  <div className="panel">
+    <div className="panel-head tabbed">
+      <span className="panel-head-tab">
+        <span className="tab-the">the</span>
+        <span className="tab-main">Top Tracks</span>
+      </span>
+    </div>
+    <div className="side-list">
+      {topTracks.length === 0 ? (
+        <div className="empty-state">No music reviews yet.</div>
+      ) : (
+        topTracks.map((post, i) => (
+          <div className="row" key={post.id}>
+            <span className="num">{i + 1}</span>
+            <div className="info">
+              <b>{post.title}</b>
+              <span>
+                {post.profiles?.username ?? "unknown"} · <Stars rating={post.rating} />
+              </span>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  </div>
+    </>
+  );
+  const sideNewsletter = (
+    <>
+  {siteFlags.homepage_newsletter && (
+    <div className="panel">
+      <div className="panel-head tabbed">
+        <span className="panel-head-tab">
+          <span className="tab-the">the</span>
+          <span className="tab-main">Newsletter</span>
+        </span>
+        <Link href="/newsletter" className="see-all">
+          See All ▸
+        </Link>
+      </div>
+      <div className="panel-body">
+        {latestIssue && (
+          <Link href={`/newsletter/${latestIssue.id}`} className="site-links-link" style={{ marginBottom: 10 }}>
+            <span>{latestIssue.title}</span>
+            <span className="dm-inbox-time">{latestIssue.issue_date}</span>
+          </Link>
+        )}
+        <p className="field-hint" style={{ marginTop: latestIssue ? 10 : 0, marginBottom: 10 }}>
+          Weekly picks on new releases and underground artists - no account required.
+        </p>
+        <NewsletterSubscribeForm />
+      </div>
+    </div>
+  )}
+    </>
+  );
+  const sideLiveNow = (
+    <>
+  {statusRows && statusRows.length > 0 && (
+    <div className="panel">
+      <div className="panel-head tabbed">
+        <span className="panel-head-tab">
+          <span className="tab-the">the</span>
+          <span className="tab-main">Live Now</span>
+        </span>
+      </div>
+      <div className="side-list">
+        {statusRows.map((row) => (
+          <div className="row" key={row.username}>
+            <span className="num">{row.status_media_type === "music" ? "Music" : "TV"}</span>
+            <div className="info">
+              <b>{row.username}</b>
+              <span>
+                {row.status_title}
+                {row.status_artist && <> - {row.status_artist}</>}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+    </>
+  );
+  const sideTopWeek = (
+    <>
+  <div className="panel">
+    <div className="panel-head tabbed">
+      <span className="panel-head-tab">
+        <span className="tab-the">the</span>
+        <span className="tab-main">Top This Week</span>
+      </span>
+    </div>
+    <div className="side-list">
+      {topThisWeek.length === 0 ? (
+        <div className="empty-state">Nothing rated this week yet.</div>
+      ) : (
+        topThisWeek.map((post, i) => (
+          <div className="row" key={post.id}>
+            <span className="num">{i + 1}</span>
+            <div className="info">
+              <b>{post.title}</b>
+              <span>
+                {post.profiles?.username ?? "unknown"} · <Stars rating={post.rating} />
+              </span>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  </div>
+    </>
+  );
+  const sideStats = (
+    <>
+  <div className="panel">
+    <div className="panel-head tabbed">
+      <span className="panel-head-tab">
+        <span className="tab-the">the</span>
+        <span className="tab-main">Community Stats</span>
+      </span>
+    </div>
+    <div className="stats-body">
+      <div>{postsCount.count ?? 0} reviews posted</div>
+      <div>{(clubRows ?? []).length} clubs formed</div>
+      <div>{(artistPostRows ?? []).length} underground creators featured</div>
+    </div>
+  </div>
+    </>
+  );
+
+  const leftCreators = !siteFlags.homepage_creators ? null : (
+    <div className="panel">
+      <div className="panel-head tabbed">
+        <span className="panel-head-tab">
+          <span className="tab-the">the</span>
+          <span className="tab-main">Underground Creators</span>
+        </span>
+        <Link href="/artists" className="see-all">
+          See All ▸
+        </Link>
+      </div>
+      <div className="panel-body flush">
+        {(artistPostRows ?? []).length === 0 ? (
+          <div className="empty-state" style={{ padding: 16 }}>
+            No creator posts yet - underground artists and filmmakers can{" "}
+            <Link href="/artists">share their work here</Link>.
+          </div>
+        ) : (
+          (artistPostRows ?? []).map((post) => (
+            <div className="chat-row" key={post.id}>
+              <b>{post.artist_name}</b>{" "}
+              <span className={`badge ${post.platform}`}>{ARTIST_PLATFORM_LABELS[post.platform]}</span>
+              {post.description && <span> - {post.description}</span>}
+              <span className="ts">shared by {post.profiles?.username ?? "unknown"}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div className="page-header">
@@ -505,70 +819,27 @@ export default async function FeedPage({
 
       <div className="content-grid">
         <div className="left-col">
-          <FeedTV clips={feedTvClips} />
-
-          {spotifyConnected && (
-            <Shelf
-              title="On Repeat"
-              items={onRepeat}
-              emptyMessage="Play something on Spotify and it'll show up here."
-            />
-          )}
-          <Shelf title="Now Watching" items={nowWatching} />
-
-          {siteFlags.homepage_ad_wide &&
-            (wideAd ? (
-              <BannerLink href={wideAd.link_url} className="banner-slot-wide">
-                <span className="banner-slot-tag">Discover</span>
-                {wideAd.image_url ? (
-                  <img src={wideAd.image_url} alt={wideAd.artist_name} />
-                ) : (
-                  <div className="banner-slot-wide-fallback">
-                    <b>{wideAd.artist_name}</b>
-                    {wideAd.message && <span>{wideAd.message}</span>}
-                  </div>
-                )}
-              </BannerLink>
-            ) : (
-              <Link href="/advertise" className="banner-slot-wide">
-                <span className="banner-slot-tag">Discover</span>
-                <div className="banner-slot-wide-fallback">
-                  <b>Advertise on Feedback</b>
-                  <span>Get your music or film in front of the community - free for now.</span>
-                </div>
-              </Link>
-            ))}
-
-          {siteFlags.homepage_creators && (
-            <div className="panel">
-              <div className="panel-head tabbed">
-                <span className="panel-head-tab">
-                  <span className="tab-the">the</span>
-                  <span className="tab-main">Underground Creators</span>
-                </span>
-                <Link href="/artists" className="see-all">
-                  See All ▸
-                </Link>
-              </div>
-              <div className="panel-body flush">
-                {(artistPostRows ?? []).length === 0 ? (
-                  <div className="empty-state" style={{ padding: 16 }}>
-                    No creator posts yet - underground artists and filmmakers can{" "}
-                    <Link href="/artists">share their work here</Link>.
-                  </div>
-                ) : (
-                  (artistPostRows ?? []).map((post) => (
-                    <div className="chat-row" key={post.id}>
-                      <b>{post.artist_name}</b>{" "}
-                      <span className={`badge ${post.platform}`}>{ARTIST_PLATFORM_LABELS[post.platform]}</span>
-                      {post.description && <span> - {post.description}</span>}
-                      <span className="ts">shared by {post.profiles?.username ?? "unknown"}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+          {orderBlocks(
+            [
+              { key: "tv", node: feedTvClips.length > 0 ? <FeedTV clips={feedTvClips} /> : null },
+              {
+                key: "on-repeat",
+                node: spotifyConnected ? (
+                  <Shelf
+                    title="On Repeat"
+                    items={onRepeat}
+                    emptyMessage="Play something on Spotify and it'll show up here."
+                  />
+                ) : null,
+              },
+              { key: "now-watching", node: <Shelf title="Now Watching" items={nowWatching} /> },
+              { key: "wide-ad", node: leftWideAd },
+              { key: "creators", node: leftCreators },
+            ],
+            siteFlags.homepage_shuffle
+          ).map((block) => (
+            <Fragment key={block.key}>{block.node}</Fragment>
+          ))}
 
           <div className="panel">
             <div className="panel-head tabbed">
@@ -643,206 +914,21 @@ export default async function FeedPage({
             </div>
           </div>
 
-          {siteFlags.homepage_clubs && (
-            <div className="right-now-widget">
-              <div className="right-now-tab">CLUBS</div>
-              <div className="right-now-body">
-                {(clubRows ?? []).length === 0 ? (
-                  <div className="right-now-ad-fallback">
-                    <b>Start a fan club</b>
-                    <span>Rally people around an artist, movie, or show you love.</span>
-                    <Link href="/clubs" className="see-all" style={{ marginTop: 6 }}>
-                      Start one ▸
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="club-chip-list">
-                    {(clubRows ?? []).map((club) => (
-                      <Link href={`/clubs/${club.id}`} key={club.id} className="club-chip">
-                        <img src={club.avatar_url || "/avatars/preset-1.svg"} alt="" className="club-chip-avatar" />
-                        <span className="club-chip-name">{club.name}</span>
-                        <span className="club-chip-count">
-                          {clubMemberCounts.get(club.id) ?? 0} member
-                          {(clubMemberCounts.get(club.id) ?? 0) === 1 ? "" : "s"}
-                        </span>
-                      </Link>
-                    ))}
-                    <Link href="/clubs" className="see-all club-chip-see-all">
-                      See all clubs ▸
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {siteFlags.homepage_ad_sidebar &&
-            (sidebarAds.length > 0 ? (
-              sidebarAds.map((ad) => (
-                <BannerLink href={ad.link_url} className="banner-slot" key={ad.id}>
-                  <span className="banner-slot-tag">Discover</span>
-                  {ad.image_url ? (
-                    <img src={ad.image_url} alt={ad.artist_name} />
-                  ) : (
-                    <div className="banner-slot-fallback">
-                      <b>{ad.artist_name}</b>
-                      {ad.message && <span>{ad.message}</span>}
-                    </div>
-                  )}
-                </BannerLink>
-              ))
-            ) : (
-              <Link href="/advertise" className="banner-slot">
-                <span className="banner-slot-tag">Discover</span>
-                <div className="banner-slot-fallback">
-                  <b>Advertise on Feedback</b>
-                  <span>Get your music or film in front of the community - free for now.</span>
-                </div>
-              </Link>
-            ))}
-
-          <div className="panel hot-pages-panel">
-            <div className="panel-head tabbed">
-              <span className="panel-head-tab">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Most Active</span>
-              </span>
-            </div>
-            {topReviewers.length === 0 ? (
-              <div className="side-list">
-                <div className="empty-state">No reviews yet.</div>
-              </div>
-            ) : (
-              <div className="hot-pages-strip">
-                {topReviewers.map(([name, { count, avatarUrl }]) => (
-                  <div className="hot-pages-item" key={name}>
-                    <div className="hot-pages-photo-wrap">
-                      <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
-                      <span className="hot-pages-badge">{count}</span>
-                    </div>
-                    <span className="hot-pages-name">{name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="panel">
-            <div className="panel-head tabbed">
-              <span className="panel-head-tab">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Top Tracks</span>
-              </span>
-            </div>
-            <div className="side-list">
-              {topTracks.length === 0 ? (
-                <div className="empty-state">No music reviews yet.</div>
-              ) : (
-                topTracks.map((post, i) => (
-                  <div className="row" key={post.id}>
-                    <span className="num">{i + 1}</span>
-                    <div className="info">
-                      <b>{post.title}</b>
-                      <span>
-                        {post.profiles?.username ?? "unknown"} · <Stars rating={post.rating} />
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {siteFlags.homepage_newsletter && (
-            <div className="panel">
-              <div className="panel-head tabbed">
-                <span className="panel-head-tab">
-                  <span className="tab-the">the</span>
-                  <span className="tab-main">Newsletter</span>
-                </span>
-                <Link href="/newsletter" className="see-all">
-                  See All ▸
-                </Link>
-              </div>
-              <div className="panel-body">
-                {latestIssue && (
-                  <Link href={`/newsletter/${latestIssue.id}`} className="site-links-link" style={{ marginBottom: 10 }}>
-                    <span>{latestIssue.title}</span>
-                    <span className="dm-inbox-time">{latestIssue.issue_date}</span>
-                  </Link>
-                )}
-                <p className="field-hint" style={{ marginTop: latestIssue ? 10 : 0, marginBottom: 10 }}>
-                  Weekly picks on new releases and underground artists - no account required.
-                </p>
-                <NewsletterSubscribeForm />
-              </div>
-            </div>
-          )}
-
-          {statusRows && statusRows.length > 0 && (
-            <div className="panel">
-              <div className="panel-head tabbed">
-                <span className="panel-head-tab">
-                  <span className="tab-the">the</span>
-                  <span className="tab-main">Live Now</span>
-                </span>
-              </div>
-              <div className="side-list">
-                {statusRows.map((row) => (
-                  <div className="row" key={row.username}>
-                    <span className="num">{row.status_media_type === "music" ? "Music" : "TV"}</span>
-                    <div className="info">
-                      <b>{row.username}</b>
-                      <span>
-                        {row.status_title}
-                        {row.status_artist && <> - {row.status_artist}</>}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="panel">
-            <div className="panel-head tabbed">
-              <span className="panel-head-tab">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Top This Week</span>
-              </span>
-            </div>
-            <div className="side-list">
-              {topThisWeek.length === 0 ? (
-                <div className="empty-state">Nothing rated this week yet.</div>
-              ) : (
-                topThisWeek.map((post, i) => (
-                  <div className="row" key={post.id}>
-                    <span className="num">{i + 1}</span>
-                    <div className="info">
-                      <b>{post.title}</b>
-                      <span>
-                        {post.profiles?.username ?? "unknown"} · <Stars rating={post.rating} />
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="panel">
-            <div className="panel-head tabbed">
-              <span className="panel-head-tab">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Community Stats</span>
-              </span>
-            </div>
-            <div className="stats-body">
-              <div>{postsCount.count ?? 0} reviews posted</div>
-              <div>{(clubRows ?? []).length} clubs formed</div>
-              <div>{(artistPostRows ?? []).length} underground creators featured</div>
-            </div>
-          </div>
+          {orderBlocks(
+            [
+              { key: "clubs", node: sideClubs },
+              { key: "sidebar-ads", node: sideSidebarAds },
+              { key: "most-active", node: sideMostActive },
+              { key: "top-tracks", node: sideTopTracks },
+              { key: "newsletter", node: sideNewsletter },
+              { key: "live-now", node: sideLiveNow },
+              { key: "top-week", node: sideTopWeek },
+              { key: "stats", node: sideStats },
+            ],
+            siteFlags.homepage_shuffle
+          ).map((block) => (
+            <Fragment key={block.key}>{block.node}</Fragment>
+          ))}
         </div>
       </div>
 

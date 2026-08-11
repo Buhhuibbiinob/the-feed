@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 export type FeedTvClip = {
   id: string;
@@ -100,6 +100,56 @@ function SkipIcon() {
 
 type Tab = "playing" | "suggested" | "comments";
 
+// Kept in localStorage rather than the profile: it's a per-device viewing
+// preference (a phone and a desktop want different answers), and it costs
+// no round trip or schema change.
+const SIZES = [
+  { id: "s", label: "S", width: 320 },
+  { id: "m", label: "M", width: 420 },
+  { id: "l", label: "L", width: 560 },
+  { id: "xl", label: "XL", width: 760 },
+] as const;
+type SizeId = (typeof SIZES)[number]["id"];
+const SIZE_KEY = "feedtv-size";
+const DEFAULT_SIZE: SizeId = "m";
+
+// A tiny external store rather than reading localStorage into state in an
+// effect. useSyncExternalStore is built for browser-only values like this:
+// the server snapshot is the default, the client snapshot is what's stored,
+// and React reconciles the two after hydration without a mismatch warning
+// or a synchronous setState during mount.
+let cachedSize: SizeId | null = null;
+const sizeListeners = new Set<() => void>();
+
+function readStoredSize(): SizeId {
+  if (cachedSize) return cachedSize;
+  try {
+    const saved = localStorage.getItem(SIZE_KEY);
+    cachedSize = saved && SIZES.some((s) => s.id === saved) ? (saved as SizeId) : DEFAULT_SIZE;
+  } catch {
+    // Private browsing or storage disabled - the default is fine.
+    cachedSize = DEFAULT_SIZE;
+  }
+  return cachedSize;
+}
+
+function writeStoredSize(id: SizeId) {
+  cachedSize = id;
+  try {
+    localStorage.setItem(SIZE_KEY, id);
+  } catch {
+    // Not worth surfacing; the choice still applies for this session.
+  }
+  for (const listener of sizeListeners) listener();
+}
+
+function subscribeSize(onChange: () => void) {
+  sizeListeners.add(onChange);
+  return () => {
+    sizeListeners.delete(onChange);
+  };
+}
+
 export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   const playerElRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -109,6 +159,7 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   const [switching, setSwitching] = useState(false);
   const [tab, setTab] = useState<Tab>("playing");
   const [progress, setProgress] = useState({ current: 0, duration: 0 });
+  const size = useSyncExternalStore(subscribeSize, readStoredSize, () => DEFAULT_SIZE);
   const isFirstRender = useRef(true);
 
   useEffect(() => {
@@ -191,8 +242,10 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   const current = clips[index];
   const scrubPct = progress.duration > 0 ? Math.min(100, (progress.current / progress.duration) * 100) : 0;
 
+  const width = SIZES.find((s) => s.id === size)!.width;
+
   return (
-    <div className="feedtv-standalone">
+    <div className="feedtv-standalone" style={{ maxWidth: width }}>
       <div className="yt-shell">
           <div className="yt-topbar">
             The Feed<span className="yt-red">TV</span>
@@ -207,6 +260,20 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
             <button className="yt-rate-btn text" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"}>
               {muted ? "Unmute" : "Mute"}
             </button>
+            <div className="feedtv-size" role="group" aria-label="Player size">
+              {SIZES.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={size === s.id ? "active" : ""}
+                  onClick={() => writeStoredSize(s.id)}
+                  aria-pressed={size === s.id}
+                  title={`${s.width}px wide`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="yt-video">
             <div ref={playerElRef} className="feedtv-iframe-target" />

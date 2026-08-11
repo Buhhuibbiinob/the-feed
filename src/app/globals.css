@@ -1206,7 +1206,7 @@ a:hover {
 
 /* ---- Connect accounts ---- */
 .connect-body {
-  background: #fff;
+  background: var(--panel-body-bg);
   padding: 16px;
   display: flex;
   gap: 14px;
@@ -1292,7 +1292,7 @@ a:hover {
   width: max-content;
   min-width: 220px;
   max-width: 320px;
-  background: #fff;
+  background: var(--panel-body-bg);
   border: 1px solid #aaaaaa;
   border-radius: 6px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
@@ -1392,13 +1392,13 @@ a:hover {
 }
 
 .stats-body {
-  background: #fff;
+  background: var(--panel-body-bg);
   padding: 16px 18px;
   font-size: 12.5px;
   line-height: 1.7;
 }
 .chat-preview-body {
-  background: #fff;
+  background: var(--panel-body-bg);
   padding: 12px 14px;
 }
 .chat-preview-body .chat-row:last-child {
@@ -1544,7 +1544,7 @@ a:hover {
 
 /* ---- Sidebar list panels ---- */
 .side-list {
-  background: #fff;
+  background: var(--panel-body-bg);
   padding: 6px 10px;
 }
 .side-list .row {
@@ -1767,7 +1767,7 @@ a:hover {
   border: 1px solid #c9c9c9;
   border-radius: 6px;
   overflow: hidden;
-  background: #fff;
+  background: var(--panel-body-bg);
   margin-bottom: 14px;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
 }
@@ -2540,7 +2540,7 @@ select:focus {
 
 /* ---- Live chat ---- */
 .chat-body {
-  background: #fff;
+  background: var(--panel-body-bg);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
@@ -2564,7 +2564,7 @@ select:focus {
   display: flex;
   gap: 6px;
   padding: 10px 14px 14px;
-  background: #fff;
+  background: var(--panel-body-bg);
 }
 .chat-input input {
   flex: 1;
@@ -2577,7 +2577,7 @@ select:focus {
   padding: 14px;
   font-size: 11.5px;
   color: #666;
-  background: #fff;
+  background: var(--panel-body-bg);
 }
 .chat-msg-actions {
   display: inline-flex;
@@ -2591,7 +2591,7 @@ select:focus {
   padding: 8px 14px 12px;
   font-size: 10.5px;
   color: #888;
-  background: #fff;
+  background: var(--panel-body-bg);
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -2669,7 +2669,7 @@ select:focus {
   max-width: 70%;
   padding: 8px 12px;
   border-radius: 14px;
-  background: #fff;
+  background: var(--panel-body-bg);
   border: 1px solid #e0e0e0;
   font-size: 12px;
   color: #1a1a1a;
@@ -4777,7 +4777,7 @@ footer .copy {
 .right-now-body {
   flex: 1;
   padding: 14px;
-  background: #fff;
+  background: var(--panel-body-bg);
 }
 .right-now-body.right-now-ad {
   padding: 0;
@@ -4851,7 +4851,7 @@ footer .copy {
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
   padding: 16px;
-  background: #fff;
+  background: var(--panel-body-bg);
 }
 .site-links-group b {
   display: block;
@@ -6863,4 +6863,99 @@ body {
   --letterpress: none;
   --like-color: #ff5a82;
   --wrap-max: 1200px;
+}
+
+/* ================================================================
+   Panels follow their theme
+
+   A dozen surfaces - post cards, side lists, stats, chat, the clubs
+   widget, site links - painted themselves #fff regardless of theme, so
+   on any dark theme the page was a dark background with white boxes
+   sitting on it. They read --panel-body-bg now. This block carries the
+   text and border colours that have to move with them, plus the dark
+   defaults themes inherit unless they say otherwise.
+   ================================================================ */
+.post-card,
+.side-list,
+.stats-body,
+.chat-body,
+.chat-preview-body,
+.right-now-body,
+.site-links-body,
+.connect-body,
+.track-results {
+  color: var(--text);
+}
+.post-card .ts,
+.side-list .row span,
+.site-links-link span,
+.right-now-ad-fallback span {
+  color: var(--muted);
+}
+.post-card,
+.chat-row,
+.side-list .row,
+.leaderboard-row,
+.site-links-link {
+  border-color: var(--panel-border);
+}
+.chat-input,
+.chat-signed-out,
+.chat-blocked-list,
+.dm-bubble {
+  color: var(--text);
+  border-color: var(--panel-border);
+}
+
+/* Dark themes: the shared surface tokens, so each one doesn't have to
+   restate them. Any theme that wants a different panel colour just sets
+   --panel-body-bg itself and this never applies. */
+[data-theme="scene"],
+[data-theme="emo"],
+[data-theme="party-rock-2010"],
+[data-theme="myspace"] {
+  --shelf-bg: var(--panel-body-bg);
+  --input-bg: rgba(255, 255, 255, 0.05);
+}
+[data-theme="scene"] input,
+[data-theme="scene"] textarea,
+[data-theme="emo"] input,
+[data-theme="emo"] textarea,
+[data-theme="party-rock-2010"] input,
+[data-theme="party-rock-2010"] textarea,
+[data-theme="myspace"] input,
+[data-theme="myspace"] textarea {
+  background-color: var(--input-bg);
+  color: var(--text);
+  border-color: var(--panel-border);
+}
+
+/* Feed TV size picker, sat in the player's transport row. */
+.feedtv-size {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+}
+.feedtv-size button {
+  min-width: 22px;
+  padding: 2px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #d8d8dc;
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  line-height: 1.5;
+}
+.feedtv-size button:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.feedtv-size button.active {
+  background: #c00;
+  border-color: #8a0000;
+  color: #fff;
 }
