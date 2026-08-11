@@ -5,6 +5,7 @@ import {
   adminCreateBot,
   adminCreateBotsBulk,
   adminDeleteAllBots,
+  adminRenameBot,
   adminUpdateBot,
   adminUpdateBotProfile,
   adminDeleteBot,
@@ -20,6 +21,7 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
   const [bulkState, bulkAction, bulkCreating] = useActionState(adminCreateBotsBulk, initialState);
   const [runState, runAction, running] = useActionState(adminRunBotActivity, initialState);
   const [purgeState, purgeAction, purging] = useActionState(adminDeleteAllBots, initialState);
+  const [renameState, renameAction, renaming] = useActionState(adminRenameBot, initialState);
 
   return (
     <>
@@ -33,14 +35,19 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
         {runState.error && <div className="form-error">{runState.error}</div>}
         {runState.ok && <div className="form-message">{runState.summary}</div>}
         <p className="field-hint" style={{ marginBottom: 8 }}>
-          Runs one round: a random active bot reviews a real trending track, posts one chat message, and likes
-          a recent post from a real member. Bots never review something they&apos;ve already reviewed, never
-          invent releases, and never like each other.
+          Runs one round: a random active bot reviews something real - a song from any era, 70s
+          through now, or a film or show that&apos;s actually out - posts one chat message, and likes a
+          recent post from a real member. Open a bot below to make that specific one post instead.
+          Bots never review something they&apos;ve already reviewed, never invent releases, and never
+          like each other.
         </p>
         <button className="btn" type="submit" disabled={running || bots.length === 0}>
           {running ? "Running…" : "Run bot activity now"}
         </button>
       </form>
+
+      {renameState.error && <div className="form-error">{renameState.error}</div>}
+      {renameState.ok && <div className="form-message">{renameState.summary}</div>}
 
       <div className="panel-body flush" style={{ marginBottom: 16 }}>
         {bots.length === 0 ? (
@@ -55,7 +62,37 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
                 {!bot.bot_active && <span className="field-hint"> (paused)</span>}
               </summary>
 
-              <form action={adminUpdateBot} style={{ marginTop: 8 }}>
+              <form action={runAction} style={{ marginTop: 8 }}>
+                <input type="hidden" name="bot_id" value={bot.id} />
+                <button className="btn" type="submit" disabled={running || !bot.bot_active}>
+                  {running ? "Posting…" : `Make @${bot.username} post now`}
+                </button>
+                {!bot.bot_active && (
+                  <span className="field-hint"> Resume this bot first.</span>
+                )}
+              </form>
+
+              <form action={renameAction} style={{ marginTop: 10 }}>
+                <input type="hidden" name="bot_id" value={bot.id} />
+                <div className="field">
+                  <label htmlFor={`username-${bot.id}`}>Username</label>
+                  <input
+                    id={`username-${bot.id}`}
+                    name="username"
+                    type="text"
+                    defaultValue={bot.username}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </div>
+                <div className="form-actions" style={{ marginTop: 6 }}>
+                  <button className="btn btn-ghost" type="submit" disabled={renaming}>
+                    {renaming ? "Renaming…" : "Rename"}
+                  </button>
+                </div>
+              </form>
+
+              <form action={adminUpdateBot} style={{ marginTop: 10 }}>
                 <input type="hidden" name="bot_id" value={bot.id} />
                 <label className="field-hint" htmlFor={`persona-${bot.id}`}>
                   Persona - taste and typing voice, which shapes everything it writes

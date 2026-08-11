@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { getSiteFlags } from "@/lib/siteFlags";
 import { askGemini } from "@/lib/gemini";
-import { getTrendingTracks } from "@/lib/lastfm";
+import { getTrendingTracks, getTrackFromAnyEra } from "@/lib/lastfm";
 import { discoverMovies, discoverTv } from "@/lib/tmdb";
 import { searchVideos } from "@/lib/youtube";
 import { generatePersona, generateUsername } from "@/lib/botVoices";
@@ -161,6 +161,43 @@ export async function adminCreateBotsBulk(_prev: BotState, formData: FormData): 
     ok: true,
     summary: failures.length ? `${summary} ${failures.length} failed.` : summary,
   };
+}
+
+/**
+ * Renames one bot. Checked against every profile rather than just other
+ * bots, so a rename can't collide with a real member's handle, and the
+ * comparison is case-insensitive because usernames are displayed as typed
+ * but shouldn't be claimable twice in different cases.
+ */
+export async function adminRenameBot(_prev: BotState, formData: FormData): Promise<BotState> {
+  const { user, admin } = await requireAdmin();
+  if (!user || !admin) return { error: "Admins only." };
+
+  const id = String(formData.get("bot_id") ?? "");
+  const username = String(formData.get("username") ?? "").trim();
+  if (!id) return { error: "Missing bot." };
+  if (!/^[a-zA-Z0-9._]{3,20}$/.test(username)) {
+    return { error: "Username must be 3-20 characters, letters/numbers/period/underscore only." };
+  }
+
+  const adminClient = createAdminClient();
+  const { data: taken } = await adminClient
+    .from("profiles")
+    .select("id")
+    .ilike("username", username)
+    .maybeSingle();
+  if (taken && taken.id !== id) return { error: "That username is already taken." };
+
+  const { error } = await adminClient
+    .from("profiles")
+    .update({ username })
+    .eq("id", id)
+    .eq("is_bot", true);
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+  return { ok: true, summary: `Renamed to @${username}.` };
 }
 
 /** Avatar, banner, bio and "currently listening" for one bot - the same
@@ -354,9 +391,10 @@ async function pickReviewSubject(): Promise<ReviewSubject | null> {
     }
   }
 
-  const tracks = await getTrendingTracks(30).catch(() => []);
-  if (tracks.length === 0) return null;
-  const track = randomOf(tracks);
+  // Any era, not just what's charting this week - a bot is as likely to
+  // pull a 1977 record as something from this month.
+  const track = await getTrackFromAnyEra().catch(() => null);
+  if (!track) return null;
   return {
     mediaType: "music",
     kind: "song",
@@ -385,8 +423,15 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
   const bots = (await listBots()).filter((b) => b.bot_active);
   if (bots.length === 0) return { error: "No active bots yet - create one below." };
 
+  // A specific bot when the admin asked for one, otherwise any active bot.
+  const requestedId = String(_formData?.get("bot_id") ?? "");
+  const requested = requestedId ? bots.find((b) => b.id === requestedId) : null;
+  if (requestedId && !requested) {
+    return { error: "That bot is paused or no longer exists." };
+  }
+
   const adminClient = createAdminClient();
-  const bot = bots[Math.floor(Math.random() * bots.length)];
+  const bot = requested ?? bots[Math.floor(Math.random() * bots.length)];
   const persona = bot.bot_persona ?? "a friendly fan of music, film and TV";
   const done: string[] = [];
 
@@ -416,6 +461,12 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
         // from posts carrying a youtube_video_id.
         const [video] = await searchVideos(subject.videoQuery, 1);
 
+        // Decade tag charts rarely carry art, so fall back to the video's
+        // thumbnail rather than posting a review with an empty cover.
+        const cover =
+          subject.imageUrl ??
+          (video ? `https://img.youtube.com/vi/${video.id}/hqdefault.jpg` : null);
+
         const { error } = await adminClient.from("posts").insert({
           user_id: bot.id,
           media_type: subject.mediaType,
@@ -423,7 +474,7 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
           artist: subject.artist,
           body: body.trim(),
           rating: 3 + Math.floor(Math.random() * 3), // 3-5, never a fake pan
-          cover_url: subject.imageUrl,
+          cover_url: cover,
           youtube_video_id: video?.id ?? null,
         });
         if (error) console.error(`[bots] review insert failed: ${error.message}`);
