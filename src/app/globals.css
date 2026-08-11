@@ -95,6 +95,47 @@
 
   --letterpress: none;
   --btn-radius: 999px;
+
+  /* Surface treatments. Defaults point at the palette tokens every theme
+     already defines, so a theme that says nothing here still gets its own
+     colours rather than the default theme's chrome. */
+  --panel-head-text: var(--text);
+  --panel-head-letterpress: none;
+  --panel-head-shadow: none;
+
+  --btn-image: var(--btn-bg);
+  --btn-image-hover: var(--btn-bg);
+  --btn-image-active: var(--btn-bg);
+  --btn-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --btn-shadow-active: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+  --btn-letterpress: none;
+
+  --btn-ghost-image: var(--panel-head-bg);
+  --btn-ghost-frame: var(--panel-border);
+  --btn-ghost-text: var(--text);
+  --btn-ghost-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --btn-ghost-letterpress: none;
+
+  --star-on: linear-gradient(180deg, #ffd75e, #f0a800);
+  --star-off: linear-gradient(180deg, #cfcfcf, #9a9a9a);
+  --star-on-filter: none;
+  --star-off-filter: none;
+  --star-off-opacity: 0.3;
+
+  --hero-glow: none;
+  --hero-letterpress: none;
+
+  --art-frame: 1px solid var(--panel-border);
+  --art-sweep: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --tab-gloss: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  --row-stripe: rgba(0, 0, 0, 0.03);
+  --chip-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+
+  /* Layout, so a theme can rearrange the page and not just repaint it. */
+  --content-direction: row;
+  --content-gap: 18px;
+  --sidebar-width: 300px;
+  --wrap-max: 1240px;
 }
 * {
   box-sizing: border-box;
@@ -578,7 +619,7 @@ a:hover {
 .wrap {
   position: relative;
   z-index: 1;
-  max-width: 1240px;
+  max-width: var(--wrap-max);
   margin: 20px auto 30px;
   padding: 24px;
   background: #f4f6fa;
@@ -1377,7 +1418,7 @@ a:hover {
   left: 0;
   right: 0;
   height: 60%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  background: var(--tab-gloss);
   pointer-events: none;
 }
 .feed-filter {
@@ -1424,10 +1465,14 @@ a:hover {
   background: transparent;
 }
 
-/* ---- Content grid ---- */
+/* ---- Content grid ----
+   Direction, sidebar width and gutter are theme tokens, so a theme can put
+   the sidebar on the left the way MySpace did, or run wider or tighter,
+   without the components knowing anything about it. */
 .content-grid {
   display: flex;
-  gap: 18px;
+  flex-direction: var(--content-direction);
+  gap: var(--content-gap);
   align-items: flex-start;
   margin-bottom: 20px;
 }
@@ -1436,7 +1481,7 @@ a:hover {
   min-width: 0;
 }
 .right-col {
-  width: 300px;
+  width: var(--sidebar-width);
   flex-shrink: 0;
   position: sticky;
   top: 12px;
@@ -5159,23 +5204,30 @@ footer .copy {
   letter-spacing: 0.5px;
 }
 .sk-stars-on {
-  background-image: linear-gradient(180deg, #fff3c4 0%, #ffd75e 40%, #f0a800 52%, #b87400 100%);
+  background-image: var(--star-on);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 3px rgba(255, 190, 60, 0.35));
+  filter: var(--star-on-filter);
 }
 .sk-stars-off {
-  background-image: linear-gradient(180deg, #ffffff 0%, #d8d8d8 45%, #b4b4b4 55%, #9a9a9a 100%);
+  background-image: var(--star-off);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  opacity: 0.55;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.25));
+  opacity: var(--star-off-opacity);
+  filter: var(--star-off-filter);
 }
-[data-mode="dark"] .sk-stars-off {
-  background-image: linear-gradient(180deg, #6a6a6a 0%, #4a4a4a 50%, #333 100%);
-  opacity: 0.8;
+[data-mode="dark"] {
+  --star-off: linear-gradient(180deg, #6a6a6a 0%, #4a4a4a 50%, #333 100%);
+  --star-off-opacity: 0.8;
+}
+[data-theme="ios-light"] {
+  --star-on: linear-gradient(180deg, #fff3c4 0%, #ffd75e 40%, #f0a800 52%, #b87400 100%);
+  --star-off: linear-gradient(180deg, #ffffff 0%, #d8d8d8 45%, #b4b4b4 55%, #9a9a9a 100%);
+  --star-on-filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.45)) drop-shadow(0 0 3px rgba(255, 190, 60, 0.35));
+  --star-off-filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.25));
+  --star-off-opacity: 0.55;
 }
 
 /* ---- Cover Flow reflection under artwork ----
@@ -5220,17 +5272,20 @@ footer .copy {
   position: absolute;
   inset: -18px -24px 0;
   z-index: -1;
-  border-radius: 14px;
-  background-image:
+  border-radius: var(--panel-radius);
+  background-image: var(--hero-glow);
+  pointer-events: none;
+}
+[data-theme="ios-light"] {
+  --hero-glow:
     radial-gradient(circle at 12% 24%, rgba(255, 255, 255, 0.55), transparent 42%),
     radial-gradient(circle at 26% 70%, rgba(120, 210, 255, 0.28), transparent 38%),
     radial-gradient(circle at 78% 18%, rgba(140, 240, 215, 0.26), transparent 40%),
     radial-gradient(circle at 92% 62%, rgba(255, 255, 255, 0.35), transparent 34%),
     linear-gradient(112deg, transparent 32%, rgba(255, 255, 255, 0.34) 45%, transparent 56%);
-  pointer-events: none;
 }
-[data-mode="dark"] .page-header::before {
-  background-image:
+[data-theme="ios-light"][data-mode="dark"] {
+  --hero-glow:
     radial-gradient(circle at 12% 24%, rgba(255, 255, 255, 0.12), transparent 42%),
     radial-gradient(circle at 26% 70%, rgba(90, 180, 255, 0.22), transparent 38%),
     radial-gradient(circle at 78% 18%, rgba(90, 220, 195, 0.18), transparent 40%),
@@ -5279,12 +5334,15 @@ button.btn,
   letter-spacing: -0.2px;
 }
 .page-header h1 {
-  font-weight: 700;
-  letter-spacing: -0.8px;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 3px rgba(0, 0, 0, 0.18);
+  text-shadow: var(--hero-letterpress);
 }
-[data-mode="dark"] .page-header h1 {
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7), 0 0 12px rgba(255, 255, 255, 0.12);
+[data-theme="ios-light"] {
+  --hero-letterpress: 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 3px rgba(0, 0, 0, 0.18);
+  --hero-weight: 700;
+  --hero-spacing: -0.8px;
+}
+[data-theme="ios-light"][data-mode="dark"] {
+  --hero-letterpress: 0 1px 0 rgba(0, 0, 0, 0.7), 0 0 12px rgba(255, 255, 255, 0.12);
 }
 .panel-head,
 .panel-head-tab,
@@ -5297,54 +5355,74 @@ button.btn,
 /* Panel headers: light at the top, stepping to a darker lower half with a
    hard midline, the way Aqua title bars caught light. */
 .panel-head {
-  background-color: #dedede;
-  background-image: linear-gradient(180deg, #fefefe 0%, #ededed 47%, #d9d9d9 53%, #bfbfbf 100%);
-  border-bottom: 1px solid #9a9a9a;
-  color: #1e1e1e;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 -1px 0 rgba(0, 0, 0, 0.12) inset,
+  background: var(--panel-head-bg);
+  border-bottom: 1px solid var(--panel-head-border);
+  color: var(--panel-head-text);
+  text-shadow: var(--panel-head-letterpress);
+  box-shadow: var(--panel-head-shadow);
+}
+[data-theme="ios-light"] {
+  --panel-head-bg: linear-gradient(180deg, #fefefe 0%, #ededed 47%, #d9d9d9 53%, #bfbfbf 100%);
+  --panel-head-border: #9a9a9a;
+  --panel-head-text: #1e1e1e;
+  --panel-head-letterpress: 0 1px 0 rgba(255, 255, 255, 0.85);
+  --panel-head-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 -1px 0 rgba(0, 0, 0, 0.12) inset,
     0 2px 4px rgba(0, 0, 0, 0.12);
 }
-[data-mode="dark"] .panel-head {
-  background-color: #3a3a3d;
-  background-image: linear-gradient(180deg, #5f5f64 0%, #48484d 47%, #3a3a3f 53%, #2a2a2e 100%);
-  border-bottom: 1px solid #1a1a1c;
-  color: #f2f2f4;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7);
+[data-mode="dark"] {
+  --panel-head-bg: linear-gradient(180deg, #5f5f64 0%, #48484d 47%, #3a3a3f 53%, #2a2a2e 100%);
+  --panel-head-border: #1a1a1c;
+  --panel-head-text: #f2f2f4;
+  --panel-head-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.7);
 }
 
 /* Buttons: glass gumdrop - bright top half, hard midline, dark base. */
 .btn,
 button.btn,
 .new-post-btn {
-  background-color: #2f6fce;
-  background-image: linear-gradient(180deg, #8fc2ff 0%, #4b93ec 46%, #2f6fce 54%, #1d4f9e 100%);
-  border: 1px solid #16407f;
-  color: #fff;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 -8px 10px rgba(0, 0, 0, 0.22) inset,
-    0 4px 10px rgba(0, 0, 0, 0.35);
+  background: var(--btn-image);
+  border: 1px solid var(--btn-border);
+  color: var(--btn-text);
+  text-shadow: var(--btn-letterpress);
+  box-shadow: var(--btn-shadow);
 }
 .btn:hover,
 button.btn:hover,
 .new-post-btn:hover {
-  background-image: linear-gradient(180deg, #a5cfff 0%, #5c9ff2 46%, #3b7cdb 54%, #2459ac 100%);
+  background: var(--btn-image-hover);
 }
 .btn:active,
 button.btn:active,
 .new-post-btn:active {
-  background-image: linear-gradient(180deg, #1d4f9e 0%, #2f6fce 50%, #4b93ec 100%);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.35) inset, 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: var(--btn-image-active);
+  box-shadow: var(--btn-shadow-active);
   transform: translateY(1px);
 }
 .btn-ghost,
 button.btn-ghost {
-  background-color: #e4e4e4;
-  background-image: linear-gradient(180deg, #ffffff 0%, #f0f0f0 47%, #dcdcdc 53%, #c2c2c2 100%);
-  border: 1px solid #9b9b9b;
-  color: #222;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 -6px 8px rgba(0, 0, 0, 0.1) inset,
+  background: var(--btn-ghost-image);
+  border: 1px solid var(--btn-ghost-frame);
+  color: var(--btn-ghost-text);
+  text-shadow: var(--btn-ghost-letterpress);
+  box-shadow: var(--btn-ghost-shadow);
+}
+/* The default theme's glass gumdrop. */
+[data-theme="ios-light"] {
+  --btn-image: linear-gradient(180deg, #8fc2ff 0%, #4b93ec 46%, #2f6fce 54%, #1d4f9e 100%);
+  --btn-image-hover: linear-gradient(180deg, #a5cfff 0%, #5c9ff2 46%, #3b7cdb 54%, #2459ac 100%);
+  --btn-image-active: linear-gradient(180deg, #1d4f9e 0%, #2f6fce 50%, #4b93ec 100%);
+  --btn-border: #16407f;
+  --btn-text: #fff;
+  --btn-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.45);
+  --btn-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 -8px 10px rgba(0, 0, 0, 0.22) inset,
+    0 4px 10px rgba(0, 0, 0, 0.35);
+  --btn-shadow-active: 0 3px 7px rgba(0, 0, 0, 0.35) inset, 0 1px 0 rgba(255, 255, 255, 0.25);
+
+  --btn-ghost-image: linear-gradient(180deg, #ffffff 0%, #f0f0f0 47%, #dcdcdc 53%, #c2c2c2 100%);
+  --btn-ghost-frame: #9b9b9b;
+  --btn-ghost-text: #222;
+  --btn-ghost-letterpress: 0 1px 0 rgba(255, 255, 255, 0.9);
+  --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 -6px 8px rgba(0, 0, 0, 0.1) inset,
     0 3px 7px rgba(0, 0, 0, 0.25);
 }
 
@@ -5638,12 +5716,12 @@ button.btn-ghost {
     0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-/* ---- Artwork: white photo frame + raking glass sweep ---- */
+/* ---- Artwork: frame and glass sweep, both theme-controlled ---- */
 .release-cover,
 .track-thumb,
 .sk-np-art {
   position: relative;
-  border: 3px solid #fff;
+  border: var(--art-frame);
   background-clip: padding-box;
 }
 .release-cover::after,
@@ -5653,7 +5731,11 @@ button.btn-ghost {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(
+  background: var(--art-sweep);
+}
+[data-theme="ios-light"] {
+  --art-frame: 3px solid #fff;
+  --art-sweep: linear-gradient(
     118deg,
     rgba(255, 255, 255, 0.55) 0%,
     rgba(255, 255, 255, 0.16) 26%,
@@ -5680,14 +5762,14 @@ button.btn,
   font-size: 15px;
   gap: 2px;
 }
-.sk-stars-on {
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5)) drop-shadow(0 0 4px rgba(255, 190, 60, 0.55));
+[data-theme="ios-light"] {
+  --star-on-filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5)) drop-shadow(0 0 4px rgba(255, 190, 60, 0.55));
 }
 
-/* ---- Striped list rows, inset like an iTunes track listing ---- */
+/* ---- Striped list rows ---- */
 .side-list .row:nth-child(even),
 .leaderboard-row:nth-child(even) {
-  background-color: rgba(0, 0, 0, 0.035);
+  background-color: var(--row-stripe);
 }
 [data-mode="dark"] .side-list .row:nth-child(even),
 [data-mode="dark"] .leaderboard-row:nth-child(even) {
@@ -5701,7 +5783,10 @@ button.btn,
 .banner-slot-hero,
 .spotlight-panel,
 .right-now-widget {
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 0 0 1px rgba(255, 255, 255, 0.4),
+  box-shadow: var(--chip-shadow);
+}
+[data-theme="ios-light"] {
+  --chip-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 0 0 1px rgba(255, 255, 255, 0.4),
     0 16px 32px rgba(0, 0, 0, 0.36), 0 4px 8px rgba(0, 0, 0, 0.24);
 }
 
@@ -6054,4 +6139,244 @@ button.btn,
 button.btn,
 .new-post-btn {
   border-radius: var(--btn-radius);
+}
+
+/* ================================================================
+   Per-theme layout and surface treatment
+
+   The second half of the theme pass. Everything above gave themes their
+   own shape and type; this gives them their own arrangement (sidebar
+   side, page width, gutter) and their own chrome (button treatment,
+   star style, artwork frame, row stripe), which used to be drawn by the
+   default theme's rules for everybody.
+   ================================================================ */
+
+/* MySpace: narrow column, sidebar on the LEFT, flat blue chrome. */
+[data-theme="myspace"] {
+  --tab-gloss: none;
+  --content-direction: row-reverse;
+  --sidebar-width: 260px;
+  --content-gap: 12px;
+  --wrap-max: 1000px;
+  --btn-letterpress: none;
+  --btn-shadow: none;
+  --btn-ghost-shadow: none;
+  --btn-ghost-frame: #6fb3ff;
+  --art-frame: 1px solid #0055cc;
+  --row-stripe: rgba(0, 85, 204, 0.08);
+  --chip-shadow: 0 0 0 1px #0055cc;
+  --star-on: linear-gradient(180deg, #ffe066, #ffb300);
+  --panel-head-text: #ffffff;
+}
+
+/* Twitter: single wide column feel, airy gutters, no chrome at all. */
+[data-theme="twitter"] {
+  --tab-gloss: none;
+  --sidebar-width: 320px;
+  --content-gap: 28px;
+  --wrap-max: 1100px;
+  --btn-shadow: none;
+  --btn-ghost-shadow: none;
+  --art-frame: none;
+  --row-stripe: transparent;
+  --chip-shadow: none;
+  --panel-head-text: #0f1419;
+  --star-on: linear-gradient(180deg, #1d9bf0, #0f6fb8);
+}
+
+/* YouTube: wide, dense, card grid. */
+[data-theme="youtube"] {
+  --tab-gloss: none;
+  --sidebar-width: 340px;
+  --content-gap: 24px;
+  --wrap-max: 1300px;
+  --btn-shadow: none;
+  --btn-ghost-shadow: none;
+  --art-frame: none;
+  --row-stripe: rgba(0, 0, 0, 0.04);
+  --chip-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --star-on: linear-gradient(180deg, #ff4e45, #cc0000);
+}
+
+/* McBling: tight and busy, everything glossed, rhinestone stars. */
+[data-theme="mcbling"] {
+  --sidebar-width: 280px;
+  --content-gap: 14px;
+  --wrap-max: 1080px;
+  --btn-letterpress: 0 1px 0 rgba(255, 255, 255, 0.7);
+  --btn-shadow: 0 2px 0 rgba(255, 255, 255, 0.85) inset, 0 6px 16px rgba(255, 95, 176, 0.5);
+  --btn-ghost-shadow: 0 2px 0 rgba(255, 255, 255, 0.9) inset;
+  --art-frame: 3px solid #ff9ed2;
+  --art-sweep: linear-gradient(118deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 44%);
+  --row-stripe: rgba(255, 95, 176, 0.09);
+  --star-on: linear-gradient(180deg, #ffffff 0%, #ffd6ec 40%, #ff5fb0 100%);
+  --star-on-filter: drop-shadow(0 0 4px rgba(255, 95, 176, 0.9));
+  --panel-head-letterpress: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Scene: hard edges, no gloss, everything outlined in black. */
+[data-theme="scene"] {
+  --tab-gloss: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+  --sidebar-width: 260px;
+  --content-gap: 10px;
+  --wrap-max: 1060px;
+  --btn-letterpress: 1px 1px 0 rgba(0, 0, 0, 0.9);
+  --btn-shadow: 0 0 0 2px #000;
+  --btn-ghost-shadow: 0 0 0 2px #000;
+  --art-frame: 3px solid #ff1f8f;
+  --art-sweep: none;
+  --row-stripe: rgba(255, 31, 143, 0.14);
+  --star-on: linear-gradient(180deg, #ff1f8f, #00e5ff);
+  --star-on-filter: drop-shadow(1px 1px 0 #000);
+  --panel-head-text: #ffffff;
+  --panel-head-letterpress: 2px 2px 0 rgba(0, 0, 0, 0.9);
+}
+
+/* Emo: flat, narrow, monospace, almost no ornament. */
+[data-theme="emo"] {
+  --tab-gloss: none;
+  --sidebar-width: 240px;
+  --content-gap: 10px;
+  --wrap-max: 940px;
+  --btn-shadow: none;
+  --btn-ghost-shadow: none;
+  --art-frame: 1px solid #8b0f2b;
+  --art-sweep: none;
+  --row-stripe: rgba(139, 15, 43, 0.12);
+  --chip-shadow: none;
+  --star-on: linear-gradient(180deg, #c9264a, #6d0a20);
+  --panel-head-text: #e8d5da;
+}
+
+/* Frutiger Aero: wide, wet, everything catching light. */
+[data-theme="frutiger-aero"] {
+  --sidebar-width: 320px;
+  --content-gap: 22px;
+  --wrap-max: 1260px;
+  --btn-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.35);
+  --btn-shadow: 0 2px 0 rgba(255, 255, 255, 0.9) inset, 0 -8px 12px rgba(0, 60, 90, 0.25) inset,
+    0 6px 16px rgba(0, 60, 90, 0.4);
+  --art-frame: 3px solid rgba(255, 255, 255, 0.9);
+  --art-sweep: linear-gradient(118deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0) 48%);
+  --row-stripe: rgba(255, 255, 255, 0.4);
+  --star-on: linear-gradient(180deg, #ffffff, #7fe3ff 50%, #00a2c8);
+  --star-on-filter: drop-shadow(0 1px 2px rgba(0, 80, 110, 0.5));
+}
+
+/* Frutiger Metro: full-bleed tiles, no gutters, no frames. */
+[data-theme="frutiger-metro"] {
+  --tab-gloss: none;
+  --sidebar-width: 360px;
+  --content-gap: 6px;
+  --wrap-max: 1400px;
+  --btn-shadow: none;
+  --btn-ghost-shadow: none;
+  --btn-letterpress: none;
+  --art-frame: none;
+  --art-sweep: none;
+  --row-stripe: rgba(255, 255, 255, 0.08);
+  --chip-shadow: none;
+  --star-on: linear-gradient(180deg, #ffffff, #b8b8b8);
+}
+
+/* Party Rock: neon everything, glowing chrome. */
+[data-theme="party-rock-2010"] {
+  --tab-gloss: linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0));
+  --sidebar-width: 290px;
+  --content-gap: 16px;
+  --wrap-max: 1200px;
+  --btn-letterpress: 0 0 8px rgba(57, 255, 20, 0.9);
+  --btn-shadow: 0 0 16px rgba(255, 0, 200, 0.7);
+  --btn-ghost-shadow: 0 0 12px rgba(57, 255, 20, 0.5);
+  --art-frame: 2px solid #39ff14;
+  --art-sweep: none;
+  --row-stripe: rgba(255, 0, 200, 0.14);
+  --star-on: linear-gradient(180deg, #39ff14, #ff00c8);
+  --star-on-filter: drop-shadow(0 0 6px rgba(57, 255, 20, 0.9));
+  --panel-head-text: #ffffff;
+}
+
+/* Champagne Bling: wide, ornate, gold-edged. */
+[data-theme="champagne-bling"] {
+  --sidebar-width: 310px;
+  --content-gap: 24px;
+  --wrap-max: 1200px;
+  --btn-letterpress: 0 1px 0 rgba(255, 250, 235, 0.8);
+  --btn-shadow: 0 2px 0 rgba(255, 250, 235, 0.9) inset, 0 8px 20px rgba(120, 90, 30, 0.4);
+  --art-frame: 4px solid #e8cd93;
+  --art-sweep: linear-gradient(118deg, rgba(255, 250, 235, 0.6) 0%, rgba(255, 255, 255, 0) 44%);
+  --row-stripe: rgba(217, 180, 106, 0.15);
+  --star-on: linear-gradient(180deg, #fff4d4 0%, #e8cd93 45%, #b8912f 100%);
+  --star-on-filter: drop-shadow(0 1px 1px rgba(120, 90, 30, 0.6));
+}
+
+/* 2018 Swag: hard offset shadows, stark boxes, no gloss. */
+[data-theme="swag-2018"] {
+  --tab-gloss: none;
+  --sidebar-width: 300px;
+  --content-gap: 20px;
+  --wrap-max: 1160px;
+  --btn-shadow: 4px 4px 0 rgba(0, 0, 0, 0.9);
+  --btn-shadow-active: 1px 1px 0 rgba(0, 0, 0, 0.9);
+  --btn-ghost-shadow: 4px 4px 0 rgba(0, 0, 0, 0.25);
+  --btn-letterpress: none;
+  --art-frame: 3px solid #111;
+  --art-sweep: none;
+  --row-stripe: rgba(0, 0, 0, 0.06);
+  --chip-shadow: 6px 6px 0 rgba(0, 0, 0, 0.9);
+  --star-on: linear-gradient(180deg, #e01b24, #8a0f16);
+}
+
+/* 2016: airy, very wide gutters, almost weightless. */
+[data-theme="mm2016"] {
+  --tab-gloss: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0));
+  --sidebar-width: 300px;
+  --content-gap: 32px;
+  --wrap-max: 1120px;
+  --btn-shadow: 0 6px 18px rgba(180, 140, 130, 0.35);
+  --btn-ghost-shadow: none;
+  --btn-letterpress: none;
+  --art-frame: 6px solid #ffffff;
+  --art-sweep: none;
+  --row-stripe: rgba(236, 220, 216, 0.5);
+  --chip-shadow: 0 10px 26px rgba(180, 140, 130, 0.25);
+  --star-on: linear-gradient(180deg, #f0c9c0, #c98e80);
+}
+
+/* Tumblr: narrow blog column, minimal chrome. */
+[data-theme="tumblr"] {
+  --tab-gloss: none;
+  --sidebar-width: 250px;
+  --content-gap: 16px;
+  --wrap-max: 980px;
+  --btn-shadow: none;
+  --btn-ghost-shadow: none;
+  --btn-letterpress: none;
+  --art-frame: none;
+  --art-sweep: none;
+  --row-stripe: rgba(0, 0, 0, 0.025);
+  --chip-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  --star-on: linear-gradient(180deg, #36465d, #001935);
+}
+
+/* Tropical: wide, rounded, sun-bleached. */
+[data-theme="tropical"] {
+  --sidebar-width: 310px;
+  --content-gap: 22px;
+  --wrap-max: 1220px;
+  --btn-letterpress: 0 1px 0 rgba(255, 255, 255, 0.6);
+  --btn-shadow: 0 8px 20px rgba(0, 120, 130, 0.35);
+  --art-frame: 4px solid #ffffff;
+  --art-sweep: linear-gradient(118deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 42%);
+  --row-stripe: rgba(0, 190, 200, 0.12);
+  --star-on: linear-gradient(180deg, #ffe066, #ff8a5c);
+  --star-on-filter: drop-shadow(0 1px 2px rgba(0, 120, 130, 0.4));
+}
+
+/* Sidebar-on-the-left themes have to flip back when the grid stacks,
+   or the sidebar lands above the feed on a phone. */
+@media (max-width: 1024px) {
+  .content-grid {
+    flex-direction: column;
+  }
 }

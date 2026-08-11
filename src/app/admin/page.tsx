@@ -207,6 +207,9 @@ export default async function AdminPage() {
           <Link href="/admin/pages" className="btn btn-ghost">
             Manage Pages
           </Link>
+          <Link href="/admin/themes" className="btn btn-ghost">
+            Edit Themes
+          </Link>
         </div>
       </div>
 

@@ -1148,3 +1148,30 @@ alter table public.profiles add column if not exists bot_persona text;
 alter table public.profiles add column if not exists bot_active boolean not null default true;
 
 create index if not exists profiles_is_bot_idx on public.profiles (is_bot) where is_bot;
+
+-- ---------- Admin-editable theme tokens ----------
+-- Overrides for the CSS custom properties a theme is built from. Stored per
+-- (theme, token) so an admin can retune one value without owning the whole
+-- theme, and so resetting is just deleting rows. Applied as inline custom
+-- properties on <html>, which outranks every [data-theme] block in the
+-- stylesheet without the app having to generate CSS text.
+create table if not exists public.site_theme_tokens (
+  theme text not null,
+  token text not null,
+  value text not null,
+  updated_at timestamptz not null default now(),
+  primary key (theme, token)
+);
+
+alter table public.site_theme_tokens enable row level security;
+
+drop policy if exists "Theme tokens are viewable by everyone" on public.site_theme_tokens;
+create policy "Theme tokens are viewable by everyone"
+  on public.site_theme_tokens for select
+  using (true);
+
+drop policy if exists "Admins can change theme tokens" on public.site_theme_tokens;
+create policy "Admins can change theme tokens"
+  on public.site_theme_tokens for all
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin))
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));

@@ -9,6 +9,7 @@ import { isAdmin } from "@/lib/admin";
 import { getNotificationCount } from "@/lib/notifications";
 import { getUnreadDmCount } from "@/lib/messages";
 import { getArchivedBuiltinSlugs, getActiveCustomPages } from "@/lib/pages";
+import { getThemeTokenOverrides } from "@/lib/themeTokens";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const title = "Feedback";
@@ -90,10 +91,15 @@ export default async function RootLayout({
     getActiveCustomPages(supabase),
   ]);
 
-  const htmlStyle =
-    theme === "custom" && customBackgroundUrl
-      ? ({ "--body-bg": `url(${customBackgroundUrl}) center / cover fixed no-repeat` } as React.CSSProperties)
-      : undefined;
+  // Admin token overrides come first so the custom background, which is a
+  // per-user upload rather than a theme setting, always wins over them.
+  const themeOverrides = await getThemeTokenOverrides(supabase, theme);
+  const htmlStyle = {
+    ...themeOverrides,
+    ...(theme === "custom" && customBackgroundUrl
+      ? { "--body-bg": `url(${customBackgroundUrl}) center / cover fixed no-repeat` }
+      : {}),
+  } as React.CSSProperties;
 
   return (
     <html lang="en" data-theme={theme} style={htmlStyle}>
