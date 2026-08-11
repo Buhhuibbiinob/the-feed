@@ -7,6 +7,7 @@ import { isAdmin } from "@/lib/admin";
 import { getSiteFlags } from "@/lib/siteFlags";
 import { askGemini } from "@/lib/gemini";
 import { getTrendingTracks } from "@/lib/lastfm";
+import { discoverMovies, discoverTv } from "@/lib/tmdb";
 import { searchVideos } from "@/lib/youtube";
 import { generatePersona, generateUsername } from "@/lib/botVoices";
 
@@ -249,6 +250,65 @@ const REVIEW_PROMPT = `You are a member of Feedback, a music/movie/TV review com
 
 const CHAT_PROMPT = `You are a member of Feedback, a music/movie/TV review community, writing one live-chat message in the voice described. One or two lines, the way you'd actually drop a message into a busy room. ${HUMAN_RULES} Reply with ONLY the message.`;
 
+type ReviewSubject = {
+  mediaType: "music" | "movie_tv";
+  kind: "song" | "film" | "show";
+  title: string;
+  artist: string | null;
+  overview: string;
+  imageUrl: string | null;
+  videoQuery: string;
+};
+
+const randomOf = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+/**
+ * Something real to review. Half the time a charting track, otherwise a film
+ * or show that's actually out. Every field comes from the source API rather
+ * than the model, so a bot can't review a release that doesn't exist - and
+ * each carries the search that finds its video, since a music review wants
+ * the official video and a film wants the trailer.
+ *
+ * Falls back to music if TMDB is unreachable or unconfigured, so losing the
+ * movie source degrades to how this worked before rather than posting
+ * nothing.
+ */
+async function pickReviewSubject(): Promise<ReviewSubject | null> {
+  const wantsScreen = Math.random() < 0.5;
+
+  if (wantsScreen) {
+    const isTv = Math.random() < 0.5;
+    const results = await (isTv ? discoverTv(undefined, 20) : discoverMovies(undefined, 20)).catch(
+      () => []
+    );
+    if (results.length > 0) {
+      const pick = randomOf(results);
+      return {
+        mediaType: "movie_tv",
+        kind: isTv ? "show" : "film",
+        title: pick.title,
+        artist: null,
+        overview: pick.overview,
+        imageUrl: pick.imageUrl,
+        videoQuery: `${pick.title} official trailer`,
+      };
+    }
+  }
+
+  const tracks = await getTrendingTracks(30).catch(() => []);
+  if (tracks.length === 0) return null;
+  const track = randomOf(tracks);
+  return {
+    mediaType: "music",
+    kind: "song",
+    title: track.name,
+    artist: track.artist,
+    overview: "",
+    imageUrl: track.imageUrl ?? null,
+    videoQuery: `${track.name} ${track.artist} official video`,
+  };
+}
+
 /**
  * Runs one round of bot activity: a review, a chat message, and a like.
  * Admin-triggered rather than scheduled, so activity only appears when
@@ -268,43 +328,47 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
 
   const adminClient = createAdminClient();
   const bot = bots[Math.floor(Math.random() * bots.length)];
-  const persona = bot.bot_persona ?? "a friendly music fan";
+  const persona = bot.bot_persona ?? "a friendly fan of music, film and TV";
   const done: string[] = [];
 
-  // 1. Review a real trending track, so bots never invent releases.
-  const tracks = await getTrendingTracks(30).catch(() => []);
-  if (tracks.length > 0) {
-    const track = tracks[Math.floor(Math.random() * tracks.length)];
+  // 1. Review something real - a charting track, or a film/show that's
+  //    actually out - so bots can never invent a release. Which of the two
+  //    is a coin flip, so the feed doesn't fill up with only music.
+  const subject = await pickReviewSubject();
+  if (subject) {
     const { data: already } = await adminClient
       .from("posts")
       .select("id")
       .eq("user_id", bot.id)
-      .eq("title", track.name)
+      .eq("title", subject.title)
       .maybeSingle();
 
     if (!already) {
       const body = await askGemini(
         `${REVIEW_PROMPT}\n\nYour voice: ${persona}`,
-        `Write your review of the song "${track.name}" by ${track.artist}.`
+        subject.mediaType === "music"
+          ? `Write your review of the song "${subject.title}" by ${subject.artist}.`
+          : `Write your review of the ${subject.kind} "${subject.title}". What it is, so you don't ` +
+            `contradict it: ${subject.overview || "no synopsis available, so keep it to how it made you feel"}`
       );
       if (body) {
-        // Attach the track's video the way a member would paste a link, so
-        // the review has something to play and Feed TV has a lineup - its
-        // clips come from posts carrying a youtube_video_id.
-        const [video] = await searchVideos(`${track.name} ${track.artist} official video`, 1);
+        // Attach the video the way a member would paste a link, so the review
+        // has something to play and Feed TV has a lineup - its clips come
+        // from posts carrying a youtube_video_id.
+        const [video] = await searchVideos(subject.videoQuery, 1);
 
         const { error } = await adminClient.from("posts").insert({
           user_id: bot.id,
-          media_type: "music",
-          title: track.name,
-          artist: track.artist,
+          media_type: subject.mediaType,
+          title: subject.title,
+          artist: subject.artist,
           body: body.trim(),
           rating: 3 + Math.floor(Math.random() * 3), // 3-5, never a fake pan
-          cover_url: track.imageUrl ?? null,
+          cover_url: subject.imageUrl,
           youtube_video_id: video?.id ?? null,
         });
         if (error) console.error(`[bots] review insert failed: ${error.message}`);
-        else done.push(`reviewed "${track.name}"`);
+        else done.push(`reviewed "${subject.title}"`);
       }
     }
   }

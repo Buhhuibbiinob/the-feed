@@ -83,6 +83,7 @@
   --panel-head-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
 
   --body-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --body-texture-size: auto;
 
   --nav-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
   --nav-seam: var(--nav-border);
@@ -136,6 +137,9 @@
   --content-gap: 18px;
   --sidebar-width: 300px;
   --wrap-max: 1240px;
+  --wrap-bg: #f4f6fa;
+  --wrap-radius: 20px;
+  --wrap-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
 * {
   box-sizing: border-box;
@@ -622,9 +626,11 @@ a:hover {
   max-width: var(--wrap-max);
   margin: 20px auto 30px;
   padding: 24px;
-  background: #f4f6fa;
-  border-radius: 20px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  /* Themes with a real pattern behind them make this translucent so the
+     pattern reads as the page rather than as a border around it. */
+  background: var(--wrap-bg);
+  border-radius: var(--wrap-radius);
+  box-shadow: var(--wrap-shadow);
 }
 @media (max-width: 720px) {
   .wrap {
@@ -6379,4 +6385,265 @@ button.btn,
   .content-grid {
     flex-direction: column;
   }
+}
+
+/* ================================================================
+   Reference-matched theme surfaces
+
+   The first pass gave each theme its own shape and type but kept the
+   backgrounds to tame gradients, so nothing read as the era it is
+   named after. These are the actual patterns: leopard, zebra,
+   halftone, blacklight grid, sky-and-grass. All built from gradients
+   rather than images, so they cost nothing to load, tile at any size
+   and can be recoloured from the theme editor.
+   ================================================================ */
+
+/* ---- Y2K McBling: leopard print in hot pink and gold ----
+   Spots are two offset radial grids, the second nudged half a tile so
+   the print doesn't read as a regular checkerboard. */
+[data-theme="mcbling"] {
+  --body-bg: linear-gradient(180deg, #d8a25a 0%, #c98f45 50%, #b87b33 100%);
+  --body-texture:
+    radial-gradient(ellipse 14px 11px at 20% 22%, #2b1608 58%, transparent 60%),
+    radial-gradient(ellipse 9px 7px at 27% 15%, #7a4718 60%, transparent 62%),
+    radial-gradient(ellipse 13px 10px at 62% 44%, #2b1608 58%, transparent 60%),
+    radial-gradient(ellipse 8px 6px at 69% 37%, #7a4718 60%, transparent 62%),
+    radial-gradient(ellipse 15px 11px at 40% 74%, #2b1608 58%, transparent 60%),
+    radial-gradient(ellipse 9px 7px at 47% 67%, #7a4718 60%, transparent 62%),
+    radial-gradient(ellipse 12px 9px at 85% 88%, #2b1608 58%, transparent 60%),
+    radial-gradient(ellipse 14px 10px at 8% 60%, #2b1608 58%, transparent 60%);
+  --body-texture-size: 118px 118px;
+  --panel-body-bg: #fff0f8;
+  --panel-head-bg: linear-gradient(180deg, #ff9ed2 0%, #ff5fb0 48%, #e0348c 52%, #b81f6d 100%);
+  --panel-head-text: #ffffff;
+  --btn-image: linear-gradient(180deg, #ffd6ec 0%, #ff7cc0 46%, #ec3f96 54%, #b81f6d 100%);
+  --btn-border: #9c1257;
+  --nav-bg: linear-gradient(180deg, #ffd6ec 0%, #ff8fc8 46%, #ec3f96 54%, #a8175f 100%);
+  --nav-seam: #ffd700;
+  --like-color: #ff2d95;
+}
+
+/* ---- Scene: zebra diagonals, pink and cyan on black ---- */
+[data-theme="scene"] {
+  --body-bg: #0a0a0a;
+  --body-texture: repeating-linear-gradient(
+      108deg,
+      #0a0a0a 0 18px,
+      #f4f4f4 18px 26px,
+      #0a0a0a 26px 34px,
+      #f4f4f4 34px 39px
+    );
+  --body-texture-size: auto;
+  --panel-body-bg: #131316;
+  --panel-head-bg: linear-gradient(180deg, #ff1f8f 0%, #c4106a 100%);
+  --panel-head-text: #ffffff;
+  --btn-image: linear-gradient(180deg, #00e5ff 0%, #00a9c4 100%);
+  --btn-border: #000000;
+  --btn-text: #0a0a0a;
+  --nav-bg: linear-gradient(180deg, #1a1a1d, #050505);
+  --text: #f2f2f4;
+  --muted: #b9b9c2;
+  --like-color: #ff1f8f;
+}
+
+/* ---- Frutiger Aero: sky over grass, sun flare, water beads ---- */
+[data-theme="frutiger-aero"] {
+  --body-bg: linear-gradient(180deg, #4aa8e0 0%, #8fd4f2 42%, #d8f0c0 66%, #6fbf3f 100%);
+  --body-texture:
+    radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 16%),
+    radial-gradient(circle at 82% 12%, rgba(255, 255, 240, 0.55), rgba(255, 255, 255, 0) 34%),
+    radial-gradient(circle 5px at 24% 30%, rgba(255, 255, 255, 0.75), transparent 100%),
+    radial-gradient(circle 3px at 31% 26%, rgba(255, 255, 255, 0.65), transparent 100%),
+    radial-gradient(circle 7px at 68% 58%, rgba(255, 255, 255, 0.6), transparent 100%),
+    radial-gradient(circle 4px at 74% 66%, rgba(255, 255, 255, 0.7), transparent 100%),
+    radial-gradient(circle 6px at 12% 72%, rgba(255, 255, 255, 0.55), transparent 100%);
+  --body-texture-size: auto;
+  --panel-body-bg: rgba(255, 255, 255, 0.9);
+  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #cfeeff 45%, #8fd0f0 55%, #4aa8e0 100%);
+  --panel-head-text: #0a3a52;
+  --btn-image: linear-gradient(180deg, #ffffff 0%, #b6e8ff 44%, #58bff0 54%, #1785c4 100%);
+  --btn-border: #0d5c88;
+  --nav-bg: linear-gradient(180deg, #ffffff 0%, #d8f0ff 44%, #8fd0f0 54%, #3f9fd4 100%);
+  --nav-seam: #ffffff;
+  --like-color: #1785c4;
+}
+
+/* ---- Party Rock: blacklight neon on a dark grid ---- */
+[data-theme="party-rock-2010"] {
+  --body-bg: #06010e;
+  --body-texture:
+    repeating-linear-gradient(0deg, rgba(255, 0, 200, 0.16) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, rgba(57, 255, 20, 0.13) 0 1px, transparent 1px 44px),
+    radial-gradient(ellipse at 20% 0%, rgba(255, 0, 200, 0.45), transparent 52%),
+    radial-gradient(ellipse at 84% 22%, rgba(57, 255, 20, 0.32), transparent 48%),
+    radial-gradient(ellipse at 50% 100%, rgba(0, 200, 255, 0.35), transparent 55%);
+  --body-texture-size: auto;
+  --panel-body-bg: #120522;
+  --panel-head-bg: linear-gradient(180deg, #ff00c8 0%, #8a0070 100%);
+  --panel-head-text: #ffffff;
+  --btn-image: linear-gradient(180deg, #39ff14 0%, #17b800 100%);
+  --btn-text: #06010e;
+  --btn-border: #0b4a00;
+  --nav-bg: linear-gradient(180deg, #1a0230, #06010e);
+  --text: #f6e9ff;
+  --muted: #b98fd0;
+  --like-color: #ff00c8;
+}
+
+/* ---- Emo / A Great Chaos: black, blood red, VHS scanlines ---- */
+[data-theme="emo"] {
+  --body-bg: #050506;
+  --body-texture:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at 50% 0%, rgba(139, 15, 43, 0.5), transparent 58%),
+    radial-gradient(ellipse at 20% 90%, rgba(0, 90, 90, 0.28), transparent 52%);
+  --body-texture-size: auto;
+  --panel-body-bg: #0d0d10;
+  --panel-head-bg: linear-gradient(180deg, #2a0810, #0a0203);
+  --panel-head-text: #e8d5da;
+  --btn-image: linear-gradient(180deg, #8b0f2b, #4a0616);
+  --btn-border: #c9264a;
+  --nav-bg: linear-gradient(180deg, #16060a, #050506);
+  --nav-seam: #8b0f2b;
+  --text: #ddd6d8;
+  --muted: #8d8288;
+  --like-color: #c9264a;
+}
+
+/* ---- 2018 Swag: red/black/white streetwear, box-logo blocks ---- */
+[data-theme="swag-2018"] {
+  --body-bg: #f2f2f2;
+  --body-texture: repeating-linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.05) 0 22px,
+    rgba(0, 0, 0, 0) 22px 44px
+  );
+  --body-texture-size: auto;
+  --panel-body-bg: #ffffff;
+  --panel-head-bg: #e01b24;
+  --panel-head-text: #ffffff;
+  --btn-image: #e01b24;
+  --btn-border: #111111;
+  --btn-text: #ffffff;
+  --nav-bg: #111111;
+  --nav-text: #ffffff;
+  --like-color: #e01b24;
+}
+
+/* ---- Tropical: halftone circles, lime and cyan Y2K poster ---- */
+[data-theme="tropical"] {
+  --body-bg: linear-gradient(160deg, #a8e02b 0%, #5fc93f 45%, #17b3a0 100%);
+  --body-texture:
+    radial-gradient(circle 26px at 18% 22%, rgba(255, 255, 255, 0.35), transparent 100%),
+    radial-gradient(circle 16px at 30% 34%, rgba(0, 0, 0, 0.12), transparent 100%),
+    radial-gradient(circle 34px at 76% 18%, rgba(255, 255, 255, 0.28), transparent 100%),
+    radial-gradient(circle 20px at 64% 72%, rgba(0, 0, 0, 0.1), transparent 100%),
+    radial-gradient(circle 12px at 88% 60%, rgba(255, 255, 255, 0.4), transparent 100%),
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 6px);
+  --body-texture-size: 320px 320px;
+  --panel-body-bg: #ffffff;
+  --panel-head-bg: linear-gradient(180deg, #ffe066 0%, #ffb020 100%);
+  --panel-head-text: #1d3b12;
+  --btn-image: linear-gradient(180deg, #ff8a5c, #f2542d);
+  --btn-border: #b8331a;
+  --nav-bg: linear-gradient(180deg, #a8e02b, #5fc93f);
+  --like-color: #f2542d;
+}
+
+/* ---- 2016: rose-gold marble ---- */
+[data-theme="mm2016"] {
+  --body-bg: linear-gradient(150deg, #f7efec 0%, #f0e2dd 55%, #e8d6d0 100%);
+  --body-texture:
+    linear-gradient(118deg, transparent 38%, rgba(190, 150, 140, 0.18) 40%, transparent 43%),
+    linear-gradient(102deg, transparent 60%, rgba(190, 150, 140, 0.14) 62%, transparent 64%),
+    linear-gradient(140deg, transparent 20%, rgba(210, 175, 165, 0.16) 22%, transparent 25%);
+  --body-texture-size: auto;
+  --panel-body-bg: #fffbfa;
+  --panel-head-bg: linear-gradient(180deg, #f3ded8, #e0bcb2);
+  --panel-head-text: #6b4a42;
+  --btn-image: linear-gradient(180deg, #e8bfb4, #c98e80);
+  --btn-border: #a86f60;
+  --nav-bg: linear-gradient(180deg, #fffbfa, #f0e2dd);
+  --like-color: #c98e80;
+}
+
+/* Textures that tile need a size; the rest stay auto. */
+body {
+  background-size: auto, var(--body-texture-size), auto;
+}
+
+/* Patterned themes: let the pattern be the page, and keep headings legible
+   against it. */
+[data-theme="mcbling"] {
+  --wrap-bg: rgba(255, 240, 248, 0.82);
+  --wrap-shadow: 0 25px 60px rgba(120, 0, 60, 0.45);
+  --hero-title-color: #9c1257;
+  --hero-tagline-color: #b8447f;
+  --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+[data-theme="scene"] {
+  --wrap-bg: rgba(10, 10, 12, 0.88);
+  --wrap-shadow: 0 0 0 3px #ff1f8f, 0 25px 60px rgba(0, 0, 0, 0.8);
+  --hero-title-color: #ffffff;
+  --hero-tagline-color: #00e5ff;
+  --hero-text-shadow: 2px 2px 0 #000;
+}
+[data-theme="party-rock-2010"] {
+  --wrap-bg: rgba(10, 2, 20, 0.82);
+  --wrap-shadow: 0 0 40px rgba(255, 0, 200, 0.45);
+  --hero-title-color: #39ff14;
+  --hero-tagline-color: #ff5fd8;
+  --hero-text-shadow: 0 0 14px rgba(57, 255, 20, 0.8);
+}
+[data-theme="emo"] {
+  --wrap-bg: rgba(10, 10, 12, 0.9);
+  --wrap-radius: 0px;
+  --wrap-shadow: 0 0 0 1px #8b0f2b, 0 25px 60px rgba(0, 0, 0, 0.85);
+  --hero-title-color: #ddd6d8;
+  --hero-tagline-color: #8d8288;
+  --hero-text-shadow: none;
+}
+[data-theme="frutiger-aero"] {
+  --wrap-bg: rgba(255, 255, 255, 0.66);
+  --wrap-shadow: 0 25px 60px rgba(0, 70, 100, 0.4), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  --hero-title-color: #0a3a52;
+  --hero-tagline-color: #17708f;
+  --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+[data-theme="tropical"] {
+  --wrap-bg: rgba(255, 255, 255, 0.8);
+  --wrap-shadow: 0 25px 60px rgba(0, 110, 90, 0.4);
+  --hero-title-color: #14532d;
+  --hero-tagline-color: #1d7a5f;
+}
+[data-theme="swag-2018"] {
+  --wrap-bg: #ffffff;
+  --wrap-radius: 0px;
+  --wrap-shadow: 10px 10px 0 rgba(0, 0, 0, 0.9);
+  --hero-title-color: #111111;
+  --hero-tagline-color: #e01b24;
+  --hero-text-shadow: none;
+}
+[data-theme="myspace"] {
+  --wrap-bg: #ffffff;
+  --wrap-radius: 0px;
+  --wrap-shadow: 0 0 0 1px #0055cc;
+  --hero-title-color: #003b8e;
+  --hero-tagline-color: #0066ff;
+  --hero-text-shadow: none;
+}
+[data-theme="mm2016"] {
+  --wrap-bg: rgba(255, 251, 250, 0.85);
+  --wrap-shadow: 0 25px 60px rgba(180, 140, 130, 0.3);
+  --hero-title-color: #6b4a42;
+  --hero-tagline-color: #a8837a;
+  --hero-text-shadow: none;
+}
+[data-theme="tumblr"] {
+  --wrap-bg: #ffffff;
+  --wrap-radius: 4px;
+  --wrap-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  --hero-title-color: #001935;
+  --hero-tagline-color: #4f6c8a;
+  --hero-text-shadow: none;
 }
