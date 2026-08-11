@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { getSiteFlags } from "@/lib/siteFlags";
-import { askGemini } from "@/lib/gemini";
+import { askGeminiText } from "@/lib/gemini";
 import { getTrendingTracks, getTrackFromAnyEra, getDeepCut, getSceneTrack } from "@/lib/lastfm";
 import { discoverMovies, discoverTv } from "@/lib/tmdb";
 import { searchVideos } from "@/lib/youtube";
@@ -482,12 +482,15 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
   const bot = requested ?? bots[Math.floor(Math.random() * bots.length)];
   const persona = bot.bot_persona ?? "a friendly fan of music, film and TV";
   const done: string[] = [];
+  const skipped: string[] = [];
 
   // 1. Review something real - a charting track, or a film/show that's
   //    actually out - so bots can never invent a release. Which of the two
   //    is a coin flip, so the feed doesn't fill up with only music.
   const subject = await pickReviewSubject(adminClient);
-  if (subject) {
+  if (!subject) {
+    skipped.push("couldn't find anything to review - Last.fm may be unreachable");
+  } else {
     const { data: already } = await adminClient
       .from("posts")
       .select("id")
@@ -495,14 +498,18 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
       .eq("title", subject.title)
       .maybeSingle();
 
-    if (!already) {
-      const body = await askGemini(
+    if (already) {
+      skipped.push(`@${bot.username} has already reviewed "${subject.title}"`);
+    } else {
+      const written = await askGeminiText(
         `${REVIEW_PROMPT}\n\nYour voice: ${persona}`,
         subject.mediaType === "music"
           ? `Write your review of the song "${subject.title}" by ${subject.artist}.`
           : `Write your review of the ${subject.kind} "${subject.title}". What it is, so you don't ` +
             `contradict it: ${subject.overview || "no synopsis available, so keep it to how it made you feel"}`
       );
+      const body = written.ok ? written.text : null;
+      if (!written.ok) skipped.push(`couldn't write the review: ${written.error}`);
       if (body) {
         // Attach the video the way a member would paste a link, so the review
         // has something to play and Feed TV has a lineup - its clips come
@@ -531,15 +538,19 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
     }
   }
 
-  // 2. One live-chat message.
-  const chat = await askGemini(
+  // 2. A live-chat message, but only sometimes. Each Gemini call competes
+  //    for the same free-tier quota, so when it's tight the review - the
+  //    thing the feed is actually for - should win it rather than losing
+  //    the toss to a chat line.
+  const chat = Math.random() < 0.5 ? null : await askGeminiText(
     `${CHAT_PROMPT}\n\nYour voice: ${persona}`,
     "Say something about what you're listening to or watching lately."
   );
-  if (chat) {
+  if (chat && !chat.ok) skipped.push(`couldn't write a chat message: ${chat.error}`);
+  if (chat?.ok) {
     const { error } = await adminClient
       .from("chat_messages")
-      .insert({ user_id: bot.id, body: chat.trim() });
+      .insert({ user_id: bot.id, body: chat.text.trim() });
     if (error) console.error(`[bots] chat insert failed: ${error.message}`);
     else done.push("posted in chat");
   }
@@ -579,7 +590,18 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
   revalidatePath("/leaderboard");
 
   if (done.length === 0) {
-    return { error: `@${bot.username} couldn't do anything this round - Gemini may be rate limited.` };
+    return {
+      error: skipped.length
+        ? `@${bot.username} did nothing this round. ${skipped.join(". ")}.`
+        : `@${bot.username} couldn't do anything this round.`,
+    };
   }
-  return { ok: true, summary: `@${bot.username} ${done.join(", ")}.` };
+  // Report what was skipped even on a partial success, so "it only liked
+  // something" comes with the reason attached instead of looking broken.
+  return {
+    ok: true,
+    summary: skipped.length
+      ? `@${bot.username} ${done.join(", ")}. Skipped: ${skipped.join(". ")}.`
+      : `@${bot.username} ${done.join(", ")}.`,
+  };
 }

@@ -144,6 +144,23 @@ export async function askGemini(systemInstruction: string, userMessage: string):
   return result.text;
 }
 
+export type AskGeminiTextResult = { ok: true; text: string } | { ok: false; error: string };
+
+// Same call as askGemini, but hands back WHY it failed instead of null.
+// Anything with an admin UI behind it should use this: "Gemini is rate
+// limited" is actionable, a silently skipped step is not.
+export async function askGeminiText(
+  systemInstruction: string,
+  userMessage: string
+): Promise<AskGeminiTextResult> {
+  const result = await callGemini(systemInstruction, userMessage, { maxOutputTokens: 600 });
+  if (!result.ok) {
+    console.error(`[gemini] ${result.error}`);
+    return { ok: false, error: result.error };
+  }
+  return { ok: true, text: result.text };
+}
+
 export type AskGeminiJsonResult<T> =
   | { ok: true; data: T; sources: GroundingChunk[] }
   | { ok: false; error: string };
