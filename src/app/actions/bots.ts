@@ -8,6 +8,7 @@ import { getSiteFlags } from "@/lib/siteFlags";
 import { askGemini } from "@/lib/gemini";
 import { getTrendingTracks } from "@/lib/lastfm";
 import { searchVideos } from "@/lib/youtube";
+import { generatePersona, generateUsername } from "@/lib/botVoices";
 
 export type BotState = { error?: string; ok?: boolean; summary?: string };
 
@@ -15,9 +16,17 @@ export type BotProfile = {
   id: string;
   username: string;
   avatar_url: string | null;
+  banner_url: string | null;
+  bio: string | null;
+  status_media_type: "music" | "movie_tv" | null;
+  status_title: string | null;
+  status_artist: string | null;
   bot_persona: string | null;
   bot_active: boolean;
 };
+
+const BOT_PROFILE_COLUMNS =
+  "id, username, avatar_url, banner_url, bio, status_media_type, status_title, status_artist, bot_persona, bot_active";
 
 // Bots get @bots.invalid addresses: .invalid is RFC2606-reserved so it can
 // never receive mail, which keeps them out of every newsletter and
@@ -37,10 +46,44 @@ export async function listBots(): Promise<BotProfile[]> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("profiles")
-    .select("id, username, avatar_url, bot_persona, bot_active")
+    .select(BOT_PROFILE_COLUMNS)
     .eq("is_bot", true)
     .order("username");
   return (data as BotProfile[] | null) ?? [];
+}
+
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+/**
+ * Creates one bot account. A bot needs an auth.users row because profiles.id
+ * references it and the profile itself is made by the on_auth_user_created
+ * trigger, so this is always two steps - and the auth user is rolled back if
+ * the second one fails, rather than leaving an account nothing can manage.
+ */
+async function createOneBot(
+  adminClient: AdminClient,
+  username: string,
+  persona: string
+): Promise<{ error?: string }> {
+  const { data: created, error: createError } = await adminClient.auth.admin.createUser({
+    email: `${username.toLowerCase()}@${BOT_EMAIL_DOMAIN}`,
+    password: crypto.randomUUID(),
+    email_confirm: true,
+    user_metadata: { username },
+  });
+  if (createError || !created.user) {
+    return { error: createError?.message ?? "Couldn't create the bot account." };
+  }
+
+  const { error: updateError } = await adminClient
+    .from("profiles")
+    .update({ is_bot: true, bot_persona: persona, bot_active: true })
+    .eq("id", created.user.id);
+  if (updateError) {
+    await adminClient.auth.admin.deleteUser(created.user.id).catch(() => {});
+    return { error: `Created the account but couldn't flag it as a bot: ${updateError.message}` };
+  }
+  return {};
 }
 
 export async function adminCreateBot(_prev: BotState, formData: FormData): Promise<BotState> {
@@ -60,29 +103,99 @@ export async function adminCreateBot(_prev: BotState, formData: FormData): Promi
   const { data: taken } = await adminClient.from("profiles").select("id").ilike("username", username).maybeSingle();
   if (taken) return { error: "That username is already taken." };
 
-  // A bot still needs an auth.users row, because profiles.id references it
-  // and the profile is created by the on_auth_user_created trigger.
-  const { data: created, error: createError } = await adminClient.auth.admin.createUser({
-    email: `${username.toLowerCase()}@${BOT_EMAIL_DOMAIN}`,
-    password: crypto.randomUUID(),
-    email_confirm: true,
-    user_metadata: { username },
-  });
-  if (createError || !created.user) {
-    return { error: createError?.message ?? "Couldn't create the bot account." };
-  }
-
-  const { error: updateError } = await adminClient
-    .from("profiles")
-    .update({ is_bot: true, bot_persona: persona, bot_active: true })
-    .eq("id", created.user.id);
-  if (updateError) {
-    await adminClient.auth.admin.deleteUser(created.user.id).catch(() => {});
-    return { error: `Created the account but couldn't flag it as a bot: ${updateError.message}` };
-  }
+  const { error } = await createOneBot(adminClient, username, persona);
+  if (error) return { error };
 
   revalidatePath("/admin");
   return { ok: true, summary: `Created @${username}.` };
+}
+
+const MAX_BULK_BOTS = 25;
+
+/**
+ * Creates several bots at once, each with its own generated handle, taste
+ * and writing voice. Usernames are checked against every existing profile,
+ * not just other bots, so a bulk run can't collide with a real member.
+ */
+export async function adminCreateBotsBulk(_prev: BotState, formData: FormData): Promise<BotState> {
+  const { user, admin } = await requireAdmin();
+  if (!user || !admin) return { error: "Admins only." };
+
+  const count = Number(formData.get("count") ?? 0);
+  if (!Number.isInteger(count) || count < 1 || count > MAX_BULK_BOTS) {
+    return { error: `Pick a number between 1 and ${MAX_BULK_BOTS}.` };
+  }
+
+  const adminClient = createAdminClient();
+  const { data: existing } = await adminClient.from("profiles").select("username");
+  const taken = new Set((existing ?? []).map((r) => String(r.username).toLowerCase()));
+
+  const created: string[] = [];
+  const failures: string[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const username = generateUsername(taken);
+    if (!username) {
+      failures.push("ran out of unused usernames");
+      break;
+    }
+    // Reserve it locally straight away so the next iteration can't pick it
+    // again even though the database doesn't know about it yet.
+    taken.add(username.toLowerCase());
+
+    const { error } = await createOneBot(adminClient, username, generatePersona());
+    if (error) failures.push(`@${username}: ${error}`);
+    else created.push(username);
+  }
+
+  revalidatePath("/admin");
+
+  if (created.length === 0) {
+    return { error: `Couldn't create any bots. ${failures[0] ?? ""}`.trim() };
+  }
+  const summary = `Created ${created.length} bot${created.length === 1 ? "" : "s"}: ${created
+    .map((u) => `@${u}`)
+    .join(", ")}.`;
+  return {
+    ok: true,
+    summary: failures.length ? `${summary} ${failures.length} failed.` : summary,
+  };
+}
+
+/** Avatar, banner, bio and "currently listening" for one bot - the same
+ * things a real member can set on their own profile. */
+export async function adminUpdateBotProfile(formData: FormData) {
+  const { user, admin } = await requireAdmin();
+  if (!user || !admin) return;
+
+  const id = String(formData.get("bot_id") ?? "");
+  if (!id) return;
+
+  const text = (key: string) => {
+    const value = String(formData.get(key) ?? "").trim();
+    return value || null;
+  };
+  const statusMediaType = text("status_media_type");
+  const statusTitle = text("status_title");
+
+  await createAdminClient()
+    .from("profiles")
+    .update({
+      avatar_url: text("avatar_url"),
+      banner_url: text("banner_url"),
+      bio: text("bio"),
+      // A status needs both a kind and a title to render, so clear the whole
+      // thing unless both arrived.
+      status_media_type: statusTitle ? statusMediaType : null,
+      status_title: statusTitle,
+      status_artist: statusTitle ? text("status_artist") : null,
+      status_updated_at: statusTitle ? new Date().toISOString() : null,
+    })
+    .eq("id", id)
+    .eq("is_bot", true);
+
+  revalidatePath("/admin");
+  revalidatePath("/");
 }
 
 export async function adminUpdateBot(formData: FormData) {
@@ -127,9 +240,14 @@ export async function adminDeleteBot(formData: FormData) {
   revalidatePath("/admin");
 }
 
-const REVIEW_PROMPT = `You are a member of Feedback, a music/movie/TV review community. Write a short review in the voice described. 2-4 sentences, casual and specific, like a real person posting. Do not use em dashes. Do not use emojis. Do not invent facts about the track beyond how it sounds and how you feel about it. Reply with ONLY the review text, no title, no quotes.`;
+// The voice line in each persona is doing the heavy lifting here. These
+// prompts mostly exist to stop the model's defaults - even length, tidy
+// punctuation, a summarising last sentence - from sanding that voice off.
+const HUMAN_RULES = `Write the way that person actually types, including their capitalisation and punctuation habits. Vary the length: some posts are one line, some are three. Never end on a neat summarising sentence. Do not use em dashes. Do not use emojis. Do not use hashtags. Do not name the artist and title back like a header - you are replying to something you just heard, not writing a blurb.`;
 
-const CHAT_PROMPT = `You are a member of Feedback, a music/movie/TV review community, writing one short live-chat message in the voice described. One sentence, casual, like a real chat message. Do not use em dashes or emojis. Reply with ONLY the message.`;
+const REVIEW_PROMPT = `You are a member of Feedback, a music/movie/TV review community. Write a short review in the voice described, 1-4 sentences, specific about what you actually heard. Do not invent facts about the track beyond how it sounds and how it made you feel. ${HUMAN_RULES} Reply with ONLY the review text, no title, no quotes.`;
+
+const CHAT_PROMPT = `You are a member of Feedback, a music/movie/TV review community, writing one live-chat message in the voice described. One or two lines, the way you'd actually drop a message into a busy room. ${HUMAN_RULES} Reply with ONLY the message.`;
 
 /**
  * Runs one round of bot activity: a review, a chat message, and a like.

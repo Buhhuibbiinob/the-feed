@@ -63,6 +63,9 @@
   --body-pattern-size: auto;
   --body-pattern-position: 0 0;
   --body-pattern-opacity: 1;
+
+  /* No-op by default; dark mode replaces it with a tint. */
+  --body-scrim: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
 }
 * {
   box-sizing: border-box;
@@ -89,7 +92,10 @@ html {
 body {
   margin: 0;
   position: relative;
-  background: var(--body-bg);
+  /* Two layers: a scrim that dark mode tints, over the theme's own
+     background. Keeping the theme gradient underneath is what stops every
+     theme collapsing into the same grey at night. */
+  background: var(--body-scrim), var(--body-bg);
   background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial,
@@ -5668,4 +5674,85 @@ button.btn,
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 1px 2px rgba(0, 0, 0, 0.35);
   vertical-align: middle;
+}
+
+/* ================================================================
+   Dark mode for every theme
+
+   Dark mode used to be written almost entirely as
+   [data-theme="ios-light"][data-mode="dark"], so on any of the other
+   fifteen themes the toggle changed a handful of shadows and left every
+   panel white. This block carries the parts that are true of dark mode
+   whatever the theme.
+
+   It deliberately only touches SURFACE tokens - page, panel, text,
+   borders, inputs. Chrome and accent tokens (--nav-bg, --btn-bg,
+   --like-color, --wordmark-color, --orb-bg) are left to the theme, so
+   MySpace at night still reads as MySpace rather than as generic grey.
+
+   Specificity note: this is [data-mode="dark"] (0,1,0), the same weight
+   as [data-theme="x"], so it has to live after every theme block to win.
+   The default theme's own dark rules are (0,2,0) and still outrank it.
+   ================================================================ */
+[data-mode="dark"] {
+  --page-bg: #0f1013;
+  --text: #e8e8ec;
+  --muted: #9b9ba4;
+  --link: #7fb0f2;
+
+  --panel-body-bg: #17181d;
+  --shelf-bg: #17181d;
+  --panel-border: #2b2d33;
+  --panel-head-border: #34363d;
+
+  --body-scrim: linear-gradient(180deg, rgba(4, 5, 8, 0.74), rgba(4, 5, 8, 0.88));
+  --body-glyph-color: rgba(255, 255, 255, 0.045);
+}
+
+/* Surfaces that hardcode white rather than reading a token. */
+[data-mode="dark"] .right-now-body,
+[data-mode="dark"] .side-list,
+[data-mode="dark"] .panel-body,
+[data-mode="dark"] .stats-body,
+[data-mode="dark"] .shelf-body,
+[data-mode="dark"] .chat-body,
+[data-mode="dark"] .yt-tab-panel,
+[data-mode="dark"] .feedtv-upnext-strip {
+  background-color: var(--panel-body-bg);
+  color: var(--text);
+}
+[data-mode="dark"] .yt-tab-panel b,
+[data-mode="dark"] .feedtv-thumb-title {
+  color: var(--text);
+}
+[data-mode="dark"] .empty-state,
+[data-mode="dark"] .field-hint,
+[data-mode="dark"] .ts,
+[data-mode="dark"] .dm-inbox-time {
+  color: var(--muted);
+}
+
+/* Form controls: the browser default is a white box, which is the single
+   most obvious "this isn't really dark mode" tell on a dark page. */
+[data-mode="dark"] input[type="text"],
+[data-mode="dark"] input[type="email"],
+[data-mode="dark"] input[type="password"],
+[data-mode="dark"] input[type="search"],
+[data-mode="dark"] input[type="url"],
+[data-mode="dark"] input[type="number"],
+[data-mode="dark"] textarea,
+[data-mode="dark"] select {
+  background-color: #101117;
+  border-color: #33353c;
+  color: var(--text);
+}
+[data-mode="dark"] input::placeholder,
+[data-mode="dark"] textarea::placeholder {
+  color: #6f7078;
+}
+
+/* Alternating rows read as stripes of white without this. */
+[data-mode="dark"] .side-list .row:nth-child(even),
+[data-mode="dark"] .leaderboard-row:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.035);
 }

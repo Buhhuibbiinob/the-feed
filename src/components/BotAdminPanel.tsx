@@ -3,7 +3,9 @@
 import { useActionState } from "react";
 import {
   adminCreateBot,
+  adminCreateBotsBulk,
   adminUpdateBot,
+  adminUpdateBotProfile,
   adminDeleteBot,
   adminRunBotActivity,
   type BotProfile,
@@ -14,6 +16,7 @@ const initialState: BotState = {};
 
 export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: boolean }) {
   const [createState, createAction, creating] = useActionState(adminCreateBot, initialState);
+  const [bulkState, bulkAction, bulkCreating] = useActionState(adminCreateBotsBulk, initialState);
   const [runState, runAction, running] = useActionState(adminRunBotActivity, initialState);
 
   return (
@@ -44,12 +47,19 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
           </div>
         ) : (
           bots.map((bot) => (
-            <div className="chat-row" key={bot.id}>
-              <b>@{bot.username}</b> <span className="badge-bot">BOT</span>
-              {!bot.bot_active && <span className="field-hint"> (paused)</span>}
-              <form action={adminUpdateBot} style={{ marginTop: 6 }}>
+            <details className="chat-row" key={bot.id}>
+              <summary>
+                <b>@{bot.username}</b> <span className="badge-bot">BOT</span>
+                {!bot.bot_active && <span className="field-hint"> (paused)</span>}
+              </summary>
+
+              <form action={adminUpdateBot} style={{ marginTop: 8 }}>
                 <input type="hidden" name="bot_id" value={bot.id} />
+                <label className="field-hint" htmlFor={`persona-${bot.id}`}>
+                  Persona - taste and typing voice, which shapes everything it writes
+                </label>
                 <textarea
+                  id={`persona-${bot.id}`}
                   name="persona"
                   rows={2}
                   defaultValue={bot.bot_persona ?? ""}
@@ -57,29 +67,105 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
                 />
                 <div className="form-actions" style={{ marginTop: 6 }}>
                   <button className="btn" type="submit" name="active" value={bot.bot_active ? "true" : "true"}>
-                    Save
+                    Save persona
                   </button>
                   <button className="btn btn-ghost" type="submit" name="active" value={bot.bot_active ? "false" : "true"}>
                     {bot.bot_active ? "Pause" : "Resume"}
                   </button>
                 </div>
               </form>
-              <form action={adminDeleteBot} className="inline-form" style={{ marginTop: 4 }}>
+
+              <form action={adminUpdateBotProfile} style={{ marginTop: 10 }}>
+                <input type="hidden" name="bot_id" value={bot.id} />
+                <div className="field">
+                  <label htmlFor={`avatar-${bot.id}`}>Profile picture URL</label>
+                  <input
+                    id={`avatar-${bot.id}`}
+                    name="avatar_url"
+                    type="text"
+                    defaultValue={bot.avatar_url ?? ""}
+                    placeholder="/avatars/preset-1.svg or an image URL"
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor={`banner-${bot.id}`}>Banner URL</label>
+                  <input
+                    id={`banner-${bot.id}`}
+                    name="banner_url"
+                    type="text"
+                    defaultValue={bot.banner_url ?? ""}
+                    placeholder="Image URL for the profile banner"
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor={`bio-${bot.id}`}>Bio</label>
+                  <textarea id={`bio-${bot.id}`} name="bio" rows={2} defaultValue={bot.bio ?? ""} />
+                </div>
+                <div className="field">
+                  <label htmlFor={`status-title-${bot.id}`}>Status - what they&apos;re currently on</label>
+                  <select
+                    name="status_media_type"
+                    defaultValue={bot.status_media_type ?? "music"}
+                    aria-label="Status kind"
+                  >
+                    <option value="music">Listening to</option>
+                    <option value="movie_tv">Watching</option>
+                  </select>
+                  <input
+                    id={`status-title-${bot.id}`}
+                    name="status_title"
+                    type="text"
+                    defaultValue={bot.status_title ?? ""}
+                    placeholder="Title (leave blank to clear the status)"
+                  />
+                  <input
+                    name="status_artist"
+                    type="text"
+                    defaultValue={bot.status_artist ?? ""}
+                    placeholder="Artist (optional)"
+                  />
+                </div>
+                <div className="form-actions" style={{ marginTop: 6 }}>
+                  <button className="btn" type="submit">
+                    Save profile
+                  </button>
+                </div>
+              </form>
+
+              <form action={adminDeleteBot} className="inline-form" style={{ marginTop: 8 }}>
                 <input type="hidden" name="bot_id" value={bot.id} />
                 <button type="submit" className="comment-action danger">
                   Delete bot and everything it posted
                 </button>
               </form>
-            </div>
+            </details>
           ))
         )}
       </div>
+
+      <form action={bulkAction} style={{ marginBottom: 20 }}>
+        {bulkState.error && <div className="form-error">{bulkState.error}</div>}
+        {bulkState.ok && <div className="form-message">{bulkState.summary}</div>}
+        <div className="field">
+          <label htmlFor="bot-count">Create bots in bulk</label>
+          <input id="bot-count" name="count" type="number" min={1} max={25} defaultValue={10} />
+          <span className="field-hint">
+            Each one gets its own handle, taste and typing voice - dialect, punctuation habits, post
+            length. Edit any of them individually above afterwards.
+          </span>
+        </div>
+        <div className="form-actions">
+          <button className="btn" type="submit" disabled={bulkCreating}>
+            {bulkCreating ? "Creating…" : "Create bots"}
+          </button>
+        </div>
+      </form>
 
       <form action={createAction}>
         {createState.error && <div className="form-error">{createState.error}</div>}
         {createState.ok && <div className="form-message">{createState.summary}</div>}
         <div className="field">
-          <label htmlFor="bot-username">Username</label>
+          <label htmlFor="bot-username">Or create one by hand</label>
           <input id="bot-username" name="username" type="text" placeholder="vinylghost" />
         </div>
         <div className="field">

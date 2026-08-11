@@ -2,20 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import { isAdmin } from "@/lib/admin";
 
-// Secondary pages an admin can archive (hide from nav, block direct visits
-// for non-admins). The homepage isn't included - archiving the whole feed
-// doesn't make sense and page.tsx is too central to gate this way.
-export const BUILTIN_PAGES: { slug: string; label: string; path: string }[] = [
-  { slug: "chat", label: "Chat", path: "/chat" },
-  { slug: "leaderboard", label: "Leaderboard", path: "/leaderboard" },
-  { slug: "new-releases", label: "New Releases", path: "/new-releases" },
-  { slug: "recs", label: "Recs", path: "/recs" },
-  { slug: "clubs", label: "Clubs", path: "/clubs" },
-  { slug: "artists", label: "Creators", path: "/artists" },
-  { slug: "collections", label: "Collections", path: "/collections" },
-  { slug: "wrapped", label: "Wrapped", path: "/wrapped" },
-  { slug: "newsletter", label: "Newsletter", path: "/newsletter" },
-];
+export { BUILTIN_PAGES, MORE_PAGES } from "@/lib/builtinPages";
 
 export type SitePage = {
   id: string;
