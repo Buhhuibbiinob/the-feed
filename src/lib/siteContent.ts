@@ -14,12 +14,6 @@ export const SITE_CONTENT_FIELDS = [
     default: "Post quick reviews of music, movies, and TV - and see what the community's into right now.",
   },
   {
-    key: "feedtv_heading",
-    label: "Feed TV panel label",
-    path: "/",
-    default: "TV",
-  },
-  {
     key: "artists_heading",
     label: "Creators page heading",
     path: "/artists",

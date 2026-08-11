@@ -505,7 +505,7 @@ export default async function FeedPage({
 
       <div className="content-grid">
         <div className="left-col">
-          <FeedTV clips={feedTvClips} heading={siteText.feedtv_heading} />
+          <FeedTV clips={feedTvClips} />
 
           {spotifyConnected && (
             <Shelf

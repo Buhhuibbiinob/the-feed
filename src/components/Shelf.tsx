@@ -60,6 +60,10 @@ export function Shelf({
   const [openId, setOpenId] = useState<string | null>(null);
   const isDvdShelf = items.length > 0 && items.every((i) => i.poster);
 
+  // The stack is already a physical object with its own edges and shadow;
+  // boxing it inside a panel read as a pile of DVDs sitting in a tray.
+  if (isDvdShelf) return <DvdCaseShelf items={items} />;
+
   return (
     <div className={`panel${tone ? ` tone-${tone}` : ""}`}>
       <div className="panel-head tabbed">
@@ -71,8 +75,6 @@ export function Shelf({
       <div className="shelf-body">
         {items.length === 0 ? (
           <div className="empty-state">{emptyMessage}</div>
-        ) : isDvdShelf ? (
-          <DvdCaseShelf items={items} />
         ) : (
           <div className="sk-shelf-grid">
             {items.map((item) => {

@@ -639,15 +639,16 @@ a:hover {
   }
 }
 
-/* ---- Feed TV ---- */
-.feedtv-live {
-  font-size: 9.5px;
-  font-weight: 700;
-  color: #ff5f5f;
-  letter-spacing: 0.5px;
-}
-.feedtv-body {
-  padding: 14px;
+/* ---- Feed TV ----
+   No panel around it: the player's own chrome is already a window, so
+   wrapping it in a second one just cost vertical space and read as a box
+   inside a box. */
+.feedtv-standalone {
+  max-width: var(--feedtv-width);
+  margin: 0 auto 18px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--panel-shadow);
 }
 /* Old-YouTube-mobile-app player chrome, ported from
    skeuomorphic-components.html's .yt-shell/.yt-topbar/.yt-rate-row/
@@ -1082,50 +1083,98 @@ a:hover {
    title running across it, exactly like a stack of DVDs on a shelf.
    Clicking a spine is real navigation to the review (via Link). */
 .sk-dvd-stack {
+  /* A pile of DVD cases lying flat, seen edge-on. The pile itself casts one
+     shadow; each case carries its own top highlight and bottom edge so the
+     thickness reads, and a slight left/right stagger stops it looking like
+     a printed strip. */
   display: flex;
   flex-direction: column;
-  border: 1px solid #1a1a1a;
-  border-radius: 3px;
-  overflow: hidden;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  padding: 6px 10px 14px;
+  margin-bottom: 18px;
+  filter: drop-shadow(0 16px 20px rgba(0, 0, 0, 0.4));
 }
 .sk-dvd-spine-case {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 56px;
-  padding: 0 14px;
-  background-color: #2a2a2a;
+  height: 46px;
+  padding: 0 16px 0 22px;
+  background-color: #23232a;
   background-size: cover;
   background-position: center;
-  border-bottom: 2px solid #000;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 3px 5px rgba(0, 0, 0, 0.5), 0 -1px 0 rgba(0, 0, 0, 0.6);
   text-decoration: none;
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  border-radius: 2px 5px 5px 2px;
+  /* The case body: a hard dark edge underneath is the base of the plastic,
+     the pale line above it is the lit top face of the next case down. */
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.85) inset,
+    0 3px 0 rgba(0, 0, 0, 0.55),
+    0 4px 1px rgba(255, 255, 255, 0.09);
+  margin-bottom: 4px;
+  transition: transform 0.12s ease, margin-left 0.12s ease;
+}
+/* Hand-stacked, not machine-aligned. */
+.sk-dvd-spine-case:nth-child(3n) {
+  margin-left: 5px;
+  margin-right: 1px;
+}
+.sk-dvd-spine-case:nth-child(3n + 2) {
+  margin-left: 1px;
+  margin-right: 4px;
+}
+.sk-dvd-spine-case:nth-child(4n) {
+  margin-left: 3px;
 }
 .sk-dvd-spine-case::before {
-  /* Dark gradient for text legibility, plus a glossy highlight along the
-     top edge and a slight vignette on the sides - sells each bar as its
-     own physical case catching light, not one continuous photo strip. */
+  /* Legibility wash, plus a gloss band along the top of the plastic and a
+     vignette at each end so the case curves away rather than lying flat. */
   content: "";
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 12%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, 0) 82%, rgba(0, 0, 0, 0.55)),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.05) 22%, rgba(255, 255, 255, 0) 40%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.6)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.62));
   pointer-events: none;
+}
+.sk-dvd-spine-case::after {
+  /* The hinge: the ribbed spine band down the left edge of every DVD case. */
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 11px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.16) 0 1px,
+      rgba(0, 0, 0, 0.3) 1px 3px
+    ),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.25));
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.6), 2px 0 0 rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+}
+.sk-dvd-spine-case:hover {
+  transform: translateX(3px);
 }
 .sk-dvd-spine-case:hover::before {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 12%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0) 18%, rgba(0, 0, 0, 0) 82%, rgba(0, 0, 0, 0.45)),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.08) 22%, rgba(255, 255, 255, 0) 40%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 20%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.5)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.42));
 }
 .sk-dvd-spine-case:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.85) inset,
+    0 5px 0 rgba(0, 0, 0, 0.6),
+    0 7px 2px rgba(0, 0, 0, 0.35);
 }
 .sk-dvd-thumb {
   display: none;
@@ -1135,11 +1184,11 @@ a:hover {
   z-index: 1;
   flex: 1;
   text-align: center;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.3px;
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85), 0 0 12px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6654,15 +6703,8 @@ body {
 
 /* Feed TV was rendering a full-width 16:9 player, roughly 675px tall in
    the left column, which pushed the actual feed off the first screen.
-   Cap the player itself rather than the panel, so the chrome stays
-   proportional instead of stretching around a small video. */
-.feedtv-panel .yt-shell {
-  max-width: var(--feedtv-width);
-  margin: 0 auto;
-}
-.feedtv-body {
-  padding: 10px;
-}
+   The panel around it is gone entirely now (see .feedtv-standalone); this
+   just caps how wide the player itself gets. */
 .feedtv-upnext-strip {
   max-height: 168px;
 }

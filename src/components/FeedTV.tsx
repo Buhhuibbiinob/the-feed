@@ -100,7 +100,7 @@ function SkipIcon() {
 
 type Tab = "playing" | "suggested" | "comments";
 
-export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading?: string }) {
+export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   const playerElRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const [index, setIndex] = useState(0);
@@ -192,13 +192,8 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
   const scrubPct = progress.duration > 0 ? Math.min(100, (progress.current / progress.duration) * 100) : 0;
 
   return (
-    <div className="panel feedtv-panel">
-      <div className="panel-head tabbed">
-        <span className="panel-head-tab tab-main">{heading}</span>
-        <span className="feedtv-live">● LIVE</span>
-      </div>
-      <div className="feedtv-body">
-        <div className="yt-shell">
+    <div className="feedtv-standalone">
+      <div className="yt-shell">
           <div className="yt-topbar">
             The Feed<span className="yt-red">TV</span>
           </div>
@@ -271,7 +266,6 @@ export function FeedTV({ clips, heading = "TV" }: { clips: FeedTvClip[]; heading
               )}
             </div>
           )}
-        </div>
       </div>
     </div>
   );
