@@ -67,7 +67,8 @@ export function ThemeTokenForm({
           <div className="panel-head">Background image</div>
           <div className="panel-body">
             <p className="field-hint" style={{ marginTop: 0 }}>
-              Upload a photo to sit behind {themeLabel} for everyone using it. Drawn over the
+              Upload a photo to sit behind {themeLabel}{" "}
+              for everyone using it. Drawn over the
               theme&apos;s own colours, so it replaces the pattern without losing the palette. Max{" "}
               {megabytes(MAX_BACKGROUND_BYTES)}MB.
             </p>
