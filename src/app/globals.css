@@ -66,6 +66,35 @@
 
   /* No-op by default; dark mode replaces it with a tint. */
   --body-scrim: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+
+  /* ---- Structural tokens ----
+     These used to be hardcoded in the default theme's section with bare
+     selectors (body, .panel, .apple-nav), which meant the default theme's
+     brushed-aluminium chrome painted over every other theme's tokens - the
+     reason the themes all looked like the same theme in different colours.
+     They are tokens now, so a theme can change its own shape, weight and
+     texture, not just its palette. Defaults here are deliberately plain;
+     the default theme sets its own below. */
+  --panel-radius: 9px;
+  --panel-frame: var(--panel-border);
+  --panel-shadow: 0 14px 28px rgba(0, 0, 0, 0.28), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.25) inset;
+  --panel-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --panel-head-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+
+  --body-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+
+  --nav-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --nav-seam: var(--nav-border);
+  --nav-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+
+  --hero-size: 34px;
+  --hero-weight: 800;
+  --hero-spacing: -0.4px;
+  --hero-transform: none;
+
+  --letterpress: none;
+  --btn-radius: 999px;
 }
 * {
   box-sizing: border-box;
@@ -92,10 +121,10 @@ html {
 body {
   margin: 0;
   position: relative;
-  /* Two layers: a scrim that dark mode tints, over the theme's own
-     background. Keeping the theme gradient underneath is what stops every
-     theme collapsing into the same grey at night. */
-  background: var(--body-scrim), var(--body-bg);
+  /* Three layers: a scrim dark mode tints, the theme's own texture, then
+     the theme's background. Keeping the theme gradient underneath is what
+     stops every theme collapsing into the same grey at night. */
+  background: var(--body-scrim), var(--body-texture), var(--body-bg);
   background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial,
@@ -5506,36 +5535,43 @@ button.btn-ghost {
 /* ---- Brushed environment behind the whole app ----
    Fine vertical brush lines plus a broad light source, so the page
    itself reads as an anodised surface the windows sit on. */
-body {
-  background-attachment: fixed;
-  background-image:
+/* The default theme's brushed-aluminium body, now scoped to it rather than
+   painted over every other theme. */
+[data-theme="ios-light"] {
+  --body-texture:
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0 1px, rgba(0, 0, 0, 0.03) 1px 2px),
     radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, 0.85), transparent 60%),
     radial-gradient(ellipse at 12% 8%, rgba(150, 215, 255, 0.3), transparent 45%),
     radial-gradient(ellipse at 88% 4%, rgba(160, 240, 220, 0.26), transparent 42%),
     linear-gradient(180deg, #dfe3e8 0%, #c8ccd2 40%, #b3b8bf 100%);
 }
-[data-mode="dark"] body {
-  background-image:
+[data-theme="ios-light"][data-mode="dark"] {
+  --body-texture:
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0.22) 1px 2px),
     radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, 0.16), transparent 60%),
     radial-gradient(ellipse at 12% 8%, rgba(60, 140, 210, 0.24), transparent 45%),
     linear-gradient(180deg, #3a3d42 0%, #26282c 45%, #131417 100%);
 }
 
-/* ---- Panels as physical windows: double bevel + Aqua pinstripes ---- */
+/* ---- Panels: shape and weight come from the theme ---- */
 .panel {
-  border: 1px solid #8e939a;
-  border-radius: 8px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 0 0 1px rgba(255, 255, 255, 0.55),
-    0 14px 30px rgba(0, 0, 0, 0.34), 0 3px 8px rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--panel-frame);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
 }
-/* The classic pinstripe: 1px light band every 4px across panel bodies. */
 .panel-body,
 .side-list,
 .chat-preview-body,
 .stats-body {
-  background-image: repeating-linear-gradient(
+  background-image: var(--panel-texture);
+}
+/* The default theme's own: double bevel and Aqua pinstripes. */
+[data-theme="ios-light"] {
+  --panel-radius: 8px;
+  --panel-frame: #8e939a;
+  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 14px 30px rgba(0, 0, 0, 0.34), 0 3px 8px rgba(0, 0, 0, 0.22);
+  --panel-texture: repeating-linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.55) 0 1px,
     rgba(0, 0, 0, 0.012) 1px 4px
@@ -5564,7 +5600,10 @@ body {
 .right-now-tab,
 .leaderboard-row b,
 .side-list b {
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 -1px 0 rgba(0, 0, 0, 0.16);
+  text-shadow: var(--letterpress);
+}
+[data-theme="ios-light"] {
+  --letterpress: 0 1px 0 rgba(255, 255, 255, 0.95), 0 -1px 0 rgba(0, 0, 0, 0.16);
 }
 [data-mode="dark"] .panel-head,
 [data-mode="dark"] .panel-head-tab,
@@ -5574,16 +5613,28 @@ body {
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 .page-header h1 {
-  font-size: 40px;
+  font-size: var(--hero-size);
+  font-weight: var(--hero-weight);
+  letter-spacing: var(--hero-spacing);
+  text-transform: var(--hero-transform);
+}
+[data-theme="ios-light"] {
+  --hero-size: 40px;
 }
 
-/* ---- Nav: heavier brushed aluminium with a deep seam ---- */
+/* ---- Nav: texture and seam come from the theme ---- */
 .apple-nav {
-  background-image:
+  background-image: var(--nav-texture), var(--nav-bg);
+  border-bottom: 1px solid var(--nav-seam);
+  box-shadow: var(--nav-shadow);
+}
+/* The default theme's own: heavier brushed aluminium, deep seam. */
+[data-theme="ios-light"] {
+  --nav-texture:
     repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0 1px, rgba(0, 0, 0, 0.05) 1px 2px),
     linear-gradient(180deg, #fdfdfd 0%, #e8e8ea 44%, #cfcfd4 52%, #a9a9b0 100%);
-  border-bottom: 1px solid #6f7076;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 -6px 10px rgba(0, 0, 0, 0.12) inset,
+  --nav-seam: #6f7076;
+  --nav-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 -6px 10px rgba(0, 0, 0, 0.12) inset,
     0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
@@ -5755,4 +5806,252 @@ button.btn,
 [data-mode="dark"] .side-list .row:nth-child(even),
 [data-mode="dark"] .leaderboard-row:nth-child(even) {
   background-color: rgba(255, 255, 255, 0.035);
+}
+
+/* ================================================================
+   Per-theme structure
+
+   Themes used to be colour-token blocks only, sharing the default
+   theme's shape, chrome and type. That is why none of them read as the
+   thing they are named after. Each block below sets the structural
+   tokens too: display face, panel shape and weight, nav treatment,
+   background texture, heading scale.
+   ================================================================ */
+
+/* MySpace: dense, boxy, Arial, hard edges and a thin bright seam. */
+[data-theme="myspace"] {
+  --font-display: Arial, Helvetica, sans-serif;
+  --panel-radius: 0px;
+  --panel-frame: #0055cc;
+  --panel-shadow: 0 0 0 1px rgba(0, 85, 204, 0.35), 0 2px 0 rgba(0, 0, 0, 0.5);
+  --nav-seam: #0066ff;
+  --nav-shadow: 0 2px 0 rgba(0, 102, 255, 0.5);
+  --hero-size: 26px;
+  --hero-weight: 700;
+  --hero-spacing: 0;
+  --btn-radius: 3px;
+  --letterpress: none;
+}
+
+/* Twitter: flat, roomy, soft corners, almost no shadow. */
+[data-theme="twitter"] {
+  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --panel-radius: 16px;
+  --panel-frame: #cfd9de;
+  --panel-shadow: none;
+  --nav-shadow: 0 1px 0 #cfd9de;
+  --hero-size: 31px;
+  --hero-weight: 800;
+  --btn-radius: 999px;
+  --letterpress: none;
+}
+
+/* YouTube: card-flat with a hard red seam under the bar. */
+[data-theme="youtube"] {
+  --font-display: Roboto, "Helvetica Neue", Arial, sans-serif;
+  --panel-radius: 12px;
+  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --nav-seam: #cc0000;
+  --nav-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --hero-size: 28px;
+  --hero-weight: 700;
+  --btn-radius: 2px;
+  --letterpress: none;
+}
+
+/* Y2K McBling: rhinestone gloss, fat rounded chrome, pink glow. */
+[data-theme="mcbling"] {
+  --font-display: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
+  --panel-radius: 18px;
+  --panel-frame: #ff5fb0;
+  --panel-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9) inset, 0 0 18px rgba(255, 95, 176, 0.55),
+    0 10px 24px rgba(120, 0, 60, 0.4);
+  --panel-texture: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.5) 0 2px,
+    rgba(255, 190, 225, 0.15) 2px 6px
+  );
+  --body-texture: radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.5), transparent 22%),
+    radial-gradient(circle at 76% 30%, rgba(255, 255, 255, 0.4), transparent 18%),
+    radial-gradient(circle at 44% 78%, rgba(255, 255, 255, 0.35), transparent 20%);
+  --nav-shadow: 0 3px 14px rgba(255, 95, 176, 0.5);
+  --hero-size: 38px;
+  --hero-weight: 800;
+  --hero-spacing: -1px;
+  --btn-radius: 999px;
+  --letterpress: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Scene: hard black/white contrast, tight leading, zebra flash. */
+[data-theme="scene"] {
+  --font-display: Impact, "Haettenschweiler", "Arial Narrow Bold", sans-serif;
+  --panel-radius: 4px;
+  --panel-frame: #ff1f8f;
+  --panel-shadow: 0 0 0 2px #000, 0 0 14px rgba(255, 31, 143, 0.6);
+  --panel-texture: repeating-linear-gradient(
+    115deg,
+    rgba(0, 0, 0, 0.07) 0 6px,
+    rgba(255, 255, 255, 0) 6px 12px
+  );
+  --body-texture: repeating-linear-gradient(
+    115deg,
+    rgba(0, 0, 0, 0.5) 0 14px,
+    rgba(255, 255, 255, 0.12) 14px 28px
+  );
+  --nav-seam: #00e5ff;
+  --nav-shadow: 0 3px 0 #ff1f8f;
+  --hero-size: 44px;
+  --hero-weight: 400;
+  --hero-spacing: 1px;
+  --hero-transform: uppercase;
+  --btn-radius: 2px;
+  --letterpress: 2px 2px 0 rgba(0, 0, 0, 0.85);
+}
+
+/* Emo: flat black, thin crimson rule, condensed caps. */
+[data-theme="emo"] {
+  --font-display: "Courier New", "Lucida Console", monospace;
+  --panel-radius: 0px;
+  --panel-frame: #3a0d16;
+  --panel-shadow: 0 0 0 1px rgba(160, 20, 50, 0.35);
+  --nav-seam: #8b0f2b;
+  --nav-shadow: none;
+  --hero-size: 30px;
+  --hero-weight: 700;
+  --hero-spacing: 3px;
+  --hero-transform: lowercase;
+  --btn-radius: 0px;
+  --letterpress: none;
+}
+
+/* Frutiger Aero: wet glass, deep gloss, generous radius. */
+[data-theme="frutiger-aero"] {
+  --font-display: "Segoe UI", Frutiger, "Helvetica Neue", sans-serif;
+  --panel-radius: 14px;
+  --panel-frame: rgba(255, 255, 255, 0.7);
+  --panel-shadow: 0 2px 0 rgba(255, 255, 255, 0.95) inset, 0 -14px 24px rgba(255, 255, 255, 0.35) inset,
+    0 18px 36px rgba(0, 60, 90, 0.4);
+  --panel-texture: linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0) 55%);
+  --body-texture: radial-gradient(ellipse at 78% 8%, rgba(255, 255, 255, 0.75), transparent 42%),
+    radial-gradient(ellipse at 12% 88%, rgba(150, 255, 220, 0.4), transparent 46%);
+  --nav-shadow: 0 2px 0 rgba(255, 255, 255, 0.8) inset, 0 6px 18px rgba(0, 60, 90, 0.35);
+  --hero-size: 36px;
+  --btn-radius: 999px;
+  --letterpress: 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Frutiger Metro: aero gloss up top, hard flat tiles below. */
+[data-theme="frutiger-metro"] {
+  --font-display: "Segoe UI", "Segoe UI Light", "Helvetica Neue", sans-serif;
+  --panel-radius: 0px;
+  --panel-frame: transparent;
+  --panel-shadow: none;
+  --nav-shadow: 0 4px 16px rgba(0, 60, 90, 0.35);
+  --hero-size: 42px;
+  --hero-weight: 300;
+  --hero-spacing: -1px;
+  --btn-radius: 0px;
+  --letterpress: none;
+}
+
+/* Party Rock: black club flyer, neon rules, everything shouting. */
+[data-theme="party-rock-2010"] {
+  --font-display: "Arial Black", "Arial Bold", Gadget, sans-serif;
+  --panel-radius: 6px;
+  --panel-frame: #39ff14;
+  --panel-shadow: 0 0 0 1px rgba(255, 0, 200, 0.5), 0 0 22px rgba(57, 255, 20, 0.35);
+  --body-texture: repeating-linear-gradient(
+    45deg,
+    rgba(255, 0, 200, 0.09) 0 12px,
+    rgba(57, 255, 20, 0.07) 12px 24px
+  );
+  --nav-seam: #ff00c8;
+  --nav-shadow: 0 0 18px rgba(255, 0, 200, 0.6);
+  --hero-size: 40px;
+  --hero-weight: 900;
+  --hero-transform: uppercase;
+  --hero-spacing: -1px;
+  --btn-radius: 999px;
+  --letterpress: 0 0 10px rgba(57, 255, 20, 0.8);
+}
+
+/* Champagne Bling: gold leaf, soft pink, ornate and glossy. */
+[data-theme="champagne-bling"] {
+  --font-display: "Palatino Linotype", Palatino, Georgia, serif;
+  --panel-radius: 20px;
+  --panel-frame: #d9b46a;
+  --panel-shadow: 0 0 0 2px rgba(255, 245, 220, 0.9) inset, 0 12px 30px rgba(120, 90, 30, 0.35);
+  --panel-texture: linear-gradient(180deg, rgba(255, 250, 235, 0.7), rgba(255, 255, 255, 0) 60%);
+  --nav-shadow: 0 4px 14px rgba(160, 120, 40, 0.4);
+  --hero-size: 38px;
+  --hero-weight: 700;
+  --btn-radius: 999px;
+  --letterpress: 0 1px 0 rgba(255, 250, 235, 0.95);
+}
+
+/* 2018 Swag: streetwear, stark boxes, wide caps. */
+[data-theme="swag-2018"] {
+  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --panel-radius: 2px;
+  --panel-frame: #111;
+  --panel-shadow: 6px 6px 0 rgba(0, 0, 0, 0.9);
+  --nav-seam: #e01b24;
+  --nav-shadow: none;
+  --hero-size: 34px;
+  --hero-weight: 800;
+  --hero-transform: uppercase;
+  --hero-spacing: 2px;
+  --btn-radius: 0px;
+  --letterpress: none;
+}
+
+/* 2016: marble, rose gold, thin type, very soft everything. */
+[data-theme="mm2016"] {
+  --font-display: "Avenir Next", "Century Gothic", "Futura", sans-serif;
+  --panel-radius: 14px;
+  --panel-frame: #ecdcd8;
+  --panel-shadow: 0 10px 30px rgba(180, 140, 130, 0.25);
+  --body-texture: radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.7), transparent 45%),
+    radial-gradient(ellipse at 75% 70%, rgba(240, 220, 215, 0.6), transparent 50%);
+  --nav-shadow: 0 1px 0 rgba(200, 170, 165, 0.5);
+  --hero-size: 32px;
+  --hero-weight: 300;
+  --hero-spacing: 4px;
+  --hero-transform: uppercase;
+  --btn-radius: 999px;
+  --letterpress: none;
+}
+
+/* Tumblr: blog-plain, tight serif headings, minimal chrome. */
+[data-theme="tumblr"] {
+  --font-display: Georgia, "Times New Roman", serif;
+  --panel-radius: 3px;
+  --panel-frame: #d9dee3;
+  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  --nav-shadow: none;
+  --hero-size: 28px;
+  --hero-weight: 700;
+  --btn-radius: 3px;
+  --letterpress: none;
+}
+
+/* Tropical: sun-bleached, rounded, high-key. */
+[data-theme="tropical"] {
+  --font-display: "Trebuchet MS", "Gill Sans", sans-serif;
+  --panel-radius: 22px;
+  --panel-frame: #ffffff;
+  --panel-shadow: 0 12px 26px rgba(0, 120, 130, 0.3);
+  --body-texture: radial-gradient(circle at 82% 14%, rgba(255, 240, 150, 0.55), transparent 34%);
+  --nav-shadow: 0 4px 12px rgba(0, 120, 130, 0.3);
+  --hero-size: 38px;
+  --hero-weight: 800;
+  --btn-radius: 999px;
+  --letterpress: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Buttons follow the theme's own corner radius. */
+.btn,
+button.btn,
+.new-post-btn {
+  border-radius: var(--btn-radius);
 }
