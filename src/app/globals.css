@@ -8161,3 +8161,11 @@ body {
   border: 1px solid #3f444d;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 4px 10px rgba(0, 0, 0, 0.3);
 }
+
+/* .tagline sets its own colour, which beat the inherited one on
+   .page-header and left dark grey text sitting on the slate at about
+   1.4:1. Stated directly so it wins. */
+[data-theme="ios-light"] .page-header .tagline {
+  color: #dfe3e9;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
