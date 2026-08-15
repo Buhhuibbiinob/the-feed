@@ -842,9 +842,25 @@ export default async function FeedPage({
           </Link>
         ))}
 
+      {/* Feed TV runs down the middle with panels either side, rather than
+          floating in dead space. Orby leads on the left because the daily
+          wish counter is the strongest reason to come back and this is the
+          first thing anyone looks at; social proof sits on the right. Both
+          flanks are lifted out of the sidebar, not duplicated, so nothing
+          renders twice. Below the tablet breakpoint the three columns stack
+          and the flanks fall back into their old sidebar order. */}
       {feedTvClips.length > 0 && (
-        <div className="feedtv-top">
-          <FeedTV clips={feedTvClips} />
+        <div className="feedtv-row">
+          <div className="feedtv-flank">
+            <OrbyBot wishesLeft={orbyWishesLeft} />
+          </div>
+          <div className="feedtv-top">
+            <FeedTV clips={feedTvClips} />
+          </div>
+          <div className="feedtv-flank">
+            {sideMostActive}
+            {sideClubs}
+          </div>
         </div>
       )}
 
@@ -1033,8 +1049,6 @@ export default async function FeedPage({
             proof sits in the middle, and pure utility (stats, newsletter)
             drops to the bottom. Shuffling this would throw that away. */}
         <div className="right-col">
-          <OrbyBot wishesLeft={orbyWishesLeft} />
-
           {!user && (
             <div className="panel new-post-card">
               <div className="panel-body">
@@ -1050,9 +1064,7 @@ export default async function FeedPage({
           )}
 
           {sideLiveNow}
-          {sideMostActive}
           {sideSidebarAds}
-          {sideClubs}
           {sideTopRated}
           {sideStats}
           {sideNewsletter}

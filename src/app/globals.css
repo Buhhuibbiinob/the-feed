@@ -8866,3 +8866,49 @@ body {
     0 4px 10px rgba(0, 0, 0, 0.45),
     0 12px 24px rgba(0, 0, 0, 0.3);
 }
+
+/* ================================================================
+   Feed TV with panels either side
+
+   The player sat alone in a full-width band with dead space to its
+   left and right. It now runs down the middle of a three-column row
+   with furniture flanking it.
+
+   The centre column is `auto` because Feed TV's width is a per-device
+   choice (S/M/L/XL, stored in localStorage) - the grid has to take
+   whatever the member picked and give the flanks the remainder,
+   rather than the other way round.
+   ================================================================ */
+.feedtv-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.feedtv-row .feedtv-top {
+  margin-bottom: 0;
+}
+/* Panels in the flanks lose their stacking margin on the last one so
+   the three columns finish level. */
+.feedtv-flank > *:last-child {
+  margin-bottom: 0;
+}
+/* The flanks are secondary to the player, so they don't get to stretch
+   to its full height - they sit at the top of their column. */
+.feedtv-flank {
+  min-width: 0;
+}
+
+/* Below the tablet breakpoint the row stacks. Feed TV is pulled first
+   so the phone layout still opens on the player, the way it did before
+   the flanks existed. */
+@media (max-width: 1024px) {
+  .feedtv-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .feedtv-row .feedtv-top {
+    order: -1;
+    margin-bottom: 16px;
+  }
+}
