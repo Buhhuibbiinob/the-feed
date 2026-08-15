@@ -7117,3 +7117,156 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ================================================================
+   Master-prompt step 3: nav/chrome skeuomorphic pass (ios-light)
+
+   Matched to the reference screenshots, not to "skeuomorphic" in the
+   abstract:
+     - Dark charcoal nav with a bright glossy top highlight and hairline
+       seams between items (old YouTube iPhone app, refs 1 and 5).
+     - Light brushed metal kept for the toolbars and section header bars
+       underneath (iPad iPod toolbar, iOS widget kit). Dark bar on top,
+       light metal below, exactly as those apps layer it.
+     - Inset, recessed search field (iPad iPod search).
+
+   CHROME ONLY. Nothing here touches review cards, star ratings or post
+   thumbnails - those stay clean and scannable, and get their own pass
+   later. The content should look like it sits on a skeuomorphic frame,
+   not like it's wearing one.
+   ================================================================ */
+
+[data-theme="ios-light"] {
+  /* Charcoal glass. The hard 50/51% break is what reads as a real
+     lit surface rather than a soft CSS gradient. */
+  --nav-bg: linear-gradient(
+    180deg,
+    #6f7175 0%,
+    #4a4c50 6%,
+    #333539 48%,
+    #232427 51%,
+    #2b2c30 92%,
+    #17181a 100%
+  );
+  --nav-border: #0d0e0f;
+  --nav-text: #e9e9ec;
+  --nav-active-text: #ffffff;
+  --wordmark-color: #f4f4f6;
+}
+
+/* Bright specular band across the top of the bar. */
+[data-theme="ios-light"] .apple-nav {
+  position: relative;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+[data-theme="ios-light"] .apple-nav::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 46%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.04));
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="ios-light"] .apple-nav-inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hairline seams: dark groove then light catch, the way a milled metal
+   bar separates its segments. */
+[data-theme="ios-light"] .apple-nav a,
+[data-theme="ios-light"] .brand {
+  border-right: 1px solid rgba(0, 0, 0, 0.55);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.12);
+}
+[data-theme="ios-light"] .apple-nav a {
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+[data-theme="ios-light"] .apple-nav a:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+/* Active tab is pressed into the bar, not raised off it. */
+[data-theme="ios-light"] .apple-nav a.active {
+  background: linear-gradient(180deg, #101113 0%, #1b1d20 55%, #26282c 100%);
+  color: var(--nav-active-text);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6) inset, 0 -1px 0 rgba(255, 255, 255, 0.16) inset;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+[data-theme="ios-light"] .brand .wordmark {
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.65);
+}
+
+/* Recessed search well. */
+[data-theme="ios-light"] .nav-search {
+  background: linear-gradient(180deg, #17181a, #303236);
+  border: 1px solid #0c0d0e;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7) inset, 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+[data-theme="ios-light"] .nav-search input {
+  color: #eaeaee;
+}
+[data-theme="ios-light"] .nav-search input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+/* More button and account chrome, sitting on the dark bar. */
+[data-theme="ios-light"] .nav-more-btn,
+[data-theme="ios-light"] .nav-user,
+[data-theme="ios-light"] .nav-bell-btn {
+  color: var(--nav-text);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+[data-theme="ios-light"] .nav-more-btn:hover,
+[data-theme="ios-light"] .nav-bell-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+[data-theme="ios-light"] .nav-more-btn.active {
+  background: linear-gradient(180deg, #101113, #26282c);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6) inset;
+}
+
+/* Deeper brushed metal on the section header bars. The extra hard stop
+   at the midpoint is the difference between "grey gradient" and "milled
+   aluminium" - the iPad iPod toolbar has exactly this break. */
+[data-theme="ios-light"] {
+  --panel-head-bg: repeating-linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.38) 0px,
+      rgba(255, 255, 255, 0.38) 1px,
+      rgba(0, 0, 0, 0.035) 1px,
+      rgba(0, 0, 0, 0.035) 2px
+    ),
+    linear-gradient(
+      180deg,
+      #fdfdfe 0%,
+      #e6e6ea 8%,
+      #d4d4d9 49%,
+      #c4c4ca 51%,
+      #d2d2d7 92%,
+      #b4b4ba 100%
+    );
+}
+[data-theme="ios-light"] .panel-head {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 -1px 0 rgba(0, 0, 0, 0.14) inset;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* Mobile chrome: same charcoal bar top and bottom, so the phone layout
+   reads as an app shell rather than a website with a strip on it. */
+[data-theme="ios-light"] .sk-ios-topbar,
+[data-theme="ios-light"] .sk-ios-tabbar {
+  background: linear-gradient(180deg, #6f7175 0%, #4a4c50 6%, #333539 48%, #232427 51%, #2b2c30 92%, #17181a 100%);
+  border-color: #0d0e0f;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.24) inset, 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+[data-theme="ios-light"] .sk-ios-title,
+[data-theme="ios-light"] .sk-ios-back,
+[data-theme="ios-light"] .sk-ios-action,
+[data-theme="ios-light"] .sk-ios-tab-label {
+  color: #eaeaee;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.65);
+}
+[data-theme="ios-light"] .sk-ios-tab.active .sk-ios-tab-label {
+  color: #ffffff;
+}
