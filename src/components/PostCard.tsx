@@ -27,6 +27,14 @@ export type PostCardData = {
   username: string;
   userId: string;
   isVerified?: boolean;
+  /** How many OTHER people have reviewed the same title. Drives the
+      "others reviewed this" nudge, which is the cheapest way to turn a
+      dead Comment (0) into a reason to open the post. */
+  alsoReviewedCount?: number;
+  /** The author's earned rank (Regular, Critic, Tastemaker...). Already
+      computed for profiles; surfacing it in the feed is what makes the
+      ladder worth climbing. */
+  authorRank?: string | null;
 };
 
 const initialState: PostFormState = {};
@@ -139,7 +147,9 @@ export function PostCard({
                 <span key="rate" className="track-actions-muted">Rate ({likeCount})</span>
               ),
               hideCommentLink ? null : (
-                <Link key="comment" href={`/post/${post.id}`}>Comment ({commentCount})</Link>
+                <Link key="comment" href={`/post/${post.id}`} className={commentCount === 0 ? "comment-invite" : undefined}>
+                  {commentCount === 0 ? "Be the first to comment" : `Comment (${commentCount})`}
+                </Link>
               ),
               currentUserId ? <AddToCollectionButton key="save" postId={post.id} asLink /> : null,
               <ShareButton
@@ -207,7 +217,14 @@ export function PostCard({
         <SpoilerText text={post.body} />
         <div className="post-meta">
           <Link href={`/profile/${post.username}`}>{post.username}</Link>
-          {post.isVerified && <VerifiedBadge />} · {timeAgo(post.createdAt)}
+          {post.isVerified && <VerifiedBadge />}
+          {post.authorRank && <span className="author-rank">{post.authorRank}</span>} ·{" "}
+          {timeAgo(post.createdAt)}
+          {(post.alsoReviewedCount ?? 0) > 0 && (
+            <Link href={`/post/${post.id}`} className="also-reviewed">
+              {post.alsoReviewedCount} other{post.alsoReviewedCount === 1 ? "" : "s"} reviewed this
+            </Link>
+          )}
         </div>
       </div>
     </div>

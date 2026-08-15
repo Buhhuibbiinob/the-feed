@@ -8347,3 +8347,66 @@ body {
     max-height: 420px;
   }
 }
+
+/* ---- Comment nudge and author rank ----
+   "Comment (0)" on every card reads as "nobody talks here". An invite
+   asks for the first one instead, and "N others reviewed this" says
+   the conversation already exists - it just wasn't visible from the
+   feed. Both are the cheapest available push on a dormant feature. */
+.comment-invite {
+  font-weight: 700;
+}
+[data-theme="ios-light"] .track-actions a.comment-invite {
+  color: #1f6f3f;
+}
+[data-theme="ios-light"] .track-actions a.comment-invite:hover {
+  color: #14512d;
+}
+.also-reviewed {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+[data-theme="ios-light"] .also-reviewed {
+  color: #1c4c8f;
+  border: 1px solid #a9b6c9;
+  background: linear-gradient(180deg, #ffffff, #dfe7f2);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 2px rgba(0, 0, 0, 0.16);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+[data-theme="ios-light"] .also-reviewed:hover {
+  text-decoration: none;
+  filter: brightness(1.04);
+}
+/* The earned rank, next to the name. The ladder already existed and was
+   only visible on profiles, which is the one page you visit least. */
+.author-rank {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 100px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+[data-theme="ios-light"] .author-rank {
+  color: #4a3a10;
+  border: 1px solid #b9962f;
+  background: linear-gradient(180deg, #fff6d8 0%, #f3dc98 46%, #e5c76a 52%, #cba63f 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 1px 2px rgba(0, 0, 0, 0.24);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Orby's housing rounds harder than a plain panel, but the later
+   [data-theme] .panel rule matched at the same specificity and won,
+   flattening it back to 10px. Restated so the gadget keeps its shape. */
+[data-theme="ios-light"] .panel.orby-panel {
+  border-radius: 14px;
+}
+[data-theme="ios-light"] .panel.orby-panel .orby-head {
+  border-radius: 13px 13px 0 0;
+}

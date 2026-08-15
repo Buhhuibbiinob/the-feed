@@ -14,6 +14,7 @@ import { searchVideos } from "@/lib/youtube";
 import { fillMissingArt } from "@/lib/musicArt";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { MEDIA_TYPES, MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
+import { highestBadge } from "@/lib/badges";
 import { getAllSiteText } from "@/lib/siteContent";
 import { getPublishedIssues } from "@/lib/newsletter";
 import { getSiteFlags } from "@/lib/siteFlags";
@@ -429,6 +430,24 @@ export default async function FeedPage({
   const topReviewers = [...reviewerCounts.entries()]
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 7);
+
+  // How many people have reviewed the same thing. Keyed on a normalised
+  // title so "The Odyssey" and "the odyssey " count as one. This is what
+  // turns an inert "Comment (0)" into "2 others reviewed this" - the
+  // conversation already exists, it just was not visible from the feed.
+  const titleReviewers = new Map<string, Set<string>>();
+  for (const post of posts) {
+    const key = post.title.trim().toLowerCase();
+    const set = titleReviewers.get(key) ?? new Set<string>();
+    set.add(post.user_id);
+    titleReviewers.set(key, set);
+  }
+  const alsoReviewedFor = (post: { title: string; user_id: string }) => {
+    const set = titleReviewers.get(post.title.trim().toLowerCase());
+    if (!set) return 0;
+    // Everyone except the author of this card.
+    return set.has(post.user_id) ? set.size - 1 : set.size;
+  };
 
   const topThisWeek = allPosts
     .filter((p) => p.rating && isWithinLastWeek(p.created_at))
@@ -1000,6 +1019,11 @@ export default async function FeedPage({
                       youtubeVideoId: post.youtube_video_id,
                       username: post.profiles?.username ?? "unknown",
                       isVerified: post.profiles?.is_verified ?? false,
+                      alsoReviewedCount: alsoReviewedFor(post),
+                      authorRank:
+                        highestBadge(
+                          reviewerCounts.get(post.profiles?.username ?? "")?.count ?? 0
+                        )?.label ?? null,
                     }}
                     currentUserId={user?.id ?? null}
                     viewerIsAdmin={viewerIsAdmin}
