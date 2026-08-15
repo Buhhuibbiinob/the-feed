@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint && node scripts/check-theme-purity.mjs",
+    "check:themes": "node scripts/check-theme-purity.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",

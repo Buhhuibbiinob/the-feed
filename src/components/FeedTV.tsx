@@ -23,6 +23,7 @@ type YTPlayer = {
   destroy: () => void;
   getCurrentTime?: () => number;
   getDuration?: () => number;
+  seekTo?: (seconds: number, allowSeekAhead: boolean) => void;
 };
 
 type YTPlayerEvent = { data: number };
@@ -161,6 +162,11 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   const [progress, setProgress] = useState({ current: 0, duration: 0 });
   const size = useSyncExternalStore(subscribeSize, readStoredSize, () => DEFAULT_SIZE);
   const isFirstRender = useRef(true);
+  // Scrub state lives up here with the other hooks: everything below the
+  // `clips.length === 0` early return runs conditionally, and a hook there
+  // changes call order between renders.
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [scrubbing, setScrubbing] = useState<number | null>(null);
 
   useEffect(() => {
     if (clips.length === 0) return;
@@ -240,7 +246,55 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   }
 
   const current = clips[index];
-  const scrubPct = progress.duration > 0 ? Math.min(100, (progress.current / progress.duration) * 100) : 0;
+  // The scrub bar was painted from progress but had no handlers at all, so
+  // it looked like a control and did nothing. Pointer events give it drag,
+  // click-to-seek and keyboard, and work for mouse and touch from one path.
+  const fractionFromEvent = (clientX: number) => {
+    const el = trackRef.current;
+    if (!el) return 0;
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0) return 0;
+    return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+  };
+
+  const seekToFraction = (fraction: number) => {
+    const player = playerRef.current;
+    if (!player?.seekTo || progress.duration <= 0) return;
+    player.seekTo(fraction * progress.duration, true);
+    setProgress((p) => ({ ...p, current: fraction * p.duration }));
+  };
+
+  function onScrubDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (progress.duration <= 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setScrubbing(fractionFromEvent(e.clientX));
+  }
+  function onScrubMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (scrubbing === null) return;
+    setScrubbing(fractionFromEvent(e.clientX));
+  }
+  function onScrubUp(e: React.PointerEvent<HTMLDivElement>) {
+    if (scrubbing === null) return;
+    const fraction = fractionFromEvent(e.clientX);
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+    setScrubbing(null);
+    seekToFraction(fraction);
+  }
+  function onScrubKey(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (progress.duration <= 0) return;
+    const step = e.shiftKey ? 30 : 5;
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      const delta = e.key === "ArrowRight" ? step : -step;
+      const next = Math.min(progress.duration, Math.max(0, progress.current + delta));
+      seekToFraction(next / progress.duration);
+    }
+  }
+
+  // While dragging, the bar follows the finger rather than the player, so
+  // it doesn't fight the once-a-second progress poll.
+  const livePct = progress.duration > 0 ? Math.min(100, (progress.current / progress.duration) * 100) : 0;
+  const scrubPct = scrubbing !== null ? scrubbing * 100 : livePct;
 
   const width = SIZES.find((s) => s.id === size)!.width;
 
@@ -296,7 +350,21 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
           </div>
           <div className="yt-scrub-row">
             <div className="time">{formatTime(progress.current)}</div>
-            <div className="yt-red-track">
+            <div
+              ref={trackRef}
+              className={`yt-red-track ${scrubbing !== null ? "scrubbing" : ""}`}
+              role="slider"
+              tabIndex={0}
+              aria-label="Seek"
+              aria-valuemin={0}
+              aria-valuemax={Math.round(progress.duration)}
+              aria-valuenow={Math.round((scrubPct / 100) * progress.duration)}
+              onPointerDown={onScrubDown}
+              onPointerMove={onScrubMove}
+              onPointerUp={onScrubUp}
+              onPointerCancel={onScrubUp}
+              onKeyDown={onScrubKey}
+            >
               <div className="yt-red-fill" style={{ width: `${scrubPct}%` }} />
               <div className="yt-red-knob" style={{ left: `${scrubPct}%` }} />
             </div>

@@ -4632,34 +4632,14 @@ footer .copy {
    so switching between them never moves or reshapes anything.
    ================================================================ */
 [data-theme="ios-light"] .panel {
-  border-radius: 14px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 2px 0 rgba(255, 255, 255, 0.5) inset;
-}
-[data-theme="ios-light"] .panel-head {
-  border-radius: 14px 14px 0 0;
 }
 [data-theme="ios-light"] .btn,
 [data-theme="ios-light"] .acct-btn {
-  border-radius: 100px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.5) inset,
     0 -2px 4px rgba(0, 0, 0, 0.2) inset;
 }
-
-/* ---- ios-light (default): Y2K skeuomorphic component-kit overrides ----
-   Reuses .gel-btn's taller, flat-bottomed glass cap and .panel's corner
-   screws from skeuomorphic-components.html, scoped to this theme only so
-   the other 28 themes' button/panel mechanics stay untouched. */
-[data-theme="ios-light"] .btn::before,
-[data-theme="ios-light"] .acct-btn::before {
-  top: 1px;
-  height: 52%;
-  border-radius: 999px 999px 60% 60%;
-}
-[data-theme="ios-light"] .panel {
-  position: relative;
-}
 [data-theme="ios-light"] .brand-logo {
-  border-radius: 4px;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.4),
     0 0 0 1px var(--chrome-low, #8d8d92);
 }
@@ -4679,33 +4659,14 @@ footer .copy {
   background: var(--panel-head-bg);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 -4px 6px rgba(0, 0, 0, 0.08) inset;
   border-bottom: 1px solid var(--panel-head-border);
-  padding: 8px 14px;
-  align-items: center;
-  overflow: hidden;
 }
 [data-theme="ios-light"] .panel-head.tabbed .panel-head-tab {
-  position: static;
-  top: 0;
-  display: flex;
-  flex: 1;
-  padding: 0;
-  border-radius: 0;
   background: transparent;
   border: none;
   box-shadow: none;
 }
 [data-theme="ios-light"] .panel-head.tabbed .panel-head-tab::before {
   content: none;
-}
-[data-theme="ios-light"] .feature-banner,
-[data-theme="ios-light"] .banner-slot {
-  border-radius: 16px;
-}
-[data-theme="ios-light"] .content-grid {
-  gap: 26px;
-}
-[data-theme="ios-light"] .panel-body {
-  padding: 20px;
 }
 
 /* ================================================================
@@ -4906,13 +4867,6 @@ footer .copy {
    Screw/tab classes from that file were intentionally left out - both
    were explicitly removed from the site. */
 [data-theme="ios-light"] .sk-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 24px;
-  border-radius: 999px;
-  font-size: 13px;
   font-weight: 700;
   color: #fff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
@@ -4922,26 +4876,14 @@ footer .copy {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 0 rgba(10, 40, 90, 0.35), 0 6px 12px rgba(0, 0, 0, 0.35),
     inset 0 0 0 1px rgba(255, 255, 255, 0.15);
   cursor: pointer;
-  overflow: hidden;
   transition: transform 0.05s;
 }
 [data-theme="ios-light"] .sk-btn::before {
   content: "";
-  position: absolute;
-  top: 1px;
-  left: 4%;
-  right: 4%;
-  height: 52%;
-  border-radius: 999px 999px 60% 60%;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.05));
 }
 [data-theme="ios-light"] .sk-btn::after {
   content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 35%;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.18));
 }
 [data-theme="ios-light"] .sk-btn:active {
@@ -4961,20 +4903,6 @@ footer .copy {
   background-color: #4fb62f;
   background-image: linear-gradient(180deg, #a8ec82 0%, #6fce4a 22%, #4fb62f 48%, #3a9a1f 52%, #245613 100%);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 0 rgba(20, 60, 10, 0.35), 0 6px 12px rgba(0, 0, 0, 0.35);
-}
-
-/* ---- Ported from ios-app-shell.css: iPhone-5-era app shell layout ----
-   Mobile-only (<=760px). Applies to ALL themes so every theme gets the
-   same app-shell structure (bottom tab bar, top status bar, 480px
-   column); each theme keeps its own colors via the existing --nav-*
-   variables every theme already defines for the old top nav. ios-light
-   additionally hardcodes its own exempted dark-steel-topbar/light-tabbar
-   look below, which - being a more specific [data-theme="ios-light"]
-   selector - wins over this shared base for that theme only. */
-.sk-ios-topbar,
-.sk-ios-tabbar,
-.sk-more-sheet-backdrop {
-  display: none;
 }
 @media (max-width: 760px) {
   .sk-app-shell {
@@ -5753,9 +5681,6 @@ button.btn-ghost {
   letter-spacing: var(--hero-spacing);
   text-transform: var(--hero-transform);
 }
-[data-theme="ios-light"] {
-  --hero-size: 40px;
-}
 
 /* ---- Nav: texture and seam come from the theme ---- */
 .apple-nav {
@@ -5968,7 +5893,6 @@ button.btn,
   --panel-shadow: 0 0 0 1px rgba(0, 85, 204, 0.35), 0 2px 0 rgba(0, 0, 0, 0.5);
   --nav-seam: #0066ff;
   --nav-shadow: 0 2px 0 rgba(0, 102, 255, 0.5);
-  --hero-size: 26px;
   --hero-weight: 700;
   --hero-spacing: 0;
   --btn-radius: 3px;
@@ -5982,7 +5906,6 @@ button.btn,
   --panel-frame: #cfd9de;
   --panel-shadow: none;
   --nav-shadow: 0 1px 0 #cfd9de;
-  --hero-size: 31px;
   --hero-weight: 800;
   --btn-radius: 999px;
   --letterpress: none;
@@ -5995,7 +5918,6 @@ button.btn,
   --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   --nav-seam: #cc0000;
   --nav-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --hero-size: 28px;
   --hero-weight: 700;
   --btn-radius: 2px;
   --letterpress: none;
@@ -6017,7 +5939,6 @@ button.btn,
     radial-gradient(circle at 76% 30%, rgba(255, 255, 255, 0.4), transparent 18%),
     radial-gradient(circle at 44% 78%, rgba(255, 255, 255, 0.35), transparent 20%);
   --nav-shadow: 0 3px 14px rgba(255, 95, 176, 0.5);
-  --hero-size: 38px;
   --hero-weight: 800;
   --hero-spacing: -1px;
   --btn-radius: 999px;
@@ -6042,7 +5963,6 @@ button.btn,
   );
   --nav-seam: #00e5ff;
   --nav-shadow: 0 3px 0 #ff1f8f;
-  --hero-size: 44px;
   --hero-weight: 400;
   --hero-spacing: 1px;
   --hero-transform: uppercase;
@@ -6058,7 +5978,6 @@ button.btn,
   --panel-shadow: 0 0 0 1px rgba(160, 20, 50, 0.35);
   --nav-seam: #8b0f2b;
   --nav-shadow: none;
-  --hero-size: 30px;
   --hero-weight: 700;
   --hero-spacing: 3px;
   --hero-transform: lowercase;
@@ -6077,7 +5996,6 @@ button.btn,
   --body-texture: radial-gradient(ellipse at 78% 8%, rgba(255, 255, 255, 0.75), transparent 42%),
     radial-gradient(ellipse at 12% 88%, rgba(150, 255, 220, 0.4), transparent 46%);
   --nav-shadow: 0 2px 0 rgba(255, 255, 255, 0.8) inset, 0 6px 18px rgba(0, 60, 90, 0.35);
-  --hero-size: 36px;
   --btn-radius: 999px;
   --letterpress: 0 1px 0 rgba(255, 255, 255, 0.95);
 }
@@ -6089,7 +6007,6 @@ button.btn,
   --panel-frame: transparent;
   --panel-shadow: none;
   --nav-shadow: 0 4px 16px rgba(0, 60, 90, 0.35);
-  --hero-size: 42px;
   --hero-weight: 300;
   --hero-spacing: -1px;
   --btn-radius: 0px;
@@ -6109,7 +6026,6 @@ button.btn,
   );
   --nav-seam: #ff00c8;
   --nav-shadow: 0 0 18px rgba(255, 0, 200, 0.6);
-  --hero-size: 40px;
   --hero-weight: 900;
   --hero-transform: uppercase;
   --hero-spacing: -1px;
@@ -6125,7 +6041,6 @@ button.btn,
   --panel-shadow: 0 0 0 2px rgba(255, 245, 220, 0.9) inset, 0 12px 30px rgba(120, 90, 30, 0.35);
   --panel-texture: linear-gradient(180deg, rgba(255, 250, 235, 0.7), rgba(255, 255, 255, 0) 60%);
   --nav-shadow: 0 4px 14px rgba(160, 120, 40, 0.4);
-  --hero-size: 38px;
   --hero-weight: 700;
   --btn-radius: 999px;
   --letterpress: 0 1px 0 rgba(255, 250, 235, 0.95);
@@ -6139,7 +6054,6 @@ button.btn,
   --panel-shadow: 6px 6px 0 rgba(0, 0, 0, 0.9);
   --nav-seam: #e01b24;
   --nav-shadow: none;
-  --hero-size: 34px;
   --hero-weight: 800;
   --hero-transform: uppercase;
   --hero-spacing: 2px;
@@ -6156,7 +6070,6 @@ button.btn,
   --body-texture: radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.7), transparent 45%),
     radial-gradient(ellipse at 75% 70%, rgba(240, 220, 215, 0.6), transparent 50%);
   --nav-shadow: 0 1px 0 rgba(200, 170, 165, 0.5);
-  --hero-size: 32px;
   --hero-weight: 300;
   --hero-spacing: 4px;
   --hero-transform: uppercase;
@@ -6171,7 +6084,6 @@ button.btn,
   --panel-frame: #d9dee3;
   --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   --nav-shadow: none;
-  --hero-size: 28px;
   --hero-weight: 700;
   --btn-radius: 3px;
   --letterpress: none;
@@ -6185,7 +6097,6 @@ button.btn,
   --panel-shadow: 0 12px 26px rgba(0, 120, 130, 0.3);
   --body-texture: radial-gradient(circle at 82% 14%, rgba(255, 240, 150, 0.55), transparent 34%);
   --nav-shadow: 0 4px 12px rgba(0, 120, 130, 0.3);
-  --hero-size: 38px;
   --hero-weight: 800;
   --btn-radius: 999px;
   --letterpress: 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -6211,10 +6122,6 @@ button.btn,
 /* MySpace: narrow column, sidebar on the LEFT, flat blue chrome. */
 [data-theme="myspace"] {
   --tab-gloss: none;
-  --content-direction: row-reverse;
-  --sidebar-width: 260px;
-  --content-gap: 12px;
-  --wrap-max: 1000px;
   --btn-letterpress: none;
   --btn-shadow: none;
   --btn-ghost-shadow: none;
@@ -6229,9 +6136,6 @@ button.btn,
 /* Twitter: single wide column feel, airy gutters, no chrome at all. */
 [data-theme="twitter"] {
   --tab-gloss: none;
-  --sidebar-width: 320px;
-  --content-gap: 28px;
-  --wrap-max: 1100px;
   --btn-shadow: none;
   --btn-ghost-shadow: none;
   --art-frame: none;
@@ -6244,9 +6148,6 @@ button.btn,
 /* YouTube: wide, dense, card grid. */
 [data-theme="youtube"] {
   --tab-gloss: none;
-  --sidebar-width: 340px;
-  --content-gap: 24px;
-  --wrap-max: 1300px;
   --btn-shadow: none;
   --btn-ghost-shadow: none;
   --art-frame: none;
@@ -6257,9 +6158,6 @@ button.btn,
 
 /* McBling: tight and busy, everything glossed, rhinestone stars. */
 [data-theme="mcbling"] {
-  --sidebar-width: 280px;
-  --content-gap: 14px;
-  --wrap-max: 1080px;
   --btn-letterpress: 0 1px 0 rgba(255, 255, 255, 0.7);
   --btn-shadow: 0 2px 0 rgba(255, 255, 255, 0.85) inset, 0 6px 16px rgba(255, 95, 176, 0.5);
   --btn-ghost-shadow: 0 2px 0 rgba(255, 255, 255, 0.9) inset;
@@ -6274,9 +6172,6 @@ button.btn,
 /* Scene: hard edges, no gloss, everything outlined in black. */
 [data-theme="scene"] {
   --tab-gloss: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
-  --sidebar-width: 260px;
-  --content-gap: 10px;
-  --wrap-max: 1060px;
   --btn-letterpress: 1px 1px 0 rgba(0, 0, 0, 0.9);
   --btn-shadow: 0 0 0 2px #000;
   --btn-ghost-shadow: 0 0 0 2px #000;
@@ -6292,9 +6187,6 @@ button.btn,
 /* Emo: flat, narrow, monospace, almost no ornament. */
 [data-theme="emo"] {
   --tab-gloss: none;
-  --sidebar-width: 240px;
-  --content-gap: 10px;
-  --wrap-max: 940px;
   --btn-shadow: none;
   --btn-ghost-shadow: none;
   --art-frame: 1px solid #8b0f2b;
@@ -6307,9 +6199,6 @@ button.btn,
 
 /* Frutiger Aero: wide, wet, everything catching light. */
 [data-theme="frutiger-aero"] {
-  --sidebar-width: 320px;
-  --content-gap: 22px;
-  --wrap-max: 1260px;
   --btn-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.35);
   --btn-shadow: 0 2px 0 rgba(255, 255, 255, 0.9) inset, 0 -8px 12px rgba(0, 60, 90, 0.25) inset,
     0 6px 16px rgba(0, 60, 90, 0.4);
@@ -6323,9 +6212,6 @@ button.btn,
 /* Frutiger Metro: full-bleed tiles, no gutters, no frames. */
 [data-theme="frutiger-metro"] {
   --tab-gloss: none;
-  --sidebar-width: 360px;
-  --content-gap: 6px;
-  --wrap-max: 1400px;
   --btn-shadow: none;
   --btn-ghost-shadow: none;
   --btn-letterpress: none;
@@ -6339,9 +6225,6 @@ button.btn,
 /* Party Rock: neon everything, glowing chrome. */
 [data-theme="party-rock-2010"] {
   --tab-gloss: linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0));
-  --sidebar-width: 290px;
-  --content-gap: 16px;
-  --wrap-max: 1200px;
   --btn-letterpress: 0 0 8px rgba(57, 255, 20, 0.9);
   --btn-shadow: 0 0 16px rgba(255, 0, 200, 0.7);
   --btn-ghost-shadow: 0 0 12px rgba(57, 255, 20, 0.5);
@@ -6355,9 +6238,6 @@ button.btn,
 
 /* Champagne Bling: wide, ornate, gold-edged. */
 [data-theme="champagne-bling"] {
-  --sidebar-width: 310px;
-  --content-gap: 24px;
-  --wrap-max: 1200px;
   --btn-letterpress: 0 1px 0 rgba(255, 250, 235, 0.8);
   --btn-shadow: 0 2px 0 rgba(255, 250, 235, 0.9) inset, 0 8px 20px rgba(120, 90, 30, 0.4);
   --art-frame: 4px solid #e8cd93;
@@ -6370,9 +6250,6 @@ button.btn,
 /* 2018 Swag: hard offset shadows, stark boxes, no gloss. */
 [data-theme="swag-2018"] {
   --tab-gloss: none;
-  --sidebar-width: 300px;
-  --content-gap: 20px;
-  --wrap-max: 1160px;
   --btn-shadow: 4px 4px 0 rgba(0, 0, 0, 0.9);
   --btn-shadow-active: 1px 1px 0 rgba(0, 0, 0, 0.9);
   --btn-ghost-shadow: 4px 4px 0 rgba(0, 0, 0, 0.25);
@@ -6387,9 +6264,6 @@ button.btn,
 /* 2016: airy, very wide gutters, almost weightless. */
 [data-theme="mm2016"] {
   --tab-gloss: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0));
-  --sidebar-width: 300px;
-  --content-gap: 32px;
-  --wrap-max: 1120px;
   --btn-shadow: 0 6px 18px rgba(180, 140, 130, 0.35);
   --btn-ghost-shadow: none;
   --btn-letterpress: none;
@@ -6403,9 +6277,6 @@ button.btn,
 /* Tumblr: narrow blog column, minimal chrome. */
 [data-theme="tumblr"] {
   --tab-gloss: none;
-  --sidebar-width: 250px;
-  --content-gap: 16px;
-  --wrap-max: 980px;
   --btn-shadow: none;
   --btn-ghost-shadow: none;
   --btn-letterpress: none;
@@ -6418,9 +6289,6 @@ button.btn,
 
 /* Tropical: wide, rounded, sun-bleached. */
 [data-theme="tropical"] {
-  --sidebar-width: 310px;
-  --content-gap: 22px;
-  --wrap-max: 1220px;
   --btn-letterpress: 0 1px 0 rgba(255, 255, 255, 0.6);
   --btn-shadow: 0 8px 20px rgba(0, 120, 130, 0.35);
   --art-frame: 4px solid #ffffff;
@@ -6655,7 +6523,6 @@ body {
 }
 [data-theme="emo"] {
   --wrap-bg: rgba(10, 10, 12, 0.9);
-  --wrap-radius: 0px;
   --wrap-shadow: 0 0 0 1px #8b0f2b, 0 25px 60px rgba(0, 0, 0, 0.85);
   --hero-title-color: #ddd6d8;
   --hero-tagline-color: #8d8288;
@@ -6676,7 +6543,6 @@ body {
 }
 [data-theme="swag-2018"] {
   --wrap-bg: #ffffff;
-  --wrap-radius: 0px;
   --wrap-shadow: 10px 10px 0 rgba(0, 0, 0, 0.9);
   --hero-title-color: #111111;
   --hero-tagline-color: #e01b24;
@@ -6684,7 +6550,6 @@ body {
 }
 [data-theme="myspace"] {
   --wrap-bg: #ffffff;
-  --wrap-radius: 0px;
   --wrap-shadow: 0 0 0 1px #0055cc;
   --hero-title-color: #003b8e;
   --hero-tagline-color: #0066ff;
@@ -6699,7 +6564,6 @@ body {
 }
 [data-theme="tumblr"] {
   --wrap-bg: #ffffff;
-  --wrap-radius: 4px;
   --wrap-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   --hero-title-color: #001935;
   --hero-tagline-color: #4f6c8a;
@@ -6759,7 +6623,6 @@ body {
     );
   --body-texture-size: auto;
   --wrap-bg: rgba(255, 240, 248, 0.9);
-  --wrap-radius: 26px;
   --wrap-shadow: 0 0 0 4px #ff6fb5, 0 25px 60px rgba(0, 0, 0, 0.6);
   --panel-radius: 22px;
   --panel-frame: #ff6fb5;
@@ -6780,10 +6643,7 @@ body {
   --star-on: linear-gradient(180deg, #ffffff, #ff8ec8 55%, #d62f85);
   --hero-title-color: #c92878;
   --hero-tagline-color: #6a6a6a;
-  --hero-size: 36px;
   --like-color: #f558a8;
-  --sidebar-width: 280px;
-  --wrap-max: 1080px;
 }
 
 /* PLUR - washed-out festival photo: bloom, flare, kandi pastels. */
@@ -6800,7 +6660,6 @@ body {
     linear-gradient(118deg, transparent 40%, rgba(255, 255, 255, 0.45) 50%, transparent 60%);
   --body-texture-size: auto;
   --wrap-bg: rgba(255, 255, 255, 0.62);
-  --wrap-radius: 28px;
   --wrap-shadow: 0 25px 70px rgba(150, 90, 190, 0.45), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
   --panel-radius: 22px;
   --panel-frame: rgba(255, 255, 255, 0.9);
@@ -6821,12 +6680,9 @@ body {
   --star-on-filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.9));
   --hero-title-color: #6b2f8a;
   --hero-tagline-color: #9a5ab5;
-  --hero-size: 38px;
   --hero-weight: 300;
   --hero-spacing: 2px;
   --like-color: #e05bb8;
-  --content-gap: 26px;
-  --wrap-max: 1160px;
 }
 
 /* Rainbow - iOS 7 era: white ground, every colour, halftone swirls. */
@@ -6844,7 +6700,6 @@ body {
     repeating-radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 7px);
   --body-texture-size: auto;
   --wrap-bg: rgba(255, 255, 255, 0.86);
-  --wrap-radius: 18px;
   --wrap-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
   --panel-radius: 14px;
   --panel-frame: #e6e6ea;
@@ -6866,12 +6721,10 @@ body {
   --star-on: linear-gradient(180deg, #ffc83c, #ff5a82);
   --hero-title-color: #1a1a1c;
   --hero-tagline-color: #6b6b72;
-  --hero-size: 40px;
   --hero-weight: 200;
   --hero-spacing: -1px;
   --letterpress: none;
   --like-color: #ff5a82;
-  --wrap-max: 1200px;
 }
 
 /* ================================================================
@@ -7166,22 +7019,13 @@ body {
   --nav-active-text: #ffffff;
   --wordmark-color: #f4f4f6;
 }
-
-/* Bright specular band across the top of the bar. */
-[data-theme="ios-light"] .apple-nav {
-  position: relative;
-}
 [data-theme="ios-light"] .apple-nav::after {
   content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 46%;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.04));
   pointer-events: none;
   z-index: 0;
 }
 [data-theme="ios-light"] .apple-nav-inner {
-  position: relative;
   z-index: 1;
 }
 
@@ -7305,7 +7149,6 @@ body {
    a div with a border and something lying on a surface. */
 [data-theme="ios-light"] .post-card {
   border-color: #a9a9b0;
-  border-radius: 7px;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 -1px 0 rgba(0, 0, 0, 0.09) inset,
@@ -7316,16 +7159,12 @@ body {
    text so it never washes the content out. */
 [data-theme="ios-light"] .post-card::before {
   content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 34px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
   pointer-events: none;
   z-index: 0;
 }
 [data-theme="ios-light"] .track-row,
 [data-theme="ios-light"] .post-card-body {
-  position: relative;
   z-index: 1;
 }
 
@@ -7333,8 +7172,6 @@ body {
    The stars drop into a milled trough rather than floating on the card.
    Gold gradient on the glyphs is already there; this is the well. */
 [data-theme="ios-light"] .track-stars {
-  padding: 3px 8px 4px;
-  border-radius: 100px;
   background: linear-gradient(180deg, #b8b8be, #d2d2d8 60%, #dcdce1);
   border: 1px solid #9a9aa1;
   box-shadow:
@@ -7346,9 +7183,7 @@ body {
 /* ---- 3. Media embed as a player window ---- */
 [data-theme="ios-light"] .preview-player {
   border: 1px solid #6e6e75;
-  border-radius: 8px;
   background: linear-gradient(180deg, #d6d6db, #b6b6bd);
-  padding: 0;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.75) inset,
     0 2px 5px rgba(0, 0, 0, 0.28),
@@ -7475,13 +7310,6 @@ body {
 
 /* Glossy circular transport buttons, iPod-style. */
 [data-theme="ios-light"] .yt-rate-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 30px;
-  height: 30px;
-  padding: 0 6px;
-  border-radius: 100px;
   background: linear-gradient(180deg, #fdfdfe 0%, #e2e2e6 46%, #c6c6cc 52%, #9fa0a6 100%);
   border: 1px solid #202124;
   box-shadow:
@@ -7489,7 +7317,6 @@ body {
     0 -3px 5px rgba(0, 0, 0, 0.18) inset,
     0 2px 4px rgba(0, 0, 0, 0.5);
   color: #26272a;
-  font-size: 11px;
   font-weight: 700;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
 }
@@ -7503,8 +7330,6 @@ body {
 /* The icons were near-white for a dark bar; on a silver button they
    have to invert or they vanish. */
 [data-theme="ios-light"] .yt-rate-btn svg {
-  width: 15px;
-  height: 15px;
   fill: #26272a;
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.75));
 }
@@ -7628,22 +7453,14 @@ body {
   color: #1c4c8f;
   text-decoration: none;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
-  letter-spacing: -0.1px;
 }
 [data-theme="ios-light"] .track-title:hover {
   color: #10305e;
   text-decoration: underline;
 }
-[data-theme="ios-light"] .track-actions {
-  gap: 4px;
-  margin-top: 6px;
-}
 [data-theme="ios-light"] .track-actions a,
 [data-theme="ios-light"] .track-actions button {
-  padding: 2px 7px;
-  border-radius: 4px;
   border: 1px solid transparent;
-  font-size: 10.5px;
   font-weight: 600;
   color: #3a5f8f;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -7665,9 +7482,7 @@ body {
 /* Engraved hairline pipes rather than grey text pipes. */
 [data-theme="ios-light"] .track-actions .sep {
   color: transparent;
-  width: 1px;
   align-self: stretch;
-  margin: 1px 2px;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0));
   box-shadow: 1px 0 0 rgba(255, 255, 255, 0.8);
   user-select: none;
@@ -7685,12 +7500,7 @@ body {
    is the site's strongest reason to come back tomorrow, so it should
    look like the one object on the page that isn't a list. */
 [data-theme="ios-light"] .orby-panel {
-  /* .panel sets no position, so the glass dome below would anchor to
-     the page instead of the housing without this. */
-  position: relative;
   border: 1px solid #26272b;
-  border-radius: 14px;
-  overflow: hidden;
   background: linear-gradient(180deg, #3a3c41, #212226);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.3) inset,
@@ -7698,12 +7508,9 @@ body {
     0 8px 20px rgba(0, 0, 0, 0.4);
 }
 [data-theme="ios-light"] .orby-panel .orby-head {
-  padding: 9px 11px;
   border-bottom: 1px solid #101114;
-  border-radius: 13px 13px 0 0;
   color: #f2f2f5;
   font-weight: 800;
-  letter-spacing: 0.2px;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 48%, rgba(255, 255, 255, 0) 49%),
@@ -7712,16 +7519,12 @@ body {
 /* Glass dome over the top of the housing. */
 [data-theme="ios-light"] .orby-panel::before {
   content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 54px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
   pointer-events: none;
   z-index: 2;
 }
 [data-theme="ios-light"] .orby-panel .chat-body,
 [data-theme="ios-light"] .orby-panel .chat-input {
-  position: relative;
   z-index: 1;
   background: transparent;
   color: #e6e6ea;
@@ -7737,7 +7540,6 @@ body {
 [data-theme="ios-light"] .orby-panel .chat-input input {
   background: linear-gradient(180deg, #17181a, #2c2e32);
   border: 1px solid #0b0c0d;
-  border-radius: 100px;
   color: #eaeaee;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7) inset, 0 1px 0 rgba(255, 255, 255, 0.12);
 }
@@ -7745,7 +7547,6 @@ body {
   color: rgba(255, 255, 255, 0.4);
 }
 [data-theme="ios-light"] .orby-refill {
-  position: relative;
   z-index: 1;
   color: rgba(255, 255, 255, 0.72);
   border-top: 1px solid rgba(255, 255, 255, 0.09);
@@ -7852,21 +7653,8 @@ body {
     0 2px 5px rgba(0, 0, 0, 0.35),
     0 -3px 6px rgba(0, 0, 0, 0.2) inset;
 }
-/* Glass catch across the top of the round ones, the old buddy-icon
-   look. Pseudo-elements need a positioned parent and can't hang off a
-   bare <img>, so only the wrappers get it. */
-[data-theme="ios-light"] .hot-pages-photo-wrap {
-  position: relative;
-  overflow: hidden;
-}
 [data-theme="ios-light"] .hot-pages-photo-wrap::after {
   content: "";
-  position: absolute;
-  top: 4%;
-  left: 8%;
-  width: 84%;
-  height: 42%;
-  border-radius: 50%;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
   pointer-events: none;
 }
@@ -8046,21 +7834,12 @@ body {
    rather than a bordered box. */
 [data-theme="ios-light"] .yt-shell {
   border: 1px solid #17181a;
-  border-radius: 12px;
-  padding: 5px;
   background: linear-gradient(180deg, #7c7e84 0%, #55575c 6%, #3a3c40 55%, #26282b 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.5) inset,
     0 -8px 14px rgba(0, 0, 0, 0.35) inset,
     0 3px 6px rgba(0, 0, 0, 0.4),
     0 16px 34px rgba(0, 0, 0, 0.45);
-}
-[data-theme="ios-light"] .yt-topbar {
-  border-radius: 8px 8px 0 0;
-}
-[data-theme="ios-light"] .yt-tabs {
-  border-radius: 0 0 8px 8px;
-  overflow: hidden;
 }
 
 /* ---- Section headers as raised tabs ----
@@ -8088,7 +7867,6 @@ body {
 /* Panels themselves get a contact shadow so they sit on the brushed
    background instead of floating over it. */
 [data-theme="ios-light"] .panel {
-  border-radius: 10px;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 -1px 0 rgba(0, 0, 0, 0.16) inset,
@@ -8222,23 +8000,8 @@ body {
     0 2px 4px rgba(0, 0, 0, 0.2);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95);
 }
-
-/* ---- 2. Stitched leather seam ----
-   The one genuine material on the page, kept to a single 9px strip
-   directly under the nav so it reads as a deliberate detail rather
-   than costume. Dark hide rather than the reference's tan, because
-   tan under a charcoal bar fights the red logo. Two dashed lines make
-   the stitch: a dark needle hole with a cream thread above it. */
-[data-theme="ios-light"] .apple-nav {
-  padding-bottom: 9px;
-}
 [data-theme="ios-light"] .apple-nav::before {
   content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 9px;
   z-index: 2;
   background-color: #2a211c;
   background-image:
@@ -8259,10 +8022,6 @@ body {
     0 1px 0 rgba(255, 255, 255, 0.1) inset,
     0 -1px 2px rgba(0, 0, 0, 0.5);
   pointer-events: none;
-}
-/* The nav's gloss band must not wash over the seam. */
-[data-theme="ios-light"] .apple-nav::after {
-  bottom: 9px;
 }
 
 /* ---- 3. Glass buttons ----
@@ -8285,11 +8044,6 @@ body {
 [data-theme="ios-light"] .btn::before,
 [data-theme="ios-light"] .nav-post-btn::before,
 [data-theme="ios-light"] .acct-btn.primary::before {
-  top: 1px;
-  left: 1px;
-  right: 1px;
-  height: 47%;
-  border-radius: 100px 100px 60% 60% / 100px 100px 22px 22px;
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.85) 0%,
@@ -8401,12 +8155,406 @@ body {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
-/* Orby's housing rounds harder than a plain panel, but the later
-   [data-theme] .panel rule matched at the same specificity and won,
-   flattening it back to 10px. Restated so the gadget keeps its shape. */
-[data-theme="ios-light"] .panel.orby-panel {
+
+/* ================================================================
+   Shared layout (theme-independent)
+
+   Themes may set colour, background and font. They may NOT set layout,
+   spacing, sizing or structure - every theme has to render inside the
+   same skeleton. These declarations used to live inside the default
+   theme block, which meant switching themes silently reshaped the page
+   instead of only recolouring it. They are unscoped now, so every theme
+   inherits one layout. scripts/check-theme-purity.mjs enforces this.
+   ================================================================ */
+/* ================================================================
+   ios-light (the default theme) gets its own real structural look -
+   corner radius, shadow style, density. Every other theme is
+   colors-only and shares the site's normal default shapes/spacing, so switching between them never moves or reshapes anything.
+   ================================================================ */
+.panel {
   border-radius: 14px;
 }
-[data-theme="ios-light"] .panel.orby-panel .orby-head {
+.panel-head {
+  border-radius: 14px 14px 0 0;
+}
+.btn, .acct-btn {
+  border-radius: 100px;
+}
+/* ---- ios-light (default): Y2K skeuomorphic component-kit overrides ----
+   Reuses .gel-btn's taller, flat-bottomed glass cap and .panel's corner
+   screws from skeuomorphic-components.html, scoped to this theme only so
+   the other 28 themes' button/panel mechanics stay untouched. */
+.btn::before, .acct-btn::before {
+  top: 1px;
+  height: 52%;
+  border-radius: 999px 999px 60% 60%;
+}
+.panel {
+  position: relative;
+}
+.brand-logo {
+  border-radius: 4px;
+}
+/* Dropped the floating pill-tab look for this theme - it's back to a
+   normal flush header bar like every other panel on the site. */
+.panel-head.tabbed {
+  padding: 8px 14px;
+  align-items: center;
+  overflow: hidden;
+}
+.panel-head.tabbed .panel-head-tab {
+  position: static;
+  top: 0;
+  display: flex;
+  flex: 1;
+  padding: 0;
+  border-radius: 0;
+}
+.feature-banner, .banner-slot {
+  border-radius: 16px;
+}
+.content-grid {
+  gap: 26px;
+}
+.panel-body {
+  padding: 20px;
+}
+/* ---- Ported from skeuomorphic-global.css (sk-* utility classes) ----
+   Scoped to the default theme so the other 28 themes are untouched.
+   Screw/tab classes from that file were intentionally left out - both
+   were explicitly removed from the site. */
+.sk-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 24px;
+  border-radius: 999px;
+  font-size: 13px;
+  overflow: hidden;
+}
+.sk-btn::before {
+  position: absolute;
+  top: 1px;
+  left: 4%;
+  right: 4%;
+  height: 52%;
+  border-radius: 999px 999px 60% 60%;
+}
+.sk-btn::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 35%;
+}
+/* ---- Ported from ios-app-shell.css: iPhone-5-era app shell layout ----
+   Mobile-only (<=760px). Applies to ALL themes so every theme gets the
+   same app-shell structure (bottom tab bar, top status bar, 480px
+   column); each theme keeps its own colors via the existing --nav-*
+   variables every theme already defines for the old top nav. ios-light
+   additionally hardcodes its own exempted dark-steel-topbar/light-tabbar
+   look below, which - being a more specific selector - wins over this shared base for that theme only. */
+.sk-ios-topbar, .sk-ios-tabbar, .sk-more-sheet-backdrop {
+  display: none;
+}
+/* Bright specular band across the top of the bar. */
+.apple-nav {
+  position: relative;
+}
+.apple-nav::after {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 46%;
+}
+.apple-nav-inner {
+  position: relative;
+}
+/* ================================================================
+   Master-prompt step 4: review card polish (ios-light)
+
+   Three things only, all frame and control - never the post text:
+     1. The card reads as a physical object (bevel + contact shadow).
+     2. The rating sits in a recessed well, iTunes-style.
+     3. The media embed is framed as a little player window with a
+        brushed chrome strip on top.
+
+   The post body, thumbnails and username line are deliberately left
+   alone. The brief is explicit that the last attempt failed by
+   texturing content as well as chrome, and that content should stay
+   clean and scannable on top of a skeuomorphic frame.
+   ================================================================ */
+
+/* ---- 1. Card as an object ----
+   A light catch along the top edge, a dark seat along the bottom, then
+   two shadows: a tight contact shadow that sits the card on the page
+   and a wider soft one for depth. This is the whole difference between
+   a div with a border and something lying on a surface. */
+.post-card {
+  border-radius: 7px;
+}
+/* Hairline sheen down the top of the card, stopping well short of the
+   text so it never washes the content out. */
+.post-card::before {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 34px;
+}
+.track-row, .post-card-body {
+  position: relative;
+}
+/* ---- 2. Inset rating control ----
+   The stars drop into a milled trough rather than floating on the card.
+   Gold gradient on the glyphs is already there; this is the well. */
+.track-stars {
+  padding: 3px 8px 4px;
+  border-radius: 100px;
+}
+/* ---- 3. Media embed as a player window ---- */
+.preview-player {
+  border-radius: 8px;
+  padding: 0;
+}
+/* Glossy circular transport buttons, iPod-style. */
+.yt-rate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border-radius: 100px;
+  font-size: 11px;
+}
+/* The icons were near-white for a dark bar; on a silver button they
+   have to invert or they vanish. */
+.yt-rate-btn svg {
+  width: 15px;
+  height: 15px;
+}
+/* ================================================================
+   Action row polish + Orby gadget housing (master-prompt step 6)
+   ================================================================ */
+
+/* ---- Rate | Comment | Share ----
+   These stayed default-underlined-blue while everything around them
+   gained depth, so they read as raw HTML dropped onto finished chrome.
+   The pipe separators stay - that old-blog row is deliberate - but the
+   links become small letterpressed controls that light up on hover.
+   Kept light on purpose: this is a control row inside content, so it
+   gets definition, not texture. */
+.track-title {
+  letter-spacing: -0.1px;
+}
+.track-actions {
+  gap: 4px;
+  margin-top: 6px;
+}
+.track-actions a, .track-actions button {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10.5px;
+}
+/* Engraved hairline pipes rather than grey text pipes. */
+.track-actions .sep {
+  width: 1px;
+  margin: 1px 2px;
+}
+/* ---- Step 6: Orby as a gadget ----
+   A hard glass/chrome housing so the daily-wish bot reads as a device
+   sitting in the sidebar rather than another panel in the stack. This
+   is the site's strongest reason to come back tomorrow, so it should
+   look like the one object on the page that isn't a list. */
+.orby-panel {
+  border-radius: 14px;
+  overflow: hidden;
+}
+.orby-panel .orby-head {
+  padding: 9px 11px;
   border-radius: 13px 13px 0 0;
+  letter-spacing: 0.2px;
+}
+/* Glass dome over the top of the housing. */
+.orby-panel::before {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 54px;
+}
+.orby-panel .chat-body, .orby-panel .chat-input {
+  position: relative;
+}
+/* Recessed input well in the housing. */
+.orby-panel .chat-input input {
+  border-radius: 100px;
+}
+.orby-refill {
+  position: relative;
+}
+/* Glass catch across the top of the round ones, the old buddy-icon
+   look. Pseudo-elements need a positioned parent and can't hang off a
+   bare <img>, so only the wrappers get it. */
+.hot-pages-photo-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.hot-pages-photo-wrap::after {
+  position: absolute;
+  top: 4%;
+  left: 8%;
+  width: 84%;
+  height: 42%;
+  border-radius: 50%;
+}
+/* ---- Feed TV as a physical unit ----
+   A moulded bezel with a lit top edge and a real shadow under it, rather than a bordered box. */
+.yt-shell {
+  border-radius: 12px;
+  padding: 5px;
+}
+.yt-topbar {
+  border-radius: 8px 8px 0 0;
+}
+.yt-tabs {
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+/* Panels themselves get a contact shadow so they sit on the brushed
+   background instead of floating over it. */
+.panel {
+  border-radius: 10px;
+}
+/* ---- 2. Stitched leather seam ----
+   The one genuine material on the page, kept to a single 9px strip
+   directly under the nav so it reads as a deliberate detail rather
+   than costume. Dark hide rather than the reference's tan, because
+   tan under a charcoal bar fights the red logo. Two dashed lines make
+   the stitch: a dark needle hole with a cream thread above it. */
+.apple-nav {
+  padding-bottom: 9px;
+}
+.apple-nav::before {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 9px;
+}
+/* The nav's gloss band must not wash over the seam. */
+.apple-nav::after {
+  bottom: 9px;
+}
+/* Taller, brighter dome with a hard cut, replacing the soft 32% fade
+   the shared button rule uses. */
+.btn::before, .nav-post-btn::before, .acct-btn.primary::before {
+  top: 1px;
+  left: 1px;
+  right: 1px;
+  height: 47%;
+  border-radius: 100px 100px 60% 60% / 100px 100px 22px 22px;
+}
+/* Orby's housing rounds harder than a plain panel, but the later
+   [data-theme] .panel rule matched at the same specificity and won, flattening it back to 10px. Restated so the gadget keeps its shape. */
+.panel.orby-panel {
+  border-radius: 14px;
+}
+.panel.orby-panel .orby-head {
+  border-radius: 13px 13px 0 0;
+}
+/* .panel sets no position, so Orby's glass dome would anchor to the page
+   instead of the housing without this. Layout, so it lives here. */
+.orby-panel {
+  position: relative;
+}
+
+/* ---- Feed TV scrub bar, now a real control ---- */
+.yt-red-track {
+  cursor: pointer;
+  touch-action: none;
+}
+.yt-red-track:focus-visible {
+  outline: 2px solid #7ad0ff;
+  outline-offset: 3px;
+}
+.yt-red-track.scrubbing .yt-red-knob,
+.yt-red-track:hover .yt-red-knob {
+  transform: translate(-50%, -50%) scale(1.25);
+}
+.yt-red-knob {
+  transition: transform 0.08s ease;
+}
+
+/* ---- Did You Know ticker ----
+   Old-web marquee. The track holds the facts twice and slides exactly
+   half its width, so the loop closes with no visible seam. */
+.fun-fact-ticker {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+}
+.fun-fact-track {
+  display: flex;
+  width: max-content;
+  animation: fun-fact-scroll 46s linear infinite;
+}
+.fun-fact-ticker:hover .fun-fact-track {
+  animation-play-state: paused;
+}
+.fun-fact-item {
+  padding-right: 54px;
+  white-space: nowrap;
+}
+.fun-fact-item::after {
+  content: "\25C6";
+  margin-left: 54px;
+  opacity: 0.45;
+}
+@keyframes fun-fact-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+/* Anyone who's asked the OS for less motion gets a static strip. */
+@media (prefers-reduced-motion: reduce) {
+  .fun-fact-track {
+    animation: none;
+  }
+}
+
+/* ---- Nav account buttons ----
+   Sign In / Settings / Admin / Sign Out were styled from the generic
+   .acct-btn tokens, which were tuned for a light bar. On the charcoal
+   nav they read as pale plastic pills borrowed from another design.
+   They now use the same milled-metal-and-gloss language as the rest of
+   the bar, with the primary action in the nav's blue. */
+[data-theme="ios-light"] .acct-btn {
+  color: #e8eaee;
+  border-color: #101114;
+  background: linear-gradient(180deg, #7c7e85 0%, #5c5e65 46%, #45474d 52%, #2d2f34 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 -4px 7px rgba(0, 0, 0, 0.3) inset,
+    0 2px 3px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+[data-theme="ios-light"] .acct-btn::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+}
+[data-theme="ios-light"] .acct-btn:hover {
+  filter: brightness(1.12);
+}
+[data-theme="ios-light"] .acct-btn:active {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) inset;
+}
+/* Create Account is the one call to action up there, so it keeps the
+   blue and matches the Post button rather than the grey siblings. */
+[data-theme="ios-light"] .acct-btn.primary {
+  color: #fff;
+  border-color: #14568c;
+  background: linear-gradient(180deg, #7ad0ff 0%, #2f9fe6 48%, #1d7fc4 52%, #175f9c 100%);
+}
+/* Notification bell and the Messages pill sit in the same row and were
+   drifting light for the same reason. */
+[data-theme="ios-light"] .nav-bell-btn {
+  color: #dfe2e8;
 }

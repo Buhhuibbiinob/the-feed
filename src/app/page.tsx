@@ -479,23 +479,59 @@ export default async function FeedPage({
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(0, 5);
 
-  // Last.fm's global chart is often dominated by a single mega-popular
-  // artist charting several tracks at once - cap it at 2 per artist so the
-  // shelf reads as a mix instead of one artist's whole discography.
-  const seenArtistCounts = new Map<string, number>();
-  const diverseTracks = trendingTracks.filter((track) => {
-    const count = seenArtistCounts.get(track.artist) ?? 0;
-    if (count >= 2) return false;
-    seenArtistCounts.set(track.artist, count + 1);
-    return true;
-  });
-  const trendingTracksWithArt = await fillMissingArt(diverseTracks.slice(0, 10));
-  const newReleases: ShelfItem[] = trendingTracksWithArt.map((track) => ({
-    id: track.id,
-    title: track.name,
-    subtitle: track.artist,
-    imageUrl: track.imageUrl ?? undefined,
-  }));
+  // Trending Music is built ONLY from what members have posted here. It
+  // used to be the Last.fm global chart, which meant the most prominent
+  // music module on the homepage showed the same records as every other
+  // site and none of them had been reviewed by anyone here. A short,
+  // sparse list of things real people rated is the point; padding it with
+  // a global chart would undo it.
+  //
+  // Ranked by how many distinct members reviewed a record first, then by
+  // average rating, so genuine agreement outranks one person's ten stars.
+  type TrendEntry = {
+    id: string;
+    title: string;
+    artist: string | null;
+    imageUrl: string | null;
+    raters: Set<string>;
+    ratingTotal: number;
+    ratingCount: number;
+  };
+  const trendMap = new Map<string, TrendEntry>();
+  for (const post of posts) {
+    if (post.media_type !== "music") continue;
+    const key = `${post.title.trim().toLowerCase()}|${(post.artist ?? "").trim().toLowerCase()}`;
+    const entry = trendMap.get(key) ?? {
+      id: post.id,
+      title: post.title,
+      artist: post.artist,
+      imageUrl: post.cover_url,
+      raters: new Set<string>(),
+      ratingTotal: 0,
+      ratingCount: 0,
+    };
+    entry.raters.add(post.user_id);
+    entry.imageUrl = entry.imageUrl ?? post.cover_url;
+    if (post.rating) {
+      entry.ratingTotal += post.rating;
+      entry.ratingCount += 1;
+    }
+    trendMap.set(key, entry);
+  }
+  const newReleases: ShelfItem[] = [...trendMap.values()]
+    .sort((a, b) => {
+      if (b.raters.size !== a.raters.size) return b.raters.size - a.raters.size;
+      const avgA = a.ratingCount ? a.ratingTotal / a.ratingCount : 0;
+      const avgB = b.ratingCount ? b.ratingTotal / b.ratingCount : 0;
+      return avgB - avgA;
+    })
+    .slice(0, 10)
+    .map((entry) => ({
+      id: entry.id,
+      title: entry.title,
+      subtitle: entry.artist ?? "",
+      imageUrl: entry.imageUrl ?? undefined,
+    }));
 
   const nowWatching: ShelfItem[] = allPosts
     .filter((p) => p.media_type === "movie_tv")
@@ -523,8 +559,11 @@ export default async function FeedPage({
     "The Leaderboard is a lifetime tally - it never resets.",
     "Underground artists and filmmakers can post directly - no label or distributor needed.",
   ];
-  const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % FUN_FACTS.length;
-  const todayFunFact = FUN_FACTS[dayIndex];
+  // The ticker scrolls through all of them rather than showing one a day,
+  // so the strip has something to say every time you look at it. Rotated
+  // by day so the running order isn't always identical.
+  const dayIndex = Math.floor(renderNow / (1000 * 60 * 60 * 24)) % FUN_FACTS.length;
+  const tickerFacts = [...FUN_FACTS.slice(dayIndex), ...FUN_FACTS.slice(0, dayIndex)];
 
   const SITE_LINKS: { heading: string; links: { label: string; href: string }[] }[] = [
     {
@@ -904,7 +943,23 @@ export default async function FeedPage({
 
       <div className="fun-fact-banner">
         <span className="fun-fact-label">Did You Know</span>
-        <span className="fun-fact-text">{todayFunFact}</span>
+        {/* Old-web scrolling ticker. The track is duplicated so the loop
+            has no visible gap when it wraps; the copy is hidden from
+            screen readers so the text isn't announced twice. */}
+        <div className="fun-fact-ticker">
+          <div className="fun-fact-track">
+            {tickerFacts.map((fact) => (
+              <span className="fun-fact-item" key={fact}>
+                {fact}
+              </span>
+            ))}
+            {tickerFacts.map((fact) => (
+              <span className="fun-fact-item" key={`dup-${fact}`} aria-hidden="true">
+                {fact}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
       {siteFlags.homepage_wrapped && (
