@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import {
   adminCreateBot,
   adminCreateBotsBulk,
+  adminCreatePremadeBots,
   adminDeleteAllBots,
   adminRenameBot,
   adminUpdateBot,
@@ -19,6 +20,7 @@ const initialState: BotState = {};
 export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: boolean }) {
   const [createState, createAction, creating] = useActionState(adminCreateBot, initialState);
   const [bulkState, bulkAction, bulkCreating] = useActionState(adminCreateBotsBulk, initialState);
+  const [premadeState, premadeAction, premadeCreating] = useActionState(adminCreatePremadeBots, initialState);
   const [runState, runAction, running] = useActionState(adminRunBotActivity, initialState);
   const [purgeState, purgeAction, purging] = useActionState(adminDeleteAllBots, initialState);
   const [renameState, renameAction, renaming] = useActionState(adminRenameBot, initialState);
@@ -43,6 +45,19 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
         </p>
         <button className="btn" type="submit" disabled={running || bots.length === 0}>
           {running ? "Running…" : "Run bot activity now"}
+        </button>
+      </form>
+
+      <form action={premadeAction} style={{ marginBottom: 16 }}>
+        {premadeState.error && <div className="form-error">{premadeState.error}</div>}
+        {premadeState.ok && <div className="form-message">{premadeState.summary}</div>}
+        <p className="field-hint" style={{ marginBottom: 8 }}>
+          Creates a ready-made cast of ten, each with their own handle, taste and way of typing. A
+          deliberate mix of ages, regions and genres, so the feed doesn&apos;t read as ten copies of the
+          same person. Safe to press twice: handles that already exist are skipped.
+        </p>
+        <button className="btn" type="submit" disabled={premadeCreating}>
+          {premadeCreating ? "Creating…" : "Create the premade crew"}
         </button>
       </form>
 

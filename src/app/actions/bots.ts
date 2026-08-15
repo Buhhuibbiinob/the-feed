@@ -9,7 +9,7 @@ import { askGeminiText } from "@/lib/gemini";
 import { getTrendingTracks, getTrackFromAnyEra, getDeepCut, getSceneTrack } from "@/lib/lastfm";
 import { discoverMovies, discoverTv } from "@/lib/tmdb";
 import { searchVideos } from "@/lib/youtube";
-import { generatePersona, generateUsername } from "@/lib/botVoices";
+import { generatePersona, generateUsername, PREMADE_BOTS } from "@/lib/botVoices";
 
 export type BotState = { error?: string; ok?: boolean; summary?: string };
 
@@ -109,6 +109,49 @@ export async function adminCreateBot(_prev: BotState, formData: FormData): Promi
 
   revalidatePath("/admin");
   return { ok: true, summary: `Created @${username}.` };
+}
+
+/**
+ * Creates the fixed premade cast in one go. Skips any handle already taken
+ * rather than failing the whole run, so this is safe to press twice and can
+ * be used to top up after deleting a few.
+ */
+export async function adminCreatePremadeBots(_prev: BotState, _formData: FormData): Promise<BotState> {
+  const { user, admin } = await requireAdmin();
+  if (!user || !admin) return { error: "Admins only." };
+
+  const adminClient = createAdminClient();
+  const { data: existing } = await adminClient.from("profiles").select("username");
+  const taken = new Set((existing ?? []).map((r) => String(r.username).toLowerCase()));
+
+  const created: string[] = [];
+  const skipped: string[] = [];
+  const failures: string[] = [];
+
+  for (const bot of PREMADE_BOTS) {
+    if (taken.has(bot.username.toLowerCase())) {
+      skipped.push(bot.username);
+      continue;
+    }
+    const { error } = await createOneBot(adminClient, bot.username, bot.persona);
+    if (error) failures.push(`@${bot.username}: ${error}`);
+    else {
+      created.push(bot.username);
+      taken.add(bot.username.toLowerCase());
+    }
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+
+  if (created.length === 0) {
+    if (failures.length) return { error: `Couldn't create any. ${failures[0]}` };
+    return { ok: true, summary: "All premade bots already exist." };
+  }
+  const parts = [`Created ${created.length}: ${created.map((u) => `@${u}`).join(", ")}.`];
+  if (skipped.length) parts.push(`${skipped.length} already existed.`);
+  if (failures.length) parts.push(`${failures.length} failed.`);
+  return { ok: true, summary: parts.join(" ") };
 }
 
 const MAX_BULK_BOTS = 25;
@@ -285,6 +328,22 @@ export async function adminDeleteBot(formData: FormData) {
 // model produces balanced sentences, correct apostrophes, one observation per
 // clause and a closing verdict - which is exactly what nobody types into a
 // phone. These rules attack that shape directly.
+
+/** Strips punctuation nobody types on a phone. The prompt forbids all of
+ *  this, but these posts go straight to the public feed, so a slip can't be
+ *  left to chance. Em/en dashes and semicolons become sentence breaks;
+ *  hyphens survive only inside words like "lo-fi". */
+function stripBotPunctuation(text: string): string {
+  return text
+    .replace(/\s*[\u2014\u2013]\s*/g, ". ")
+    .replace(/\s+-\s+/g, ". ")
+    .replace(/\s*;\s*/g, ". ")
+    .replace(/\p{Extended_Pictographic}/gu, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\.\s*\./g, ".")
+    .trim();
+}
+
 const HUMAN_RULES = `How to write it:
 - Mostly lowercase. Capitals only where that person would actually bother.
 - Punctuation optional and inconsistent. Missing apostrophes (dont, thats, im, its), a comma where a full stop belongs, or nothing at all at the end.
@@ -293,7 +352,9 @@ const HUMAN_RULES = `How to write it:
 - Filler is fine and good: like, idk, i mean, sooo, ok but, wait.
 - Leave a small mess in about a third of posts: a doubled word, a missing letter, a sentence that stops halfway then restarts, a stray correction on the next line.
 - Length is uneven. Sometimes four words. Sometimes a run-on that goes three clauses too long.
-- No em dashes, no emojis, no hashtags.
+- Never use a dash of any kind. No em dashes, no en dashes, no hyphens joining clauses. Start a new sentence instead.
+- Never use a semicolon. Nobody types one into a phone.
+- No emojis, no hashtags.
 
 What NOT to do, because it reads as machine-written instantly:
 - Do not analyse production, mix, vocals, drums, cinematography, pacing or performances. Nobody posting casually says "the low end is warm" or "the third act drags".
@@ -527,7 +588,7 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
           media_type: subject.mediaType,
           title: subject.title,
           artist: subject.artist,
-          body: body.trim(),
+          body: stripBotPunctuation(body),
           rating: 3 + Math.floor(Math.random() * 3), // 3-5, never a fake pan
           cover_url: cover,
           youtube_video_id: video?.id ?? null,
@@ -550,7 +611,7 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
   if (chat?.ok) {
     const { error } = await adminClient
       .from("chat_messages")
-      .insert({ user_id: bot.id, body: chat.text.trim() });
+      .insert({ user_id: bot.id, body: stripBotPunctuation(chat.text) });
     if (error) console.error(`[bots] chat insert failed: ${error.message}`);
     else done.push("posted in chat");
   }

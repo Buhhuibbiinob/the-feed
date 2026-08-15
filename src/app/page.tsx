@@ -131,7 +131,10 @@ async function fetchFeedPosts(supabase: Awaited<ReturnType<typeof createClient>>
     .from("posts")
     .select(`${POST_COLUMNS}, profiles!posts_user_id_fkey(username, avatar_url, is_verified)`)
     .order("created_at", { ascending: false })
-    .limit(50)
+    // 62 posts exist and a cap of 50 was silently hiding the 12 oldest,
+    // which were the earliest real member reviews. Raised well clear of
+    // current volume; this wants real pagination before it grows much more.
+    .limit(300)
     .returns<PostRow[]>();
 
   if (error) {
@@ -738,6 +741,12 @@ export default async function FeedPage({
           </Link>
         ))}
 
+      {feedTvClips.length > 0 && (
+        <div className="feedtv-top">
+          <FeedTV clips={feedTvClips} />
+        </div>
+      )}
+
       <div className="theslap-3col">
         {topReviewers.length > 0 && (
           <div className="spotlight-panel">
@@ -823,7 +832,6 @@ export default async function FeedPage({
         <div className="left-col">
           {orderBlocks(
             [
-              { key: "tv", node: feedTvClips.length > 0 ? <FeedTV clips={feedTvClips} /> : null },
               {
                 key: "on-repeat",
                 node: spotifyConnected ? (

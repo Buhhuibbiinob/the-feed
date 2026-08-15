@@ -6618,9 +6618,16 @@ button.btn,
   --like-color: #c98e80;
 }
 
-/* Textures that tile need a size; the rest stay auto. */
+/* Per-layer sizing for the four background layers, in the order they are
+   declared: scrim, uploaded image, texture, base.
+
+   The uploaded image has to be `cover` HERE. Its token value carries
+   `center / cover`, but this declaration overrides the size of every layer,
+   so leaving it `auto` reset the upload to its natural size and it painted
+   a band across the page instead of filling it. */
 body {
-  background-size: auto, auto, var(--body-texture-size), auto;
+  background-size: auto, cover, var(--body-texture-size), auto;
+  background-repeat: repeat, no-repeat, repeat, repeat;
 }
 
 /* Patterned themes: let the pattern be the page, and keep headings legible
@@ -6969,4 +6976,10 @@ body {
   color: var(--btn-text);
   text-shadow: var(--btn-letterpress);
   box-shadow: var(--btn-shadow);
+}
+
+/* Feed TV sits at the top of the page rather than buried in the left
+   column, where it was landing ~900px down behind three other panels. */
+.feedtv-top {
+  margin-bottom: 16px;
 }
