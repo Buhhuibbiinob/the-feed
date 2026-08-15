@@ -9,7 +9,14 @@ import { askGeminiText } from "@/lib/gemini";
 import { getTrendingTracks, getTrackFromAnyEra, getDeepCut, getSceneTrack } from "@/lib/lastfm";
 import { discoverMovies, discoverTv } from "@/lib/tmdb";
 import { searchVideos } from "@/lib/youtube";
-import { generatePersona, generateUsername, PREMADE_BOTS } from "@/lib/botVoices";
+import {
+  generatePersona,
+  generateUsername,
+  registerFor,
+  registerById,
+  BANNED_TICS,
+  PREMADE_BOTS,
+} from "@/lib/botVoices";
 
 export type BotState = { error?: string; ok?: boolean; summary?: string };
 
@@ -333,6 +340,21 @@ export async function adminDeleteBot(formData: FormData) {
  *  this, but these posts go straight to the public feed, so a slip can't be
  *  left to chance. Em/en dashes and semicolons become sentence breaks;
  *  hyphens survive only inside words like "lo-fi". */
+// Removes the tics the prompt bans. Asking a model not to say a word gets
+// you fewer of them, not none, and these were common enough to be the
+// thing that made every account sound the same.
+function stripBannedTics(text: string): string {
+  let out = text;
+  for (const tic of BANNED_TICS) {
+    // Whole word only, so "properly" and "fright" survive.
+    out = out.replace(new RegExp(`\\b${tic}\\b`, "gi"), "");
+  }
+  return out
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([,.!?])/g, "$1")
+    .trim();
+}
+
 function stripBotPunctuation(text: string): string {
   return text
     .replace(/\s*[\u2014\u2013]\s*/g, ". ")
@@ -344,17 +366,15 @@ function stripBotPunctuation(text: string): string {
     .trim();
 }
 
-const HUMAN_RULES = `How to write it:
-- Mostly lowercase. Capitals only where that person would actually bother.
-- Punctuation optional and inconsistent. Missing apostrophes (dont, thats, im, its), a comma where a full stop belongs, or nothing at all at the end.
-- Abbreviate constantly: u, ur, rn, tbh, ngl, fr, idk, prob, bc, tho, def.
-- Phonetic and dropped letters where it sounds right: goin, kinda, sumn, prolly, rlly, nah, lowkey, deadass.
-- Filler is fine and good: like, idk, i mean, sooo, ok but, wait.
-- Leave a small mess in about a third of posts: a doubled word, a missing letter, a sentence that stops halfway then restarts, a stray correction on the next line.
-- Length is uneven. Sometimes four words. Sometimes a run-on that goes three clauses too long.
+// Universal rules only. Anything describing HOW someone types now lives in
+// a per-bot register (see REGISTERS in botVoices), because holding it here
+// meant every account typed identically no matter what its persona said.
+const HUMAN_RULES = `Universal rules:
 - Never use a dash of any kind. No em dashes, no en dashes, no hyphens joining clauses. Start a new sentence instead.
 - Never use a semicolon. Nobody types one into a phone.
 - No emojis, no hashtags.
+- Never use the words "proper" or "fr". They are overused here and they stand out.
+- Vary your opener. Do not begin the way a post like this usually begins.
 
 What NOT to do, because it reads as machine-written instantly:
 - Do not analyse production, mix, vocals, drums, cinematography, pacing or performances. Nobody posting casually says "the low end is warm" or "the third act drags".
@@ -542,6 +562,11 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
   const adminClient = createAdminClient();
   const bot = requested ?? bots[Math.floor(Math.random() * bots.length)];
   const persona = bot.bot_persona ?? "a friendly fan of music, film and TV";
+  // A premade bot's register is chosen deliberately; anything else falls
+  // back to a stable one derived from the name.
+  const voice =
+    registerById(PREMADE_BOTS.find((b) => b.username === bot.username)?.register ?? "") ??
+    registerFor(bot.username);
   const done: string[] = [];
   const skipped: string[] = [];
 
@@ -563,7 +588,7 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
       skipped.push(`@${bot.username} has already reviewed "${subject.title}"`);
     } else {
       const written = await askGeminiText(
-        `${REVIEW_PROMPT}\n\nYour voice: ${persona}`,
+        `${REVIEW_PROMPT}\n\nYour voice: ${persona}\n\nHow you type: ${voice.rules}`,
         subject.mediaType === "music"
           ? `Write your review of the song "${subject.title}" by ${subject.artist}.`
           : `Write your review of the ${subject.kind} "${subject.title}". What it is, so you don't ` +
@@ -588,7 +613,7 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
           media_type: subject.mediaType,
           title: subject.title,
           artist: subject.artist,
-          body: stripBotPunctuation(body),
+          body: stripBannedTics(stripBotPunctuation(body)),
           rating: 3 + Math.floor(Math.random() * 3), // 3-5, never a fake pan
           cover_url: cover,
           youtube_video_id: video?.id ?? null,
@@ -604,14 +629,14 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
   //    thing the feed is actually for - should win it rather than losing
   //    the toss to a chat line.
   const chat = Math.random() < 0.5 ? null : await askGeminiText(
-    `${CHAT_PROMPT}\n\nYour voice: ${persona}`,
+    `${CHAT_PROMPT}\n\nYour voice: ${persona}\n\nHow you type: ${voice.rules}`,
     "Say something about what you're listening to or watching lately."
   );
   if (chat && !chat.ok) skipped.push(`couldn't write a chat message: ${chat.error}`);
   if (chat?.ok) {
     const { error } = await adminClient
       .from("chat_messages")
-      .insert({ user_id: bot.id, body: stripBotPunctuation(chat.text) });
+      .insert({ user_id: bot.id, body: stripBannedTics(stripBotPunctuation(chat.text)) });
     if (error) console.error(`[bots] chat insert failed: ${error.message}`);
     else done.push("posted in chat");
   }
