@@ -8681,3 +8681,90 @@ body {
 .bg-picker .comment-form {
   margin-top: 12px;
 }
+
+/* ================================================================
+   Shelf stacks as records, not paper
+
+   The two sheets behind each cover were plain tinted paper, which read
+   as a stack of photos. One of them is now the vinyl itself, sitting
+   in the sleeve and peeking out to the right the way a record does
+   when it's half pulled; the other stays a second sleeve behind. Same
+   markup - the sheets are just told to be different objects.
+   ================================================================ */
+
+/* sheet-1 becomes the record. inset:0 on a square stack gives a true
+   circle, then it slides right so the edge clears the sleeve. */
+.sk-stack-sheet.sheet-1 {
+  transform: translateX(24px);
+  border-radius: 50%;
+  border: none;
+  z-index: 1;
+  background:
+    /* spindle hole */
+    radial-gradient(circle at 50% 50%, #17181c 0 2.6%, transparent 3%),
+    /* paper label */
+    radial-gradient(circle at 50% 50%, #d9c9a4 0 15%, transparent 15.4%),
+    /* groove rings */
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.05) 0 1px,
+      rgba(0, 0, 0, 0) 1px 3px
+    ),
+    /* the sweep of light across a disc */
+    conic-gradient(
+      from 215deg at 50% 50%,
+      rgba(255, 255, 255, 0.16) 0deg,
+      rgba(255, 255, 255, 0) 40deg,
+      rgba(255, 255, 255, 0) 160deg,
+      rgba(255, 255, 255, 0.12) 200deg,
+      rgba(255, 255, 255, 0) 250deg,
+      rgba(255, 255, 255, 0) 360deg
+    ),
+    radial-gradient(circle at 50% 50%, #2a2a30 0%, #121216 62%, #08080a 100%);
+  box-shadow: 3px 4px 9px rgba(0, 0, 0, 0.55);
+  transition: transform 0.18s ease;
+}
+/* Pull the record further out of the sleeve on hover. */
+.sk-stack:hover .sk-stack-sheet.sheet-1 {
+  transform: translateX(34px) rotate(4deg);
+}
+
+/* sheet-2 stays a sleeve, but sits squarer behind the front one so the
+   pile reads as records rather than tossed photos. */
+.sk-stack-sheet.sheet-2 {
+  transform: rotate(1.5deg) translate(5px, 5px);
+  border-radius: 2px;
+  background: linear-gradient(160deg, #f3f2ee, #cfcec7);
+  box-shadow: 2px 3px 7px rgba(0, 0, 0, 0.3);
+}
+
+/* A third sleeve edge, so the stack has real depth rather than two
+   layers. Behind everything, offset the other way. */
+.sk-stack::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 2px;
+  transform: rotate(-2.5deg) translate(-4px, 3px);
+  background: linear-gradient(160deg, #e6e5e0, #bfbeb8);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-shadow: -2px 3px 6px rgba(0, 0, 0, 0.26);
+}
+
+/* The sleeve itself gets a spine shadow down its left edge, which is
+   what actually sells cardboard. */
+.sk-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 9px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.34),
+    rgba(0, 0, 0, 0.12) 45%,
+    rgba(255, 255, 255, 0.14) 92%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
