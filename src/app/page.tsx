@@ -228,6 +228,7 @@ export default async function FeedPage({
     upcomingMovies,
     { data: statusRows },
     { data: clubRows },
+    clubsCount,
     { data: memberRows },
     { data: clubChatRows },
     { data: clubPostRows },
@@ -261,6 +262,12 @@ export default async function FeedPage({
     // Avatars come along so the sidebar can show who's actually in a club.
     // A club with faces on it reads as alive; a club with a number on it
     // reads as a database row.
+    // clubRows is capped at 4 for the sidebar, so the stats line needs a
+    // real count or it silently stops rising once there are five clubs.
+    supabase
+      .from("clubs")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "approved"),
     supabase.from("club_members").select("club_id, profiles(avatar_url, username)"),
     // Last activity per club. A club's life shows up in two places - its
     // chat room and posts tagged to it - so both get read and the newer
@@ -761,9 +768,14 @@ export default async function FeedPage({
       </span>
     </div>
     <div className="stats-body">
+      {/* Zero counts are left out. "0 underground creators featured" is the
+          same proof-of-emptiness signal as the empty panel that used to sit
+          on the homepage, just printed in a different place. */}
       <div>{postsCount.count ?? 0} reviews posted</div>
-      <div>{(clubRows ?? []).length} clubs formed</div>
-      <div>{(artistPostRows ?? []).length} underground creators featured</div>
+      {(clubsCount.count ?? 0) > 0 && <div>{clubsCount.count} clubs formed</div>}
+      {(artistPostRows ?? []).length > 0 && (
+        <div>{(artistPostRows ?? []).length} underground creators featured</div>
+      )}
     </div>
   </div>
     </>

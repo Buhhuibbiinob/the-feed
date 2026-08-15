@@ -7996,3 +7996,102 @@ body {
 [data-theme="ios-light"] .feed-pager-status {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
 }
+
+/* ================================================================
+   Extending the album-deck treatment
+
+   The Trending Music shelf is the one module that already reads as
+   physical, and it gets there with two cheap tricks:
+     1. flat offset box-shadows that make cards peek out behind the art
+     2. a white gradient sweep across the top half, like light on gloss
+   Both are applied here to the surfaces that were still flat: review
+   card artwork, the Feed TV frame, and section header bars.
+
+   The deck itself is NOT theme-scoped, exactly like .release-cover's,
+   because stacked paper behind artwork reads correctly in any palette.
+   Only the chrome lighting is scoped to the default theme.
+   ================================================================ */
+
+/* ---- Review artwork as a stacked case ----
+   Same idea as the shelf, tightened for a 46px thumbnail: two cards
+   behind instead of a bigger fan, so it reads as an object without
+   crowding the row. This repeats 15 times a page, so it does more work
+   than any single module. */
+.track-row .track-thumb {
+  box-shadow:
+    3px 3px 0 -1px #fafafa,
+    3px 3px 0 0 #a3a3a8,
+    6px 6px 0 -1px #f0f0f0,
+    6px 6px 0 0 #909096,
+    0 8px 14px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+[data-mode="dark"] .track-row .track-thumb {
+  box-shadow:
+    3px 3px 0 -1px #4a4a4e,
+    3px 3px 0 0 #202023,
+    6px 6px 0 -1px #3d3d41,
+    6px 6px 0 0 #171719,
+    0 8px 14px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.14) inset;
+}
+/* The deck leans down and right, so the row needs room or the stack
+   collides with the title. */
+.track-row {
+  gap: 18px;
+}
+
+/* ---- Feed TV as a physical unit ----
+   A moulded bezel with a lit top edge and a real shadow under it,
+   rather than a bordered box. */
+[data-theme="ios-light"] .yt-shell {
+  border: 1px solid #17181a;
+  border-radius: 12px;
+  padding: 5px;
+  background: linear-gradient(180deg, #7c7e84 0%, #55575c 6%, #3a3c40 55%, #26282b 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 -8px 14px rgba(0, 0, 0, 0.35) inset,
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    0 16px 34px rgba(0, 0, 0, 0.45);
+}
+[data-theme="ios-light"] .yt-topbar {
+  border-radius: 8px 8px 0 0;
+}
+[data-theme="ios-light"] .yt-tabs {
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+/* ---- Section headers as raised tabs ----
+   The header bars were brushed but flat-edged, so panels read as
+   printed rather than assembled. A lit top lip, a dark undercut and
+   engraved type make the bar sit proud of the body beneath it. */
+[data-theme="ios-light"] .panel-head {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.28) inset,
+    0 2px 3px rgba(0, 0, 0, 0.16);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+/* The coloured tab on the left of each header gets the same moulding as
+   the category badges, so the two speak the same language. */
+[data-theme="ios-light"] .panel-head-tab {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+[data-theme="ios-light"] .panel-head-tab::before {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 -4px 6px rgba(0, 0, 0, 0.18) inset,
+    0 1px 2px rgba(0, 0, 0, 0.3);
+}
+/* Panels themselves get a contact shadow so they sit on the brushed
+   background instead of floating over it. */
+[data-theme="ios-light"] .panel {
+  border-radius: 10px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.16) inset,
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 12px 26px rgba(0, 0, 0, 0.26);
+}
