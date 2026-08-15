@@ -7137,6 +7137,19 @@ body {
    ================================================================ */
 
 [data-theme="ios-light"] {
+  /* --nav-texture paints OVER --nav-bg, and the default theme's texture
+     was an opaque light aluminium gradient, so overriding --nav-bg alone
+     changed nothing visible. The texture is now just the brush lines,
+     letting the charcoal underneath show through. */
+  --nav-texture: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.055) 0 1px,
+    rgba(0, 0, 0, 0.1) 1px 2px
+  );
+  --nav-seam: #0c0d0e;
+  --nav-shadow: 0 1px 0 rgba(255, 255, 255, 0.26) inset, 0 -6px 12px rgba(0, 0, 0, 0.3) inset,
+    0 4px 12px rgba(0, 0, 0, 0.5);
+
   /* Charcoal glass. The hard 50/51% break is what reads as a real
      lit surface rather than a soft CSS gradient. */
   --nav-bg: linear-gradient(
@@ -7157,7 +7170,6 @@ body {
 /* Bright specular band across the top of the bar. */
 [data-theme="ios-light"] .apple-nav {
   position: relative;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 [data-theme="ios-light"] .apple-nav::after {
   content: "";
