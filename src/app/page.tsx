@@ -853,6 +853,7 @@ export default async function FeedPage({
         <div className="feedtv-row">
           <div className="feedtv-flank">
             <OrbyBot wishesLeft={orbyWishesLeft} />
+            {sideTopRated}
           </div>
           <div className="feedtv-top">
             <FeedTV clips={feedTvClips} />
@@ -860,6 +861,7 @@ export default async function FeedPage({
           <div className="feedtv-flank">
             {sideMostActive}
             {sideClubs}
+            {sideStats}
           </div>
         </div>
       )}
@@ -1065,8 +1067,6 @@ export default async function FeedPage({
 
           {sideLiveNow}
           {sideSidebarAds}
-          {sideTopRated}
-          {sideStats}
           {sideNewsletter}
         </div>
       </div>
