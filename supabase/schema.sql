@@ -253,7 +253,13 @@ alter table public.posts add column if not exists youtube_video_id text;
 alter table public.posts alter column media_type type text using media_type::text;
 update public.posts set media_type = 'movie_tv' where media_type in ('movie', 'tv');
 alter table public.posts drop constraint if exists posts_media_type_check;
-alter table public.posts add constraint posts_media_type_check check (media_type in ('music', 'movie_tv'));
+-- Lists photography too, even though that category arrives further down the
+-- file. This script is re-run end to end, so a constraint here that only
+-- allowed the two original values would fail against a database that already
+-- has photography posts in it - the narrower rule runs before the widening
+-- one further down and rejects real rows.
+alter table public.posts add constraint posts_media_type_check
+  check (media_type in ('music', 'movie_tv', 'photography'));
 drop type if exists media_type;
 
 -- ---------- youtube_accounts (OAuth tokens) ----------
@@ -1200,14 +1206,15 @@ create policy "Admins can change site settings"
   with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
 
 -- ---------- Photography as a third review type ----------
--- Reviews only. Clubs (clubs.media_type) and the currently-listening
--- status (profiles.status_media_type) keep their two-value constraints
--- on purpose - a photography club and a "currently viewing" status
--- weren't part of this, and widening them would let the UI offer
--- options the rest of the app doesn't handle.
-alter table public.posts drop constraint if exists posts_media_type_check;
-alter table public.posts add constraint posts_media_type_check
-  check (media_type in ('music', 'movie_tv', 'photography'));
+-- The posts constraint itself is set where media_type is first defined,
+-- above, so re-running this file top to bottom never briefly enforces a
+-- narrower rule than the data satisfies.
+--
+-- Clubs (clubs.media_type) and the currently-listening status
+-- (profiles.status_media_type) keep their two-value constraints on
+-- purpose - a photography club and a "currently viewing" status weren't
+-- part of this, and widening them would let the UI offer options the
+-- rest of the app doesn't handle.
 
 -- ---------- Custom background: fill mode + mirror ----------
 -- How the member's uploaded background sits on the page. Nullable with a
