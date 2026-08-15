@@ -299,7 +299,12 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   const width = SIZES.find((s) => s.id === size)!.width;
 
   return (
-    <div className="feedtv-standalone" style={{ maxWidth: width }}>
+    // width, not just maxWidth: as a full-width block, max-width alone was
+    // enough to size the player. Inside a grid track that sizes to its
+    // content, an element with only a max-width has nothing to fill and
+    // collapses to its minimum, so XL rendered at 300px. An explicit width
+    // capped at 100% behaves correctly in both.
+    <div className="feedtv-standalone" style={{ width, maxWidth: "100%" }}>
       <div className="yt-shell">
           {/* Brand plate on the left, then a recessed LCD showing what's on,
               the way an iTunes mini-player puts the track in a sunken screen
