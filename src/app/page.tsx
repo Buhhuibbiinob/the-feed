@@ -6,6 +6,7 @@ import { PostCard } from "@/components/PostCard";
 import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
 import { FollowingToggle } from "@/components/FollowingToggle";
 import { OrbyBot } from "@/components/OrbyBot";
+import { getOrbyWishesLeft } from "@/app/actions/orby";
 import { NewsletterSubscribeForm } from "@/components/NewsletterSubscribeForm";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
@@ -196,6 +197,8 @@ export default async function FeedPage({
     data: { user },
   } = await supabase.auth.getUser();
   const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
+  // Signed-out visitors have no personal count, so skip the query entirely.
+  const orbyWishesLeft = user ? await getOrbyWishesLeft() : null;
 
   const [
     posts,
@@ -547,35 +550,37 @@ export default async function FeedPage({
   </div>
     </>
   );
-  const sideTopTracks = (
-    <>
-  <div className="panel">
-    <div className="panel-head tabbed">
-      <span className="panel-head-tab">
-        <span className="tab-the">the</span>
-        <span className="tab-main">Top Tracks</span>
-      </span>
-    </div>
-    <div className="side-list">
-      {topTracks.length === 0 ? (
-        <div className="empty-state">No music reviews yet.</div>
-      ) : (
-        topTracks.map((post, i) => (
-          <div className="row" key={post.id}>
-            <span className="num">{i + 1}</span>
-            <div className="info">
-              <b>{post.title}</b>
-              <span>
-                {post.profiles?.username ?? "unknown"} · <Stars rating={post.rating} />
-              </span>
+  // "Top Tracks" and "Top This Week" were two panels showing near-identical
+  // lists: at this volume almost every rated music post is also from this
+  // week, so the sidebar rendered the same five rows twice. One module now,
+  // preferring the week (it's the livelier signal) and falling back to
+  // all-time music so it never shows an empty state.
+  const topRatedRows = topThisWeek.length > 0 ? topThisWeek : topTracks;
+  const topRatedTitle = topThisWeek.length > 0 ? "Top This Week" : "Top Rated";
+  const sideTopRated =
+    topRatedRows.length === 0 ? null : (
+      <div className="panel">
+        <div className="panel-head tabbed">
+          <span className="panel-head-tab">
+            <span className="tab-the">the</span>
+            <span className="tab-main">{topRatedTitle}</span>
+          </span>
+        </div>
+        <div className="side-list">
+          {topRatedRows.map((post, i) => (
+            <div className="row" key={post.id}>
+              <span className="num">{i + 1}</span>
+              <div className="info">
+                <b>{post.title}</b>
+                <span>
+                  {post.profiles?.username ?? "unknown"} · <Stars rating={post.rating} />
+                </span>
+              </div>
             </div>
-          </div>
-        ))
-      )}
-    </div>
-  </div>
-    </>
-  );
+          ))}
+        </div>
+      </div>
+    );
   const sideNewsletter = (
     <>
   {siteFlags.homepage_newsletter && (
@@ -633,35 +638,6 @@ export default async function FeedPage({
   )}
     </>
   );
-  const sideTopWeek = (
-    <>
-  <div className="panel">
-    <div className="panel-head tabbed">
-      <span className="panel-head-tab">
-        <span className="tab-the">the</span>
-        <span className="tab-main">Top This Week</span>
-      </span>
-    </div>
-    <div className="side-list">
-      {topThisWeek.length === 0 ? (
-        <div className="empty-state">Nothing rated this week yet.</div>
-      ) : (
-        topThisWeek.map((post, i) => (
-          <div className="row" key={post.id}>
-            <span className="num">{i + 1}</span>
-            <div className="info">
-              <b>{post.title}</b>
-              <span>
-                {post.profiles?.username ?? "unknown"} · <Stars rating={post.rating} />
-              </span>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  </div>
-    </>
-  );
   const sideStats = (
     <>
   <div className="panel">
@@ -680,7 +656,11 @@ export default async function FeedPage({
     </>
   );
 
-  const leftCreators = !siteFlags.homepage_creators ? null : (
+  // Hidden entirely when there's nothing in it, rather than rendering "No
+  // creator posts yet". An empty module on the homepage is a visible
+  // proof-of-emptiness signal, which is the opposite of what a small
+  // community needs a visitor to see.
+  const leftCreators = !siteFlags.homepage_creators || (artistPostRows ?? []).length === 0 ? null : (
     <div className="panel">
       <div className="panel-head tabbed">
         <span className="panel-head-tab">
@@ -692,21 +672,14 @@ export default async function FeedPage({
         </Link>
       </div>
       <div className="panel-body flush">
-        {(artistPostRows ?? []).length === 0 ? (
-          <div className="empty-state" style={{ padding: 16 }}>
-            No creator posts yet - underground artists and filmmakers can{" "}
-            <Link href="/artists">share their work here</Link>.
+        {(artistPostRows ?? []).map((post) => (
+          <div className="chat-row" key={post.id}>
+            <b>{post.artist_name}</b>{" "}
+            <span className={`badge ${post.platform}`}>{ARTIST_PLATFORM_LABELS[post.platform]}</span>
+            {post.description && <span> - {post.description}</span>}
+            <span className="ts">shared by {post.profiles?.username ?? "unknown"}</span>
           </div>
-        ) : (
-          (artistPostRows ?? []).map((post) => (
-            <div className="chat-row" key={post.id}>
-              <b>{post.artist_name}</b>{" "}
-              <span className={`badge ${post.platform}`}>{ARTIST_PLATFORM_LABELS[post.platform]}</span>
-              {post.description && <span> - {post.description}</span>}
-              <span className="ts">shared by {post.profiles?.username ?? "unknown"}</span>
-            </div>
-          ))
-        )}
+        ))}
       </div>
     </div>
   );
@@ -747,7 +720,7 @@ export default async function FeedPage({
         </div>
       )}
 
-      <div className="theslap-3col">
+      <div className="theslap-3col theslap-2col">
         {topReviewers.length > 0 && (
           <div className="spotlight-panel">
             <span className="spotlight-tag">Top Reviewer</span>
@@ -763,7 +736,6 @@ export default async function FeedPage({
           </div>
         )}
         <Shelf title="Trending Music" items={newReleases} />
-        <OrbyBot />
       </div>
 
       <div className="fun-fact-banner">
@@ -904,42 +876,35 @@ export default async function FeedPage({
           </div>
         </div>
 
+        {/* Sidebar order is deliberate and NOT shuffled, unlike the left
+            column: it runs top-to-bottom by how much a module gives someone
+            a reason to come back tomorrow. Orby's daily wishes lead, social
+            proof sits in the middle, and pure utility (stats, newsletter)
+            drops to the bottom. Shuffling this would throw that away. */}
         <div className="right-col">
-          <div className="panel new-post-card">
-            <div className="panel-body">
-              {user ? (
-                <Link href="/post/new" className="btn new-post-btn">
-                  + New Post
-                </Link>
-              ) : (
-                <>
-                  <p style={{ margin: "0 0 10px" }}>Have something to review?</p>
-                  <Link href="/sign-up" className="btn new-post-btn">
-                    Create Account
-                  </Link>
-                  <div className="auth-switch" style={{ textAlign: "center" }}>
-                    <Link href="/sign-in">Sign in</Link>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          <OrbyBot wishesLeft={orbyWishesLeft} />
 
-          {orderBlocks(
-            [
-              { key: "clubs", node: sideClubs },
-              { key: "sidebar-ads", node: sideSidebarAds },
-              { key: "most-active", node: sideMostActive },
-              { key: "top-tracks", node: sideTopTracks },
-              { key: "newsletter", node: sideNewsletter },
-              { key: "live-now", node: sideLiveNow },
-              { key: "top-week", node: sideTopWeek },
-              { key: "stats", node: sideStats },
-            ],
-            siteFlags.homepage_shuffle
-          ).map((block) => (
-            <Fragment key={block.key}>{block.node}</Fragment>
-          ))}
+          {!user && (
+            <div className="panel new-post-card">
+              <div className="panel-body">
+                <p style={{ margin: "0 0 10px" }}>Have something to review?</p>
+                <Link href="/sign-up" className="btn new-post-btn">
+                  Create Account
+                </Link>
+                <div className="auth-switch" style={{ textAlign: "center" }}>
+                  <Link href="/sign-in">Sign in</Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {sideLiveNow}
+          {sideMostActive}
+          {sideSidebarAds}
+          {sideClubs}
+          {sideTopRated}
+          {sideStats}
+          {sideNewsletter}
         </div>
       </div>
 

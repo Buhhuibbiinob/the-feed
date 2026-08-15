@@ -6983,3 +6983,137 @@ body {
 .feedtv-top {
   margin-bottom: 16px;
 }
+
+/* ================================================================
+   Homepage restructure pass (master-prompt step 1 + 2)
+
+   Three things live here: the two-up top row now that Orby has moved
+   into the sidebar, Orby's daily wish counter, and the desktop Post
+   button. Chrome only - none of this touches review card content.
+   ================================================================ */
+
+/* The top row was three columns with Orby as the third. Orby now leads
+   the sidebar, so the remaining two (Top Reviewer, Trending Music) share
+   the width instead of leaving a hole where the third used to be. */
+.theslap-2col {
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+}
+
+/* ---- Desktop Post button ----
+   Deliberately the loudest control in the nav. Same glossy idiom as
+   .acct-btn (inset top highlight, hard bottom shadow) but larger, in the
+   accent colour, and never dimmed by a neighbouring primary button. */
+.nav-post-btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 10px;
+  padding: 7px 18px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  text-decoration: none;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, #7ad0ff 0%, #2f9fe6 48%, #1d7fc4 52%, #175f9c 100%);
+  border: 1px solid #14568c;
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 -4px 8px rgba(0, 0, 0, 0.28) inset;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.12s ease;
+}
+.nav-post-btn::before {
+  content: "";
+  position: absolute;
+  top: 7%;
+  left: 4%;
+  right: 4%;
+  height: 38%;
+  border-radius: 100px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.nav-post-btn:hover {
+  filter: brightness(1.08);
+}
+.nav-post-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45) inset;
+}
+.nav-post-plus {
+  position: relative;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---- Orby daily wish counter ----
+   The limit only works as a return mechanic if you can see it. Three dots
+   plus the words, in the panel head so it reads before the chat does. */
+.orby-panel .orby-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.orby-head-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.orby-head-orb {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.orby-wishes {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 3px 9px 3px 6px;
+  border-radius: 100px;
+  color: #f7fbff;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.42));
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+}
+.orby-wishes.spent {
+  color: #ffe0e0;
+}
+.orby-wish-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+.orby-wish-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+.orby-wish-dot.on {
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #ffe07a 35%, #f0a800 100%);
+  box-shadow: 0 0 5px rgba(255, 200, 60, 0.85);
+}
+.orby-refill {
+  padding: 8px 12px;
+  font-size: 11px;
+  text-align: center;
+  opacity: 0.75;
+}
+
+/* Below the tablet breakpoint the top row stacks anyway, so the two-up
+   grid only applies where there's room for it. */
+@media (max-width: 720px) {
+  .theslap-2col {
+    grid-template-columns: 1fr;
+  }
+}

@@ -3,24 +3,48 @@
 import { createClient } from "@/lib/supabase/server";
 import { askGemini } from "@/lib/gemini";
 import { getTrendingTracks } from "@/lib/lastfm";
+import { ORBY_DAILY_LIMIT } from "@/lib/orby";
 
 const SYSTEM_PROMPT_BASE = `You are Orby, a friendly recommendation assistant on Feedback, a music/movie/TV review community site. You ONLY discuss and recommend music, movies, TV shows, underground/indie artists, and short films - nothing else. If asked about anything off-topic, politely redirect back to recommendations in one short sentence and don't answer the off-topic part.
 
 Keep replies conversational but brief (2-4 sentences max, like a chat message, not an essay). For music, prefer picking from the REAL trending tracks and underground artists listed below when they fit what the user asked for - don't invent fake artist names or song titles for those. For movies, TV shows, and short films, there's no live candidate list provided - use your own knowledge to recommend real, well-known titles that fit the request. Never fabricate plot details, release dates, or facts you're not confident about - if you're not sure of a detail, don't state it.`;
 
 // Genie-in-a-bottle rules: 3 wishes (messages) per user, per day.
-const DAILY_LIMIT = 3;
+// The limit itself lives in @/lib/orby so the client can read it too.
+const DAILY_LIMIT = ORBY_DAILY_LIMIT;
 
-export async function askOrby(message: string): Promise<string> {
+export type OrbyReply = { text: string; wishesLeft: number };
+
+// The wish counter is the whole point of the limit: a cap nobody can see is
+// just a wall you hit, while a visible "2 of 3 left" is a reason to come back
+// tomorrow. Both the initial server render and every reply carry the count.
+export async function getOrbyWishesLeft(): Promise<number | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("orby_use_count, orby_use_date")
+    .eq("id", user.id)
+    .single();
+
+  const today = new Date().toISOString().slice(0, 10);
+  const usedToday = profile?.orby_use_date === today ? (profile.orby_use_count ?? 0) : 0;
+  return Math.max(0, DAILY_LIMIT - usedToday);
+}
+
+export async function askOrby(message: string): Promise<OrbyReply> {
   const trimmed = message.trim();
-  if (!trimmed) return "Ask me for a recommendation - music, a movie, a show, or an underground artist!";
 
   const supabase = await createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return "Sign in to chat with Orby!";
+  if (!user) return { text: "Sign in to chat with Orby!", wishesLeft: 0 };
 
   const today = new Date().toISOString().slice(0, 10);
   const { data: profile } = await supabase
@@ -30,14 +54,28 @@ export async function askOrby(message: string): Promise<string> {
     .single();
 
   const usedToday = profile?.orby_use_date === today ? (profile.orby_use_count ?? 0) : 0;
+  const left = Math.max(0, DAILY_LIMIT - usedToday);
+
+  // An empty message must not burn a wish.
+  if (!trimmed) {
+    return {
+      text: "Ask me for a recommendation - music, a movie, a show, or an underground artist!",
+      wishesLeft: left,
+    };
+  }
+
   if (usedToday >= DAILY_LIMIT) {
-    return `You've used all ${DAILY_LIMIT} of your wishes for today - come back tomorrow for ${DAILY_LIMIT} more!`;
+    return {
+      text: `You've used all ${DAILY_LIMIT} of your wishes for today - come back tomorrow for ${DAILY_LIMIT} more!`,
+      wishesLeft: 0,
+    };
   }
 
   await supabase
     .from("profiles")
     .update({ orby_use_count: usedToday + 1, orby_use_date: today })
     .eq("id", user.id);
+  const wishesLeft = left - 1;
 
   const [tracks, undergroundRes] = await Promise.all([
     getTrendingTracks(20).catch(() => []),
@@ -65,7 +103,7 @@ export async function askOrby(message: string): Promise<string> {
 
   const systemPrompt = candidateText ? `${SYSTEM_PROMPT_BASE}\n\n${candidateText}` : SYSTEM_PROMPT_BASE;
   const reply = await askGemini(systemPrompt, trimmed);
-  if (reply) return reply;
+  if (reply) return { text: reply, wishesLeft };
 
   // Fallback for when GEMINI_API_KEY isn't configured yet, or the call
   // fails. Without Gemini there's no real movie/TV data source anymore
@@ -83,8 +121,8 @@ export async function askOrby(message: string): Promise<string> {
 
   const pool = wantsScreen && !wantsMusic ? screenPool : wantsMusic && !wantsScreen ? musicPool : [...screenPool, ...musicPool];
   if (pool.length === 0) {
-    return "I couldn't find anything to recommend right now - try again in a bit!";
+    return { text: "I couldn't find anything to recommend right now - try again in a bit!", wishesLeft };
   }
   const pick = pool[Math.floor(Math.random() * pool.length)];
-  return `Orby recommends: **${pick}**.`;
+  return { text: `Orby recommends: **${pick}**.`, wishesLeft };
 }

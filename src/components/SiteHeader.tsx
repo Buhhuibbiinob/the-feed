@@ -183,6 +183,18 @@ export function SiteHeader({
           <form action="/search" method="get" className="nav-search">
             <input type="search" name="q" placeholder="Search Feedback" aria-label="Search" />
           </form>
+          {/* Mobile has had a prominent Post FAB in the tab bar all along;
+              desktop had nothing but a card buried in the sidebar. Posting is
+              the action the whole site exists for, so it gets a permanent,
+              visually loud slot in the nav at every width. */}
+          {username && (
+            <Link href="/post/new" className="nav-post-btn">
+              <span className="nav-post-plus" aria-hidden="true">
+                +
+              </span>
+              Post
+            </Link>
+          )}
           <div className="nav-account">
             {theme === "ios-light" && <LightDarkToggle />}
             {username ? (
