@@ -197,6 +197,9 @@ export default async function FeedPage({
     data: { user },
   } = await supabase.auth.getUser();
   const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
+  // One clock reading for the whole render, shared by the Live Now window
+  // and the club activity labels, so "now" can't drift between them.
+  const renderNow = Date.now();
   // Signed-out visitors have no personal count, so skip the query entirely.
   const orbyWishesLeft = user ? await getOrbyWishesLeft() : null;
 
@@ -210,6 +213,8 @@ export default async function FeedPage({
     { data: statusRows },
     { data: clubRows },
     { data: memberRows },
+    { data: clubChatRows },
+    { data: clubPostRows },
     { data: artistPostRows },
     { data: allBannerAdRows },
     siteText,
@@ -226,7 +231,7 @@ export default async function FeedPage({
       .from("profiles")
       .select("username, status_media_type, status_title, status_artist")
       .not("status_media_type", "is", null)
-      .gte("status_updated_at", new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())
+      .gte("status_updated_at", new Date(renderNow - 3 * 24 * 60 * 60 * 1000).toISOString())
       .order("status_updated_at", { ascending: false })
       .limit(8)
       .returns<StatusRow[]>(),
@@ -237,7 +242,26 @@ export default async function FeedPage({
       .order("created_at", { ascending: false })
       .limit(4)
       .returns<ClubRow[]>(),
-    supabase.from("club_members").select("club_id"),
+    // Avatars come along so the sidebar can show who's actually in a club.
+    // A club with faces on it reads as alive; a club with a number on it
+    // reads as a database row.
+    supabase.from("club_members").select("club_id, profiles(avatar_url, username)"),
+    // Last activity per club. A club's life shows up in two places - its
+    // chat room and posts tagged to it - so both get read and the newer
+    // of the two wins. Ordered newest-first and capped, so the first hit
+    // for a club id is already its latest.
+    supabase
+      .from("chat_messages")
+      .select("club_id, created_at")
+      .not("club_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(120),
+    supabase
+      .from("posts")
+      .select("club_id, created_at")
+      .not("club_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(120),
     supabase
       .from("artist_posts")
       .select("id, artist_name, platform, description, profiles(username)")
@@ -258,8 +282,32 @@ export default async function FeedPage({
   ]);
 
   const clubMemberCounts = new Map<string, number>();
+  const clubFaces = new Map<string, { avatarUrl: string | null; username: string }[]>();
   for (const row of memberRows ?? []) {
     clubMemberCounts.set(row.club_id, (clubMemberCounts.get(row.club_id) ?? 0) + 1);
+    // Supabase types an embedded relation as either an object or an array
+    // depending on how it infers the join, so both shapes get handled.
+    const raw = (row as { profiles?: unknown }).profiles;
+    const profile = (Array.isArray(raw) ? raw[0] : raw) as
+      | { avatar_url: string | null; username: string }
+      | null
+      | undefined;
+    if (!profile) continue;
+    const faces = clubFaces.get(row.club_id) ?? [];
+    if (faces.length < 4) {
+      faces.push({ avatarUrl: profile.avatar_url, username: profile.username });
+      clubFaces.set(row.club_id, faces);
+    }
+  }
+
+  // Newest-first rows mean the first time a club id appears is its latest
+  // activity, so a plain "set if absent" gets the max without sorting.
+  const clubLastActive = new Map<string, string>();
+  for (const row of [...(clubChatRows ?? []), ...(clubPostRows ?? [])]) {
+    const r = row as { club_id: string | null; created_at: string };
+    if (!r.club_id) continue;
+    const seen = clubLastActive.get(r.club_id);
+    if (!seen || r.created_at > seen) clubLastActive.set(r.club_id, r.created_at);
   }
   const latestIssue = newsletterIssues[0] ?? null;
 
@@ -456,6 +504,21 @@ export default async function FeedPage({
   );
 
 
+  // "active 3h ago" beats a join date for showing a club is alive. Coarse
+  // on purpose: the point is recency, not precision.
+  const activeAgo = (iso: string | undefined): string | null => {
+    if (!iso) return null;
+    const mins = Math.floor((renderNow - new Date(iso).getTime()) / 60000);
+    if (mins < 0) return "active now";
+    if (mins < 60) return `active ${Math.max(1, mins)}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `active ${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `active ${days}d ago`;
+    const weeks = Math.floor(days / 7);
+    return weeks < 5 ? `active ${weeks}w ago` : "quiet lately";
+  };
+
   // Sidebar blocks as values so the daily shuffle can reorder them.
   const sideClubs = (
     <>
@@ -477,10 +540,25 @@ export default async function FeedPage({
               <Link href={`/clubs/${club.id}`} key={club.id} className="club-chip">
                 <img src={club.avatar_url || "/avatars/preset-1.svg"} alt="" className="club-chip-avatar" />
                 <span className="club-chip-name">{club.name}</span>
-                <span className="club-chip-count">
-                  {clubMemberCounts.get(club.id) ?? 0} member
-                  {(clubMemberCounts.get(club.id) ?? 0) === 1 ? "" : "s"}
+                <span className="club-chip-meta">
+                  <span className="club-chip-faces">
+                    {(clubFaces.get(club.id) ?? []).map((face) => (
+                      <img
+                        key={face.username}
+                        src={face.avatarUrl || "/avatars/preset-1.svg"}
+                        alt=""
+                        className="club-face"
+                      />
+                    ))}
+                  </span>
+                  <span className="club-chip-count">
+                    {clubMemberCounts.get(club.id) ?? 0} member
+                    {(clubMemberCounts.get(club.id) ?? 0) === 1 ? "" : "s"}
+                  </span>
                 </span>
+                {activeAgo(clubLastActive.get(club.id)) && (
+                  <span className="club-chip-active">{activeAgo(clubLastActive.get(club.id))}</span>
+                )}
               </Link>
             ))}
             <Link href="/clubs" className="see-all club-chip-see-all">

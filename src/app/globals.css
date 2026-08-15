@@ -7767,3 +7767,114 @@ body {
   background: rgba(0, 0, 0, 0.55);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset;
 }
+
+/* ================================================================
+   Clubs module (step 7) + avatar frames site-wide (step 8)
+   ================================================================ */
+
+/* ---- Step 7: clubs that look alive ----
+   A club used to be an icon, a name and a member count - the same
+   three things whether it had been busy that morning or dead for a
+   month. It now carries the faces actually in it and when it last had
+   activity, which is the difference between a listing and a room. */
+.club-chip {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+.club-chip-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+/* Overlapping stack, newest face on top. */
+.club-chip-faces {
+  display: inline-flex;
+  align-items: center;
+}
+.club-face {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-left: -6px;
+  border: 1.5px solid var(--panel-body-bg, #fff);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.club-face:first-child {
+  margin-left: 0;
+}
+.club-chip-active {
+  flex-basis: 100%;
+  padding-left: 34px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: #2e8b57;
+}
+[data-mode="dark"] .club-chip-active {
+  color: #7fdca4;
+}
+
+/* Glossy badge-style club icon, per the brief. */
+[data-theme="ios-light"] .club-chip-avatar {
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85),
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 -3px 5px rgba(0, 0, 0, 0.22) inset;
+}
+[data-theme="ios-light"] .club-chip {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.14));
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+[data-theme="ios-light"] .club-chip:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.3));
+}
+
+/* ---- Step 8: buddy-icon frames on avatars site-wide ----
+   One rule for every avatar surface: a dark rim so the picture is cut
+   out of the page, a light catch on the top edge, and a soft drop
+   shadow. Deliberately restrained - it frames the photo, it doesn't
+   decorate over it. */
+[data-theme="ios-light"] .spotlight-avatar,
+[data-theme="ios-light"] .leaderboard-avatar,
+[data-theme="ios-light"] .profile-avatar,
+[data-theme="ios-light"] .club-face,
+[data-theme="ios-light"] .nav-bell-avatar,
+[data-theme="ios-light"] .hot-pages-photo-wrap,
+[data-theme="ios-light"] .avatar-preset-btn {
+  border: 1px solid rgba(0, 0, 0, 0.48);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8),
+    0 2px 5px rgba(0, 0, 0, 0.35),
+    0 -3px 6px rgba(0, 0, 0, 0.2) inset;
+}
+/* Glass catch across the top of the round ones, the old buddy-icon
+   look. Pseudo-elements need a positioned parent and can't hang off a
+   bare <img>, so only the wrappers get it. */
+[data-theme="ios-light"] .hot-pages-photo-wrap {
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="ios-light"] .hot-pages-photo-wrap::after {
+  content: "";
+  position: absolute;
+  top: 4%;
+  left: 8%;
+  width: 84%;
+  height: 42%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+/* The profile header avatar is the biggest one on the site, so it
+   carries a slightly heavier frame. */
+[data-theme="ios-light"] .profile-avatar {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9),
+    0 4px 12px rgba(0, 0, 0, 0.45),
+    0 -4px 8px rgba(0, 0, 0, 0.22) inset;
+}
