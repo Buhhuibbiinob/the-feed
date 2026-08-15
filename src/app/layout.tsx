@@ -10,6 +10,12 @@ import { getNotificationCount } from "@/lib/notifications";
 import { getUnreadDmCount } from "@/lib/messages";
 import { getArchivedBuiltinSlugs, getActiveCustomPages } from "@/lib/pages";
 import { getThemeTokenOverrides } from "@/lib/themeTokens";
+import {
+  backgroundCss,
+  isBackgroundFit,
+  DEFAULT_BACKGROUND_FIT,
+  type BackgroundFit,
+} from "@/lib/background";
 import { getSiteTheme, resolveTheme } from "@/lib/siteSettings";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -71,17 +77,25 @@ export default async function RootLayout({
   let personalTheme: string | null = null;
   let admin = false;
   let customBackgroundUrl: string | null = null;
+  let backgroundFit: BackgroundFit = DEFAULT_BACKGROUND_FIT;
+  let backgroundFlipped = false;
   let notificationCount = 0;
   let unreadDmCount = 0;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username, theme, custom_background_url, notifications_seen_at")
+      .select(
+        "username, theme, custom_background_url, background_fit, background_flipped, notifications_seen_at"
+      )
       .eq("id", user.id)
       .single();
     username = profile?.username ?? null;
     personalTheme = profile?.theme ?? null;
     customBackgroundUrl = profile?.custom_background_url ?? null;
+    backgroundFit = isBackgroundFit(profile?.background_fit)
+      ? profile.background_fit
+      : DEFAULT_BACKGROUND_FIT;
+    backgroundFlipped = profile?.background_flipped === true;
     admin = await isAdmin(supabase, user.id);
     notificationCount = await getNotificationCount(supabase, user.id, profile?.notifications_seen_at ?? null);
     unreadDmCount = await getUnreadDmCount(supabase, user.id);
@@ -100,12 +114,24 @@ export default async function RootLayout({
   const htmlStyle = {
     ...themeOverrides,
     ...(theme === "custom" && customBackgroundUrl
-      ? { "--body-bg": `url(${customBackgroundUrl}) center / cover fixed no-repeat` }
+      ? {
+          "--body-bg": backgroundCss({ url: customBackgroundUrl, fit: backgroundFit }),
+          // Mirroring a background-image needs a transform, and transforming
+          // <body> would take the whole page with it. The scale is applied to
+          // a fixed pseudo-element instead (see .custom-bg-flip in globals),
+          // which this flag switches on.
+          ...(backgroundFlipped ? { "--body-bg-flip": "-1" } : {}),
+        }
       : {}),
   } as React.CSSProperties;
 
   return (
-    <html lang="en" data-theme={theme} style={htmlStyle}>
+    <html
+      lang="en"
+      data-theme={theme}
+      data-bg-flipped={theme === "custom" && backgroundFlipped ? "true" : undefined}
+      style={htmlStyle}
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{

@@ -8573,3 +8573,111 @@ body {
 [data-theme="ios-light"] .nav-bell-btn {
   color: #dfe2e8;
 }
+
+/* ================================================================
+   Custom background: fill modes, mirroring, and letting it show
+
+   The uploaded image was already `cover`, but .wrap inherited the
+   generic opaque --wrap-bg, so a full-screen photo sat behind a solid
+   sheet 1240px wide and only showed as a margin. That is the whole
+   "it doesn't fill the screen" complaint - the sizing was never the
+   problem, the page on top of it was.
+   ================================================================ */
+
+/* Frosted rather than solid, so the photo reads as the page. The panels
+   inside stay legible because this theme already ships translucent dark
+   panel tokens. */
+[data-theme="custom"] {
+  --wrap-bg: rgba(18, 18, 22, 0.52);
+}
+[data-theme="custom"] .wrap {
+  backdrop-filter: blur(3px) saturate(115%);
+  -webkit-backdrop-filter: blur(3px) saturate(115%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+/* Mirroring. A background-image can't be flipped directly and
+   transforming <body> would mirror the entire page, so the image is
+   repainted onto a fixed pseudo-element that can carry the scale. Only
+   used when the member has actually asked for it. */
+[data-bg-flipped="true"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--body-bg);
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+[data-bg-flipped="true"] body {
+  background-image: none;
+}
+
+/* ---- Settings preview ---- */
+.bg-preview {
+  position: relative;
+  overflow: hidden;
+  height: 150px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: repeating-conic-gradient(#d8d8dd 0% 25%, #eeeef2 0% 50%) 0 0 / 16px 16px;
+}
+.bg-preview-layer {
+  position: absolute;
+  inset: 0;
+}
+.bg-preview-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+/* A miniature of the page sitting on the image, so the choice is judged
+   against something page-shaped rather than a bare swatch. */
+.bg-preview-wrap {
+  position: absolute;
+  inset: 16px 34px;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(18, 18, 22, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.bg-preview-bar {
+  display: block;
+  height: 7px;
+  margin-bottom: 7px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.5);
+}
+.bg-preview-line {
+  display: block;
+  height: 4px;
+  margin-bottom: 5px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.26);
+}
+.bg-preview-line.short {
+  width: 55%;
+}
+.bg-fit-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 4px 0 6px;
+}
+.bg-flip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.bg-picker .comment-form {
+  margin-top: 12px;
+}

@@ -1208,3 +1208,13 @@ create policy "Admins can change site settings"
 alter table public.posts drop constraint if exists posts_media_type_check;
 alter table public.posts add constraint posts_media_type_check
   check (media_type in ('music', 'movie_tv', 'photography'));
+
+-- ---------- Custom background: fill mode + mirror ----------
+-- How the member's uploaded background sits on the page. Nullable with a
+-- default so every existing custom background keeps the cover behaviour
+-- it already had.
+alter table public.profiles add column if not exists background_fit text
+  not null default 'cover'
+  check (background_fit in ('cover', 'contain', 'tile'));
+alter table public.profiles add column if not exists background_flipped boolean
+  not null default false;

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { ThemeForm } from "@/components/ThemeForm";
 import { BackgroundPicker } from "@/components/BackgroundPicker";
+import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { disconnectYoutube } from "@/app/actions/youtube";
 
 export const metadata = { title: "Settings - Feedback" };
@@ -28,11 +29,14 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("theme")
+    .select("theme, custom_background_url, background_fit, background_flipped")
     .eq("id", user.id)
     .single();
 
   const currentTheme = isValidTheme(profile?.theme) ? profile.theme : DEFAULT_THEME;
+  const currentFit = isBackgroundFit(profile?.background_fit)
+    ? profile.background_fit
+    : DEFAULT_BACKGROUND_FIT;
 
   const { data: youtubeAccount } = await supabase
     .from("youtube_accounts")
@@ -47,7 +51,11 @@ export default async function SettingsPage() {
         <div className="panel-head">Settings</div>
         <div className="panel-body">
           <ThemeForm currentTheme={currentTheme} />
-          <BackgroundPicker />
+          <BackgroundPicker
+            currentUrl={profile?.custom_background_url ?? null}
+            currentFit={currentFit}
+            currentFlipped={profile?.background_flipped === true}
+          />
         </div>
       </div>
 

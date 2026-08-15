@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { createClient } from "@/lib/supabase/server";
 import { MAX_AVATAR_BYTES, MAX_BANNER_BYTES, MAX_BACKGROUND_BYTES, megabytes, isImageFile, guessContentType } from "@/lib/uploads";
 import { checkBioSafety } from "@/lib/contentSafety";
@@ -198,9 +199,50 @@ export async function uploadCustomBackground(
     data: { publicUrl },
   } = supabase.storage.from("avatars").getPublicUrl(path);
 
+  const fitValue = formData.get("background_fit");
+  const fit = isBackgroundFit(fitValue) ? fitValue : DEFAULT_BACKGROUND_FIT;
+  const flipped = formData.get("background_flipped") === "on";
+
   const { error } = await supabase
     .from("profiles")
-    .update({ custom_background_url: `${publicUrl}?t=${Date.now()}`, theme: "custom" })
+    .update({
+      custom_background_url: `${publicUrl}?t=${Date.now()}`,
+      theme: "custom",
+      background_fit: fit,
+      background_flipped: flipped,
+    })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/**
+ * Changes how the existing background is laid out, without re-uploading it.
+ * Separate from the upload so someone can try Fill against Tile without
+ * pushing the same file up three times.
+ */
+export async function updateBackgroundLayout(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  const fitValue = formData.get("background_fit");
+  if (!isBackgroundFit(fitValue)) return { error: "Pick how the image should fill the page." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      background_fit: fitValue,
+      background_flipped: formData.get("background_flipped") === "on",
+    })
     .eq("id", user.id);
 
   if (error) return { error: error.message };
