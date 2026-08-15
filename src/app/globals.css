@@ -8881,7 +8881,14 @@ body {
    ================================================================ */
 .feedtv-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  /* The flanks get a floor of 220px and the player yields when there is
+     not enough room for its chosen size. Measured at a 1280 viewport,
+     XL left the flanks at 129px, which is narrower than Orby's input -
+     the panels stopped being usable so the player could be its full
+     width. Better that XL means "as big as fits beside the panels".
+     .feedtv-standalone carries max-width:100%, so it shrinks into
+     whatever the track allows rather than overflowing. */
+  grid-template-columns: minmax(220px, 1fr) minmax(0, auto) minmax(220px, 1fr);
   align-items: start;
   gap: 16px;
   margin-bottom: 16px;
