@@ -7282,3 +7282,139 @@ body {
 [data-theme="ios-light"] .sk-ios-tab.active .sk-ios-tab-label {
   color: #ffffff;
 }
+
+/* ================================================================
+   Master-prompt step 4: review card polish (ios-light)
+
+   Three things only, all frame and control - never the post text:
+     1. The card reads as a physical object (bevel + contact shadow).
+     2. The rating sits in a recessed well, iTunes-style.
+     3. The media embed is framed as a little player window with a
+        brushed chrome strip on top.
+
+   The post body, thumbnails and username line are deliberately left
+   alone. The brief is explicit that the last attempt failed by
+   texturing content as well as chrome, and that content should stay
+   clean and scannable on top of a skeuomorphic frame.
+   ================================================================ */
+
+/* ---- 1. Card as an object ----
+   A light catch along the top edge, a dark seat along the bottom, then
+   two shadows: a tight contact shadow that sits the card on the page
+   and a wider soft one for depth. This is the whole difference between
+   a div with a border and something lying on a surface. */
+[data-theme="ios-light"] .post-card {
+  border-color: #a9a9b0;
+  border-radius: 7px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.09) inset,
+    0 1px 1px rgba(0, 0, 0, 0.18),
+    0 6px 16px rgba(0, 0, 0, 0.17);
+}
+/* Hairline sheen down the top of the card, stopping well short of the
+   text so it never washes the content out. */
+[data-theme="ios-light"] .post-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 34px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="ios-light"] .track-row,
+[data-theme="ios-light"] .post-card-body {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- 2. Inset rating control ----
+   The stars drop into a milled trough rather than floating on the card.
+   Gold gradient on the glyphs is already there; this is the well. */
+[data-theme="ios-light"] .track-stars {
+  padding: 3px 8px 4px;
+  border-radius: 100px;
+  background: linear-gradient(180deg, #b8b8be, #d2d2d8 60%, #dcdce1);
+  border: 1px solid #9a9aa1;
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.3) inset,
+    0 -1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* ---- 3. Media embed as a player window ---- */
+[data-theme="ios-light"] .preview-player {
+  border: 1px solid #6e6e75;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #d6d6db, #b6b6bd);
+  padding: 0;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 2px 5px rgba(0, 0, 0, 0.28),
+    0 8px 18px rgba(0, 0, 0, 0.2);
+}
+/* Control strip. Painted from the same tokens as the section header
+   bars, so it comes out milled aluminium on the default theme and in
+   each other theme's own chrome rather than forcing silver on all 19. */
+.preview-player-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  min-width: 0;
+  border-bottom: 1px solid var(--panel-head-border);
+  border-radius: 7px 7px 0 0;
+  font-size: 11px;
+  background: var(--panel-head-bg);
+}
+.preview-player-glyph {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #ffffff 0%, #7fd0ff 30%, #2f7fdb 70%, #14508f 100%);
+  border: 1px solid #14508f;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+.preview-player-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--text);
+}
+.preview-player-kind {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+/* The letterpress only makes sense on light chrome, so it's scoped. */
+[data-theme="ios-light"] .preview-player-label,
+[data-theme="ios-light"] .preview-player-kind {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+/* The screen the iframe sits in, recessed behind the frame. */
+.preview-player-screen {
+  overflow: hidden;
+  border-radius: 0 0 7px 7px;
+  background: #000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55) inset;
+}
+.preview-player-screen iframe {
+  display: block;
+  width: 100%;
+  border: none;
+}
+.preview-player-audio .preview-player-screen iframe {
+  height: 80px;
+}
+.preview-player-video .preview-player-screen iframe {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
