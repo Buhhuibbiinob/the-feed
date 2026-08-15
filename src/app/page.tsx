@@ -229,6 +229,7 @@ export default async function FeedPage({
     upcomingMovies,
     { data: statusRows },
     { data: clubRows },
+    { data: authorPostRows },
     clubsCount,
     { data: memberRows },
     { data: clubChatRows },
@@ -263,6 +264,14 @@ export default async function FeedPage({
     // Avatars come along so the sidebar can show who's actually in a club.
     // A club with faces on it reads as alive; a club with a number on it
     // reads as a database row.
+    // Author review counts, read straight from the table rather than
+    // derived from the feed. Ranks and the Most Active list were counted
+    // off allPosts, which is both capped at 300 rows AND filtered by the
+    // Following toggle - so with Following on, a Legend rendered as
+    // "First Review". One uuid column per row keeps this cheap; if the
+    // table ever gets big enough for that to matter, this is the place to
+    // swap in a grouped aggregate.
+    supabase.from("posts").select("user_id"),
     // clubRows is capped at 4 for the sidebar, so the stats line needs a
     // real count or it silently stops rising once there are five clubs.
     supabase
@@ -417,13 +426,24 @@ export default async function FeedPage({
     }
   }
 
+  // Every author's true all-time review count, keyed by id so a username
+  // change can't orphan it.
+  const authorPostCounts = new Map<string, number>();
+  for (const row of (authorPostRows ?? []) as { user_id: string }[]) {
+    authorPostCounts.set(row.user_id, (authorPostCounts.get(row.user_id) ?? 0) + 1);
+  }
+
+  // Built from `posts` rather than `allPosts` on purpose: the leaderboard
+  // and Top Reviewer describe the whole community, so they must not shrink
+  // when someone switches on the Following filter. The count comes from the
+  // table; only the avatar comes from the posts in hand.
   const reviewerCounts = new Map<string, { count: number; avatarUrl: string | null }>();
-  for (const post of allPosts) {
+  for (const post of posts) {
     const name = post.profiles?.username;
     if (!name) continue;
     const existing = reviewerCounts.get(name);
     reviewerCounts.set(name, {
-      count: (existing?.count ?? 0) + 1,
+      count: authorPostCounts.get(post.user_id) ?? (existing?.count ?? 0) + 1,
       avatarUrl: existing?.avatarUrl ?? post.profiles?.avatar_url ?? null,
     });
   }
@@ -1020,10 +1040,7 @@ export default async function FeedPage({
                       username: post.profiles?.username ?? "unknown",
                       isVerified: post.profiles?.is_verified ?? false,
                       alsoReviewedCount: alsoReviewedFor(post),
-                      authorRank:
-                        highestBadge(
-                          reviewerCounts.get(post.profiles?.username ?? "")?.count ?? 0
-                        )?.label ?? null,
+                      authorRank: highestBadge(authorPostCounts.get(post.user_id) ?? 0)?.label ?? null,
                     }}
                     currentUserId={user?.id ?? null}
                     viewerIsAdmin={viewerIsAdmin}
