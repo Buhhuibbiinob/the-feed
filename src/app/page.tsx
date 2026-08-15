@@ -11,11 +11,9 @@ import { NewsletterSubscribeForm } from "@/components/NewsletterSubscribeForm";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getTrendingTracks } from "@/lib/lastfm";
 import { searchVideos } from "@/lib/youtube";
-import { fillMissingArt } from "@/lib/musicArt";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { MEDIA_TYPES, MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
 import { highestBadge } from "@/lib/badges";
-import { getAllSiteText } from "@/lib/siteContent";
 import { getPublishedIssues } from "@/lib/newsletter";
 import { getSiteFlags } from "@/lib/siteFlags";
 import { isAdmin } from "@/lib/admin";
@@ -236,7 +234,6 @@ export default async function FeedPage({
     { data: clubPostRows },
     { data: artistPostRows },
     { data: allBannerAdRows },
-    siteText,
     newsletterIssues,
     siteFlags,
   ] = await Promise.all([
@@ -309,7 +306,6 @@ export default async function FeedPage({
       .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order("created_at", { ascending: true })
       .returns<BannerAdRow[]>(),
-    getAllSiteText(supabase),
     getPublishedIssues(supabase),
     getSiteFlags(supabase),
   ]);
@@ -479,60 +475,6 @@ export default async function FeedPage({
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
     .slice(0, 5);
 
-  // Trending Music is built ONLY from what members have posted here. It
-  // used to be the Last.fm global chart, which meant the most prominent
-  // music module on the homepage showed the same records as every other
-  // site and none of them had been reviewed by anyone here. A short,
-  // sparse list of things real people rated is the point; padding it with
-  // a global chart would undo it.
-  //
-  // Ranked by how many distinct members reviewed a record first, then by
-  // average rating, so genuine agreement outranks one person's ten stars.
-  type TrendEntry = {
-    id: string;
-    title: string;
-    artist: string | null;
-    imageUrl: string | null;
-    raters: Set<string>;
-    ratingTotal: number;
-    ratingCount: number;
-  };
-  const trendMap = new Map<string, TrendEntry>();
-  for (const post of posts) {
-    if (post.media_type !== "music") continue;
-    const key = `${post.title.trim().toLowerCase()}|${(post.artist ?? "").trim().toLowerCase()}`;
-    const entry = trendMap.get(key) ?? {
-      id: post.id,
-      title: post.title,
-      artist: post.artist,
-      imageUrl: post.cover_url,
-      raters: new Set<string>(),
-      ratingTotal: 0,
-      ratingCount: 0,
-    };
-    entry.raters.add(post.user_id);
-    entry.imageUrl = entry.imageUrl ?? post.cover_url;
-    if (post.rating) {
-      entry.ratingTotal += post.rating;
-      entry.ratingCount += 1;
-    }
-    trendMap.set(key, entry);
-  }
-  const newReleases: ShelfItem[] = [...trendMap.values()]
-    .sort((a, b) => {
-      if (b.raters.size !== a.raters.size) return b.raters.size - a.raters.size;
-      const avgA = a.ratingCount ? a.ratingTotal / a.ratingCount : 0;
-      const avgB = b.ratingCount ? b.ratingTotal / b.ratingCount : 0;
-      return avgB - avgA;
-    })
-    .slice(0, 10)
-    .map((entry) => ({
-      id: entry.id,
-      title: entry.title,
-      subtitle: entry.artist ?? "",
-      imageUrl: entry.imageUrl ?? undefined,
-    }));
-
   const nowWatching: ShelfItem[] = allPosts
     .filter((p) => p.media_type === "movie_tv")
     .slice(0, 10)
@@ -552,18 +494,6 @@ export default async function FeedPage({
     return score > bestScore ? p : best;
   }, null);
   const newFavePost = allPosts[0] ?? null;
-
-  const FUN_FACTS = [
-    "Every review you post can spin up a new fan club automatically.",
-    "Feed TV's lineup is pulled straight from what the community's been posting.",
-    "The Leaderboard is a lifetime tally - it never resets.",
-    "Underground artists and filmmakers can post directly - no label or distributor needed.",
-  ];
-  // The ticker scrolls through all of them rather than showing one a day,
-  // so the strip has something to say every time you look at it. Rotated
-  // by day so the running order isn't always identical.
-  const dayIndex = Math.floor(renderNow / (1000 * 60 * 60 * 24)) % FUN_FACTS.length;
-  const tickerFacts = [...FUN_FACTS.slice(dayIndex), ...FUN_FACTS.slice(0, dayIndex)];
 
   const SITE_LINKS: { heading: string; links: { label: string; href: string }[] }[] = [
     {
@@ -889,11 +819,6 @@ export default async function FeedPage({
 
   return (
     <>
-      <div className="page-header">
-        <h1>{siteText.feed_heading}</h1>
-        <div className="tagline">{siteText.feed_tagline}</div>
-      </div>
-
       {siteFlags.homepage_ad_hero &&
         (heroAd ? (
           <BannerLink href={heroAd.link_url} className="banner-slot-hero">
@@ -923,44 +848,6 @@ export default async function FeedPage({
         </div>
       )}
 
-      <div className="theslap-3col theslap-2col">
-        {topReviewers.length > 0 && (
-          <div className="spotlight-panel">
-            <span className="spotlight-tag">Top Reviewer</span>
-            <img
-              src={topReviewers[0][1].avatarUrl || "/avatars/preset-1.svg"}
-              alt=""
-              className="spotlight-avatar"
-            />
-            <b className="spotlight-name">{topReviewers[0][0]}</b>
-            <span className="spotlight-sub">
-              {topReviewers[0][1].count} review{topReviewers[0][1].count === 1 ? "" : "s"} and counting
-            </span>
-          </div>
-        )}
-        <Shelf title="Trending Music" items={newReleases} />
-      </div>
-
-      <div className="fun-fact-banner">
-        <span className="fun-fact-label">Did You Know</span>
-        {/* Old-web scrolling ticker. The track is duplicated so the loop
-            has no visible gap when it wraps; the copy is hidden from
-            screen readers so the text isn't announced twice. */}
-        <div className="fun-fact-ticker">
-          <div className="fun-fact-track">
-            {tickerFacts.map((fact) => (
-              <span className="fun-fact-item" key={fact}>
-                {fact}
-              </span>
-            ))}
-            {tickerFacts.map((fact) => (
-              <span className="fun-fact-item" key={`dup-${fact}`} aria-hidden="true">
-                {fact}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {siteFlags.homepage_wrapped && (
         <Link href="/wrapped" className="wrapped-promo-banner">
