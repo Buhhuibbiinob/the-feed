@@ -188,14 +188,26 @@ async function fillFeedTvLineup(
 export default async function FeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string; type?: string }>;
+  searchParams: Promise<{ filter?: string; type?: string; page?: string }>;
 }) {
-  const { filter, type } = await searchParams;
+  const { filter, type, page } = await searchParams;
   const followingOnly = filter === "following";
   // Photography lives in the shared feed behind a filter rather than in its
   // own hub. At this volume a separate destination would just look empty,
   // which costs more than the tidier navigation gains.
   const typeFilter = MEDIA_TYPES.includes(type as MediaType) ? (type as MediaType) : null;
+
+  // One builder for every feed link so the following filter, the category
+  // and the page number always travel together. Page 1 is left out of the
+  // URL so the plain "/" stays the canonical first page.
+  const feedHref = (nextType: MediaType | null, nextPage: number) => {
+    const params = new URLSearchParams();
+    if (followingOnly) params.set("filter", "following");
+    if (nextType) params.set("type", nextType);
+    if (nextPage > 1) params.set("page", String(nextPage));
+    const qs = params.toString();
+    return qs ? `/?${qs}#reviews` : "/#reviews";
+  };
   const supabase = await createClient();
   const {
     data: { user },
@@ -345,6 +357,21 @@ export default async function FeedPage({
   // allPosts still feeds Top Reviewer, Trending, Now Watching, Feed TV and
   // the rest, so picking "Photography" must not empty the sidebar.
   const feedPosts = typeFilter ? allPosts.filter((p) => p.media_type === typeFilter) : allPosts;
+
+  // Paging happens here rather than in the query on purpose: allPosts feeds
+  // Top Reviewer, Trending, Now Watching, Feed TV and the rest, so a
+  // LIMIT/OFFSET on the fetch would starve every one of them. The page was
+  // rendering all 64 posts at roughly 39,000px tall, which is the real cost
+  // being fixed. The 300-row cap on the fetch still applies above this;
+  // moving to true database paging means decoupling the widgets first.
+  const PAGE_SIZE = 15;
+  const totalPages = Math.max(1, Math.ceil(feedPosts.length / PAGE_SIZE));
+  const requestedPage = Number.parseInt(page ?? "1", 10);
+  const currentPage = Math.min(
+    Math.max(Number.isFinite(requestedPage) ? requestedPage : 1, 1),
+    totalPages
+  );
+  const pagePosts = feedPosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const likeCounts = new Map<string, number>();
   const likedByMe = new Set<string>();
@@ -909,7 +936,7 @@ export default async function FeedPage({
             <Fragment key={block.key}>{block.node}</Fragment>
           ))}
 
-          <div className="panel">
+          <div className="panel" id="reviews">
             <div className="panel-head tabbed">
               <span className="panel-head-tab">
                 <span className="tab-the">the</span>
@@ -921,26 +948,18 @@ export default async function FeedPage({
                 real URL people can share and the back button works. The
                 following filter is carried through so the two compose. */}
             <div className="feed-chips">
-              <Link
-                href={followingOnly ? "/?filter=following" : "/"}
-                className={`feed-chip ${typeFilter ? "" : "active"}`}
-              >
+              <Link href={feedHref(null, 1)} className={`feed-chip ${typeFilter ? "" : "active"}`}>
                 All
               </Link>
-              {MEDIA_TYPES.map((mt) => {
-                const params = new URLSearchParams();
-                if (followingOnly) params.set("filter", "following");
-                params.set("type", mt);
-                return (
-                  <Link
-                    key={mt}
-                    href={`/?${params.toString()}`}
-                    className={`feed-chip ${typeFilter === mt ? "active" : ""}`}
-                  >
-                    {MEDIA_FILTER_LABELS[mt]}
-                  </Link>
-                );
-              })}
+              {MEDIA_TYPES.map((mt) => (
+                <Link
+                  key={mt}
+                  href={feedHref(mt, 1)}
+                  className={`feed-chip ${typeFilter === mt ? "active" : ""}`}
+                >
+                  {MEDIA_FILTER_LABELS[mt]}
+                </Link>
+              ))}
             </div>
             <div className="panel-body flush">
               {feedPosts.length === 0 ? (
@@ -952,7 +971,7 @@ export default async function FeedPage({
                       : "No reviews yet - be the first to post one."}
                 </div>
               ) : (
-                feedPosts.map((post) => (
+                pagePosts.map((post) => (
                   <PostCard
                     key={post.id}
                     post={{
@@ -986,6 +1005,30 @@ export default async function FeedPage({
                 ))
               )}
             </div>
+            {totalPages > 1 && (
+              <div className="feed-pager">
+                {currentPage > 1 ? (
+                  <Link href={feedHref(typeFilter, currentPage - 1)} className="feed-pager-btn">
+                    ‹ Newer
+                  </Link>
+                ) : (
+                  <span className="feed-pager-btn disabled">‹ Newer</span>
+                )}
+                <span className="feed-pager-status">
+                  Page {currentPage} of {totalPages}
+                  <span className="feed-pager-count">
+                    {feedPosts.length} review{feedPosts.length === 1 ? "" : "s"}
+                  </span>
+                </span>
+                {currentPage < totalPages ? (
+                  <Link href={feedHref(typeFilter, currentPage + 1)} className="feed-pager-btn">
+                    Older ›
+                  </Link>
+                ) : (
+                  <span className="feed-pager-btn disabled">Older ›</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
