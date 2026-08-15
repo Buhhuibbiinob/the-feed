@@ -86,10 +86,13 @@ export function PostForm() {
             >
               <option value="music">{MEDIA_LABELS.music}</option>
               <option value="movie_tv">{MEDIA_LABELS.movie_tv}</option>
+              <option value="photography">{MEDIA_LABELS.photography}</option>
             </select>
           </div>
 
-          <div className="field">
+          {/* A photograph isn't on YouTube, so the search is dropped for it
+              and the image URL field below becomes the way to attach one. */}
+          <div className="field" hidden={mediaType === "photography"}>
             <label htmlFor="video-search">
               {mediaType === "music" ? "Find a track on YouTube" : "Find it on YouTube"}
             </label>
@@ -150,7 +153,9 @@ export function PostForm() {
 
           {!selectedVideo && (
             <div className="field">
-              <label htmlFor="poster-url">Or paste a cover image URL</label>
+              <label htmlFor="poster-url">
+                {mediaType === "photography" ? "Photo URL" : "Or paste a cover image URL"}
+              </label>
               <input
                 id="poster-url"
                 type="url"

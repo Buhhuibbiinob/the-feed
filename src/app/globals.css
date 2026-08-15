@@ -7878,3 +7878,57 @@ body {
     0 4px 12px rgba(0, 0, 0, 0.45),
     0 -4px 8px rgba(0, 0, 0, 0.22) inset;
 }
+
+/* ================================================================
+   Photography category + feed filter chips (step 9)
+   ================================================================ */
+
+/* Photography gets its own tag colour alongside music green and
+   movie/TV pink. The glossy moulding comes from the shared .badge
+   rule, so only the hue is set here. */
+.badge.photography {
+  background-color: #6a4bc4;
+}
+
+/* ---- Filter chips ----
+   One shared feed with chips on it, rather than a hub per category.
+   At this volume separate destinations would each look empty. */
+.feed-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--panel-border);
+  background: var(--panel-head-bg);
+}
+.feed-chip {
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid transparent;
+}
+.feed-chip:hover {
+  text-decoration: none;
+}
+[data-theme="ios-light"] .feed-chip {
+  color: #3a3a40;
+  border-color: #a4a4ac;
+  background: linear-gradient(180deg, #fdfdfe 0%, #ececf0 46%, #dcdce1 52%, #c4c4ca 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 2px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+[data-theme="ios-light"] .feed-chip:hover {
+  filter: brightness(1.04);
+}
+/* Selected chip is pressed into the bar, same idiom as the nav tabs. */
+[data-theme="ios-light"] .feed-chip.active {
+  color: #fff;
+  border-color: #14568c;
+  background: linear-gradient(180deg, #7ad0ff 0%, #2f9fe6 48%, #1d7fc4 52%, #175f9c 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35) inset, 0 1px 0 rgba(255, 255, 255, 0.5);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+}

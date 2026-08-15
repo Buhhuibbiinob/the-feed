@@ -13,7 +13,7 @@ import { getTrendingTracks } from "@/lib/lastfm";
 import { searchVideos } from "@/lib/youtube";
 import { fillMissingArt } from "@/lib/musicArt";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
-import type { MediaType } from "@/lib/media";
+import { MEDIA_TYPES, MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
 import { getAllSiteText } from "@/lib/siteContent";
 import { getPublishedIssues } from "@/lib/newsletter";
 import { getSiteFlags } from "@/lib/siteFlags";
@@ -188,10 +188,14 @@ async function fillFeedTvLineup(
 export default async function FeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; type?: string }>;
 }) {
-  const { filter } = await searchParams;
+  const { filter, type } = await searchParams;
   const followingOnly = filter === "following";
+  // Photography lives in the shared feed behind a filter rather than in its
+  // own hub. At this volume a separate destination would just look empty,
+  // which costs more than the tidier navigation gains.
+  const typeFilter = MEDIA_TYPES.includes(type as MediaType) ? (type as MediaType) : null;
   const supabase = await createClient();
   const {
     data: { user },
@@ -337,6 +341,10 @@ export default async function FeedPage({
   }
 
   const allPosts = followedIds ? posts.filter((p) => followedIds!.has(p.user_id)) : posts;
+  // The category chips filter the list you're reading, not the whole page.
+  // allPosts still feeds Top Reviewer, Trending, Now Watching, Feed TV and
+  // the rest, so picking "Photography" must not empty the sidebar.
+  const feedPosts = typeFilter ? allPosts.filter((p) => p.media_type === typeFilter) : allPosts;
 
   const likeCounts = new Map<string, number>();
   const likedByMe = new Set<string>();
@@ -909,15 +917,42 @@ export default async function FeedPage({
               </span>
               {user && <FollowingToggle following={followingOnly} />}
             </div>
+            {/* Category chips. Links rather than buttons so the filter is a
+                real URL people can share and the back button works. The
+                following filter is carried through so the two compose. */}
+            <div className="feed-chips">
+              <Link
+                href={followingOnly ? "/?filter=following" : "/"}
+                className={`feed-chip ${typeFilter ? "" : "active"}`}
+              >
+                All
+              </Link>
+              {MEDIA_TYPES.map((mt) => {
+                const params = new URLSearchParams();
+                if (followingOnly) params.set("filter", "following");
+                params.set("type", mt);
+                return (
+                  <Link
+                    key={mt}
+                    href={`/?${params.toString()}`}
+                    className={`feed-chip ${typeFilter === mt ? "active" : ""}`}
+                  >
+                    {MEDIA_FILTER_LABELS[mt]}
+                  </Link>
+                );
+              })}
+            </div>
             <div className="panel-body flush">
-              {allPosts.length === 0 ? (
+              {feedPosts.length === 0 ? (
                 <div className="empty-state" style={{ padding: 16 }}>
-                  {followingOnly
-                    ? "No reviews yet from people you follow."
-                    : "No reviews yet - be the first to post one."}
+                  {typeFilter
+                    ? `No ${MEDIA_FILTER_LABELS[typeFilter].toLowerCase()} reviews yet - be the first to post one.`
+                    : followingOnly
+                      ? "No reviews yet from people you follow."
+                      : "No reviews yet - be the first to post one."}
                 </div>
               ) : (
-                allPosts.map((post) => (
+                feedPosts.map((post) => (
                   <PostCard
                     key={post.id}
                     post={{

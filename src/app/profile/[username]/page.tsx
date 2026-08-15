@@ -129,7 +129,9 @@ export default async function ProfilePage({
     commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1);
   }
 
-  const breakdown: Record<MediaType, number> = { music: 0, movie_tv: 0 };
+  // Built from MEDIA_TYPES rather than a literal, so adding a category
+  // can't silently leave a counter missing here again.
+  const breakdown = Object.fromEntries(MEDIA_TYPES.map((mt) => [mt, 0])) as Record<MediaType, number>;
   for (const post of posts) breakdown[post.media_type]++;
 
   const realLikesReceived = posts.reduce((sum, post) => sum + (likeCounts.get(post.id) ?? 0), 0);
@@ -260,11 +262,18 @@ export default async function ProfilePage({
       <div className="panel">
         <div className="panel-head">Stats</div>
         <div className="stats-body">
-          {MEDIA_TYPES.map((mt) => (
-            <div key={mt}>
-              {breakdown[mt]} {MEDIA_LABELS[mt]} review{breakdown[mt] === 1 ? "" : "s"}
-            </div>
-          ))}
+          {/* Only categories they've actually posted in. Otherwise every
+              profile would carry a permanent "0 Photography reviews" line
+              the day the category shipped. */}
+          {MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).length === 0 ? (
+            <div>No reviews yet.</div>
+          ) : (
+            MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).map((mt) => (
+              <div key={mt}>
+                {breakdown[mt]} {MEDIA_LABELS[mt]} review{breakdown[mt] === 1 ? "" : "s"}
+              </div>
+            ))
+          )}
         </div>
       </div>
 

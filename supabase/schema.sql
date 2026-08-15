@@ -1198,3 +1198,13 @@ create policy "Admins can change site settings"
   on public.site_settings for all
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin))
   with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- Photography as a third review type ----------
+-- Reviews only. Clubs (clubs.media_type) and the currently-listening
+-- status (profiles.status_media_type) keep their two-value constraints
+-- on purpose - a photography club and a "currently viewing" status
+-- weren't part of this, and widening them would let the UI offer
+-- options the rest of the app doesn't handle.
+alter table public.posts drop constraint if exists posts_media_type_check;
+alter table public.posts add constraint posts_media_type_check
+  check (media_type in ('music', 'movie_tv', 'photography'));
