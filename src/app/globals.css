@@ -8107,3 +8107,57 @@ body {
     0 2px 3px rgba(0, 0, 0, 0.16);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
+
+/* ================================================================
+   The page field
+
+   Everything above was lighting: bevels, gradients, brushed strips.
+   None of it could read, because .wrap inherited the generic
+   --wrap-bg (#f4f6fa) and so every panel sat on a near-white sheet.
+   Light chrome on near-white has no figure-ground separation, which
+   is why the album deck - the one element with dark shadows and cards
+   behind it - was the only thing that looked physical.
+
+   The field is now the slate metal deck from the iPad iPod reference:
+   a cool blue-grey with fine vertical brushing, so the light panels
+   float above it the way they do in that screenshot. Panels are left
+   exactly as they are; only what's behind them changes.
+   ================================================================ */
+[data-theme="ios-light"] {
+  --wrap-bg: linear-gradient(180deg, #7a828e 0%, #6b7280 22%, #5f6672 60%, #545b66 100%);
+  --wrap-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 -14px 26px rgba(0, 0, 0, 0.28) inset,
+    0 26px 60px rgba(0, 0, 0, 0.45);
+}
+/* --wrap-bg is used as `background`, so a gradient works, but the fine
+   brush lines need a second layer - hence background-image here. */
+[data-theme="ios-light"] .wrap {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.055) 0px,
+      rgba(255, 255, 255, 0.055) 1px,
+      rgba(0, 0, 0, 0.05) 1px,
+      rgba(0, 0, 0, 0.05) 2px
+    ),
+    linear-gradient(180deg, #7a828e 0%, #6b7280 22%, #5f6672 60%, #545b66 100%);
+  border: 1px solid #3f444d;
+}
+
+/* Type that sat on the old near-white sheet has to come up off the
+   slate, or the page headings vanish into it. */
+[data-theme="ios-light"] .page-header h1,
+[data-theme="ios-light"] .page-header p,
+[data-theme="ios-light"] .page-header {
+  color: #f2f4f7;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
+}
+
+/* The fun-fact strip and promo banners were tuned for the white sheet
+   too, so they get a lit edge to stay legible on the deck. */
+[data-theme="ios-light"] .fun-fact-banner,
+[data-theme="ios-light"] .wrapped-promo-banner {
+  border: 1px solid #3f444d;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 4px 10px rgba(0, 0, 0, 0.3);
+}
