@@ -7645,7 +7645,7 @@ body {
 [data-theme="ios-light"] .profile-avatar,
 [data-theme="ios-light"] .club-face,
 [data-theme="ios-light"] .nav-bell-avatar,
-[data-theme="ios-light"] .hot-pages-photo-wrap,
+[data-theme="ios-light"] .hot-pages-photo,
 [data-theme="ios-light"] .avatar-preset-btn {
   border: 1px solid rgba(0, 0, 0, 0.48);
   box-shadow:
@@ -7655,8 +7655,14 @@ body {
 }
 [data-theme="ios-light"] .hot-pages-photo-wrap::after {
   content: "";
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
   pointer-events: none;
+  z-index: 1;
+}
+/* The white ring the photo shipped with fights the bevel, so on the
+   default theme the rim does the work instead. */
+[data-theme="ios-light"] .hot-pages-photo {
+  border-width: 1px;
 }
 /* The profile header avatar is the biggest one on the site, so it
    carries a slightly heavier frame. */
@@ -8390,20 +8396,29 @@ body {
 .orby-refill {
   position: relative;
 }
-/* Glass catch across the top of the round ones, the old buddy-icon
-   look. Pseudo-elements need a positioned parent and can't hang off a
-   bare <img>, so only the wrappers get it. */
+/* Glass catch across the top, the old buddy-icon look. It hangs off the
+   wrapper because a pseudo-element can't attach to a bare <img>.
+   overflow stays visible so the count pip isn't clipped at the corner -
+   clipping it against a square box is what made this read as an
+   indented well rather than an avatar. */
 .hot-pages-photo-wrap {
   position: relative;
-  overflow: hidden;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: visible;
 }
 .hot-pages-photo-wrap::after {
   position: absolute;
   top: 4%;
-  left: 8%;
-  width: 84%;
-  height: 42%;
+  left: 9%;
+  width: 82%;
+  height: 40%;
   border-radius: 50%;
+}
+.hot-pages-photo {
+  width: 52px;
+  height: 52px;
 }
 /* ---- Feed TV as a physical unit ----
    A moulded bezel with a lit top edge and a real shadow under it, rather than a bordered box. */
