@@ -196,6 +196,14 @@ export function PostCard({
             />
           </div>
         )}
+        {/* For a photography post the image IS the review's subject, so it
+            gets shown full width instead of only as the 46px row thumbnail
+            that music and film posts use for their cover art. */}
+        {post.mediaType === "photography" && post.coverUrl && (
+          <div className="post-photo">
+            <img src={post.coverUrl} alt={post.title} loading="lazy" />
+          </div>
+        )}
         <SpoilerText text={post.body} />
         <div className="post-meta">
           <Link href={`/profile/${post.username}`}>{post.username}</Link>

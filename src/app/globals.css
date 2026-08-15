@@ -8310,3 +8310,40 @@ body {
     0 -6px 10px rgba(0, 0, 0, 0.3) inset,
     0 2px 4px rgba(0, 0, 0, 0.6);
 }
+
+/* ---- Photography posts show the photo ----
+   A music post's cover art is a label for the track; a photography
+   post's image is the thing being reviewed, so it can't live in a 46px
+   thumbnail. Framed like a print: white mount, dark rim, drop shadow.
+   Height is capped so a tall portrait can't push the rest of the feed
+   off the screen, and the image is contained rather than cropped so
+   nothing gets cut off. */
+.post-photo {
+  margin: 10px 0 4px;
+  padding: 8px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ffffff, #f0f0f2);
+  border: 1px solid #8f8f96;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 2px 4px rgba(0, 0, 0, 0.28),
+    0 10px 22px rgba(0, 0, 0, 0.22);
+}
+.post-photo img {
+  display: block;
+  width: 100%;
+  max-height: 620px;
+  object-fit: contain;
+  border-radius: 2px;
+  background: #14151a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
+}
+[data-mode="dark"] .post-photo {
+  background: linear-gradient(180deg, #3a3a3f, #2a2a2e);
+  border-color: #17171a;
+}
+@media (max-width: 720px) {
+  .post-photo img {
+    max-height: 420px;
+  }
+}
