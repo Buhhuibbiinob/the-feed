@@ -7612,3 +7612,158 @@ body {
     font-size: 13px;
   }
 }
+
+/* ================================================================
+   Action row polish + Orby gadget housing (master-prompt step 6)
+   ================================================================ */
+
+/* ---- Rate | Comment | Share ----
+   These stayed default-underlined-blue while everything around them
+   gained depth, so they read as raw HTML dropped onto finished chrome.
+   The pipe separators stay - that old-blog row is deliberate - but the
+   links become small letterpressed controls that light up on hover.
+   Kept light on purpose: this is a control row inside content, so it
+   gets definition, not texture. */
+[data-theme="ios-light"] .track-title {
+  color: #1c4c8f;
+  text-decoration: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+  letter-spacing: -0.1px;
+}
+[data-theme="ios-light"] .track-title:hover {
+  color: #10305e;
+  text-decoration: underline;
+}
+[data-theme="ios-light"] .track-actions {
+  gap: 4px;
+  margin-top: 6px;
+}
+[data-theme="ios-light"] .track-actions a,
+[data-theme="ios-light"] .track-actions button {
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #3a5f8f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: background 0.1s ease, box-shadow 0.1s ease, color 0.1s ease;
+}
+[data-theme="ios-light"] .track-actions a:hover,
+[data-theme="ios-light"] .track-actions button:hover {
+  text-decoration: none;
+  color: #16386b;
+  background: linear-gradient(180deg, #ffffff, #e4e4e9);
+  border-color: #a9a9b1;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+[data-theme="ios-light"] .track-actions a:active,
+[data-theme="ios-light"] .track-actions button:active {
+  background: linear-gradient(180deg, #c9c9d0, #e2e2e7);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+}
+/* Engraved hairline pipes rather than grey text pipes. */
+[data-theme="ios-light"] .track-actions .sep {
+  color: transparent;
+  width: 1px;
+  align-self: stretch;
+  margin: 1px 2px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0));
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.8);
+  user-select: none;
+}
+/* The delete button is a real destructive control and keeps its own
+   red pill - don't let the link styling above flatten it. */
+[data-theme="ios-light"] .track-actions button.danger {
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* ---- Step 6: Orby as a gadget ----
+   A hard glass/chrome housing so the daily-wish bot reads as a device
+   sitting in the sidebar rather than another panel in the stack. This
+   is the site's strongest reason to come back tomorrow, so it should
+   look like the one object on the page that isn't a list. */
+[data-theme="ios-light"] .orby-panel {
+  /* .panel sets no position, so the glass dome below would anchor to
+     the page instead of the housing without this. */
+  position: relative;
+  border: 1px solid #26272b;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #3a3c41, #212226);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 -10px 18px rgba(0, 0, 0, 0.35) inset,
+    0 8px 20px rgba(0, 0, 0, 0.4);
+}
+[data-theme="ios-light"] .orby-panel .orby-head {
+  padding: 9px 11px;
+  border-bottom: 1px solid #101114;
+  border-radius: 13px 13px 0 0;
+  color: #f2f2f5;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 48%, rgba(255, 255, 255, 0) 49%),
+    linear-gradient(180deg, #5a5d64 0%, #3b3d43 50%, #2a2c31 100%);
+}
+/* Glass dome over the top of the housing. */
+[data-theme="ios-light"] .orby-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 54px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  z-index: 2;
+}
+[data-theme="ios-light"] .orby-panel .chat-body,
+[data-theme="ios-light"] .orby-panel .chat-input {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  color: #e6e6ea;
+}
+[data-theme="ios-light"] .orby-panel .chat-row {
+  border-color: rgba(255, 255, 255, 0.09);
+  color: #e6e6ea;
+}
+[data-theme="ios-light"] .orby-panel .chat-row b {
+  color: #8fd0ff;
+}
+/* Recessed input well in the housing. */
+[data-theme="ios-light"] .orby-panel .chat-input input {
+  background: linear-gradient(180deg, #17181a, #2c2e32);
+  border: 1px solid #0b0c0d;
+  border-radius: 100px;
+  color: #eaeaee;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7) inset, 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+[data-theme="ios-light"] .orby-panel .chat-input input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+[data-theme="ios-light"] .orby-refill {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.72);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+/* The wish counter is the point of the gadget, so it reads as a lit
+   readout on the housing rather than a caption. */
+[data-theme="ios-light"] .orby-wishes {
+  background: linear-gradient(180deg, #16241d, #1d3228);
+  border: 1px solid #070d0a;
+  color: #9dffc6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) inset, 0 1px 0 rgba(255, 255, 255, 0.16);
+  text-shadow: 0 0 6px rgba(80, 255, 160, 0.45);
+}
+[data-theme="ios-light"] .orby-wishes.spent {
+  color: #ffb3b3;
+  text-shadow: 0 0 6px rgba(255, 120, 120, 0.4);
+}
+[data-theme="ios-light"] .orby-wish-dot {
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+}
