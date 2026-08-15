@@ -7418,3 +7418,197 @@ body {
   aspect-ratio: 16 / 9;
   height: auto;
 }
+
+/* ================================================================
+   Glossy tags + Feed TV player (master-prompt step 5)
+   ================================================================ */
+
+/* ---- Tags and stickers ----
+   These were the flattest things left on a card: a solid fill with a
+   barely-there sheen, sitting on chrome that now has real depth. The
+   hue still comes from each variant's background-color, so every
+   colour (music, movie_tv, spotify, youtube, hot, new) keeps working
+   and only the lighting changes. The hard break just under halfway is
+   what makes a capsule read as moulded rather than printed. */
+[data-theme="ios-light"] .badge,
+[data-theme="ios-light"] .sticker-badge,
+[data-theme="ios-light"] .banner-slot-tag {
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(255, 255, 255, 0.44) 46%,
+    rgba(255, 255, 255, 0.05) 47%,
+    rgba(255, 255, 255, 0.26) 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.34);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 -5px 7px rgba(0, 0, 0, 0.2) inset,
+    0 1px 2px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+}
+/* The corner sticker sits on top of the card, so it keeps a real drop
+   shadow as well as the moulding. */
+[data-theme="ios-light"] .sticker-badge {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 -5px 7px rgba(0, 0, 0, 0.2) inset,
+    0 3px 7px rgba(0, 0, 0, 0.4);
+}
+
+/* ---- Feed TV: brushed chrome control strips ----
+   The transport and scrub rows were flat dark grey. They're brushed
+   metal now, matched to the iPad iPod player bar. */
+[data-theme="ios-light"] .yt-rate-row,
+[data-theme="ios-light"] .yt-scrub-row {
+  background:
+    repeating-linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.06) 0px,
+      rgba(255, 255, 255, 0.06) 1px,
+      rgba(0, 0, 0, 0.05) 1px,
+      rgba(0, 0, 0, 0.05) 2px
+    ),
+    linear-gradient(180deg, #6c6e73 0%, #4a4c50 8%, #35373b 48%, #26282b 51%, #2e3033 92%, #1b1c1e 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.22) inset, 0 -1px 0 rgba(0, 0, 0, 0.55) inset;
+}
+
+/* Glossy circular transport buttons, iPod-style. */
+[data-theme="ios-light"] .yt-rate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border-radius: 100px;
+  background: linear-gradient(180deg, #fdfdfe 0%, #e2e2e6 46%, #c6c6cc 52%, #9fa0a6 100%);
+  border: 1px solid #202124;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -3px 5px rgba(0, 0, 0, 0.18) inset,
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  color: #26272a;
+  font-size: 11px;
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+[data-theme="ios-light"] .yt-rate-btn:hover {
+  filter: brightness(1.05);
+}
+[data-theme="ios-light"] .yt-rate-btn:active {
+  background: linear-gradient(180deg, #a8a9af 0%, #c8c9ce 50%, #e4e4e8 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) inset;
+}
+/* The icons were near-white for a dark bar; on a silver button they
+   have to invert or they vanish. */
+[data-theme="ios-light"] .yt-rate-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: #26272a;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.75));
+}
+
+/* ---- Now-playing LCD ---- */
+.yt-topbar {
+  gap: 10px;
+}
+.yt-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.yt-lcd {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #1c2a22, #16241d 55%, #1a2c23);
+  border: 1px solid #050a07;
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.75) inset,
+    0 1px 0 rgba(255, 255, 255, 0.18);
+}
+/* Faint scanlines across the screen, not the text. */
+.yt-lcd-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+.yt-lcd-text {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  overflow: hidden;
+}
+.yt-lcd-text b,
+.yt-lcd-artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.yt-lcd-text b {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #9dffc6;
+  text-shadow: 0 0 6px rgba(80, 255, 160, 0.5);
+}
+.yt-lcd-artist {
+  font-size: 10px;
+  color: rgba(157, 255, 198, 0.62);
+}
+.yt-lcd-count {
+  position: relative;
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: rgba(157, 255, 198, 0.7);
+}
+
+/* Bevelled segmented tabs, matched to the YouTube app's
+   Now Playing / Suggested / Comments control. */
+[data-theme="ios-light"] .yt-tabs {
+  background-image: var(--panel-head-bg);
+  border-top: 1px solid #8f8f95;
+}
+[data-theme="ios-light"] .yt-tabs div {
+  border-right: 1px solid rgba(0, 0, 0, 0.22);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+[data-theme="ios-light"] .yt-tabs div:last-child {
+  border-right: none;
+  box-shadow: none;
+}
+[data-theme="ios-light"] .yt-tabs div.active {
+  background-image: linear-gradient(180deg, #b9b9c0 0%, #d2d2d8 50%, #e2e2e6 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.28) inset;
+  color: #1f2023;
+}
+
+/* On a phone the LCD would squeeze the brand plate to nothing. */
+@media (max-width: 480px) {
+  .yt-lcd-count {
+    display: none;
+  }
+  .yt-brand {
+    font-size: 13px;
+  }
+}

@@ -247,8 +247,23 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   return (
     <div className="feedtv-standalone" style={{ maxWidth: width }}>
       <div className="yt-shell">
+          {/* Brand plate on the left, then a recessed LCD showing what's on,
+              the way an iTunes mini-player puts the track in a sunken screen
+              rather than printing it on the chrome. */}
           <div className="yt-topbar">
-            The Feed<span className="yt-red">TV</span>
+            <span className="yt-brand">
+              The Feed<span className="yt-red">TV</span>
+            </span>
+            <span className="yt-lcd">
+              <span className="yt-lcd-scan" aria-hidden="true" />
+              <span className="yt-lcd-text">
+                <b>{current.title}</b>
+                {current.artist && <span className="yt-lcd-artist">{current.artist}</span>}
+              </span>
+              <span className="yt-lcd-count" aria-hidden="true">
+                {index + 1}/{clips.length}
+              </span>
+            </span>
           </div>
           <div className="yt-rate-row">
             <button className="yt-rate-btn" onClick={togglePause} aria-label={paused ? "Play" : "Pause"}>
