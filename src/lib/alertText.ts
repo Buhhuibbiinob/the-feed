@@ -4,7 +4,7 @@
 
 export type AlertItem = {
   id: string;
-  type: "like" | "comment" | "follow" | "view" | "reaction" | "twin" | "reply" | "post_reaction";
+  type: "like" | "comment" | "follow" | "view" | "reaction" | "twin" | "reply";
   actorUsername: string;
   actorAvatarUrl: string | null;
   postId: string | null;
@@ -24,10 +24,6 @@ export function describeAlert(item: AlertItem): string {
         : "commented on your review";
     case "reply":
       return "replied to your comment";
-    case "post_reaction":
-      return item.postTitle
-        ? `reacted ${item.emoji ?? ""} to "${item.postTitle}"`.trim()
-        : "reacted to your review";
     case "view":
       return "looked at your profile";
     case "reaction":

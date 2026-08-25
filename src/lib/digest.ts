@@ -18,7 +18,6 @@ export type DigestResult = { sent: number; skipped: number; errors: string[] };
 const EVENT_FOR_TYPE: Partial<Record<AlertItem["type"], EmailEventKey>> = {
   follow: "follow",
   like: "like",
-  post_reaction: "like",
   comment: "reply",
   reply: "reply",
   reaction: "reply",

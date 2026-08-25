@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { fetchPostReactions } from "@/lib/postReactions";
 import { PinReviewButton } from "@/components/PinReviewButton";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -145,9 +144,6 @@ export default async function PostPage({
 
   const comments = buildCommentTree(commentRows ?? []);
 
-  // Reaction tags on this one review.
-  const reactionsByPost = await fetchPostReactions(supabase, [post.id], user?.id ?? null);
-
   const isAuthor = !!user && user.id === post.user_id;
   let isPinned = false;
   if (isAuthor) {
@@ -195,7 +191,6 @@ export default async function PostPage({
           username: post.profiles?.username ?? "unknown",
         }}
         currentUserId={user?.id ?? null}
-        reactions={reactionsByPost.get(post.id)}
         liked={liked}
         likeCount={likeCount ?? 0}
         commentCount={comments.reduce((n, c) => n + 1 + c.replies.length, 0)}

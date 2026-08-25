@@ -1,5 +1,4 @@
 import { Fragment, type ReactNode } from "react";
-import { fetchPostReactions } from "@/lib/postReactions";
 import { workKey } from "@/lib/taste";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -444,13 +443,6 @@ export default async function FeedPage({
     commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1);
   }
 
-  // Reaction tags for everything rendered on this page. Fetched here
-  // rather than inside PostCard so one query covers the whole list.
-  const reactionsByPost = await fetchPostReactions(
-    supabase,
-    feedPosts.map((p) => p.id),
-    user?.id ?? null
-  );
 
   let spotifyConnected = false;
   let onRepeat: ShelfItem[] = [];
@@ -1057,7 +1049,6 @@ export default async function FeedPage({
                     liked={likedByMe.has(post.id)}
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}
-                reactions={reactionsByPost.get(post.id)}
                     sticker={
                       post.id === newFavePost?.id
                         ? "new"

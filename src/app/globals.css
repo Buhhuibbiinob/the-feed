@@ -2097,14 +2097,6 @@ a:hover {
   padding-left: 10px;
 }
 
-/* ---- Reaction tags on reviews ---- */
-.review-reactions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 8px;
-}
-
 /* ---- Standout reviews ---- */
 .highlight-list,
 .collection-list {

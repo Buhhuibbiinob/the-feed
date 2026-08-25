@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { fetchPostReactions } from "@/lib/postReactions";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard, type PostCardData } from "@/components/PostCard";
@@ -94,13 +93,6 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
     commentCounts.set(c.post_id, (commentCounts.get(c.post_id) ?? 0) + 1);
   }
 
-  // Reaction tags for everything rendered on this page. Fetched here
-  // rather than inside PostCard so one query covers the whole list.
-  const reactionsByPost = await fetchPostReactions(
-    supabase,
-    posts.map((p) => p.id),
-    user?.id ?? null
-  );
 
   const isOwner = user?.id === collection.user_id;
 
@@ -143,7 +135,6 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
                   liked={likedByMe.has(post.id)}
                   likeCount={likeCounts.get(post.id) ?? 0}
                   commentCount={commentCounts.get(post.id) ?? 0}
-                reactions={reactionsByPost.get(post.id)}
                 />
                 {isOwner && (
                   <form action={removePostFromCollection} style={{ padding: "0 16px 12px" }}>
