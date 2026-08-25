@@ -5,6 +5,8 @@ import { ThemeForm } from "@/components/ThemeForm";
 import { BackgroundPicker } from "@/components/BackgroundPicker";
 import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { disconnectYoutube } from "@/app/actions/youtube";
+import { EmailPrefsForm } from "@/components/EmailPrefsForm";
+import { resolveEmailPrefs } from "@/lib/emailPrefs";
 
 export const metadata = { title: "Settings - Feedback" };
 
@@ -38,6 +40,13 @@ export default async function SettingsPage() {
     ? profile.background_fit
     : DEFAULT_BACKGROUND_FIT;
 
+  const { data: prefsRow } = await supabase
+    .from("profiles")
+    .select("email_prefs")
+    .eq("id", user.id)
+    .maybeSingle();
+  const emailPrefs = resolveEmailPrefs(prefsRow?.email_prefs);
+
   const { data: youtubeAccount } = await supabase
     .from("youtube_accounts")
     .select("user_id")
@@ -56,6 +65,13 @@ export default async function SettingsPage() {
             currentFit={currentFit}
             currentFlipped={profile?.background_flipped === true}
           />
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Email notifications</div>
+        <div className="panel-body">
+          <EmailPrefsForm prefs={emailPrefs} />
         </div>
       </div>
 

@@ -226,6 +226,14 @@ a:hover {
 
 /* ---- Top tab bar ---- */
 .apple-nav {
+  /* The Alerts and More dropdowns were rendering *behind* the page.
+     Their own z-index was never the problem: this bar was unpositioned, so
+     it had no stacking context of its own, while .wrap below it is
+     position:relative;z-index:1 and therefore painted over everything the
+     bar contained. Giving the bar a context above .wrap is the fix - the
+     50 sits above the mobile chrome (30/40) and below modals (100). */
+  position: relative;
+  z-index: 50;
   background: var(--nav-bg);
   border-bottom: 1px solid var(--nav-border);
   font-size: 12.5px;
@@ -234,9 +242,13 @@ a:hover {
 .apple-nav-inner {
   display: flex;
   align-items: stretch;
+  /* Fixed and centred regardless of theme. Themes may recolour this bar
+     but must not resize it - the width used to shift as you switched
+     skins, because some themes restyled the container. */
   max-width: 1240px;
   width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 .orb {
   position: relative;
@@ -457,6 +469,87 @@ a:hover {
 .nav-more-menu a.active {
   font-weight: 700;
   background: rgba(255, 255, 255, 0.55);
+}
+
+/* ---- Nav icon buttons ----
+   +Post, Alerts and Messages were each sized by their own rule and came
+   out visibly different heights. One class sizes all three now, at a 44px
+   touch target. */
+.nav-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  position: relative;
+  box-sizing: border-box;
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  border-radius: 100px;
+  cursor: pointer;
+  color: var(--acct-btn-text);
+  background: var(--acct-btn-bg);
+  border: 1px solid var(--acct-btn-border);
+}
+.nav-icon-btn:hover {
+  text-decoration: none;
+  filter: brightness(1.04);
+}
+/* The visual pill stays 34px so the bar keeps its proportions; the tap
+   area is padded out to the 44px minimum with a pseudo-element rather
+   than by making every button taller. */
+.nav-icon-btn::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+}
+.nav-icon-btn.primary {
+  color: #fff;
+  background: var(--acct-btn-primary-bg);
+  border-color: var(--acct-btn-primary-border);
+}
+
+/* .apple-nav a wins over a bare class, so the shared sizing has to be
+   restated at the same weight for links sitting inside the bar. */
+.apple-nav a.nav-icon-btn,
+.apple-nav button.nav-icon-btn {
+  height: 34px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-right: none;
+  box-shadow: none;
+  color: var(--acct-btn-text);
+}
+.apple-nav a.nav-icon-btn.primary,
+.apple-nav button.nav-icon-btn.primary {
+  color: #fff;
+}
+.apple-nav a.nav-post-btn {
+  color: #fff;
+  border: 1px solid #14568c;
+}
+
+.nav-account-name {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav-account-menu {
+  width: 210px;
+}
+.nav-bell-row.danger {
+  color: #b3261e;
+  font-weight: 700;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .nav-bell {
@@ -2118,6 +2211,77 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--muted);
+}
+
+/* ---- Floating Post button (desktop) ----
+   Mobile already has the centre + in the tab bar, so this would be a
+   second Post button in the same corner - it only shows above the
+   tab-bar breakpoint. */
+.post-fab {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 20px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  background: linear-gradient(180deg, #7ad0ff 0%, #2f9fe6 48%, #1d7fc4 52%, #175f9c 100%);
+  border: 1px solid #14568c;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+}
+.post-fab:hover {
+  text-decoration: none;
+  filter: brightness(1.08);
+}
+.post-fab-plus {
+  font-size: 17px;
+  line-height: 1;
+}
+@media (min-width: 721px) {
+  .post-fab {
+    display: inline-flex;
+  }
+}
+
+/* ---- Alerts page ---- */
+.alerts-row {
+  padding: 12px 16px;
+}
+.sk-ios-tab-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff6b6b, #c0182f);
+  color: #fff;
+  font-size: 8.5px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #fff;
+}
+
+.email-pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+.email-pref-row:last-of-type {
+  border-bottom: none;
 }
 
 /* ---- Club rows (used in /clubs and profile Clubs panel) ---- */
@@ -5547,6 +5711,7 @@ footer .copy {
     font-family: inherit;
   }
   .sk-ios-tab-icon {
+    position: relative;
     width: 22px;
     height: 22px;
     opacity: 0.65;
@@ -7399,18 +7564,13 @@ body {
    Deliberately the loudest control in the nav. Same glossy idiom as
    .acct-btn (inset top highlight, hard bottom shadow) but larger, in the
    accent colour, and never dimmed by a neighbouring primary button. */
+/* Geometry (size, padding, alignment) comes from .nav-icon-btn so this
+   button matches Alerts and Messages exactly. What stays here is only what
+   makes Post look like Post: the blue gloss and its shadow. */
 .nav-post-btn {
-  position: relative;
   overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   flex-shrink: 0;
   margin-left: 10px;
-  padding: 7px 18px;
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 700;
   letter-spacing: 0.2px;
   text-decoration: none;
   color: #fff;

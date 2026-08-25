@@ -3,6 +3,7 @@ import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { WelcomeExplainer } from "@/components/WelcomeExplainer";
+import { PostFab } from "@/components/PostFab";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME } from "@/lib/themes";
 import { isAdmin } from "@/lib/admin";
@@ -156,6 +157,7 @@ export default async function RootLayout({
             <SiteFooter />
           </div>
         </div>
+        <PostFab signedIn={!!user} />
         <WelcomeExplainer signedIn={!!user} />
       </body>
     </html>

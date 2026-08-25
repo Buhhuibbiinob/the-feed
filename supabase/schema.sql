@@ -1496,3 +1496,39 @@ drop policy if exists "Admins can read activity events" on public.activity_event
 create policy "Admins can read activity events"
   on public.activity_events for select
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- Realtime alerts ----------
+-- The alert sources push to connected clients instead of the UI polling
+-- for them. Each is added defensively so re-running this file is safe.
+--
+-- Realtime respects RLS, but these tables are readable by everyone (except
+-- profile_views, which is owner-only), so a client is told "a row landed"
+-- and then re-reads its own alerts through the API. The payload itself is
+-- never the source of truth for what a member is allowed to see.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['likes', 'comments', 'follows', 'post_reactions', 'favorite_reactions', 'profile_views']
+  loop
+    begin
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    exception
+      when duplicate_object then null;
+      when undefined_table then null;
+    end;
+  end loop;
+end $$;
+
+-- ---------- Email notification preferences ----------
+-- Per notification type, so someone who wants a mail when a person follows
+-- them but not for every like can say so. Defaults are deliberately
+-- conservative: digest, not instant. One email per event is how a new
+-- social site trains its members to unsubscribe.
+--
+-- Stored as one jsonb blob rather than a column per type so adding a
+-- notification type is an app change, not a migration.
+alter table public.profiles add column if not exists email_prefs jsonb;
+-- Set when a digest is sent so the next one only covers what happened
+-- since, rather than repeating a fixed window.
+alter table public.profiles add column if not exists digest_sent_at timestamptz;

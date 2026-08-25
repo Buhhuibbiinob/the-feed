@@ -88,3 +88,43 @@ export function renderWelcomeEmail(username: string, siteUrl: string): string {
       `</td></tr>`
   );
 }
+
+export type DigestLine = { text: string; href: string };
+
+/**
+ * The activity digest. One email covering everything since the last one,
+ * rather than a mail per like - which is how a member with one popular
+ * review ends up with fifteen emails and an unsubscribe.
+ *
+ * Every line is plain text built server-side from the member's own
+ * notifications; usernames and titles are escaped by the caller.
+ */
+export function renderDigestEmail(
+  username: string,
+  lines: DigestLine[],
+  siteUrl: string,
+  settingsUrl: string
+): string {
+  const rows = lines
+    .map(
+      (line) =>
+        `<tr><td style="padding:9px 0; border-bottom:1px solid #f0f0f0; font-size:14px; color:#333;">` +
+        `<a href="${line.href}" style="color:#1d7fc4; text-decoration:none;">${line.text}</a>` +
+        `</td></tr>`
+    )
+    .join("");
+
+  return shell(
+    `<tr><td style="padding:28px;">` +
+      `<h1 style="margin:0 0 4px; font-size:20px; font-weight:600; color:#0f0f0f;">While you were away</h1>` +
+      `<p style="margin:0 0 18px; font-size:13px; color:#707070;">Here's what happened on your profile and reviews, ${username}.</p>` +
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>` +
+      `<p style="margin:22px 0 0; text-align:center;">` +
+      `<a href="${siteUrl}/alerts" style="${RED_BUTTON}">See all your alerts</a>` +
+      `</p>` +
+      `<p style="margin:20px 0 0; font-size:11px; color:#909090; text-align:center;">` +
+      `Getting too many of these? <a href="${settingsUrl}" style="color:#909090;">Change what gets emailed</a>.` +
+      `</p>` +
+      `</td></tr>`
+  );
+}
