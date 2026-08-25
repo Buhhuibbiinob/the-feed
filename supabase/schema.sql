@@ -1532,3 +1532,148 @@ alter table public.profiles add column if not exists email_prefs jsonb;
 -- Set when a digest is sent so the next one only covers what happened
 -- since, rather than repeating a fixed window.
 alter table public.profiles add column if not exists digest_sent_at timestamptz;
+
+-- ---------- Customizable pages (Tier 3a) ----------
+-- One config store for both profiles and club pages. The two surfaces were
+-- always going to want the same controls, and keeping a separate column set
+-- per surface is how they drift until "customize" means something different
+-- depending on which page you're on.
+--
+-- The config is jsonb rather than columns because the module list is the
+-- thing that changes most: adding a module, or a per-module style override,
+-- should be an app change and not a migration. Validation lives in the app
+-- (lib/pageConfig.ts) - anything unrecognised is dropped on read.
+create table if not exists public.page_configs (
+  owner_type text not null check (owner_type in ('profile', 'club')),
+  owner_id uuid not null,
+  config jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  primary key (owner_type, owner_id)
+);
+
+alter table public.page_configs enable row level security;
+
+drop policy if exists "Page configs are viewable by everyone" on public.page_configs;
+create policy "Page configs are viewable by everyone"
+  on public.page_configs for select
+  using (true);
+
+-- A profile config belongs to that profile; a club config belongs to the
+-- club's owner. Both directions are checked in the policy rather than in
+-- the app, so a crafted request can't restyle someone else's page.
+drop policy if exists "Owners can write their own page config" on public.page_configs;
+create policy "Owners can write their own page config"
+  on public.page_configs for all
+  using (
+    (owner_type = 'profile' and owner_id = auth.uid())
+    or (owner_type = 'club' and auth.uid() in (select created_by from public.clubs where id = page_configs.owner_id))
+  )
+  with check (
+    (owner_type = 'profile' and owner_id = auth.uid())
+    or (owner_type = 'club' and auth.uid() in (select created_by from public.clubs where id = page_configs.owner_id))
+  );
+
+-- ---------- Module content ----------
+
+-- "What I'd like to review next" and a free blurb slot.
+alter table public.profiles add column if not exists blurb_next text;
+alter table public.profiles add column if not exists blurb_free text;
+
+-- Mood ring: an emoji, a colour and a few words.
+alter table public.profiles add column if not exists mood_emoji text;
+alter table public.profiles add column if not exists mood_color text;
+alter table public.profiles add column if not exists mood_text text;
+
+-- Last seen, for the "last online" line. Written on profile view pings
+-- rather than on every request - a timestamp accurate to the minute is not
+-- worth a write on every page load.
+alter table public.profiles add column if not exists last_seen_at timestamptz;
+
+-- ---------- top_connections (the Top 8) ----------
+create table if not exists public.top_connections (
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  friend_id uuid not null references public.profiles (id) on delete cascade,
+  position integer not null default 0,
+  created_at timestamptz not null default now(),
+  primary key (user_id, friend_id),
+  -- Putting yourself in your own Top 8 is not the point of a Top 8.
+  constraint top_connections_not_self check (user_id <> friend_id)
+);
+
+create index if not exists top_connections_user_idx on public.top_connections (user_id, position);
+
+alter table public.top_connections enable row level security;
+
+drop policy if exists "Top connections are viewable by everyone" on public.top_connections;
+create policy "Top connections are viewable by everyone"
+  on public.top_connections for select
+  using (true);
+
+drop policy if exists "Members manage their own top connections" on public.top_connections;
+create policy "Members manage their own top connections"
+  on public.top_connections for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- ---------- guestbook_entries ----------
+-- Public wall posts on a profile, separate from DMs. Deliberately its own
+-- table rather than reusing comments: a guestbook entry is addressed to a
+-- person, not to a review, and the moderation rules differ (the profile's
+-- owner can delete anything on their own wall).
+create table if not exists public.guestbook_entries (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  author_id uuid not null references public.profiles (id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists guestbook_profile_idx on public.guestbook_entries (profile_id, created_at desc);
+
+alter table public.guestbook_entries enable row level security;
+
+drop policy if exists "Guestbook entries are viewable by everyone" on public.guestbook_entries;
+create policy "Guestbook entries are viewable by everyone"
+  on public.guestbook_entries for select
+  using (true);
+
+drop policy if exists "Members can sign a guestbook" on public.guestbook_entries;
+create policy "Members can sign a guestbook"
+  on public.guestbook_entries for insert
+  with check (auth.uid() = author_id);
+
+-- Either the author or the wall's owner can remove an entry, plus admins.
+drop policy if exists "Authors and wall owners can delete entries" on public.guestbook_entries;
+create policy "Authors and wall owners can delete entries"
+  on public.guestbook_entries for delete
+  using (
+    auth.uid() = author_id
+    or auth.uid() = profile_id
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+-- ---------- pinned reviews ----------
+create table if not exists public.pinned_posts (
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  post_id uuid not null references public.posts (id) on delete cascade,
+  position integer not null default 0,
+  created_at timestamptz not null default now(),
+  primary key (user_id, post_id)
+);
+
+alter table public.pinned_posts enable row level security;
+
+drop policy if exists "Pinned posts are viewable by everyone" on public.pinned_posts;
+create policy "Pinned posts are viewable by everyone"
+  on public.pinned_posts for select
+  using (true);
+
+drop policy if exists "Members manage their own pins" on public.pinned_posts;
+create policy "Members manage their own pins"
+  on public.pinned_posts for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- ---------- club info page ----------
+alter table public.clubs add column if not exists info_body text;
+alter table public.clubs add column if not exists info_updated_at timestamptz;

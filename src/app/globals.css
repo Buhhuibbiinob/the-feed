@@ -1674,11 +1674,20 @@ a:hover {
    The colours themselves arrive as inline custom properties from
    skinStyle(); everything here just gives the wrapper somewhere to paint
    them and a frame so a skinned profile reads as its own space. */
+/* The customizable-page wrapper. --page-bg is built by pageStyle() from
+   the palette, pattern and image, so a page with none of them set stays
+   transparent and inherits the visitor's theme. */
 .profile-skin {
-  background: var(--skin-bg, transparent);
+  background: var(--page-bg, transparent);
+  background-size: var(--page-bg-size, auto);
   color: var(--text);
+  font-family: var(--page-font, inherit);
   padding: 12px;
   border-radius: 12px;
+}
+.profile-skin .panel-head,
+.profile-skin .profile-username {
+  font-family: var(--page-heading-font, inherit);
 }
 
 /* ---- Owner's customisation controls ---- */
@@ -2282,6 +2291,225 @@ a:hover {
 }
 .email-pref-row:last-of-type {
   border-bottom: none;
+}
+
+/* ---- Page appearance editor ---- */
+.page-editor-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.page-editor-tab {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-body-bg);
+  color: inherit;
+  cursor: pointer;
+}
+.page-editor-tab.active {
+  background: var(--panel-head-bg);
+}
+.theme-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.theme-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-body-bg);
+  color: inherit;
+  cursor: pointer;
+  font-size: 11.5px;
+}
+.theme-preset.active {
+  outline: 2px solid var(--link);
+}
+.theme-preset .sub {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.theme-preset-swatch {
+  display: flex;
+  align-items: flex-end;
+  height: 34px;
+  border-radius: 5px;
+  border: 2px solid;
+  padding: 4px;
+  margin-bottom: 3px;
+}
+.theme-preset-chip {
+  display: block;
+  width: 60%;
+  height: 12px;
+  border-radius: 3px;
+}
+.pattern-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.pattern-chip {
+  font-size: 11px;
+  padding: 4px 11px;
+  border-radius: 100px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-body-bg);
+  color: inherit;
+  cursor: pointer;
+}
+.pattern-chip.active {
+  background: var(--link);
+  color: #fff;
+  border-color: var(--link);
+}
+.saved-presets {
+  margin: 10px 0;
+}
+.saved-preset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 0;
+}
+.saved-preset-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.layout-label .sub {
+  display: block;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+/* ---- Mood ring ---- */
+.mood-ring-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mood-ring {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 3px solid;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.mood-text {
+  font-size: 13px;
+}
+.mood-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.mood-quick-btn {
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+}
+.mood-quick-btn.active {
+  border-color: var(--link);
+  background: var(--panel-head-bg);
+}
+.mood-emoji-input {
+  max-width: 90px;
+  text-align: center;
+  font-size: 18px;
+}
+
+/* ---- Blurbs ---- */
+.blurb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+}
+
+/* ---- Top connections ---- */
+.connections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 10px;
+}
+.connection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+}
+.connection img {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--panel-border);
+}
+
+/* ---- Guestbook ---- */
+.guestbook-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+.guestbook-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+.guestbook-entry img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.guestbook-body {
+  flex: 1;
+  min-width: 0;
+}
+.guestbook-meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 11px;
+  font-weight: 700;
+}
+.guestbook-meta .ts {
+  font-weight: 400;
+  color: var(--muted);
+}
+.guestbook-text {
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* ---- Club rows (used in /clubs and profile Clubs panel) ---- */

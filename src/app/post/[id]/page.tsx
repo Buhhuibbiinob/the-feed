@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fetchPostReactions } from "@/lib/postReactions";
+import { PinReviewButton } from "@/components/PinReviewButton";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
@@ -147,6 +148,18 @@ export default async function PostPage({
   // Reaction tags on this one review.
   const reactionsByPost = await fetchPostReactions(supabase, [post.id], user?.id ?? null);
 
+  const isAuthor = !!user && user.id === post.user_id;
+  let isPinned = false;
+  if (isAuthor) {
+    const { data: pin } = await supabase
+      .from("pinned_posts")
+      .select("post_id")
+      .eq("user_id", user.id)
+      .eq("post_id", post.id)
+      .maybeSingle();
+    isPinned = !!pin;
+  }
+
   return (
     <>
       <div style={{ marginBottom: 14 }}>
@@ -189,6 +202,14 @@ export default async function PostPage({
         hideCommentLink
         previewId="real-player"
       />
+
+      {isAuthor && (
+        <div className="panel">
+          <div className="panel-body form-actions">
+            <PinReviewButton postId={post.id} pinned={isPinned} />
+          </div>
+        </div>
+      )}
 
       <CommentSection postId={post.id} comments={comments} currentUserId={user?.id ?? null} />
     </>

@@ -32,6 +32,14 @@ export async function recordProfileView(profileId: string) {
       { profile_id: profileId, viewer_id: user.id },
       { onConflict: "profile_id,viewer_id,view_date", ignoreDuplicates: true }
     );
+
+  // Piggy-backed on the view ping rather than written on every request:
+  // "last online" only needs to be roughly right, and a write per page load
+  // to keep it exact would be the most expensive thing on the site.
+  await supabase
+    .from("profiles")
+    .update({ last_seen_at: new Date().toISOString() })
+    .eq("id", user.id);
 }
 
 /**
@@ -51,6 +59,11 @@ export async function refreshOwnTasteTwin() {
     .select("taste_twin_at, username")
     .eq("id", user.id)
     .maybeSingle();
+
+  await supabase
+    .from("profiles")
+    .update({ last_seen_at: new Date().toISOString() })
+    .eq("id", user.id);
 
   if (!twinIsStale(profile?.taste_twin_at)) return;
 

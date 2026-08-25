@@ -7,8 +7,6 @@ import { PreviewPlayer } from "@/components/PreviewPlayer";
 import { FollowButton } from "@/components/FollowButton";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { ProfileCustomize } from "@/components/ProfileCustomize";
-import { ProfileLayoutEditor } from "@/components/ProfileLayoutEditor";
-import { ProfileSkinEditor } from "@/components/ProfileSkinEditor";
 import { ObsessedPicker } from "@/components/ObsessedPicker";
 import { ProfileSongPicker } from "@/components/ProfileSongPicker";
 import { FavoritesEditor } from "@/components/FavoritesEditor";
@@ -19,9 +17,16 @@ import { earnedBadges, BADGES } from "@/lib/badges";
 import { computeStreak } from "@/lib/streak";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { bannerAspectRatio } from "@/lib/bannerShape";
-import { fontStack, hasSkin, skinStyle, type ProfileSkin } from "@/lib/profileSkin";
 import { renderRichBio } from "@/lib/richBio";
-import { resolveProfileLayout, type ProfileSectionId } from "@/lib/profileLayout";
+import { fontStack } from "@/lib/profileSkin";
+import { loadPageConfig } from "@/lib/pageConfigStore";
+import { moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
+import { pageStyle } from "@/lib/pageTheme";
+import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
+import { MoodRingEditor } from "@/components/MoodRing";
+import { BlurbsEditor } from "@/components/BlurbsEditor";
+import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
+import { TopConnections, type Connection } from "@/components/TopConnections";
 import {
   FAVORITE_KINDS,
   FAVORITE_LABELS,
@@ -90,17 +95,39 @@ type CustomizationRow = {
   profile_song_artist: string | null;
   profile_song_thumbnail_url: string | null;
   profile_song_autoplay: boolean | null;
+  mood_emoji: string | null;
+  mood_color: string | null;
+  mood_text: string | null;
+  blurb_next: string | null;
+  blurb_free: string | null;
+  last_seen_at: string | null;
 };
 
 const CUSTOMIZATION_COLUMNS =
   "banner_aspect, bio_font, bio_color, profile_bg_color, profile_panel_color, profile_text_color, " +
   "profile_accent_color, profile_layout, obsessed_kind, obsessed_title, obsessed_note, " +
   "obsessed_image_url, profile_song_youtube_id, profile_song_spotify_id, profile_song_title, " +
-  "profile_song_artist, profile_song_thumbnail_url, profile_song_autoplay";
+  "profile_song_artist, profile_song_thumbnail_url, profile_song_autoplay, mood_emoji, " +
+  "mood_color, mood_text, blurb_next, blurb_free, last_seen_at";
 
 type ReactionRow = { favorite_id: string; user_id: string; emoji: string };
 
 type CollectionRow = { id: string; name: string; description: string | null };
+
+type ProfileRef = { username: string; avatar_url: string | null };
+type GuestbookRow = {
+  id: string;
+  body: string;
+  created_at: string;
+  author_id: string;
+  profiles: ProfileRef | ProfileRef[] | null;
+};
+type ConnectionRow = {
+  friend_id: string;
+  position: number;
+  profiles: ProfileRef | ProfileRef[] | null;
+};
+type PinnedRow = { post_id: string; position: number };
 type CollectionFollowRow = { collection_id: string; user_id: string };
 
 type FavoriteRow = {
@@ -139,6 +166,34 @@ type PostRow = {
   youtube_video_id: string | null;
   club_id: string | null;
 };
+
+/** How long ago, in the coarse terms a "last online" line actually wants. */
+function lastOnlineLabel(iso: string): string {
+  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (minutes < 5) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return days < 30 ? `${days}d ago` : "a while ago";
+}
+
+function Panel({
+  title,
+  style,
+  children,
+}: {
+  title: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="panel" style={style}>
+      <div className="panel-head">{title}</div>
+      <div className="panel-body">{children}</div>
+    </div>
+  );
+}
 
 function EmptySlot({ children }: { children: React.ReactNode }) {
   return (
@@ -427,6 +482,50 @@ export default async function ProfilePage({
       : null,
   ].filter((h): h is { label: string; post: PostRow } => h !== null);
 
+  const [{ data: guestbookRows }, { data: connectionRows }, { data: pinnedRows }] = await Promise.all([
+    supabase
+      .from("guestbook_entries")
+      .select("id, body, created_at, author_id, profiles!guestbook_entries_author_id_fkey(username, avatar_url)")
+      .eq("profile_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(30)
+      .returns<GuestbookRow[]>(),
+    supabase
+      .from("top_connections")
+      .select("friend_id, position, profiles!top_connections_friend_id_fkey(username, avatar_url)")
+      .eq("user_id", profile.id)
+      .order("position", { ascending: true })
+      .returns<ConnectionRow[]>(),
+    supabase
+      .from("pinned_posts")
+      .select("post_id, position")
+      .eq("user_id", profile.id)
+      .order("position", { ascending: true })
+      .returns<PinnedRow[]>(),
+  ]);
+
+  const guestbook: GuestbookEntry[] = (guestbookRows ?? []).map((row) => {
+    const author = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return {
+      id: row.id,
+      body: row.body,
+      createdAt: row.created_at,
+      authorId: row.author_id,
+      authorUsername: author?.username ?? "someone",
+      authorAvatarUrl: author?.avatar_url ?? null,
+    };
+  });
+
+  const connections: Connection[] = (connectionRows ?? []).flatMap((row) => {
+    const friend = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return friend ? [{ id: row.friend_id, username: friend.username, avatarUrl: friend.avatar_url }] : [];
+  });
+
+  const pinnedIds = new Set((pinnedRows ?? []).map((row) => row.post_id));
+  const pinnedPosts = (pinnedRows ?? [])
+    .map((row) => posts.find((p) => p.id === row.post_id))
+    .filter((p): p is PostRow => p !== undefined);
+
   const week = computeWeekInTaste(
     posts.map<WeekPost>((p) => ({
       id: p.id,
@@ -452,35 +551,41 @@ export default async function ProfilePage({
   const achievements = earnedAchievements(achievementContext);
   const nextUp = nextAchievement(achievementContext);
 
-  const skin: ProfileSkin = {
-    bg: custom?.profile_bg_color ?? null,
-    panel: custom?.profile_panel_color ?? null,
-    text: custom?.profile_text_color ?? null,
-    accent: custom?.profile_accent_color ?? null,
-  };
   const bioStyle = {
     fontFamily: fontStack(custom?.bio_font) ?? undefined,
     color: custom?.bio_color ?? undefined,
   };
 
+  const moodEmoji = custom?.mood_emoji ?? null;
   const obsessedKind = isObsessedKind(custom?.obsessed_kind) ? custom.obsessed_kind : null;
   const obsessedTitle = custom?.obsessed_title ?? null;
   const songId = custom?.profile_song_youtube_id ?? null;
   const songSpotifyId = custom?.profile_song_spotify_id ?? null;
   const hasSong = !!(songId || songSpotifyId);
 
-  const layout = resolveProfileLayout(custom?.profile_layout);
+  // One config drives the look and the module order, and the same loader
+  // serves club pages. A profile customised before page_configs existed is
+  // synthesised from the old columns rather than coming back blank.
+  const config = await loadPageConfig(supabase, "profile", profile.id);
+  const moduleStates = new Map(config.modules.map((m) => [m.id, m]));
 
   // A section with nothing in it is hidden from visitors and shown to the
   // owner as a prompt - an empty panel on someone else's profile just reads
   // as "nobody uses this".
-  const sectionHasContent: Record<ProfileSectionId, boolean> = {
+  const sectionHasContent: Record<string, boolean> = {
     obsessed: !!obsessedTitle,
     song: hasSong,
     week: week !== null,
     // The twin callout is the owner's alone, so for anyone else this
     // section has nothing in it by definition.
     twin: isOwnProfile && twin !== null,
+    mood: !!moodEmoji || !!custom?.mood_text,
+    about: !!profile.bio,
+    blurbs: !!custom?.blurb_next || !!custom?.blurb_free,
+    connections: connections.length > 0,
+    pinned: pinnedPosts.length > 0,
+    guestbook: guestbook.length > 0,
+    presence: (viewerCount ?? 0) > 0 || !!custom?.last_seen_at,
     highlights: highlights.length > 0,
     collections: collections.length > 0,
     favorites: favoriteCount > 0,
@@ -490,11 +595,11 @@ export default async function ProfilePage({
     reviews: posts.length > 0,
   };
 
-  function renderSection(id: ProfileSectionId) {
+  function renderSection(id: ModuleId) {
     switch (id) {
       case "obsessed":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Currently obsessed with</div>
             <div className="panel-body">
               {obsessedTitle ? (
@@ -515,9 +620,9 @@ export default async function ProfilePage({
           </div>
         );
 
-      case "song":
+      case "anthem":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Profile song</div>
             <div className="panel-body">
               {hasSong ? (
@@ -536,7 +641,7 @@ export default async function ProfilePage({
 
       case "week":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">
               {isOwnProfile ? "Your week in taste" : `${profile.username}'s week in taste`}
             </div>
@@ -591,7 +696,7 @@ export default async function ProfilePage({
         // if someone re-orders the sections.
         if (!isOwnProfile) return null;
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Your taste twin</div>
             <div className="panel-body">
               {!twin ? (
@@ -617,7 +722,7 @@ export default async function ProfilePage({
 
       case "achievements":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Achievements</div>
             <div className="panel-body">
               {achievements.length === 0 ? (
@@ -642,9 +747,136 @@ export default async function ProfilePage({
           </div>
         );
 
+      case "mood":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Mood">
+            {!moodEmoji && !custom?.mood_text ? (
+              <EmptySlot>Set a mood - an emoji, a colour and a few words.</EmptySlot>
+            ) : (
+              <div className="mood-ring-row">
+                <span
+                  className="mood-ring"
+                  style={{ borderColor: custom?.mood_color ?? "var(--link)" }}
+                >
+                  {moodEmoji ?? "•"}
+                </span>
+                {custom?.mood_text && <span className="mood-text">{custom.mood_text}</span>}
+              </div>
+            )}
+          </Panel>
+        );
+
+      case "about":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="About me">
+            {profile.bio ? (
+              <div className="profile-bio" style={bioStyle}>
+                {renderRichBio(profile.bio)}
+              </div>
+            ) : (
+              <EmptySlot>Write a few lines about yourself.</EmptySlot>
+            )}
+          </Panel>
+        );
+
+      case "blurbs":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Blurbs">
+            {!custom?.blurb_next && !custom?.blurb_free ? (
+              <EmptySlot>Say what you&apos;d like to review next.</EmptySlot>
+            ) : (
+              <div className="blurb-list">
+                {custom?.blurb_next && (
+                  <div className="blurb">
+                    <span className="week-standout-label">What I&apos;d like to review next</span>
+                    <div>{custom.blurb_next}</div>
+                  </div>
+                )}
+                {custom?.blurb_free && <div className="blurb">{custom.blurb_free}</div>}
+              </div>
+            )}
+          </Panel>
+        );
+
+      case "connections":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Top connections">
+            <TopConnections connections={connections} isOwner={isOwnProfile} />
+          </Panel>
+        );
+
+      case "pinned":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Featured reviews">
+            {pinnedPosts.length === 0 ? (
+              <EmptySlot>Pin a review from its page to feature it here.</EmptySlot>
+            ) : (
+              <div className="panel-body flush">
+                {pinnedPosts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={{
+                      id: post.id,
+                      userId: post.user_id,
+                      mediaType: post.media_type,
+                      title: post.title,
+                      body: post.body,
+                      rating: post.rating,
+                      createdAt: post.created_at,
+                      artist: post.artist,
+                      coverUrl: post.cover_url,
+                      spotifyTrackId: post.spotify_track_id,
+                      youtubeVideoId: post.youtube_video_id,
+                      username: profile.username,
+                    }}
+                    currentUserId={user?.id ?? null}
+                    reactions={reactionsByPost.get(post.id)}
+                    liked={likedByMe.has(post.id)}
+                    likeCount={likeCounts.get(post.id) ?? 0}
+                    commentCount={commentCounts.get(post.id) ?? 0}
+                  />
+                ))}
+              </div>
+            )}
+          </Panel>
+        );
+
+      case "guestbook":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Guestbook">
+            <Guestbook
+              profileId={profile.id}
+              entries={guestbook}
+              currentUserId={user?.id ?? null}
+              isOwner={isOwnProfile}
+            />
+          </Panel>
+        );
+
+      case "presence":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Presence">
+            <div className="week-figures">
+              {isOwnProfile && viewerCount != null && (
+                <span>
+                  <b>{viewerCount}</b> profile views
+                </span>
+              )}
+              {custom?.last_seen_at && (
+                <span>
+                  <b>{lastOnlineLabel(custom.last_seen_at)}</b> last online
+                </span>
+              )}
+              <span>
+                <b>{new Date(profile.created_at).toLocaleDateString()}</b> joined
+              </span>
+            </div>
+          </Panel>
+        );
+
       case "highlights":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Standout reviews</div>
             <div className="panel-body">
               {highlights.length === 0 ? (
@@ -678,7 +910,7 @@ export default async function ProfilePage({
 
       case "collections":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">
               Collections
               <Link href="/collections" className="see-all">
@@ -727,7 +959,7 @@ export default async function ProfilePage({
 
       case "favorites":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Top artists, movies &amp; shows</div>
             <div className="panel-body">
               {favoriteCount === 0 ? (
@@ -766,7 +998,7 @@ export default async function ProfilePage({
 
       case "stats":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Stats</div>
             <div className="stats-body">
               {/* Only categories they've actually posted in. Otherwise every
@@ -787,7 +1019,7 @@ export default async function ProfilePage({
 
       case "clubs":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Clubs</div>
             <div className="panel-body flush">
               {clubs.map((club) => (
@@ -802,7 +1034,7 @@ export default async function ProfilePage({
 
       case "reviews":
         return (
-          <div className="panel" key={id}>
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Reviews</div>
             <div className="panel-body flush">
               {posts.length === 0 ? (
@@ -840,7 +1072,7 @@ export default async function ProfilePage({
   }
 
   return (
-    <div className={hasSkin(skin) ? "profile-skin" : undefined} style={skinStyle(skin)}>
+    <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
       <div
         className="panel profile-head"
@@ -958,17 +1190,23 @@ export default async function ProfilePage({
                 }}
               />
               <FavoritesEditor favorites={favorites} />
-              <ProfileSkinEditor skin={skin} />
-              <ProfileLayoutEditor layout={layout} />
+              <MoodRingEditor
+                emoji={moodEmoji}
+                color={custom?.mood_color ?? null}
+                text={custom?.mood_text ?? null}
+              />
+              <BlurbsEditor next={custom?.blurb_next ?? null} free={custom?.blurb_free ?? null} />
+              {/* Colours, fonts, background and module order all live in one
+                  editor now, and the same one runs on club pages. */}
+              <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />
             </div>
           </div>
         </div>
       )}
 
-      {layout
-        .filter((entry) => entry.shown)
-        .filter((entry) => isOwnProfile || sectionHasContent[entry.id])
-        .map((entry) => renderSection(entry.id))}
+      {visibleModules(config)
+        .filter((id) => isOwnProfile || sectionHasContent[id])
+        .map((id) => renderSection(id))}
     </div>
   );
 }
