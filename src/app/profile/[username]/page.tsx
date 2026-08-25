@@ -26,6 +26,8 @@ import { MoodRingEditor } from "@/components/MoodRing";
 import { BlurbsEditor } from "@/components/BlurbsEditor";
 import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
 import { TopConnections, type Connection } from "@/components/TopConnections";
+import { StickerPhoto } from "@/components/StickerPhoto";
+import type { Sticker } from "@/lib/stickers";
 import {
   FAVORITE_KINDS,
   FAVORITE_LABELS,
@@ -127,6 +129,15 @@ type ConnectionRow = {
   profiles: ProfileRef | ProfileRef[] | null;
 };
 type PinnedRow = { post_id: string; position: number };
+type StickerRow = {
+  id: string;
+  image_url: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  z: number;
+};
 type CollectionFollowRow = { collection_id: string; user_id: string };
 
 type FavoriteRow = {
@@ -474,7 +485,8 @@ export default async function ProfilePage({
       : null,
   ].filter((h): h is { label: string; post: PostRow } => h !== null);
 
-  const [{ data: guestbookRows }, { data: connectionRows }, { data: pinnedRows }] = await Promise.all([
+  const [{ data: guestbookRows }, { data: connectionRows }, { data: pinnedRows }, { data: stickerRows }] =
+    await Promise.all([
     supabase
       .from("guestbook_entries")
       .select("id, body, created_at, author_id, profiles!guestbook_entries_author_id_fkey(username, avatar_url)")
@@ -494,6 +506,12 @@ export default async function ProfilePage({
       .eq("user_id", profile.id)
       .order("position", { ascending: true })
       .returns<PinnedRow[]>(),
+    supabase
+      .from("profile_stickers")
+      .select("id, image_url, x, y, scale, rotation, z")
+      .eq("user_id", profile.id)
+      .order("z", { ascending: true })
+      .returns<StickerRow[]>(),
   ]);
 
   const guestbook: GuestbookEntry[] = (guestbookRows ?? []).map((row) => {
@@ -512,6 +530,16 @@ export default async function ProfilePage({
     const friend = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
     return friend ? [{ id: row.friend_id, username: friend.username, avatarUrl: friend.avatar_url }] : [];
   });
+
+  const stickers: Sticker[] = (stickerRows ?? []).map((row) => ({
+    id: row.id,
+    imageUrl: row.image_url,
+    x: row.x,
+    y: row.y,
+    scale: row.scale,
+    rotation: row.rotation,
+    z: row.z,
+  }));
 
   const pinnedIds = new Set((pinnedRows ?? []).map((row) => row.post_id));
   const pinnedPosts = (pinnedRows ?? [])
@@ -1073,15 +1101,6 @@ export default async function ProfilePage({
   return (
     <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
-      {/* The banner is a real image across the top of the page, not a
-          background with text laid over it. It's something the member
-          made - showing it whole is the point of letting them upload it. */}
-      {profile.banner_url && (
-        <div className="pf-banner" style={{ aspectRatio: bannerAspectRatio(custom?.banner_aspect) }}>
-          <img src={profile.banner_url} alt="" />
-        </div>
-      )}
-
       <div className="profile-columns">
         <div className="profile-col-side">
           {/* The identity card: big square photo, actions stacked beside
@@ -1097,12 +1116,28 @@ export default async function ProfilePage({
               {profile.is_verified && <VerifiedBadge />}
             </div>
             <div className="pf-card-body">
+              {/* The photo runs the full width of the column, with the
+                  stickers stuck on top of it. It's the thing people came
+                  to look at, so it gets the room. */}
+              <StickerPhoto
+                avatarUrl={profile.avatar_url || "/avatars/preset-1.svg"}
+                username={profile.username}
+                stickers={stickers}
+                isOwner={isOwnProfile}
+              />
+
+              {/* The banner sits beside the photo rather than as a strip
+                  across the page, at whatever shape it was cropped to. */}
+              {profile.banner_url && (
+                <div
+                  className="pf-banner"
+                  style={{ aspectRatio: bannerAspectRatio(custom?.banner_aspect) }}
+                >
+                  <img src={profile.banner_url} alt="" />
+                </div>
+              )}
+
               <div className="pf-id">
-                <img
-                  src={profile.avatar_url || "/avatars/preset-1.svg"}
-                  alt=""
-                  className="pf-photo"
-                />
                 <div className="pf-links">
                   {isOwnProfile ? (
                     <>

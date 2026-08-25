@@ -1692,3 +1692,35 @@ do $$ begin
 exception
   when others then null;
 end $$;
+
+-- ---------- profile_stickers ----------
+-- Stickers stuck onto the profile photo, scrapbook style. Placement is
+-- stored as percentages of the photo rather than pixels, so a sticker
+-- lands in the same spot whatever size the photo renders at - the photo is
+-- one size in the side column and another on a phone.
+create table if not exists public.profile_stickers (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  image_url text not null,
+  x real not null default 50,
+  y real not null default 50,
+  scale real not null default 1,
+  rotation real not null default 0,
+  z integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists profile_stickers_user_idx on public.profile_stickers (user_id, z);
+
+alter table public.profile_stickers enable row level security;
+
+drop policy if exists "Profile stickers are viewable by everyone" on public.profile_stickers;
+create policy "Profile stickers are viewable by everyone"
+  on public.profile_stickers for select
+  using (true);
+
+drop policy if exists "Members manage their own stickers" on public.profile_stickers;
+create policy "Members manage their own stickers"
+  on public.profile_stickers for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);

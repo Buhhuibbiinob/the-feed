@@ -2646,11 +2646,13 @@ a:hover {
    the site keeps its rounded, glossy panels; this page is deliberately a
    different object - solid title bars, square corners, thin borders,
    small type. */
+/* The banner lives in the side column beside the photo, not as a strip
+   across the top of the page. */
 .pf-banner {
   width: 100%;
   overflow: hidden;
-  border: 1px solid var(--panel-border);
-  margin-bottom: 12px;
+  border: 1px solid var(--pf-line, #6a86c4);
+  margin-top: 9px;
   background: var(--panel-head-bg);
 }
 .pf-banner img {
@@ -2681,20 +2683,78 @@ a:hover {
   font-size: 12px;
 }
 
-/* The photo is the point of the page, so it's big and square rather than
-   a 72px circle tucked into a banner. */
+/* The photo is the point of the page: full column width, square, with
+   the stickers layered over it. */
 .pf-id {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  margin-top: 9px;
 }
-.pf-photo {
-  width: 118px;
-  height: 118px;
-  object-fit: cover;
+.sticker-photo {
+  width: 100%;
+}
+.sticker-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
   border: 1px solid var(--pf-line, #6a86c4);
-  flex-shrink: 0;
+  background: var(--panel-head-bg);
+  /* Stops the browser panning the page when a sticker is dragged. */
+  touch-action: none;
+}
+.sticker-box.editing {
+  cursor: grab;
+  outline: 2px dashed var(--link);
+  outline-offset: -3px;
+}
+.sticker-base {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
+  user-select: none;
+}
+.sticker {
+  position: absolute;
+  width: 34%;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+.sticker-box.editing .sticker {
+  pointer-events: auto;
+  cursor: grab;
+}
+.sticker.selected {
+  outline: 2px solid var(--link);
+}
+.sticker-tools {
+  margin-top: 7px;
+}
+.sticker-upload {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0;
+  font-size: 11px;
+}
+.sticker-upload input[type="file"] {
+  min-width: 0;
+  flex: 1;
+}
+.sticker-controls {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+}
+.sticker-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sticker-controls input[type="range"] {
+  flex: 1;
 }
 .pf-links {
   display: flex;
@@ -2797,10 +2857,17 @@ a:hover {
   font-size: 11.5px;
 }
 
+/* On a phone the side column is full width, so the photo would be huge.
+   Cap it and centre it instead. */
 @media (max-width: 899px) {
-  .pf-photo {
-    width: 96px;
-    height: 96px;
+  .sticker-photo {
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .pf-banner {
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 

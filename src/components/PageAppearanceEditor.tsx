@@ -185,7 +185,7 @@ export function PageAppearanceEditor({
           className={`page-editor-tab${advanced === "modules" ? " active" : ""}`}
           onClick={() => setAdvanced(advanced === "modules" ? null : "modules")}
         >
-          Rearrange sections
+          Choose sections
         </button>
       </div>
 
@@ -278,7 +278,10 @@ export function PageAppearanceEditor({
 
       {advanced === "modules" && (
         <>
-          <div className="field-hint">Drag a row or use the arrows. Untick to hide a module.</div>
+          <div className="field-hint">
+            Tick the sections you want on your profile. Drag a row or use the arrows to reorder
+            them. Most start off - turn on only what you&apos;ll actually use.
+          </div>
           <ul className="layout-list">
             {draft.modules.map((module, index) => (
               <li
