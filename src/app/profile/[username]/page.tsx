@@ -13,7 +13,7 @@ import { ProfileSongPicker } from "@/components/ProfileSongPicker";
 import { FavoritesEditor } from "@/components/FavoritesEditor";
 import { StatusPicker } from "@/components/StatusPicker";
 import { MEDIA_LABELS, MEDIA_TYPES, type MediaType } from "@/lib/media";
-import { computeTasteMatch } from "@/lib/taste";
+import { buildTasteProfile, tasteMatch as computeMatch, workKey } from "@/lib/taste";
 import { earnedBadges, BADGES } from "@/lib/badges";
 import { computeStreak } from "@/lib/streak";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -29,6 +29,16 @@ import {
   type FavoriteKind,
 } from "@/lib/favorites";
 import { OBSESSED_LABELS, isObsessedKind } from "@/lib/obsessed";
+import { ProfilePing } from "@/components/ProfilePing";
+import { PickReactions, type PickReactionState } from "@/components/PickReactions";
+import { tallyReactions } from "@/lib/reactions";
+import { computeWeekInTaste, type WeekPost } from "@/lib/weekInTaste";
+import {
+  computeLongestStreak,
+  earnedAchievements,
+  nextAchievement,
+  type AchievementContext,
+} from "@/lib/achievements";
 
 type ClubMembershipRow = {
   clubs: { id: string; media_type: MediaType; name: string } | null;
@@ -85,6 +95,8 @@ const CUSTOMIZATION_COLUMNS =
   "obsessed_image_url, profile_song_youtube_id, profile_song_spotify_id, profile_song_title, " +
   "profile_song_artist, profile_song_thumbnail_url, profile_song_autoplay";
 
+type ReactionRow = { favorite_id: string; user_id: string; emoji: string };
+
 type FavoriteRow = {
   id: string;
   kind: FavoriteKind;
@@ -92,6 +104,19 @@ type FavoriteRow = {
   subtitle: string | null;
   image_url: string | null;
   position: number;
+};
+
+// Cap on the site-wide review scan behind taste match and discoveries.
+// Ordered oldest-first so "who reviewed this first" stays correct for
+// everything inside the window.
+const TASTE_SCAN_LIMIT = 5000;
+
+type ScanRow = {
+  user_id: string;
+  title: string;
+  artist: string | null;
+  rating: number | null;
+  created_at: string;
 };
 
 type PostRow = {
@@ -239,41 +264,140 @@ export default async function ProfilePage({
   const nextBadge = BADGES.find((b) => b.threshold > posts.length) ?? null;
   const streak = computeStreak(posts.map((p) => p.created_at));
 
+  // One scan of the site's reviews, reused three times over: the visitor's
+  // taste match, who was first to review a given work, and nothing else has
+  // to read the posts table again.
+  const { data: scanRows } = await supabase
+    .from("posts")
+    .select("user_id, title, artist, rating, created_at")
+    .order("created_at", { ascending: true })
+    .limit(TASTE_SCAN_LIMIT)
+    .returns<ScanRow[]>();
+  const scan = scanRows ?? [];
+
+  // First review of a work wins the discovery. The scan is ordered oldest
+  // first, so the first time a key appears is the one that counts.
+  const firstReviewer = new Map<string, string>();
+  for (const row of scan) {
+    if (!row.title) continue;
+    const key = workKey(row.title, row.artist);
+    if (!firstReviewer.has(key)) firstReviewer.set(key, row.user_id);
+  }
+  let discoveries = 0;
+  for (const [, ownerId] of firstReviewer) if (ownerId === profile.id) discoveries++;
+
   let isFollowing = false;
   let tasteMatch: number | null = null;
   if (user && !isOwnProfile) {
-    const [{ data: followRow }, { data: myPostRows }, { data: myClubRows }] = await Promise.all([
+    const [{ data: followRow }, { data: myClubRows }] = await Promise.all([
       supabase
         .from("follows")
         .select("follower_id")
         .eq("follower_id", user.id)
         .eq("followed_id", profile.id)
         .maybeSingle(),
-      supabase.from("posts").select("club_id, rating").eq("user_id", user.id),
       supabase.from("club_members").select("club_id").eq("user_id", user.id),
     ]);
     isFollowing = !!followRow;
 
-    const theirRatings = new Map<string, number[]>();
-    for (const post of posts) {
-      if (!post.club_id || post.rating == null) continue;
-      const ratings = theirRatings.get(post.club_id) ?? [];
-      ratings.push(post.rating);
-      theirRatings.set(post.club_id, ratings);
-    }
-    const theirClubIds = new Set(clubs.map((c) => c.id));
-
-    const myRatings = new Map<string, number[]>();
-    for (const post of myPostRows ?? []) {
-      if (!post.club_id || post.rating == null) continue;
-      const ratings = myRatings.get(post.club_id) ?? [];
-      ratings.push(post.rating);
-      myRatings.set(post.club_id, ratings);
-    }
-    const myClubIds = new Set((myClubRows ?? []).map((r) => r.club_id));
-
-    tasteMatch = computeTasteMatch(myRatings, myClubIds, theirRatings, theirClubIds);
+    const myScanPosts = scan.filter((row) => row.user_id === user.id);
+    const mine = buildTasteProfile({
+      posts: myScanPosts,
+      clubIds: (myClubRows ?? []).map((r) => r.club_id as string),
+    });
+    const theirs = buildTasteProfile({
+      posts: posts.map((p) => ({ title: p.title, artist: p.artist, rating: p.rating })),
+      clubIds: clubs.map((c) => c.id),
+    });
+    tasteMatch = computeMatch(mine, theirs);
   }
+
+  const favoriteIds = FAVORITE_KINDS.flatMap((kind) => favorites[kind].map((f) => f.id));
+
+  const [{ data: reactionRows }, { data: twinRow }, { count: viewerCount }, { count: commentsWritten }] =
+    await Promise.all([
+      favoriteIds.length === 0
+        ? Promise.resolve({ data: [] as ReactionRow[] })
+        : supabase
+            .from("favorite_reactions")
+            .select("favorite_id, user_id, emoji")
+            .in("favorite_id", favoriteIds)
+            .returns<ReactionRow[]>(),
+      supabase
+        .from("profiles")
+        .select("taste_twin_id, taste_twin_score, taste_twin_at")
+        .eq("id", profile.id)
+        .maybeSingle(),
+      // Only the owner is allowed to read their own view rows, so for a
+      // visitor this comes back null rather than leaking the number.
+      supabase
+        .from("profile_views")
+        .select("viewer_id", { count: "exact", head: true })
+        .eq("profile_id", profile.id),
+      supabase
+        .from("comments")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", profile.id),
+    ]);
+
+  const reactionsByFavorite = new Map<string, ReactionRow[]>();
+  for (const row of reactionRows ?? []) {
+    const list = reactionsByFavorite.get(row.favorite_id) ?? [];
+    list.push(row);
+    reactionsByFavorite.set(row.favorite_id, list);
+  }
+  function reactionState(favoriteId: string): PickReactionState {
+    const rows = reactionsByFavorite.get(favoriteId) ?? [];
+    return {
+      favoriteId,
+      counts: tallyReactions(rows.map((r) => r.emoji)),
+      mine: user ? rows.find((r) => r.user_id === user.id)?.emoji ?? null : null,
+    };
+  }
+
+  // The twin is only ever shown to the profile's owner. It's built from who
+  // they overlap with, which is theirs to know and nobody else's business.
+  let twin: { username: string; avatarUrl: string | null; score: number | null } | null = null;
+  const twinId = (twinRow?.taste_twin_id as string | null | undefined) ?? null;
+  if (isOwnProfile && twinId) {
+    const { data: twinProfile } = await supabase
+      .from("profiles")
+      .select("username, avatar_url")
+      .eq("id", twinId)
+      .maybeSingle();
+    if (twinProfile) {
+      twin = {
+        username: twinProfile.username as string,
+        avatarUrl: (twinProfile.avatar_url as string | null) ?? null,
+        score: (twinRow?.taste_twin_score as number | null | undefined) ?? null,
+      };
+    }
+  }
+
+  const week = computeWeekInTaste(
+    posts.map<WeekPost>((p) => ({
+      id: p.id,
+      title: p.title,
+      artist: p.artist,
+      mediaType: p.media_type,
+      rating: p.rating,
+      coverUrl: p.cover_url,
+      createdAt: p.created_at,
+    }))
+  );
+
+  const achievementContext: AchievementContext = {
+    reviewCount: posts.length,
+    streak,
+    longestStreak: computeLongestStreak(posts.map((p) => p.created_at)),
+    categoriesCovered: MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).length,
+    likesReceived: totalLikesReceived,
+    commentsWritten: commentsWritten ?? 0,
+    discoveries,
+    clubsJoined: clubs.length,
+  };
+  const achievements = earnedAchievements(achievementContext);
+  const nextUp = nextAchievement(achievementContext);
 
   const skin: ProfileSkin = {
     bg: custom?.profile_bg_color ?? null,
@@ -300,7 +424,12 @@ export default async function ProfilePage({
   const sectionHasContent: Record<ProfileSectionId, boolean> = {
     obsessed: !!obsessedTitle,
     song: hasSong,
+    week: week !== null,
+    // The twin callout is the owner's alone, so for anyone else this
+    // section has nothing in it by definition.
+    twin: isOwnProfile && twin !== null,
     favorites: favoriteCount > 0,
+    achievements: achievements.length > 0,
     stats: MEDIA_TYPES.some((mt) => breakdown[mt] > 0),
     clubs: clubs.length > 0,
     reviews: posts.length > 0,
@@ -350,6 +479,114 @@ export default async function ProfilePage({
           </div>
         );
 
+      case "week":
+        return (
+          <div className="panel" key={id}>
+            <div className="panel-head">
+              {isOwnProfile ? "Your week in taste" : `${profile.username}'s week in taste`}
+            </div>
+            <div className="panel-body">
+              {!week ? (
+                <EmptySlot>Post a review this week and this fills itself in.</EmptySlot>
+              ) : (
+                <div className="week-taste">
+                  <div className="week-figures">
+                    <span>
+                      <b>{week.reviewCount}</b> review{week.reviewCount === 1 ? "" : "s"}
+                    </span>
+                    <span>
+                      <b>{week.daysActive}</b> day{week.daysActive === 1 ? "" : "s"} active
+                    </span>
+                    {week.averageRating !== null && (
+                      <span>
+                        <b>{week.averageRating.toFixed(1)}</b> avg rating
+                      </span>
+                    )}
+                  </div>
+                  {week.standout && (
+                    <Link href={`/post/${week.standout.id}`} className="week-standout">
+                      {week.standout.coverUrl ? (
+                        <img src={week.standout.coverUrl} alt="" />
+                      ) : (
+                        <span className="favorite-blank" />
+                      )}
+                      <span>
+                        <span className="week-standout-label">Highest rated this week</span>
+                        <b>{week.standout.title}</b>
+                        {week.standout.artist && <span className="sub">{week.standout.artist}</span>}
+                      </span>
+                    </Link>
+                  )}
+                  <div className="week-categories">
+                    {week.categories.map((c) => (
+                      <span className={`badge ${c.mediaType}`} key={c.mediaType}>
+                        {c.label} x{c.count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "twin":
+        // Rendered for the owner only - the filter below keeps it off other
+        // people's view of the page, and this guard keeps it that way even
+        // if someone re-orders the sections.
+        if (!isOwnProfile) return null;
+        return (
+          <div className="panel" key={id}>
+            <div className="panel-head">Your taste twin</div>
+            <div className="panel-body">
+              {!twin ? (
+                <EmptySlot>
+                  Review a few more things and we&apos;ll find the person whose taste lines up with
+                  yours.
+                </EmptySlot>
+              ) : (
+                <Link href={`/profile/${twin.username}`} className="taste-twin">
+                  <img src={twin.avatarUrl || "/avatars/preset-1.svg"} alt="" />
+                  <span>
+                    <b>{twin.username}</b>
+                    {twin.score !== null && (
+                      <span className="taste-twin-score">{twin.score}% match</span>
+                    )}
+                    <span className="sub">Closest taste to yours right now</span>
+                  </span>
+                </Link>
+              )}
+            </div>
+          </div>
+        );
+
+      case "achievements":
+        return (
+          <div className="panel" key={id}>
+            <div className="panel-head">Achievements</div>
+            <div className="panel-body">
+              {achievements.length === 0 ? (
+                <EmptySlot>Post, rate and keep a streak going to start unlocking these.</EmptySlot>
+              ) : (
+                <div className="achievement-grid">
+                  {achievements.map((a) => (
+                    <span className="achievement" key={a.id} title={a.description}>
+                      {a.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {isOwnProfile && nextUp && (
+                <div className="profile-badge-next">
+                  Next up: <b>{nextUp.label}</b> - {nextUp.description} (
+                  {nextUp.progress(achievementContext).current}/
+                  {nextUp.progress(achievementContext).target})
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       case "favorites":
         return (
           <div className="panel" key={id}>
@@ -370,9 +607,13 @@ export default async function ProfilePage({
                             ) : (
                               <span className="favorite-blank" />
                             )}
-                            <span>
+                            <span className="favorite-body">
                               <b>{item.title}</b>
                               {item.subtitle && <span className="sub">{item.subtitle}</span>}
+                              <PickReactions
+                                state={reactionState(item.id)}
+                                canReact={!!user && !isOwnProfile}
+                              />
                             </span>
                           </li>
                         ))}
@@ -461,6 +702,7 @@ export default async function ProfilePage({
 
   return (
     <div className={hasSkin(skin) ? "profile-skin" : undefined} style={skinStyle(skin)}>
+      {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
       <div
         className="panel profile-head"
         style={
@@ -506,6 +748,11 @@ export default async function ProfilePage({
               <span>{totalLikesReceived} likes</span>
               {tasteMatch !== null && <span className="taste-match">{tasteMatch}% taste match</span>}
               {streak > 1 && <span className="streak-count">{streak} day streak</span>}
+              {/* Only the owner can read their own view rows, so this is
+                  null for everyone else rather than hidden by a check. */}
+              {isOwnProfile && viewerCount != null && viewerCount > 0 && (
+                <span>{viewerCount} profile views</span>
+              )}
             </div>
             {badges.length > 0 && (
               <div className="profile-badges">

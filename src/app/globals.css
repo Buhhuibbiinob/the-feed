@@ -1848,6 +1848,148 @@ a:hover {
   min-width: 0;
 }
 
+/* ---- Week in taste ---- */
+.week-taste {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.week-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.week-figures b {
+  font-size: 17px;
+  color: var(--text);
+  display: block;
+  line-height: 1.1;
+}
+.week-standout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+.week-standout img {
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--panel-border);
+  flex-shrink: 0;
+}
+.week-standout-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.week-standout .sub {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.week-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ---- Taste twin ---- */
+.taste-twin {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+.taste-twin img {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--panel-border);
+  flex-shrink: 0;
+}
+.taste-twin b {
+  font-size: 15px;
+}
+.taste-twin-score {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f7a3f;
+}
+.taste-twin .sub {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ---- Achievements ---- */
+.achievement-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.achievement {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 100px;
+  background: linear-gradient(180deg, #fafafa, #e4e4e4);
+  border: 1px solid #d0d0d0;
+  color: #1a1a1a;
+  cursor: help;
+}
+
+/* ---- Reactions on top-list picks ---- */
+.favorite-body {
+  min-width: 0;
+}
+.pick-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 3px;
+}
+.pick-reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 100px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.55;
+}
+.pick-reaction:hover,
+.pick-reaction.mine {
+  opacity: 1;
+  border-color: var(--panel-border);
+  background: var(--panel-head-bg);
+}
+.pick-reaction-count {
+  font-size: 10px;
+  font-weight: 700;
+}
+.pick-reaction-tally {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
 /* ---- Club rows (used in /clubs and profile Clubs panel) ---- */
 .club-row {
   display: flex;

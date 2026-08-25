@@ -10,7 +10,10 @@
 export const PROFILE_SECTIONS = [
   { id: "obsessed", label: "Currently obsessed with" },
   { id: "song", label: "Profile song" },
+  { id: "week", label: "Your week in taste" },
+  { id: "twin", label: "Your taste twin" },
   { id: "favorites", label: "Top artists, movies & shows" },
+  { id: "achievements", label: "Achievements" },
   { id: "stats", label: "Stats" },
   { id: "clubs", label: "Clubs" },
   { id: "reviews", label: "Reviews" },

@@ -7,22 +7,35 @@ import { markNotificationsSeen } from "@/app/actions/notifications";
 
 type NotificationItem = {
   id: string;
-  type: "like" | "comment" | "follow";
+  type: "like" | "comment" | "follow" | "view" | "reaction" | "twin";
   actorUsername: string;
   actorAvatarUrl: string | null;
   postId: string | null;
   postTitle: string | null;
+  subject: string | null;
+  emoji: string | null;
   createdAt: string;
 };
 
 function describe(item: NotificationItem) {
-  if (item.type === "like") {
-    return item.postTitle ? `liked your review "${item.postTitle}"` : "liked your review";
+  switch (item.type) {
+    case "like":
+      return item.postTitle ? `liked your review "${item.postTitle}"` : "liked your review";
+    case "comment":
+      return item.postTitle
+        ? `commented on your review "${item.postTitle}"`
+        : "commented on your review";
+    case "view":
+      return "looked at your profile";
+    case "reaction":
+      return item.subject
+        ? `reacted ${item.emoji ?? ""} to your pick "${item.subject}"`.trim()
+        : "reacted to one of your picks";
+    case "twin":
+      return item.subject ? `is your taste twin - ${item.subject} match` : "is your taste twin";
+    case "follow":
+      return "started following you";
   }
-  if (item.type === "comment") {
-    return item.postTitle ? `commented on your review "${item.postTitle}"` : "commented on your review";
-  }
-  return "started following you";
 }
 
 export function NotificationBell({ initialCount }: { initialCount: number }) {

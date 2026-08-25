@@ -1315,3 +1315,85 @@ drop policy if exists "Users can delete their own profile favorites" on public.p
 create policy "Users can delete their own profile favorites"
   on public.profile_favorites for delete
   using (auth.uid() = user_id);
+
+-- ---------- Give the profile a reason to change on its own (Phase 2) ----------
+
+-- ---------- profile_views ----------
+-- One row per viewer per profile per day. The date is part of the primary
+-- key rather than a plain timestamp column so a repeat visit the same day
+-- upserts instead of stacking - "12 people looked at your profile" should
+-- mean twelve people, not one person refreshing.
+create table if not exists public.profile_views (
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  viewer_id uuid not null references public.profiles (id) on delete cascade,
+  view_date date not null default ((now() at time zone 'utc')::date),
+  created_at timestamptz not null default now(),
+  primary key (profile_id, viewer_id, view_date)
+);
+
+create index if not exists profile_views_profile_idx
+  on public.profile_views (profile_id, created_at desc);
+
+alter table public.profile_views enable row level security;
+
+-- Deliberately narrower than the site's usual "viewable by everyone":
+-- who looked at your profile is yours to see, not public record.
+drop policy if exists "Profile views are visible to the profile owner" on public.profile_views;
+create policy "Profile views are visible to the profile owner"
+  on public.profile_views for select
+  using (auth.uid() = profile_id or auth.uid() = viewer_id);
+
+drop policy if exists "Members can record their own profile views" on public.profile_views;
+create policy "Members can record their own profile views"
+  on public.profile_views for insert
+  with check (auth.uid() = viewer_id and viewer_id <> profile_id);
+
+-- ---------- taste twin ----------
+-- Cached rather than computed per request: finding the closest match means
+-- reading everyone's reviews, which is far too much work to redo on every
+-- page view for a number that only moves when someone posts.
+alter table public.profiles add column if not exists taste_twin_id uuid references public.profiles (id) on delete set null;
+alter table public.profiles add column if not exists taste_twin_score integer;
+alter table public.profiles add column if not exists taste_twin_at timestamptz;
+-- Set when the twin changes to someone new, and cleared once the member has
+-- seen the notification. Without it a twin that flips back and forth would
+-- keep re-announcing the same person.
+alter table public.profiles add column if not exists taste_twin_announced_id uuid;
+
+-- ---------- favorite_reactions ----------
+-- Reactions on someone's curated top-list picks. One reaction per person
+-- per pick, changeable - this is "I love that you picked this", not a vote
+-- count to be farmed.
+create table if not exists public.favorite_reactions (
+  favorite_id uuid not null references public.profile_favorites (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  emoji text not null,
+  created_at timestamptz not null default now(),
+  primary key (favorite_id, user_id)
+);
+
+create index if not exists favorite_reactions_favorite_idx
+  on public.favorite_reactions (favorite_id);
+
+alter table public.favorite_reactions enable row level security;
+
+drop policy if exists "Favorite reactions are viewable by everyone" on public.favorite_reactions;
+create policy "Favorite reactions are viewable by everyone"
+  on public.favorite_reactions for select
+  using (true);
+
+drop policy if exists "Members can react as themselves" on public.favorite_reactions;
+create policy "Members can react as themselves"
+  on public.favorite_reactions for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can change their own reaction" on public.favorite_reactions;
+create policy "Members can change their own reaction"
+  on public.favorite_reactions for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can remove their own reaction" on public.favorite_reactions;
+create policy "Members can remove their own reaction"
+  on public.favorite_reactions for delete
+  using (auth.uid() = user_id);
