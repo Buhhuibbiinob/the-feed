@@ -10,7 +10,7 @@ export const BUILTIN_PAGES: { slug: string; label: string; path: string }[] = [
   { slug: "chat", label: "Chat", path: "/chat" },
   { slug: "leaderboard", label: "Leaderboard", path: "/leaderboard" },
   { slug: "new-releases", label: "New Releases", path: "/new-releases" },
-  { slug: "recs", label: "Recs", path: "/recs" },
+  { slug: "recs", label: "Discover", path: "/recs" },
   { slug: "clubs", label: "Clubs", path: "/clubs" },
   { slug: "artists", label: "Creators", path: "/artists" },
   { slug: "collections", label: "Collections", path: "/collections" },
@@ -18,8 +18,15 @@ export const BUILTIN_PAGES: { slug: string; label: string; path: string }[] = [
   { slug: "newsletter", label: "Newsletter", path: "/newsletter" },
 ];
 
-// Chat and Leaderboard get their own top-level tabs, so everything else in
-// the built-in list is what the "More" menu is for.
-export const TOP_LEVEL_SLUGS = new Set(["chat", "leaderboard"]);
+// The top level is Feed, Discover and Profile - the three things the site
+// is actually for. Chat and Leaderboard used to sit up here too, which
+// spread attention across five destinations and made none of them feel
+// like the main one; they're a tap further away now, in "More", along with
+// everything else.
+//
+// Discover points at /recs because that page already is discovery (For You
+// plus Trending). Promoting it beat adding a new hub page for the sake of
+// having something called "Discover".
+export const TOP_LEVEL_SLUGS = new Set(["recs"]);
 
 export const MORE_PAGES = BUILTIN_PAGES.filter((p) => !TOP_LEVEL_SLUGS.has(p.slug));

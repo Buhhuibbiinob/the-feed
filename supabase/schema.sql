@@ -1397,3 +1397,102 @@ drop policy if exists "Members can remove their own reaction" on public.favorite
 create policy "Members can remove their own reaction"
   on public.favorite_reactions for delete
   using (auth.uid() = user_id);
+
+-- ---------- Reinforce the loop between profile and reviewing (Phase 3) ----------
+
+-- ---------- collection_follows ----------
+-- Collections were already a thing you make; this makes them a thing other
+-- people can subscribe to, which is what turns one into a reason to come
+-- back to somebody's profile.
+create table if not exists public.collection_follows (
+  collection_id uuid not null references public.collections (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (collection_id, user_id)
+);
+
+create index if not exists collection_follows_user_idx on public.collection_follows (user_id);
+
+alter table public.collection_follows enable row level security;
+
+drop policy if exists "Collection follows are viewable by everyone" on public.collection_follows;
+create policy "Collection follows are viewable by everyone"
+  on public.collection_follows for select
+  using (true);
+
+drop policy if exists "Members can follow collections as themselves" on public.collection_follows;
+create policy "Members can follow collections as themselves"
+  on public.collection_follows for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can unfollow their own follows" on public.collection_follows;
+create policy "Members can unfollow their own follows"
+  on public.collection_follows for delete
+  using (auth.uid() = user_id);
+
+-- ---------- post_reactions ----------
+-- Reaction tags on reviews, alongside the star rating rather than instead
+-- of it. A star says how good it was; these say what it did to you, and
+-- they're quick enough to leave that people actually do.
+create table if not exists public.post_reactions (
+  post_id uuid not null references public.posts (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  emoji text not null,
+  created_at timestamptz not null default now(),
+  primary key (post_id, user_id)
+);
+
+create index if not exists post_reactions_post_idx on public.post_reactions (post_id);
+
+alter table public.post_reactions enable row level security;
+
+drop policy if exists "Post reactions are viewable by everyone" on public.post_reactions;
+create policy "Post reactions are viewable by everyone"
+  on public.post_reactions for select
+  using (true);
+
+drop policy if exists "Members can react to posts as themselves" on public.post_reactions;
+create policy "Members can react to posts as themselves"
+  on public.post_reactions for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can change their own post reaction" on public.post_reactions;
+create policy "Members can change their own post reaction"
+  on public.post_reactions for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can remove their own post reaction" on public.post_reactions;
+create policy "Members can remove their own post reaction"
+  on public.post_reactions for delete
+  using (auth.uid() = user_id);
+
+-- ---------- Instrumentation ----------
+-- One append-only event log rather than a counter column per thing worth
+-- knowing. Counters answer "how many"; this answers "who, and in what
+-- order", which is the only way to tell whether editing a profile leads to
+-- posting a review or just to editing the profile again.
+create table if not exists public.activity_events (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  kind text not null,
+  meta jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists activity_events_user_idx on public.activity_events (user_id, created_at);
+create index if not exists activity_events_kind_idx on public.activity_events (kind, created_at);
+
+alter table public.activity_events enable row level security;
+
+-- Nobody reads their own event stream in the product, so there is no
+-- self-select policy: writes come from the member, reads are for admins.
+drop policy if exists "Members can log their own events" on public.activity_events;
+create policy "Members can log their own events"
+  on public.activity_events for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Admins can read activity events" on public.activity_events;
+create policy "Admins can read activity events"
+  on public.activity_events for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));

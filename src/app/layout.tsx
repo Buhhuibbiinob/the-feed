@@ -156,7 +156,7 @@ export default async function RootLayout({
             <SiteFooter />
           </div>
         </div>
-        <WelcomeExplainer />
+        <WelcomeExplainer signedIn={!!user} />
       </body>
     </html>
   );

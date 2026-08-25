@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { fetchPostReactions } from "@/lib/postReactions";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/PostCard";
@@ -29,6 +30,8 @@ import {
   type FavoriteKind,
 } from "@/lib/favorites";
 import { OBSESSED_LABELS, isObsessedKind } from "@/lib/obsessed";
+import { CollectionFollowButton } from "@/components/CollectionFollowButton";
+import { Stars } from "@/components/Stars";
 import { ProfilePing } from "@/components/ProfilePing";
 import { PickReactions, type PickReactionState } from "@/components/PickReactions";
 import { tallyReactions } from "@/lib/reactions";
@@ -96,6 +99,9 @@ const CUSTOMIZATION_COLUMNS =
   "profile_song_artist, profile_song_thumbnail_url, profile_song_autoplay";
 
 type ReactionRow = { favorite_id: string; user_id: string; emoji: string };
+
+type CollectionRow = { id: string; name: string; description: string | null };
+type CollectionFollowRow = { collection_id: string; user_id: string };
 
 type FavoriteRow = {
   id: string;
@@ -250,6 +256,14 @@ export default async function ProfilePage({
     commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1);
   }
 
+  // Reaction tags for everything rendered on this page. Fetched here
+  // rather than inside PostCard so one query covers the whole list.
+  const reactionsByPost = await fetchPostReactions(
+    supabase,
+    posts.map((p) => p.id),
+    user?.id ?? null
+  );
+
   // Built from MEDIA_TYPES rather than a literal, so adding a category
   // can't silently leave a counter missing here again.
   const breakdown = Object.fromEntries(MEDIA_TYPES.map((mt) => [mt, 0])) as Record<MediaType, number>;
@@ -374,6 +388,45 @@ export default async function ProfilePage({
     }
   }
 
+  const [{ data: collectionRows }, { data: collectionFollowRows }] = await Promise.all([
+    supabase
+      .from("collections")
+      .select("id, name, description")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .returns<CollectionRow[]>(),
+    supabase.from("collection_follows").select("collection_id, user_id").returns<CollectionFollowRow[]>(),
+  ]);
+
+  const collections = collectionRows ?? [];
+  const followsByCollection = new Map<string, CollectionFollowRow[]>();
+  for (const row of collectionFollowRows ?? []) {
+    const list = followsByCollection.get(row.collection_id) ?? [];
+    list.push(row);
+    followsByCollection.set(row.collection_id, list);
+  }
+
+  // Reviews surface themselves: the highest rated and the most discussed,
+  // picked automatically so the section fills in without the member
+  // choosing anything.
+  const ratedPosts = posts.filter((p) => p.rating != null);
+  const topRated = ratedPosts.length
+    ? ratedPosts.reduce((best, p) => ((p.rating ?? 0) > (best.rating ?? 0) ? p : best))
+    : null;
+  const mostDiscussed = posts.length
+    ? posts.reduce((best, p) =>
+        (commentCounts.get(p.id) ?? 0) > (commentCounts.get(best.id) ?? 0) ? p : best
+      )
+    : null;
+  // Only worth a panel if anyone actually replied - "most discussed, 0
+  // comments" is a worse thing to print than nothing.
+  const highlights = [
+    topRated ? { label: "Highest rated", post: topRated } : null,
+    mostDiscussed && (commentCounts.get(mostDiscussed.id) ?? 0) > 0 && mostDiscussed.id !== topRated?.id
+      ? { label: "Most discussed", post: mostDiscussed }
+      : null,
+  ].filter((h): h is { label: string; post: PostRow } => h !== null);
+
   const week = computeWeekInTaste(
     posts.map<WeekPost>((p) => ({
       id: p.id,
@@ -428,6 +481,8 @@ export default async function ProfilePage({
     // The twin callout is the owner's alone, so for anyone else this
     // section has nothing in it by definition.
     twin: isOwnProfile && twin !== null,
+    highlights: highlights.length > 0,
+    collections: collections.length > 0,
     favorites: favoriteCount > 0,
     achievements: achievements.length > 0,
     stats: MEDIA_TYPES.some((mt) => breakdown[mt] > 0),
@@ -587,6 +642,89 @@ export default async function ProfilePage({
           </div>
         );
 
+      case "highlights":
+        return (
+          <div className="panel" key={id}>
+            <div className="panel-head">Standout reviews</div>
+            <div className="panel-body">
+              {highlights.length === 0 ? (
+                <EmptySlot>Rate a review and your best one shows up here by itself.</EmptySlot>
+              ) : (
+                <div className="highlight-list">
+                  {highlights.map((h) => (
+                    <Link href={`/post/${h.post.id}`} className="highlight-row" key={h.label}>
+                      {h.post.cover_url ? (
+                        <img src={h.post.cover_url} alt="" />
+                      ) : (
+                        <span className="favorite-blank" />
+                      )}
+                      <span>
+                        <span className="week-standout-label">{h.label}</span>
+                        <b>{h.post.title}</b>
+                        {h.post.artist && <span className="sub">{h.post.artist}</span>}
+                      </span>
+                      {h.post.rating && (
+                        <span className="highlight-stars">
+                          <Stars rating={h.post.rating} />
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "collections":
+        return (
+          <div className="panel" key={id}>
+            <div className="panel-head">
+              Collections
+              <Link href="/collections" className="see-all">
+                See All ▸
+              </Link>
+            </div>
+            <div className="panel-body">
+              {collections.length === 0 ? (
+                <EmptySlot>
+                  Group reviews into a collection - &quot;songs for driving at 2am&quot; - and it
+                  gets pinned here for people to follow.
+                </EmptySlot>
+              ) : (
+                <div className="collection-list">
+                  {collections.map((collection) => {
+                    const follows = followsByCollection.get(collection.id) ?? [];
+                    return (
+                      <div className="collection-row" key={collection.id}>
+                        <Link href={`/collections/${collection.id}`} className="collection-row-main">
+                          <b>{collection.name}</b>
+                          {collection.description && (
+                            <span className="sub">{collection.description}</span>
+                          )}
+                        </Link>
+                        {user && !isOwnProfile ? (
+                          <CollectionFollowButton
+                            collectionId={collection.id}
+                            following={follows.some((f) => f.user_id === user.id)}
+                            count={follows.length}
+                          />
+                        ) : (
+                          follows.length > 0 && (
+                            <span className="collection-followers">
+                              {follows.length} follower{follows.length === 1 ? "" : "s"}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
       case "favorites":
         return (
           <div className="panel" key={id}>
@@ -691,6 +829,7 @@ export default async function ProfilePage({
                     liked={likedByMe.has(post.id)}
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}
+                reactions={reactionsByPost.get(post.id)}
                   />
                 ))
               )}

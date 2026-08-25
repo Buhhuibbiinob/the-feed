@@ -7,7 +7,7 @@ import { markNotificationsSeen } from "@/app/actions/notifications";
 
 type NotificationItem = {
   id: string;
-  type: "like" | "comment" | "follow" | "view" | "reaction" | "twin";
+  type: "like" | "comment" | "follow" | "view" | "reaction" | "twin" | "reply" | "post_reaction";
   actorUsername: string;
   actorAvatarUrl: string | null;
   postId: string | null;
@@ -33,6 +33,12 @@ function describe(item: NotificationItem) {
         : "reacted to one of your picks";
     case "twin":
       return item.subject ? `is your taste twin - ${item.subject} match` : "is your taste twin";
+    case "reply":
+      return "replied to your comment";
+    case "post_reaction":
+      return item.postTitle
+        ? `reacted ${item.emoji ?? ""} to "${item.postTitle}"`.trim()
+        : "reacted to your review";
     case "follow":
       return "started following you";
   }

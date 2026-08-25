@@ -12,6 +12,8 @@ export const PROFILE_SECTIONS = [
   { id: "song", label: "Profile song" },
   { id: "week", label: "Your week in taste" },
   { id: "twin", label: "Your taste twin" },
+  { id: "highlights", label: "Standout reviews" },
+  { id: "collections", label: "Collections" },
   { id: "favorites", label: "Top artists, movies & shows" },
   { id: "achievements", label: "Achievements" },
   { id: "stats", label: "Stats" },

@@ -1,6 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type NotificationType = "like" | "comment" | "follow" | "view" | "reaction" | "twin";
+export type NotificationType =
+  | "like"
+  | "comment"
+  | "follow"
+  | "view"
+  | "reaction"
+  | "twin"
+  | "reply"
+  | "post_reaction";
 
 export type NotificationItem = {
   id: string;
@@ -29,6 +37,19 @@ type FollowRow = {
 };
 
 type ViewRow = {
+  created_at: string;
+  profiles: ProfileRef;
+};
+
+type PostReactionRow = {
+  post_id: string;
+  emoji: string;
+  created_at: string;
+  profiles: ProfileRef;
+};
+
+type ReplyRow = {
+  post_id: string;
   created_at: string;
   profiles: ProfileRef;
 };
@@ -106,18 +127,29 @@ export async function getNotifications(
   userId: string,
   since: Date = new Date(Date.now() - RECENT_WINDOW_MS)
 ): Promise<NotificationItem[]> {
-  const { ids: postIds, titleById } = await getOwnPostIdsAndTitles(supabase, userId);
   const sinceIso = since.toISOString();
 
-  const { data: favoriteRows } = await supabase
-    .from("profile_favorites")
-    .select("id")
-    .eq("user_id", userId);
+  // These four only establish *what belongs to this member* - none of them
+  // depends on the others. Run in parallel: this function is called from
+  // the root layout for the bell count on every single page load, so a
+  // chain of round trips here is latency on every request in the app.
+  //
+  // Replies are notified off the member's own comments, not their posts -
+  // "someone replied to you" in a thread on somebody else's review is
+  // exactly the pull a passive leaderboard never provides.
+  const [own, { data: favoriteRows }, { data: ownCommentRows }, twin] = await Promise.all([
+    getOwnPostIdsAndTitles(supabase, userId),
+    supabase.from("profile_favorites").select("id").eq("user_id", userId),
+    supabase.from("comments").select("id").eq("user_id", userId),
+    getTwinNotification(supabase, userId, since),
+  ]);
+
+  const { ids: postIds, titleById } = own;
   const favoriteIds = (favoriteRows ?? []).map((row) => row.id as string);
+  const ownCommentIds = (ownCommentRows ?? []).map((row) => row.id as string);
 
-  const twin = await getTwinNotification(supabase, userId, since);
-
-  const [likesRes, commentsRes, followsRes, viewsRes, reactionsRes] = await Promise.all([
+  const [likesRes, commentsRes, followsRes, viewsRes, reactionsRes, postReactionsRes, repliesRes] =
+    await Promise.all([
     postIds.length === 0
       ? Promise.resolve({ data: [] as RelatedRow[] })
       : supabase
@@ -167,6 +199,28 @@ export async function getNotifications(
           .order("created_at", { ascending: false })
           .limit(20)
           .returns<ReactionRow[]>(),
+    postIds.length === 0
+      ? Promise.resolve({ data: [] as PostReactionRow[] })
+      : supabase
+          .from("post_reactions")
+          .select("post_id, emoji, created_at, profiles(username, avatar_url)")
+          .in("post_id", postIds)
+          .neq("user_id", userId)
+          .gte("created_at", sinceIso)
+          .order("created_at", { ascending: false })
+          .limit(20)
+          .returns<PostReactionRow[]>(),
+    ownCommentIds.length === 0
+      ? Promise.resolve({ data: [] as ReplyRow[] })
+      : supabase
+          .from("comments")
+          .select("post_id, created_at, profiles(username, avatar_url)")
+          .in("parent_comment_id", ownCommentIds)
+          .neq("user_id", userId)
+          .gte("created_at", sinceIso)
+          .order("created_at", { ascending: false })
+          .limit(20)
+          .returns<ReplyRow[]>(),
   ]);
 
   const likes: NotificationItem[] = (likesRes.data ?? []).map((row) => {
@@ -247,7 +301,46 @@ export async function getNotifications(
     };
   });
 
-  return [...likes, ...comments, ...follows, ...views, ...reactions, ...twin]
+  const postReactions: NotificationItem[] = (postReactionsRes.data ?? []).map((row) => {
+    const profile = firstProfile(row.profiles);
+    return {
+      id: `postreaction-${row.post_id}-${row.created_at}`,
+      type: "post_reaction" as const,
+      actorUsername: profile?.username ?? "someone",
+      actorAvatarUrl: profile?.avatar_url ?? null,
+      postId: row.post_id,
+      postTitle: titleById.get(row.post_id) ?? null,
+      subject: null,
+      emoji: row.emoji,
+      createdAt: row.created_at,
+    };
+  });
+
+  const replies: NotificationItem[] = (repliesRes.data ?? []).map((row) => {
+    const profile = firstProfile(row.profiles);
+    return {
+      id: `reply-${row.post_id}-${row.created_at}`,
+      type: "reply" as const,
+      actorUsername: profile?.username ?? "someone",
+      actorAvatarUrl: profile?.avatar_url ?? null,
+      postId: row.post_id,
+      postTitle: null,
+      subject: null,
+      emoji: null,
+      createdAt: row.created_at,
+    };
+  });
+
+  return [
+    ...likes,
+    ...comments,
+    ...follows,
+    ...views,
+    ...reactions,
+    ...postReactions,
+    ...replies,
+    ...twin,
+  ]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 30);
 }

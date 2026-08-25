@@ -5,6 +5,7 @@ import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { createClient } from "@/lib/supabase/server";
 import { MAX_AVATAR_BYTES, MAX_BANNER_BYTES, MAX_BACKGROUND_BYTES, megabytes, isImageFile, guessContentType } from "@/lib/uploads";
 import { checkBioSafety } from "@/lib/contentSafety";
+import { logEvent } from "@/lib/events";
 import { isProfileFontId, normalizeColor } from "@/lib/profileSkin";
 import { sanitizeProfileLayout } from "@/lib/profileLayout";
 import { isObsessedKind } from "@/lib/obsessed";
@@ -25,7 +26,19 @@ const PRESET_AVATARS = [
   "/avatars/preset-6.svg",
 ];
 
-async function revalidateProfile(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+/**
+ * Revalidates the member's profile after an edit, and logs the edit.
+ *
+ * The logging lives here rather than in each action because every edit
+ * already funnels through this one call - putting it anywhere else would
+ * mean a new control could ship without instrumentation and nobody would
+ * notice until the numbers looked wrong.
+ */
+async function revalidateProfile(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  editKind?: string
+) {
   const { data: profile } = await supabase
     .from("profiles")
     .select("username")
@@ -33,6 +46,7 @@ async function revalidateProfile(supabase: Awaited<ReturnType<typeof createClien
     .single();
   revalidatePath("/");
   if (profile) revalidatePath(`/profile/${profile.username}`);
+  if (editKind) await logEvent(supabase, userId, "profile_edit", editKind);
 }
 
 export async function selectPresetAvatar(
@@ -55,7 +69,7 @@ export async function selectPresetAvatar(
 
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "avatar_preset");
   return { ok: true };
 }
 
@@ -99,7 +113,7 @@ export async function uploadAvatar(
 
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "avatar_upload");
   return { ok: true };
 }
 
@@ -132,7 +146,7 @@ export async function updateBio(
     .eq("id", user.id);
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "bio");
   return { ok: true };
 }
 
@@ -179,7 +193,7 @@ export async function uploadBanner(
 
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "banner");
   return { ok: true };
 }
 
@@ -232,6 +246,7 @@ export async function uploadCustomBackground(
 
   if (error) return { error: error.message };
 
+  await logEvent(supabase, user.id, "profile_edit", "background_upload");
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -264,6 +279,7 @@ export async function updateBackgroundLayout(
 
   if (error) return { error: error.message };
 
+  await logEvent(supabase, user.id, "profile_edit", "background_layout");
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -300,7 +316,7 @@ export async function setStatus(
 
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "status");
   return { ok: true };
 }
 
@@ -322,7 +338,7 @@ export async function clearStatus(formData: FormData) {
     })
     .eq("id", user.id);
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "status_clear");
 }
 
 export async function updateProfileLayout(
@@ -349,7 +365,7 @@ export async function updateProfileLayout(
   const { error } = await supabase.from("profiles").update({ profile_layout: layout }).eq("id", user.id);
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "layout");
   return { ok: true };
 }
 
@@ -376,7 +392,7 @@ export async function updateProfileSkin(
     .eq("id", user.id);
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "colors");
   return { ok: true };
 }
 
@@ -414,7 +430,7 @@ export async function setObsessed(
     .eq("id", user.id);
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "obsessed");
   return { ok: true };
 }
 
@@ -436,7 +452,7 @@ export async function clearObsessed() {
     })
     .eq("id", user.id);
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "obsessed_clear");
 }
 
 export async function setProfileSong(
@@ -472,7 +488,7 @@ export async function setProfileSong(
     .eq("id", user.id);
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "song");
   return { ok: true };
 }
 
@@ -495,7 +511,7 @@ export async function clearProfileSong() {
     })
     .eq("id", user.id);
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "song_clear");
 }
 
 export async function addFavorite(
@@ -544,7 +560,7 @@ export async function addFavorite(
   });
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "favorite_add");
   return { ok: true };
 }
 
@@ -562,7 +578,7 @@ export async function removeFavorite(formData: FormData) {
   // the filter means a wrong id fails as a no-op rather than a policy error.
   await supabase.from("profile_favorites").delete().eq("id", id).eq("user_id", user.id);
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "favorite_remove");
 }
 
 export async function moveFavorite(formData: FormData) {
@@ -604,5 +620,5 @@ export async function moveFavorite(formData: FormData) {
     supabase.from("profile_favorites").update({ position: row.position }).eq("id", neighbour.id).eq("user_id", user.id),
   ]);
 
-  await revalidateProfile(supabase, user.id);
+  await revalidateProfile(supabase, user.id, "favorite_move");
 }

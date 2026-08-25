@@ -29,3 +29,35 @@ export function tallyReactions(emojis: string[]): { emoji: string; count: number
     (r) => r.count > 0
   );
 }
+
+// Reaction tags on reviews. A different set from the top-list ones: these
+// describe what a piece of work did to you, which is the vocabulary the
+// stars can't carry. Faster to leave than a written review, and the tally
+// is what gives a profile its "vibe" without anyone filling in a field.
+export const REVIEW_REACTIONS = [
+  { emoji: "🔥", label: "Obsessed" },
+  { emoji: "💔", label: "Heartbreak" },
+  { emoji: "🪩", label: "Vibe" },
+  { emoji: "🤯", label: "Floored" },
+  { emoji: "😴", label: "Slept on it" },
+] as const;
+
+export type ReviewReaction = (typeof REVIEW_REACTIONS)[number]["emoji"];
+
+const REVIEW_EMOJIS = new Set<string>(REVIEW_REACTIONS.map((r) => r.emoji));
+
+export function isReviewReaction(value: unknown): value is ReviewReaction {
+  return typeof value === "string" && REVIEW_EMOJIS.has(value);
+}
+
+export function reviewReactionLabel(emoji: string): string {
+  return REVIEW_REACTIONS.find((r) => r.emoji === emoji)?.label ?? "Reaction";
+}
+
+export function tallyReviewReactions(emojis: string[]): { emoji: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const emoji of emojis) counts.set(emoji, (counts.get(emoji) ?? 0) + 1);
+  return REVIEW_REACTIONS.map((r) => ({ emoji: r.emoji, count: counts.get(r.emoji) ?? 0 })).filter(
+    (r) => r.count > 0
+  );
+}

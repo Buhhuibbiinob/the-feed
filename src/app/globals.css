@@ -1990,6 +1990,136 @@ a:hover {
   color: var(--muted);
 }
 
+.welcome-modal-free {
+  border-left: 3px solid var(--link);
+  padding-left: 10px;
+}
+
+/* ---- Reaction tags on reviews ---- */
+.review-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+/* ---- Standout reviews ---- */
+.highlight-list,
+.collection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.highlight-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+.highlight-row img {
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--panel-border);
+  flex-shrink: 0;
+}
+.highlight-row .sub {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.highlight-stars {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ---- Collections on the profile ---- */
+.collection-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.collection-row-main {
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+.collection-row-main .sub {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.collection-followers {
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* ---- Retention metrics (admin) ---- */
+.metric-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin-bottom: 10px;
+}
+.metric {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  color: var(--muted);
+}
+.metric b {
+  font-size: 21px;
+  color: var(--text);
+  line-height: 1.1;
+}
+.metric-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+}
+.metric-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.metric-bar-label {
+  width: 130px;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.metric-bar {
+  height: 10px;
+  border-radius: 3px;
+  background: var(--link);
+  min-width: 2px;
+}
+.metric-bar-value {
+  font-weight: 700;
+}
+.metric-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.metric-table th,
+.metric-table td {
+  text-align: left;
+  padding: 6px 10px 6px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+.metric-table th {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
 /* ---- Club rows (used in /clubs and profile Clubs panel) ---- */
 .club-row {
   display: flex;

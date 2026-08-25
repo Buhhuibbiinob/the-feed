@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { isPickReaction } from "@/lib/reactions";
+import { isPickReaction, isReviewReaction } from "@/lib/reactions";
 import { refreshTasteTwin, twinIsStale } from "@/lib/tasteTwin";
 
 // Profile-activity writes: the things that happen *to* a profile while its
@@ -131,4 +131,46 @@ export async function reactToPick(formData: FormData) {
     .eq("id", favorite.user_id)
     .maybeSingle();
   if (owner?.username) revalidatePath(`/profile/${owner.username}`);
+}
+
+/**
+ * Adds, changes or clears the caller's reaction tag on a review. Same
+ * toggle behaviour as the top-list picks: pressing the one you already
+ * left removes it.
+ */
+export async function reactToPost(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const postId = String(formData.get("post_id") ?? "");
+  const emoji = formData.get("emoji");
+  if (!postId || !isReviewReaction(emoji)) return;
+
+  const { data: post } = await supabase
+    .from("posts")
+    .select("user_id")
+    .eq("id", postId)
+    .maybeSingle();
+  if (!post) return;
+
+  const { data: existing } = await supabase
+    .from("post_reactions")
+    .select("emoji")
+    .eq("post_id", postId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existing?.emoji === emoji) {
+    await supabase.from("post_reactions").delete().eq("post_id", postId).eq("user_id", user.id);
+  } else {
+    await supabase
+      .from("post_reactions")
+      .upsert({ post_id: postId, user_id: user.id, emoji }, { onConflict: "post_id,user_id" });
+  }
+
+  revalidatePath("/");
+  revalidatePath(`/post/${postId}`);
 }

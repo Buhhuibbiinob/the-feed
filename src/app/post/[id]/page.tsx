@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { fetchPostReactions } from "@/lib/postReactions";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
@@ -143,6 +144,9 @@ export default async function PostPage({
 
   const comments = buildCommentTree(commentRows ?? []);
 
+  // Reaction tags on this one review.
+  const reactionsByPost = await fetchPostReactions(supabase, [post.id], user?.id ?? null);
+
   return (
     <>
       <div style={{ marginBottom: 14 }}>
@@ -178,6 +182,7 @@ export default async function PostPage({
           username: post.profiles?.username ?? "unknown",
         }}
         currentUserId={user?.id ?? null}
+        reactions={reactionsByPost.get(post.id)}
         liked={liked}
         likeCount={likeCount ?? 0}
         commentCount={comments.reduce((n, c) => n + 1 + c.replies.length, 0)}

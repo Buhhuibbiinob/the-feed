@@ -40,17 +40,17 @@ function HomeIcon() {
     </svg>
   );
 }
-function ChatIcon() {
+function CompassIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M4 4h16v12H7l-3 3z" />
+      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.7 6.3-2.1 5-5 2.1 2.1-5zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
     </svg>
   );
 }
-function TrophyIcon() {
+function PersonIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M6 3h12v3h3v2c0 2.5-2 4.5-4.3 4.9A5 5 0 0 1 13 16.9V19h3v2H8v-2h3v-2.1a5 5 0 0 1-3.7-4A5.3 5.3 0 0 1 3 8V6h3zM5 6v2c0 1.3.8 2.4 2 2.8A9 9 0 0 1 6 8V6zm14 0h-1v2a9 9 0 0 1-1 2.8c1.2-.4 2-1.5 2-2.8z" />
+      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4 0-7 2-7 4.5V21h14v-2.5C19 16 16 14 12 14z" />
     </svg>
   );
 }
@@ -95,8 +95,7 @@ export function SiteHeader({
   const mobileSheetRef = useRef<HTMLDivElement>(null);
 
   const hidden = new Set(hiddenSlugs);
-  const showChat = !hidden.has("chat");
-  const showLeaderboard = !hidden.has("leaderboard");
+  const showDiscover = !hidden.has("recs");
   const visibleMoreLinks = [
     ...MORE_LINKS.filter((link) => !hidden.has(link.slug)),
     ...customPages,
@@ -146,14 +145,17 @@ export function SiteHeader({
           <Link href="/" className={pathname === "/" ? "active" : ""}>
             Feed
           </Link>
-          {showChat && (
-            <Link href="/chat" className={pathname === "/chat" ? "active" : ""}>
-              Chat
+          {showDiscover && (
+            <Link href="/recs" className={pathname.startsWith("/recs") ? "active" : ""}>
+              Discover
             </Link>
           )}
-          {showLeaderboard && (
-            <Link href="/leaderboard" className={pathname === "/leaderboard" ? "active" : ""}>
-              Leaderboard
+          {username && (
+            <Link
+              href={`/profile/${username}`}
+              className={pathname === `/profile/${username}` ? "active" : ""}
+            >
+              Profile
             </Link>
           )}
           <div className="nav-more" ref={moreRef}>
@@ -263,23 +265,12 @@ export function SiteHeader({
           </span>
           <span className="sk-ios-tab-label">Feed</span>
         </Link>
-        {showChat && (
-          <Link href="/chat" className={`sk-ios-tab ${pathname.startsWith("/chat") ? "active" : ""}`}>
+        {showDiscover && (
+          <Link href="/recs" className={`sk-ios-tab ${pathname.startsWith("/recs") ? "active" : ""}`}>
             <span className="sk-ios-tab-icon">
-              <ChatIcon />
+              <CompassIcon />
             </span>
-            <span className="sk-ios-tab-label">Chat</span>
-          </Link>
-        )}
-        {showLeaderboard && (
-          <Link
-            href="/leaderboard"
-            className={`sk-ios-tab ${pathname.startsWith("/leaderboard") ? "active" : ""}`}
-          >
-            <span className="sk-ios-tab-icon">
-              <TrophyIcon />
-            </span>
-            <span className="sk-ios-tab-label">Leaderboard</span>
+            <span className="sk-ios-tab-label">Discover</span>
           </Link>
         )}
         <Link href={username ? "/post/new" : "/sign-in"} className="sk-ios-tab sk-ios-tab-post">
@@ -288,6 +279,17 @@ export function SiteHeader({
           </span>
           <span className="sk-ios-tab-label">Post</span>
         </Link>
+        {username && (
+          <Link
+            href={`/profile/${username}`}
+            className={`sk-ios-tab ${pathname === `/profile/${username}` ? "active" : ""}`}
+          >
+            <span className="sk-ios-tab-icon">
+              <PersonIcon />
+            </span>
+            <span className="sk-ios-tab-label">Profile</span>
+          </Link>
+        )}
         <button
           type="button"
           ref={mobileMoreBtnRef}
