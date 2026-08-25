@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { fetchPostReactions } from "@/lib/postReactions";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/PostCard";
 import type { MediaType } from "@/lib/media";
@@ -86,6 +87,14 @@ export default async function SearchPage({
     commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1);
   }
 
+  // Reaction tags for everything rendered on this page. Fetched here
+  // rather than inside PostCard so one query covers the whole list.
+  const reactionsByPost = await fetchPostReactions(
+    supabase,
+    posts.map((p) => p.id),
+    user?.id ?? null
+  );
+
   return (
     <>
       {profiles.length > 0 && (
@@ -136,6 +145,7 @@ export default async function SearchPage({
                 liked={likedByMe.has(post.id)}
                 likeCount={likeCounts.get(post.id) ?? 0}
                 commentCount={commentCounts.get(post.id) ?? 0}
+                reactions={reactionsByPost.get(post.id)}
               />
             ))
           )}

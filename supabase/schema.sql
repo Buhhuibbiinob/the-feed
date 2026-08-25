@@ -1225,3 +1225,455 @@ alter table public.profiles add column if not exists background_fit text
   check (background_fit in ('cover', 'contain', 'tile'));
 alter table public.profiles add column if not exists background_flipped boolean
   not null default false;
+
+-- ---------- Profile as the main event (Phase 1) ----------
+-- Everything below hangs off the profile page: a pinned "obsessed with"
+-- slot, a profile song, curated top lists, per-profile colours and fonts,
+-- and the order the sections are stacked in. All of it is nullable so a
+-- profile that has never been customised renders exactly as it did before.
+
+-- One pinned thing at the top of the profile, editable anytime. Deliberately
+-- separate from status_*: the status is "right now", this is "the thing I
+-- won't shut up about".
+alter table public.profiles add column if not exists obsessed_kind text
+  check (obsessed_kind in ('artist', 'movie', 'show', 'album', 'song'));
+alter table public.profiles add column if not exists obsessed_title text;
+alter table public.profiles add column if not exists obsessed_note text;
+alter table public.profiles add column if not exists obsessed_image_url text;
+alter table public.profiles add column if not exists obsessed_updated_at timestamptz;
+
+-- Profile song. Stored as the same pair of ids a post carries, so the
+-- existing PreviewPlayer renders it with no new embed code.
+alter table public.profiles add column if not exists profile_song_youtube_id text;
+alter table public.profiles add column if not exists profile_song_spotify_id text;
+alter table public.profiles add column if not exists profile_song_title text;
+alter table public.profiles add column if not exists profile_song_artist text;
+alter table public.profiles add column if not exists profile_song_thumbnail_url text;
+alter table public.profiles add column if not exists profile_song_autoplay boolean not null default false;
+
+-- Banner shape. The banner is cropped client-side to whichever of these
+-- the member picked, so the profile head can render at the same ratio
+-- instead of letterboxing one fixed template.
+alter table public.profiles add column if not exists banner_aspect text
+  check (banner_aspect in ('wide', 'standard', 'tall'));
+
+-- Bio styling. The bio text itself keeps its own column; these only decide
+-- how it is painted. Validated against fixed lists in the app - the columns
+-- are free text so adding a font doesn't need a migration.
+alter table public.profiles add column if not exists bio_font text;
+alter table public.profiles add column if not exists bio_color text;
+
+-- Per-profile palette, shown to visitors. This is not the same thing as
+-- profiles.theme, which is the theme the member sees while browsing; these
+-- four colours only ever repaint this member's own profile page.
+alter table public.profiles add column if not exists profile_bg_color text;
+alter table public.profiles add column if not exists profile_panel_color text;
+alter table public.profiles add column if not exists profile_text_color text;
+alter table public.profiles add column if not exists profile_accent_color text;
+
+-- Section order + which sections are shown, as an ordered list of section
+-- ids. Unknown or missing ids are reconciled against the app's section list
+-- on read, so shipping a new section never strands an old saved order.
+alter table public.profiles add column if not exists profile_layout text[];
+
+-- ---------- profile_favorites (curated top artists / movies / shows) ----------
+-- Hand-picked by the member rather than derived from their reviews - the
+-- whole point is that it says what they want it to say.
+create table if not exists public.profile_favorites (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  kind text not null check (kind in ('artist', 'movie', 'show')),
+  title text not null,
+  subtitle text,
+  image_url text,
+  position integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists profile_favorites_user_kind_idx
+  on public.profile_favorites (user_id, kind, position);
+
+alter table public.profile_favorites enable row level security;
+
+drop policy if exists "Profile favorites are viewable by everyone" on public.profile_favorites;
+create policy "Profile favorites are viewable by everyone"
+  on public.profile_favorites for select
+  using (true);
+
+drop policy if exists "Users can add their own profile favorites" on public.profile_favorites;
+create policy "Users can add their own profile favorites"
+  on public.profile_favorites for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own profile favorites" on public.profile_favorites;
+create policy "Users can update their own profile favorites"
+  on public.profile_favorites for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own profile favorites" on public.profile_favorites;
+create policy "Users can delete their own profile favorites"
+  on public.profile_favorites for delete
+  using (auth.uid() = user_id);
+
+-- ---------- Give the profile a reason to change on its own (Phase 2) ----------
+
+-- ---------- profile_views ----------
+-- One row per viewer per profile per day. The date is part of the primary
+-- key rather than a plain timestamp column so a repeat visit the same day
+-- upserts instead of stacking - "12 people looked at your profile" should
+-- mean twelve people, not one person refreshing.
+create table if not exists public.profile_views (
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  viewer_id uuid not null references public.profiles (id) on delete cascade,
+  view_date date not null default ((now() at time zone 'utc')::date),
+  created_at timestamptz not null default now(),
+  primary key (profile_id, viewer_id, view_date)
+);
+
+create index if not exists profile_views_profile_idx
+  on public.profile_views (profile_id, created_at desc);
+
+alter table public.profile_views enable row level security;
+
+-- Deliberately narrower than the site's usual "viewable by everyone":
+-- who looked at your profile is yours to see, not public record.
+drop policy if exists "Profile views are visible to the profile owner" on public.profile_views;
+create policy "Profile views are visible to the profile owner"
+  on public.profile_views for select
+  using (auth.uid() = profile_id or auth.uid() = viewer_id);
+
+drop policy if exists "Members can record their own profile views" on public.profile_views;
+create policy "Members can record their own profile views"
+  on public.profile_views for insert
+  with check (auth.uid() = viewer_id and viewer_id <> profile_id);
+
+-- ---------- taste twin ----------
+-- Cached rather than computed per request: finding the closest match means
+-- reading everyone's reviews, which is far too much work to redo on every
+-- page view for a number that only moves when someone posts.
+alter table public.profiles add column if not exists taste_twin_id uuid references public.profiles (id) on delete set null;
+alter table public.profiles add column if not exists taste_twin_score integer;
+alter table public.profiles add column if not exists taste_twin_at timestamptz;
+-- Set when the twin changes to someone new, and cleared once the member has
+-- seen the notification. Without it a twin that flips back and forth would
+-- keep re-announcing the same person.
+alter table public.profiles add column if not exists taste_twin_announced_id uuid;
+
+-- ---------- favorite_reactions ----------
+-- Reactions on someone's curated top-list picks. One reaction per person
+-- per pick, changeable - this is "I love that you picked this", not a vote
+-- count to be farmed.
+create table if not exists public.favorite_reactions (
+  favorite_id uuid not null references public.profile_favorites (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  emoji text not null,
+  created_at timestamptz not null default now(),
+  primary key (favorite_id, user_id)
+);
+
+create index if not exists favorite_reactions_favorite_idx
+  on public.favorite_reactions (favorite_id);
+
+alter table public.favorite_reactions enable row level security;
+
+drop policy if exists "Favorite reactions are viewable by everyone" on public.favorite_reactions;
+create policy "Favorite reactions are viewable by everyone"
+  on public.favorite_reactions for select
+  using (true);
+
+drop policy if exists "Members can react as themselves" on public.favorite_reactions;
+create policy "Members can react as themselves"
+  on public.favorite_reactions for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can change their own reaction" on public.favorite_reactions;
+create policy "Members can change their own reaction"
+  on public.favorite_reactions for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can remove their own reaction" on public.favorite_reactions;
+create policy "Members can remove their own reaction"
+  on public.favorite_reactions for delete
+  using (auth.uid() = user_id);
+
+-- ---------- Reinforce the loop between profile and reviewing (Phase 3) ----------
+
+-- ---------- collection_follows ----------
+-- Collections were already a thing you make; this makes them a thing other
+-- people can subscribe to, which is what turns one into a reason to come
+-- back to somebody's profile.
+create table if not exists public.collection_follows (
+  collection_id uuid not null references public.collections (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (collection_id, user_id)
+);
+
+create index if not exists collection_follows_user_idx on public.collection_follows (user_id);
+
+alter table public.collection_follows enable row level security;
+
+drop policy if exists "Collection follows are viewable by everyone" on public.collection_follows;
+create policy "Collection follows are viewable by everyone"
+  on public.collection_follows for select
+  using (true);
+
+drop policy if exists "Members can follow collections as themselves" on public.collection_follows;
+create policy "Members can follow collections as themselves"
+  on public.collection_follows for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can unfollow their own follows" on public.collection_follows;
+create policy "Members can unfollow their own follows"
+  on public.collection_follows for delete
+  using (auth.uid() = user_id);
+
+-- ---------- post_reactions ----------
+-- Reaction tags on reviews, alongside the star rating rather than instead
+-- of it. A star says how good it was; these say what it did to you, and
+-- they're quick enough to leave that people actually do.
+create table if not exists public.post_reactions (
+  post_id uuid not null references public.posts (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  emoji text not null,
+  created_at timestamptz not null default now(),
+  primary key (post_id, user_id)
+);
+
+create index if not exists post_reactions_post_idx on public.post_reactions (post_id);
+
+alter table public.post_reactions enable row level security;
+
+drop policy if exists "Post reactions are viewable by everyone" on public.post_reactions;
+create policy "Post reactions are viewable by everyone"
+  on public.post_reactions for select
+  using (true);
+
+drop policy if exists "Members can react to posts as themselves" on public.post_reactions;
+create policy "Members can react to posts as themselves"
+  on public.post_reactions for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can change their own post reaction" on public.post_reactions;
+create policy "Members can change their own post reaction"
+  on public.post_reactions for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can remove their own post reaction" on public.post_reactions;
+create policy "Members can remove their own post reaction"
+  on public.post_reactions for delete
+  using (auth.uid() = user_id);
+
+-- ---------- Instrumentation ----------
+-- One append-only event log rather than a counter column per thing worth
+-- knowing. Counters answer "how many"; this answers "who, and in what
+-- order", which is the only way to tell whether editing a profile leads to
+-- posting a review or just to editing the profile again.
+create table if not exists public.activity_events (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  kind text not null,
+  meta jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists activity_events_user_idx on public.activity_events (user_id, created_at);
+create index if not exists activity_events_kind_idx on public.activity_events (kind, created_at);
+
+alter table public.activity_events enable row level security;
+
+-- Nobody reads their own event stream in the product, so there is no
+-- self-select policy: writes come from the member, reads are for admins.
+drop policy if exists "Members can log their own events" on public.activity_events;
+create policy "Members can log their own events"
+  on public.activity_events for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Admins can read activity events" on public.activity_events;
+create policy "Admins can read activity events"
+  on public.activity_events for select
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+-- ---------- Realtime alerts ----------
+-- The alert sources push to connected clients instead of the UI polling
+-- for them. Each is added defensively so re-running this file is safe.
+--
+-- Realtime respects RLS, but these tables are readable by everyone (except
+-- profile_views, which is owner-only), so a client is told "a row landed"
+-- and then re-reads its own alerts through the API. The payload itself is
+-- never the source of truth for what a member is allowed to see.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['likes', 'comments', 'follows', 'post_reactions', 'favorite_reactions', 'profile_views']
+  loop
+    begin
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    exception
+      when duplicate_object then null;
+      when undefined_table then null;
+    end;
+  end loop;
+end $$;
+
+-- ---------- Email notification preferences ----------
+-- Per notification type, so someone who wants a mail when a person follows
+-- them but not for every like can say so. Defaults are deliberately
+-- conservative: digest, not instant. One email per event is how a new
+-- social site trains its members to unsubscribe.
+--
+-- Stored as one jsonb blob rather than a column per type so adding a
+-- notification type is an app change, not a migration.
+alter table public.profiles add column if not exists email_prefs jsonb;
+-- Set when a digest is sent so the next one only covers what happened
+-- since, rather than repeating a fixed window.
+alter table public.profiles add column if not exists digest_sent_at timestamptz;
+
+-- ---------- Customizable pages (Tier 3a) ----------
+-- One config store for both profiles and club pages. The two surfaces were
+-- always going to want the same controls, and keeping a separate column set
+-- per surface is how they drift until "customize" means something different
+-- depending on which page you're on.
+--
+-- The config is jsonb rather than columns because the module list is the
+-- thing that changes most: adding a module, or a per-module style override,
+-- should be an app change and not a migration. Validation lives in the app
+-- (lib/pageConfig.ts) - anything unrecognised is dropped on read.
+create table if not exists public.page_configs (
+  owner_type text not null check (owner_type in ('profile', 'club')),
+  owner_id uuid not null,
+  config jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  primary key (owner_type, owner_id)
+);
+
+alter table public.page_configs enable row level security;
+
+drop policy if exists "Page configs are viewable by everyone" on public.page_configs;
+create policy "Page configs are viewable by everyone"
+  on public.page_configs for select
+  using (true);
+
+-- A profile config belongs to that profile; a club config belongs to the
+-- club's owner. Both directions are checked in the policy rather than in
+-- the app, so a crafted request can't restyle someone else's page.
+drop policy if exists "Owners can write their own page config" on public.page_configs;
+create policy "Owners can write their own page config"
+  on public.page_configs for all
+  using (
+    (owner_type = 'profile' and owner_id = auth.uid())
+    or (owner_type = 'club' and auth.uid() in (select created_by from public.clubs where id = page_configs.owner_id))
+  )
+  with check (
+    (owner_type = 'profile' and owner_id = auth.uid())
+    or (owner_type = 'club' and auth.uid() in (select created_by from public.clubs where id = page_configs.owner_id))
+  );
+
+-- ---------- Module content ----------
+
+-- "What I'd like to review next" and a free blurb slot.
+alter table public.profiles add column if not exists blurb_next text;
+alter table public.profiles add column if not exists blurb_free text;
+
+-- Mood ring: an emoji, a colour and a few words.
+alter table public.profiles add column if not exists mood_emoji text;
+alter table public.profiles add column if not exists mood_color text;
+alter table public.profiles add column if not exists mood_text text;
+
+-- Last seen, for the "last online" line. Written on profile view pings
+-- rather than on every request - a timestamp accurate to the minute is not
+-- worth a write on every page load.
+alter table public.profiles add column if not exists last_seen_at timestamptz;
+
+-- ---------- top_connections (the Top 8) ----------
+create table if not exists public.top_connections (
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  friend_id uuid not null references public.profiles (id) on delete cascade,
+  position integer not null default 0,
+  created_at timestamptz not null default now(),
+  primary key (user_id, friend_id),
+  -- Putting yourself in your own Top 8 is not the point of a Top 8.
+  constraint top_connections_not_self check (user_id <> friend_id)
+);
+
+create index if not exists top_connections_user_idx on public.top_connections (user_id, position);
+
+alter table public.top_connections enable row level security;
+
+drop policy if exists "Top connections are viewable by everyone" on public.top_connections;
+create policy "Top connections are viewable by everyone"
+  on public.top_connections for select
+  using (true);
+
+drop policy if exists "Members manage their own top connections" on public.top_connections;
+create policy "Members manage their own top connections"
+  on public.top_connections for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- ---------- guestbook_entries ----------
+-- Public wall posts on a profile, separate from DMs. Deliberately its own
+-- table rather than reusing comments: a guestbook entry is addressed to a
+-- person, not to a review, and the moderation rules differ (the profile's
+-- owner can delete anything on their own wall).
+create table if not exists public.guestbook_entries (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles (id) on delete cascade,
+  author_id uuid not null references public.profiles (id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists guestbook_profile_idx on public.guestbook_entries (profile_id, created_at desc);
+
+alter table public.guestbook_entries enable row level security;
+
+drop policy if exists "Guestbook entries are viewable by everyone" on public.guestbook_entries;
+create policy "Guestbook entries are viewable by everyone"
+  on public.guestbook_entries for select
+  using (true);
+
+drop policy if exists "Members can sign a guestbook" on public.guestbook_entries;
+create policy "Members can sign a guestbook"
+  on public.guestbook_entries for insert
+  with check (auth.uid() = author_id);
+
+-- Either the author or the wall's owner can remove an entry, plus admins.
+drop policy if exists "Authors and wall owners can delete entries" on public.guestbook_entries;
+create policy "Authors and wall owners can delete entries"
+  on public.guestbook_entries for delete
+  using (
+    auth.uid() = author_id
+    or auth.uid() = profile_id
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+-- ---------- pinned reviews ----------
+create table if not exists public.pinned_posts (
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  post_id uuid not null references public.posts (id) on delete cascade,
+  position integer not null default 0,
+  created_at timestamptz not null default now(),
+  primary key (user_id, post_id)
+);
+
+alter table public.pinned_posts enable row level security;
+
+drop policy if exists "Pinned posts are viewable by everyone" on public.pinned_posts;
+create policy "Pinned posts are viewable by everyone"
+  on public.pinned_posts for select
+  using (true);
+
+drop policy if exists "Members manage their own pins" on public.pinned_posts;
+create policy "Members manage their own pins"
+  on public.pinned_posts for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- ---------- club info page ----------
+alter table public.clubs add column if not exists info_body text;
+alter table public.clubs add column if not exists info_updated_at timestamptz;

@@ -32,10 +32,14 @@ export function PreviewPlayer({
   spotifyTrackId,
   youtubeVideoId,
   label,
+  autoplay = false,
 }: {
   spotifyTrackId?: string | null;
   youtubeVideoId?: string | null;
   label: string;
+  // Only honoured for YouTube, and only where the browser allows it -
+  // used by the profile song, where the member opted in to it.
+  autoplay?: boolean;
 }) {
   if (spotifyTrackId) {
     return (
@@ -55,7 +59,7 @@ export function PreviewPlayer({
       <PlayerFrame kind="video" label={label}>
         <iframe
           title={`${label} trailer`}
-          src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}`}
+          src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}${autoplay ? "?autoplay=1" : ""}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           loading="lazy"

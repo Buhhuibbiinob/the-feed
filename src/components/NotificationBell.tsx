@@ -4,26 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { markNotificationsSeen } from "@/app/actions/notifications";
-
-type NotificationItem = {
-  id: string;
-  type: "like" | "comment" | "follow";
-  actorUsername: string;
-  actorAvatarUrl: string | null;
-  postId: string | null;
-  postTitle: string | null;
-  createdAt: string;
-};
-
-function describe(item: NotificationItem) {
-  if (item.type === "like") {
-    return item.postTitle ? `liked your review "${item.postTitle}"` : "liked your review";
-  }
-  if (item.type === "comment") {
-    return item.postTitle ? `commented on your review "${item.postTitle}"` : "commented on your review";
-  }
-  return "started following you";
-}
+import { IconButton } from "@/components/IconButton";
+import { describeAlert, type AlertItem as NotificationItem } from "@/lib/alertText";
+import { createClient } from "@/lib/supabase/client";
 
 export function NotificationBell({ initialCount }: { initialCount: number }) {
   const [open, setOpen] = useState(false);
@@ -38,6 +21,58 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
     setPrevPathname(pathname);
     if (open) setOpen(false);
   }
+
+  // The badge used to be whatever the server rendered on last navigation,
+  // so an alert that arrived while you sat on a page stayed invisible
+  // until you clicked something. It now subscribes for the duration of
+  // the session and updates in place.
+  useEffect(() => {
+    const supabase = createClient();
+    let cancelled = false;
+    let refreshing = false;
+
+    async function refresh() {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        const res = await fetch("/api/notifications");
+        const data = await res.json();
+        if (cancelled) return;
+        const next: NotificationItem[] = data.notifications ?? [];
+        setItems(next);
+        // While the panel is open the member is looking at them, so
+        // re-badging what they're currently reading would be noise.
+        setOpen((isOpen) => {
+          if (!isOpen) setCount(next.length);
+          return isOpen;
+        });
+      } catch {
+        // Keep whatever is on screen.
+      } finally {
+        refreshing = false;
+      }
+    }
+
+    const channel = supabase.channel("alerts-bell");
+    for (const table of [
+      "likes",
+      "comments",
+      "follows",
+      "post_reactions",
+      "favorite_reactions",
+      "profile_views",
+    ]) {
+      channel.on("postgres_changes", { event: "INSERT", schema: "public", table }, () => {
+        void refresh();
+      });
+    }
+    channel.subscribe();
+
+    return () => {
+      cancelled = true;
+      void supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -67,17 +102,15 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
 
   return (
     <div className="nav-bell" ref={ref}>
-      <button
-        type="button"
-        className="nav-bell-btn"
+      <IconButton
         onClick={toggleOpen}
+        badge={count}
         aria-haspopup="true"
         aria-expanded={open}
         aria-label="Notifications"
       >
         Alerts
-        {count > 0 && <span className="nav-bell-badge">{count > 9 ? "9+" : count}</span>}
-      </button>
+      </IconButton>
       {open && (
         <div className="nav-bell-menu">
           <div className="nav-bell-menu-head">Notifications</div>
@@ -102,7 +135,7 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
                   className="nav-bell-avatar"
                 />
                 <span>
-                  <b>{item.actorUsername}</b> {describe(item)}
+                  <b>{item.actorUsername}</b> {describeAlert(item)}
                 </span>
               </Link>
             ))

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "feedback_welcome_seen";
 
-export function WelcomeExplainer() {
+export function WelcomeExplainer({ signedIn = false }: { signedIn?: boolean }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -42,6 +42,15 @@ export function WelcomeExplainer() {
             Feedback is a community feed for rating and sharing the music, movies, and TV you&apos;re
             into - post a quick review and see what everyone else is watching and listening to.
           </p>
+          {!signedIn && (
+            // The feed has never been gated, but nothing said so. A first-time
+            // visitor facing a modal reasonably assumes there's a wall behind
+            // it, which costs the same bounces an actual wall would.
+            <p className="welcome-modal-free">
+              <b>Have a look around first.</b> Reading the feed, profiles and reviews needs no
+              account - you only need one to post, rate or follow.
+            </p>
+          )}
           <ul className="welcome-modal-list">
             <li>
               <b>Clubs</b>
@@ -59,11 +68,17 @@ export function WelcomeExplainer() {
         </div>
         <div className="welcome-modal-actions">
           <button className="btn btn-ghost" onClick={dismiss}>
-            Maybe later
+            {signedIn ? "Maybe later" : "Just browsing"}
           </button>
-          <button className="btn" onClick={dismiss}>
-            Got it
-          </button>
+          {signedIn ? (
+            <button className="btn" onClick={dismiss}>
+              Got it
+            </button>
+          ) : (
+            <a className="btn" href="/sign-up" onClick={dismiss}>
+              Create account
+            </a>
+          )}
         </div>
       </div>
     </div>

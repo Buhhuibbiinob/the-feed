@@ -7,10 +7,21 @@ import { signOut } from "@/app/actions/auth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LightDarkToggle } from "@/components/LightDarkToggle";
 import { MORE_PAGES } from "@/lib/builtinPages";
+import { IconButtonLink } from "@/components/IconButton";
+import { AccountMenu } from "@/components/AccountMenu";
 
 // Built from the same list the admin Pages screen archives, so a page can
 // never be missing from the nav while still offering an Archive toggle.
-const MORE_LINKS = MORE_PAGES.map((p) => ({ href: p.path, label: p.label, slug: p.slug }));
+// New Releases is dropped from the nav: nobody used it, and it was one
+// more thing competing for room in a menu the whole point of this pass is
+// to shorten. The route still exists and still works if linked directly.
+const RETIRED_FROM_NAV = new Set(["new-releases"]);
+
+const MORE_LINKS = MORE_PAGES.filter((p) => !RETIRED_FROM_NAV.has(p.slug)).map((p) => ({
+  href: p.path,
+  label: p.label,
+  slug: p.slug,
+}));
 
 const TITLES: { match: (p: string) => boolean; title: string }[] = [
   { match: (p) => p === "/", title: "Feed" },
@@ -40,17 +51,32 @@ function HomeIcon() {
     </svg>
   );
 }
-function ChatIcon() {
+function SearchIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M4 4h16v12H7l-3 3z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+      <circle cx="11" cy="11" r="6" />
+      <path d="M16 16l4.5 4.5" />
     </svg>
   );
 }
-function TrophyIcon() {
+function BellIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M6 3h12v3h3v2c0 2.5-2 4.5-4.3 4.9A5 5 0 0 1 13 16.9V19h3v2H8v-2h3v-2.1a5 5 0 0 1-3.7-4A5.3 5.3 0 0 1 3 8V6h3zM5 6v2c0 1.3.8 2.4 2 2.8A9 9 0 0 1 6 8V6zm14 0h-1v2a9 9 0 0 1-1 2.8c1.2-.4 2-1.5 2-2.8z" />
+      <path d="M12 2a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V8a6 6 0 0 0-6-6zm0 20a3 3 0 0 0 3-3H9a3 3 0 0 0 3 3z" />
+    </svg>
+  );
+}
+function CompassIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.7 6.3-2.1 5-5 2.1 2.1-5zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+    </svg>
+  );
+}
+function PersonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4 0-7 2-7 4.5V21h14v-2.5C19 16 16 14 12 14z" />
     </svg>
   );
 }
@@ -95,8 +121,7 @@ export function SiteHeader({
   const mobileSheetRef = useRef<HTMLDivElement>(null);
 
   const hidden = new Set(hiddenSlugs);
-  const showChat = !hidden.has("chat");
-  const showLeaderboard = !hidden.has("leaderboard");
+  const showDiscover = !hidden.has("recs");
   const visibleMoreLinks = [
     ...MORE_LINKS.filter((link) => !hidden.has(link.slug)),
     ...customPages,
@@ -146,14 +171,17 @@ export function SiteHeader({
           <Link href="/" className={pathname === "/" ? "active" : ""}>
             Feed
           </Link>
-          {showChat && (
-            <Link href="/chat" className={pathname === "/chat" ? "active" : ""}>
-              Chat
+          {showDiscover && (
+            <Link href="/recs" className={pathname.startsWith("/recs") ? "active" : ""}>
+              Discover
             </Link>
           )}
-          {showLeaderboard && (
-            <Link href="/leaderboard" className={pathname === "/leaderboard" ? "active" : ""}>
-              Leaderboard
+          {username && (
+            <Link
+              href={`/profile/${username}`}
+              className={pathname === `/profile/${username}` ? "active" : ""}
+            >
+              Profile
             </Link>
           )}
           <div className="nav-more" ref={moreRef}>
@@ -188,47 +216,33 @@ export function SiteHeader({
               the action the whole site exists for, so it gets a permanent,
               visually loud slot in the nav at every width. */}
           {username && (
-            <Link href="/post/new" className="nav-post-btn">
+            <IconButtonLink href="/post/new" primary className="nav-post-btn">
               <span className="nav-post-plus" aria-hidden="true">
                 +
               </span>
               Post
-            </Link>
+            </IconButtonLink>
           )}
           <div className="nav-account">
             {theme === "ios-light" && <LightDarkToggle />}
             {username ? (
               <>
                 <NotificationBell initialCount={notificationCount} />
-                <Link href="/messages" className="nav-bell-btn">
+                <IconButtonLink href="/messages" badge={unreadDmCount}>
                   Messages
-                  {unreadDmCount > 0 && (
-                    <span className="nav-bell-badge">{unreadDmCount > 9 ? "9+" : unreadDmCount}</span>
-                  )}
-                </Link>
-                <Link href={`/profile/${username}`} className="nav-user">
-                  Hi, {username}
-                </Link>
-                {isAdmin && (
-                  <Link href="/admin" className="acct-btn">
-                    <span>Admin</span>
-                  </Link>
-                )}
-                <Link href="/settings" className="acct-btn">
-                  <span>Settings</span>
-                </Link>
-                <button className="acct-btn primary" onClick={() => signOut()}>
-                  <span>Sign Out</span>
-                </button>
+                </IconButtonLink>
+                {/* Admin, Settings and Sign Out used to sit out here and
+                    drag the bar past its own width. They live behind the
+                    account menu now - the bar keeps a fixed set of
+                    actions no matter who is signed in. */}
+                <AccountMenu username={username} isAdmin={isAdmin} />
               </>
             ) : (
               <>
-                <Link href="/sign-in" className="acct-btn sk-btn-secondary">
-                  <span>Sign In</span>
-                </Link>
-                <Link href="/sign-up" className="acct-btn primary sk-btn">
-                  <span>Create Account</span>
-                </Link>
+                <IconButtonLink href="/sign-in">Sign In</IconButtonLink>
+                <IconButtonLink href="/sign-up" primary>
+                  Create Account
+                </IconButtonLink>
               </>
             )}
           </div>
@@ -256,6 +270,10 @@ export function SiteHeader({
         )}
       </div>
 
+      {/* Five evenly spaced tabs with Post as the centre +, so every primary
+          destination is one tap away and nothing depends on the browser
+          back button. More moves into the Profile tab's reach rather than
+          taking one of the five slots. */}
       <div className="sk-ios-tabbar">
         <Link href="/" className={`sk-ios-tab ${isHome ? "active" : ""}`}>
           <span className="sk-ios-tab-icon">
@@ -263,42 +281,74 @@ export function SiteHeader({
           </span>
           <span className="sk-ios-tab-label">Feed</span>
         </Link>
-        {showChat && (
-          <Link href="/chat" className={`sk-ios-tab ${pathname.startsWith("/chat") ? "active" : ""}`}>
-            <span className="sk-ios-tab-icon">
-              <ChatIcon />
-            </span>
-            <span className="sk-ios-tab-label">Chat</span>
-          </Link>
-        )}
-        {showLeaderboard && (
-          <Link
-            href="/leaderboard"
-            className={`sk-ios-tab ${pathname.startsWith("/leaderboard") ? "active" : ""}`}
-          >
-            <span className="sk-ios-tab-icon">
-              <TrophyIcon />
-            </span>
-            <span className="sk-ios-tab-label">Leaderboard</span>
-          </Link>
-        )}
+        <Link
+          href="/search"
+          className={`sk-ios-tab ${pathname.startsWith("/search") ? "active" : ""}`}
+        >
+          <span className="sk-ios-tab-icon">
+            <SearchIcon />
+          </span>
+          <span className="sk-ios-tab-label">Search</span>
+        </Link>
         <Link href={username ? "/post/new" : "/sign-in"} className="sk-ios-tab sk-ios-tab-post">
           <span className="sk-ios-post-fab">
             <PlusIcon />
           </span>
           <span className="sk-ios-tab-label">Post</span>
         </Link>
-        <button
-          type="button"
-          ref={mobileMoreBtnRef}
-          className={`sk-ios-tab ${isMoreActive || moreOpen ? "active" : ""}`}
-          onClick={() => setMoreOpen((open) => !open)}
-        >
-          <span className="sk-ios-tab-icon">
-            <MoreIcon />
-          </span>
-          <span className="sk-ios-tab-label">More</span>
-        </button>
+        {username ? (
+          <Link
+            href="/alerts"
+            className={`sk-ios-tab ${pathname.startsWith("/alerts") ? "active" : ""}`}
+          >
+            <span className="sk-ios-tab-icon">
+              <BellIcon />
+              {notificationCount > 0 && (
+                <span className="sk-ios-tab-badge">
+                  {notificationCount > 9 ? "9+" : notificationCount}
+                </span>
+              )}
+            </span>
+            <span className="sk-ios-tab-label">Alerts</span>
+          </Link>
+        ) : (
+          <Link
+            href="/recs"
+            className={`sk-ios-tab ${pathname.startsWith("/recs") ? "active" : ""}`}
+          >
+            <span className="sk-ios-tab-icon">
+              <CompassIcon />
+            </span>
+            <span className="sk-ios-tab-label">Discover</span>
+          </Link>
+        )}
+        {username ? (
+          <button
+            type="button"
+            ref={mobileMoreBtnRef}
+            className={`sk-ios-tab ${
+              pathname === `/profile/${username}` || isMoreActive || moreOpen ? "active" : ""
+            }`}
+            onClick={() => setMoreOpen((open) => !open)}
+          >
+            <span className="sk-ios-tab-icon">
+              <PersonIcon />
+            </span>
+            <span className="sk-ios-tab-label">Profile</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            ref={mobileMoreBtnRef}
+            className={`sk-ios-tab ${isMoreActive || moreOpen ? "active" : ""}`}
+            onClick={() => setMoreOpen((open) => !open)}
+          >
+            <span className="sk-ios-tab-icon">
+              <MoreIcon />
+            </span>
+            <span className="sk-ios-tab-label">More</span>
+          </button>
+        )}
       </div>
 
       {moreOpen && (

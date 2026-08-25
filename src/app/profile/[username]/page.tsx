@@ -1,16 +1,52 @@
 import Link from "next/link";
+import { fetchPostReactions } from "@/lib/postReactions";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/PostCard";
+import { PreviewPlayer } from "@/components/PreviewPlayer";
 import { FollowButton } from "@/components/FollowButton";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { ProfileCustomize } from "@/components/ProfileCustomize";
+import { ObsessedPicker } from "@/components/ObsessedPicker";
+import { ProfileSongPicker } from "@/components/ProfileSongPicker";
+import { FavoritesEditor } from "@/components/FavoritesEditor";
 import { StatusPicker } from "@/components/StatusPicker";
 import { MEDIA_LABELS, MEDIA_TYPES, type MediaType } from "@/lib/media";
-import { computeTasteMatch } from "@/lib/taste";
+import { buildTasteProfile, tasteMatch as computeMatch, workKey } from "@/lib/taste";
 import { earnedBadges, BADGES } from "@/lib/badges";
 import { computeStreak } from "@/lib/streak";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { bannerAspectRatio } from "@/lib/bannerShape";
+import { renderRichBio } from "@/lib/richBio";
+import { fontStack } from "@/lib/profileSkin";
+import { loadPageConfig } from "@/lib/pageConfigStore";
+import { moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
+import { pageStyle } from "@/lib/pageTheme";
+import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
+import { MoodRingEditor } from "@/components/MoodRing";
+import { BlurbsEditor } from "@/components/BlurbsEditor";
+import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
+import { TopConnections, type Connection } from "@/components/TopConnections";
+import {
+  FAVORITE_KINDS,
+  FAVORITE_LABELS,
+  groupFavorites,
+  type Favorite,
+  type FavoriteKind,
+} from "@/lib/favorites";
+import { OBSESSED_LABELS, isObsessedKind } from "@/lib/obsessed";
+import { CollectionFollowButton } from "@/components/CollectionFollowButton";
+import { Stars } from "@/components/Stars";
+import { ProfilePing } from "@/components/ProfilePing";
+import { PickReactions, type PickReactionState } from "@/components/PickReactions";
+import { tallyReactions } from "@/lib/reactions";
+import { computeWeekInTaste, type WeekPost } from "@/lib/weekInTaste";
+import {
+  computeLongestStreak,
+  earnedAchievements,
+  nextAchievement,
+  type AchievementContext,
+} from "@/lib/achievements";
 
 type ClubMembershipRow = {
   clubs: { id: string; media_type: MediaType; name: string } | null;
@@ -36,6 +72,86 @@ type StatusRow = {
   status_cover_url: string | null;
 };
 
+// Everything the Phase 1 profile customisation added. Selected separately
+// from the core columns for the same reason the status row is: a column
+// that hasn't been migrated yet must not take the whole profile down with
+// it, it should just leave that one feature switched off.
+type CustomizationRow = {
+  banner_aspect: string | null;
+  bio_font: string | null;
+  bio_color: string | null;
+  profile_bg_color: string | null;
+  profile_panel_color: string | null;
+  profile_text_color: string | null;
+  profile_accent_color: string | null;
+  profile_layout: string[] | null;
+  obsessed_kind: string | null;
+  obsessed_title: string | null;
+  obsessed_note: string | null;
+  obsessed_image_url: string | null;
+  profile_song_youtube_id: string | null;
+  profile_song_spotify_id: string | null;
+  profile_song_title: string | null;
+  profile_song_artist: string | null;
+  profile_song_thumbnail_url: string | null;
+  profile_song_autoplay: boolean | null;
+  mood_emoji: string | null;
+  mood_color: string | null;
+  mood_text: string | null;
+  blurb_next: string | null;
+  blurb_free: string | null;
+  last_seen_at: string | null;
+};
+
+const CUSTOMIZATION_COLUMNS =
+  "banner_aspect, bio_font, bio_color, profile_bg_color, profile_panel_color, profile_text_color, " +
+  "profile_accent_color, profile_layout, obsessed_kind, obsessed_title, obsessed_note, " +
+  "obsessed_image_url, profile_song_youtube_id, profile_song_spotify_id, profile_song_title, " +
+  "profile_song_artist, profile_song_thumbnail_url, profile_song_autoplay, mood_emoji, " +
+  "mood_color, mood_text, blurb_next, blurb_free, last_seen_at";
+
+type ReactionRow = { favorite_id: string; user_id: string; emoji: string };
+
+type CollectionRow = { id: string; name: string; description: string | null };
+
+type ProfileRef = { username: string; avatar_url: string | null };
+type GuestbookRow = {
+  id: string;
+  body: string;
+  created_at: string;
+  author_id: string;
+  profiles: ProfileRef | ProfileRef[] | null;
+};
+type ConnectionRow = {
+  friend_id: string;
+  position: number;
+  profiles: ProfileRef | ProfileRef[] | null;
+};
+type PinnedRow = { post_id: string; position: number };
+type CollectionFollowRow = { collection_id: string; user_id: string };
+
+type FavoriteRow = {
+  id: string;
+  kind: FavoriteKind;
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  position: number;
+};
+
+// Cap on the site-wide review scan behind taste match and discoveries.
+// Ordered oldest-first so "who reviewed this first" stays correct for
+// everything inside the window.
+const TASTE_SCAN_LIMIT = 5000;
+
+type ScanRow = {
+  user_id: string;
+  title: string;
+  artist: string | null;
+  rating: number | null;
+  created_at: string;
+};
+
 type PostRow = {
   id: string;
   user_id: string;
@@ -50,6 +166,42 @@ type PostRow = {
   youtube_video_id: string | null;
   club_id: string | null;
 };
+
+/** How long ago, in the coarse terms a "last online" line actually wants. */
+function lastOnlineLabel(iso: string): string {
+  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (minutes < 5) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return days < 30 ? `${days}d ago` : "a while ago";
+}
+
+function Panel({
+  title,
+  style,
+  children,
+}: {
+  title: string;
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="panel" style={style}>
+      <div className="panel-head">{title}</div>
+      <div className="panel-body">{children}</div>
+    </div>
+  );
+}
+
+function EmptySlot({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="empty-state" style={{ padding: 16 }}>
+      {children}
+    </div>
+  );
+}
 
 export default async function ProfilePage({
   params,
@@ -68,8 +220,12 @@ export default async function ProfilePage({
     .eq("username", username)
     .maybeSingle();
 
-  const profile = profileData as ProfileRow | null;
-  if (!profile) notFound();
+  const profileRow = profileData as ProfileRow | null;
+  if (!profileRow) notFound();
+  // Aliased once the null check has run so the section renderers below,
+  // which TypeScript can't see the narrowing through, don't each need an
+  // assertion.
+  const profile: ProfileRow = profileRow;
 
   // Fetched separately so a not-yet-migrated `status_*` column can't 404 the whole profile.
   const { data: statusData } = await supabase
@@ -79,6 +235,13 @@ export default async function ProfilePage({
     .maybeSingle();
   const status = statusData as StatusRow | null;
 
+  const { data: customData } = await supabase
+    .from("profiles")
+    .select(CUSTOMIZATION_COLUMNS)
+    .eq("id", profile.id)
+    .maybeSingle();
+  const custom = (customData ?? null) as CustomizationRow | null;
+
   const [
     { data: postRows },
     { count: followerCount },
@@ -86,6 +249,7 @@ export default async function ProfilePage({
     { data: likeRows },
     { data: commentRows },
     { data: clubMembershipRows },
+    { data: favoriteRows },
   ] = await Promise.all([
     supabase
       .from("posts")
@@ -110,12 +274,30 @@ export default async function ProfilePage({
       .select("clubs(id, media_type, name)")
       .eq("user_id", profile.id)
       .returns<ClubMembershipRow[]>(),
+    supabase
+      .from("profile_favorites")
+      .select("id, kind, title, subtitle, image_url, position")
+      .eq("user_id", profile.id)
+      .order("position", { ascending: true })
+      .returns<FavoriteRow[]>(),
   ]);
 
   const posts = postRows ?? [];
   const clubs = (clubMembershipRows ?? [])
     .map((row) => row.clubs)
     .filter((club): club is NonNullable<ClubMembershipRow["clubs"]> => club !== null);
+
+  const favorites = groupFavorites(
+    (favoriteRows ?? []).map<Favorite>((row) => ({
+      id: row.id,
+      kind: row.kind,
+      title: row.title,
+      subtitle: row.subtitle,
+      imageUrl: row.image_url,
+      position: row.position,
+    }))
+  );
+  const favoriteCount = FAVORITE_KINDS.reduce((sum, kind) => sum + favorites[kind].length, 0);
 
   const likeCounts = new Map<string, number>();
   const likedByMe = new Set<string>();
@@ -128,6 +310,14 @@ export default async function ProfilePage({
   for (const comment of commentRows ?? []) {
     commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1);
   }
+
+  // Reaction tags for everything rendered on this page. Fetched here
+  // rather than inside PostCard so one query covers the whole list.
+  const reactionsByPost = await fetchPostReactions(
+    supabase,
+    posts.map((p) => p.id),
+    user?.id ?? null
+  );
 
   // Built from MEDIA_TYPES rather than a literal, so adding a category
   // can't silently leave a counter missing here again.
@@ -143,44 +333,747 @@ export default async function ProfilePage({
   const nextBadge = BADGES.find((b) => b.threshold > posts.length) ?? null;
   const streak = computeStreak(posts.map((p) => p.created_at));
 
+  // One scan of the site's reviews, reused three times over: the visitor's
+  // taste match, who was first to review a given work, and nothing else has
+  // to read the posts table again.
+  const { data: scanRows } = await supabase
+    .from("posts")
+    .select("user_id, title, artist, rating, created_at")
+    .order("created_at", { ascending: true })
+    .limit(TASTE_SCAN_LIMIT)
+    .returns<ScanRow[]>();
+  const scan = scanRows ?? [];
+
+  // First review of a work wins the discovery. The scan is ordered oldest
+  // first, so the first time a key appears is the one that counts.
+  const firstReviewer = new Map<string, string>();
+  for (const row of scan) {
+    if (!row.title) continue;
+    const key = workKey(row.title, row.artist);
+    if (!firstReviewer.has(key)) firstReviewer.set(key, row.user_id);
+  }
+  let discoveries = 0;
+  for (const [, ownerId] of firstReviewer) if (ownerId === profile.id) discoveries++;
+
   let isFollowing = false;
   let tasteMatch: number | null = null;
   if (user && !isOwnProfile) {
-    const [{ data: followRow }, { data: myPostRows }, { data: myClubRows }] = await Promise.all([
+    const [{ data: followRow }, { data: myClubRows }] = await Promise.all([
       supabase
         .from("follows")
         .select("follower_id")
         .eq("follower_id", user.id)
         .eq("followed_id", profile.id)
         .maybeSingle(),
-      supabase.from("posts").select("club_id, rating").eq("user_id", user.id),
       supabase.from("club_members").select("club_id").eq("user_id", user.id),
     ]);
     isFollowing = !!followRow;
 
-    const theirRatings = new Map<string, number[]>();
-    for (const post of posts) {
-      if (!post.club_id || post.rating == null) continue;
-      const ratings = theirRatings.get(post.club_id) ?? [];
-      ratings.push(post.rating);
-      theirRatings.set(post.club_id, ratings);
-    }
-    const theirClubIds = new Set(clubs.map((c) => c.id));
+    const myScanPosts = scan.filter((row) => row.user_id === user.id);
+    const mine = buildTasteProfile({
+      posts: myScanPosts,
+      clubIds: (myClubRows ?? []).map((r) => r.club_id as string),
+    });
+    const theirs = buildTasteProfile({
+      posts: posts.map((p) => ({ title: p.title, artist: p.artist, rating: p.rating })),
+      clubIds: clubs.map((c) => c.id),
+    });
+    tasteMatch = computeMatch(mine, theirs);
+  }
 
-    const myRatings = new Map<string, number[]>();
-    for (const post of myPostRows ?? []) {
-      if (!post.club_id || post.rating == null) continue;
-      const ratings = myRatings.get(post.club_id) ?? [];
-      ratings.push(post.rating);
-      myRatings.set(post.club_id, ratings);
-    }
-    const myClubIds = new Set((myClubRows ?? []).map((r) => r.club_id));
+  const favoriteIds = FAVORITE_KINDS.flatMap((kind) => favorites[kind].map((f) => f.id));
 
-    tasteMatch = computeTasteMatch(myRatings, myClubIds, theirRatings, theirClubIds);
+  const [{ data: reactionRows }, { data: twinRow }, { count: viewerCount }, { count: commentsWritten }] =
+    await Promise.all([
+      favoriteIds.length === 0
+        ? Promise.resolve({ data: [] as ReactionRow[] })
+        : supabase
+            .from("favorite_reactions")
+            .select("favorite_id, user_id, emoji")
+            .in("favorite_id", favoriteIds)
+            .returns<ReactionRow[]>(),
+      supabase
+        .from("profiles")
+        .select("taste_twin_id, taste_twin_score, taste_twin_at")
+        .eq("id", profile.id)
+        .maybeSingle(),
+      // Only the owner is allowed to read their own view rows, so for a
+      // visitor this comes back null rather than leaking the number.
+      supabase
+        .from("profile_views")
+        .select("viewer_id", { count: "exact", head: true })
+        .eq("profile_id", profile.id),
+      supabase
+        .from("comments")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", profile.id),
+    ]);
+
+  const reactionsByFavorite = new Map<string, ReactionRow[]>();
+  for (const row of reactionRows ?? []) {
+    const list = reactionsByFavorite.get(row.favorite_id) ?? [];
+    list.push(row);
+    reactionsByFavorite.set(row.favorite_id, list);
+  }
+  function reactionState(favoriteId: string): PickReactionState {
+    const rows = reactionsByFavorite.get(favoriteId) ?? [];
+    return {
+      favoriteId,
+      counts: tallyReactions(rows.map((r) => r.emoji)),
+      mine: user ? rows.find((r) => r.user_id === user.id)?.emoji ?? null : null,
+    };
+  }
+
+  // The twin is only ever shown to the profile's owner. It's built from who
+  // they overlap with, which is theirs to know and nobody else's business.
+  let twin: { username: string; avatarUrl: string | null; score: number | null } | null = null;
+  const twinId = (twinRow?.taste_twin_id as string | null | undefined) ?? null;
+  if (isOwnProfile && twinId) {
+    const { data: twinProfile } = await supabase
+      .from("profiles")
+      .select("username, avatar_url")
+      .eq("id", twinId)
+      .maybeSingle();
+    if (twinProfile) {
+      twin = {
+        username: twinProfile.username as string,
+        avatarUrl: (twinProfile.avatar_url as string | null) ?? null,
+        score: (twinRow?.taste_twin_score as number | null | undefined) ?? null,
+      };
+    }
+  }
+
+  const [{ data: collectionRows }, { data: collectionFollowRows }] = await Promise.all([
+    supabase
+      .from("collections")
+      .select("id, name, description")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .returns<CollectionRow[]>(),
+    supabase.from("collection_follows").select("collection_id, user_id").returns<CollectionFollowRow[]>(),
+  ]);
+
+  const collections = collectionRows ?? [];
+  const followsByCollection = new Map<string, CollectionFollowRow[]>();
+  for (const row of collectionFollowRows ?? []) {
+    const list = followsByCollection.get(row.collection_id) ?? [];
+    list.push(row);
+    followsByCollection.set(row.collection_id, list);
+  }
+
+  // Reviews surface themselves: the highest rated and the most discussed,
+  // picked automatically so the section fills in without the member
+  // choosing anything.
+  const ratedPosts = posts.filter((p) => p.rating != null);
+  const topRated = ratedPosts.length
+    ? ratedPosts.reduce((best, p) => ((p.rating ?? 0) > (best.rating ?? 0) ? p : best))
+    : null;
+  const mostDiscussed = posts.length
+    ? posts.reduce((best, p) =>
+        (commentCounts.get(p.id) ?? 0) > (commentCounts.get(best.id) ?? 0) ? p : best
+      )
+    : null;
+  // Only worth a panel if anyone actually replied - "most discussed, 0
+  // comments" is a worse thing to print than nothing.
+  const highlights = [
+    topRated ? { label: "Highest rated", post: topRated } : null,
+    mostDiscussed && (commentCounts.get(mostDiscussed.id) ?? 0) > 0 && mostDiscussed.id !== topRated?.id
+      ? { label: "Most discussed", post: mostDiscussed }
+      : null,
+  ].filter((h): h is { label: string; post: PostRow } => h !== null);
+
+  const [{ data: guestbookRows }, { data: connectionRows }, { data: pinnedRows }] = await Promise.all([
+    supabase
+      .from("guestbook_entries")
+      .select("id, body, created_at, author_id, profiles!guestbook_entries_author_id_fkey(username, avatar_url)")
+      .eq("profile_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(30)
+      .returns<GuestbookRow[]>(),
+    supabase
+      .from("top_connections")
+      .select("friend_id, position, profiles!top_connections_friend_id_fkey(username, avatar_url)")
+      .eq("user_id", profile.id)
+      .order("position", { ascending: true })
+      .returns<ConnectionRow[]>(),
+    supabase
+      .from("pinned_posts")
+      .select("post_id, position")
+      .eq("user_id", profile.id)
+      .order("position", { ascending: true })
+      .returns<PinnedRow[]>(),
+  ]);
+
+  const guestbook: GuestbookEntry[] = (guestbookRows ?? []).map((row) => {
+    const author = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return {
+      id: row.id,
+      body: row.body,
+      createdAt: row.created_at,
+      authorId: row.author_id,
+      authorUsername: author?.username ?? "someone",
+      authorAvatarUrl: author?.avatar_url ?? null,
+    };
+  });
+
+  const connections: Connection[] = (connectionRows ?? []).flatMap((row) => {
+    const friend = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return friend ? [{ id: row.friend_id, username: friend.username, avatarUrl: friend.avatar_url }] : [];
+  });
+
+  const pinnedIds = new Set((pinnedRows ?? []).map((row) => row.post_id));
+  const pinnedPosts = (pinnedRows ?? [])
+    .map((row) => posts.find((p) => p.id === row.post_id))
+    .filter((p): p is PostRow => p !== undefined);
+
+  const week = computeWeekInTaste(
+    posts.map<WeekPost>((p) => ({
+      id: p.id,
+      title: p.title,
+      artist: p.artist,
+      mediaType: p.media_type,
+      rating: p.rating,
+      coverUrl: p.cover_url,
+      createdAt: p.created_at,
+    }))
+  );
+
+  const achievementContext: AchievementContext = {
+    reviewCount: posts.length,
+    streak,
+    longestStreak: computeLongestStreak(posts.map((p) => p.created_at)),
+    categoriesCovered: MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).length,
+    likesReceived: totalLikesReceived,
+    commentsWritten: commentsWritten ?? 0,
+    discoveries,
+    clubsJoined: clubs.length,
+  };
+  const achievements = earnedAchievements(achievementContext);
+  const nextUp = nextAchievement(achievementContext);
+
+  const bioStyle = {
+    fontFamily: fontStack(custom?.bio_font) ?? undefined,
+    color: custom?.bio_color ?? undefined,
+  };
+
+  const moodEmoji = custom?.mood_emoji ?? null;
+  const obsessedKind = isObsessedKind(custom?.obsessed_kind) ? custom.obsessed_kind : null;
+  const obsessedTitle = custom?.obsessed_title ?? null;
+  const songId = custom?.profile_song_youtube_id ?? null;
+  const songSpotifyId = custom?.profile_song_spotify_id ?? null;
+  const hasSong = !!(songId || songSpotifyId);
+
+  // One config drives the look and the module order, and the same loader
+  // serves club pages. A profile customised before page_configs existed is
+  // synthesised from the old columns rather than coming back blank.
+  const config = await loadPageConfig(supabase, "profile", profile.id);
+  const moduleStates = new Map(config.modules.map((m) => [m.id, m]));
+
+  // A section with nothing in it is hidden from visitors and shown to the
+  // owner as a prompt - an empty panel on someone else's profile just reads
+  // as "nobody uses this".
+  const sectionHasContent: Record<string, boolean> = {
+    obsessed: !!obsessedTitle,
+    song: hasSong,
+    week: week !== null,
+    // The twin callout is the owner's alone, so for anyone else this
+    // section has nothing in it by definition.
+    twin: isOwnProfile && twin !== null,
+    mood: !!moodEmoji || !!custom?.mood_text,
+    about: !!profile.bio,
+    blurbs: !!custom?.blurb_next || !!custom?.blurb_free,
+    connections: connections.length > 0,
+    pinned: pinnedPosts.length > 0,
+    guestbook: guestbook.length > 0,
+    presence: (viewerCount ?? 0) > 0 || !!custom?.last_seen_at,
+    highlights: highlights.length > 0,
+    collections: collections.length > 0,
+    favorites: favoriteCount > 0,
+    achievements: achievements.length > 0,
+    stats: MEDIA_TYPES.some((mt) => breakdown[mt] > 0),
+    clubs: clubs.length > 0,
+    reviews: posts.length > 0,
+  };
+
+  function renderSection(id: ModuleId) {
+    switch (id) {
+      case "obsessed":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">Currently obsessed with</div>
+            <div className="panel-body">
+              {obsessedTitle ? (
+                <div className="obsessed">
+                  {custom?.obsessed_image_url && (
+                    <img className="obsessed-art" src={custom.obsessed_image_url} alt="" />
+                  )}
+                  <div>
+                    {obsessedKind && <div className="obsessed-kind">{OBSESSED_LABELS[obsessedKind]}</div>}
+                    <div className="obsessed-title">{obsessedTitle}</div>
+                    {custom?.obsessed_note && <div className="obsessed-note">{custom.obsessed_note}</div>}
+                  </div>
+                </div>
+              ) : (
+                <EmptySlot>Pin the one thing you can&apos;t stop playing or watching.</EmptySlot>
+              )}
+            </div>
+          </div>
+        );
+
+      case "anthem":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">Profile song</div>
+            <div className="panel-body">
+              {hasSong ? (
+                <PreviewPlayer
+                  youtubeVideoId={songId}
+                  spotifyTrackId={songSpotifyId}
+                  label={custom?.profile_song_title ?? "Profile song"}
+                  autoplay={custom?.profile_song_autoplay === true}
+                />
+              ) : (
+                <EmptySlot>Pick the track that plays when someone lands here.</EmptySlot>
+              )}
+            </div>
+          </div>
+        );
+
+      case "week":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">
+              {isOwnProfile ? "Your week in taste" : `${profile.username}'s week in taste`}
+            </div>
+            <div className="panel-body">
+              {!week ? (
+                <EmptySlot>Post a review this week and this fills itself in.</EmptySlot>
+              ) : (
+                <div className="week-taste">
+                  <div className="week-figures">
+                    <span>
+                      <b>{week.reviewCount}</b> review{week.reviewCount === 1 ? "" : "s"}
+                    </span>
+                    <span>
+                      <b>{week.daysActive}</b> day{week.daysActive === 1 ? "" : "s"} active
+                    </span>
+                    {week.averageRating !== null && (
+                      <span>
+                        <b>{week.averageRating.toFixed(1)}</b> avg rating
+                      </span>
+                    )}
+                  </div>
+                  {week.standout && (
+                    <Link href={`/post/${week.standout.id}`} className="week-standout">
+                      {week.standout.coverUrl ? (
+                        <img src={week.standout.coverUrl} alt="" />
+                      ) : (
+                        <span className="favorite-blank" />
+                      )}
+                      <span>
+                        <span className="week-standout-label">Highest rated this week</span>
+                        <b>{week.standout.title}</b>
+                        {week.standout.artist && <span className="sub">{week.standout.artist}</span>}
+                      </span>
+                    </Link>
+                  )}
+                  <div className="week-categories">
+                    {week.categories.map((c) => (
+                      <span className={`badge ${c.mediaType}`} key={c.mediaType}>
+                        {c.label} x{c.count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "twin":
+        // Rendered for the owner only - the filter below keeps it off other
+        // people's view of the page, and this guard keeps it that way even
+        // if someone re-orders the sections.
+        if (!isOwnProfile) return null;
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">Your taste twin</div>
+            <div className="panel-body">
+              {!twin ? (
+                <EmptySlot>
+                  Review a few more things and we&apos;ll find the person whose taste lines up with
+                  yours.
+                </EmptySlot>
+              ) : (
+                <Link href={`/profile/${twin.username}`} className="taste-twin">
+                  <img src={twin.avatarUrl || "/avatars/preset-1.svg"} alt="" />
+                  <span>
+                    <b>{twin.username}</b>
+                    {twin.score !== null && (
+                      <span className="taste-twin-score">{twin.score}% match</span>
+                    )}
+                    <span className="sub">Closest taste to yours right now</span>
+                  </span>
+                </Link>
+              )}
+            </div>
+          </div>
+        );
+
+      case "achievements":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">Achievements</div>
+            <div className="panel-body">
+              {achievements.length === 0 ? (
+                <EmptySlot>Post, rate and keep a streak going to start unlocking these.</EmptySlot>
+              ) : (
+                <div className="achievement-grid">
+                  {achievements.map((a) => (
+                    <span className="achievement" key={a.id} title={a.description}>
+                      {a.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {isOwnProfile && nextUp && (
+                <div className="profile-badge-next">
+                  Next up: <b>{nextUp.label}</b> - {nextUp.description} (
+                  {nextUp.progress(achievementContext).current}/
+                  {nextUp.progress(achievementContext).target})
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "mood":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Mood">
+            {!moodEmoji && !custom?.mood_text ? (
+              <EmptySlot>Set a mood - an emoji, a colour and a few words.</EmptySlot>
+            ) : (
+              <div className="mood-ring-row">
+                <span
+                  className="mood-ring"
+                  style={{ borderColor: custom?.mood_color ?? "var(--link)" }}
+                >
+                  {moodEmoji ?? "•"}
+                </span>
+                {custom?.mood_text && <span className="mood-text">{custom.mood_text}</span>}
+              </div>
+            )}
+          </Panel>
+        );
+
+      case "about":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="About me">
+            {profile.bio ? (
+              <div className="profile-bio" style={bioStyle}>
+                {renderRichBio(profile.bio)}
+              </div>
+            ) : (
+              <EmptySlot>Write a few lines about yourself.</EmptySlot>
+            )}
+          </Panel>
+        );
+
+      case "blurbs":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Blurbs">
+            {!custom?.blurb_next && !custom?.blurb_free ? (
+              <EmptySlot>Say what you&apos;d like to review next.</EmptySlot>
+            ) : (
+              <div className="blurb-list">
+                {custom?.blurb_next && (
+                  <div className="blurb">
+                    <span className="week-standout-label">What I&apos;d like to review next</span>
+                    <div>{custom.blurb_next}</div>
+                  </div>
+                )}
+                {custom?.blurb_free && <div className="blurb">{custom.blurb_free}</div>}
+              </div>
+            )}
+          </Panel>
+        );
+
+      case "connections":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Top connections">
+            <TopConnections connections={connections} isOwner={isOwnProfile} />
+          </Panel>
+        );
+
+      case "pinned":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Featured reviews">
+            {pinnedPosts.length === 0 ? (
+              <EmptySlot>Pin a review from its page to feature it here.</EmptySlot>
+            ) : (
+              <div className="panel-body flush">
+                {pinnedPosts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={{
+                      id: post.id,
+                      userId: post.user_id,
+                      mediaType: post.media_type,
+                      title: post.title,
+                      body: post.body,
+                      rating: post.rating,
+                      createdAt: post.created_at,
+                      artist: post.artist,
+                      coverUrl: post.cover_url,
+                      spotifyTrackId: post.spotify_track_id,
+                      youtubeVideoId: post.youtube_video_id,
+                      username: profile.username,
+                    }}
+                    currentUserId={user?.id ?? null}
+                    reactions={reactionsByPost.get(post.id)}
+                    liked={likedByMe.has(post.id)}
+                    likeCount={likeCounts.get(post.id) ?? 0}
+                    commentCount={commentCounts.get(post.id) ?? 0}
+                  />
+                ))}
+              </div>
+            )}
+          </Panel>
+        );
+
+      case "guestbook":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Guestbook">
+            <Guestbook
+              profileId={profile.id}
+              entries={guestbook}
+              currentUserId={user?.id ?? null}
+              isOwner={isOwnProfile}
+            />
+          </Panel>
+        );
+
+      case "presence":
+        return (
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Presence">
+            <div className="week-figures">
+              {isOwnProfile && viewerCount != null && (
+                <span>
+                  <b>{viewerCount}</b> profile views
+                </span>
+              )}
+              {custom?.last_seen_at && (
+                <span>
+                  <b>{lastOnlineLabel(custom.last_seen_at)}</b> last online
+                </span>
+              )}
+              <span>
+                <b>{new Date(profile.created_at).toLocaleDateString()}</b> joined
+              </span>
+            </div>
+          </Panel>
+        );
+
+      case "highlights":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">Standout reviews</div>
+            <div className="panel-body">
+              {highlights.length === 0 ? (
+                <EmptySlot>Rate a review and your best one shows up here by itself.</EmptySlot>
+              ) : (
+                <div className="highlight-list">
+                  {highlights.map((h) => (
+                    <Link href={`/post/${h.post.id}`} className="highlight-row" key={h.label}>
+                      {h.post.cover_url ? (
+                        <img src={h.post.cover_url} alt="" />
+                      ) : (
+                        <span className="favorite-blank" />
+                      )}
+                      <span>
+                        <span className="week-standout-label">{h.label}</span>
+                        <b>{h.post.title}</b>
+                        {h.post.artist && <span className="sub">{h.post.artist}</span>}
+                      </span>
+                      {h.post.rating && (
+                        <span className="highlight-stars">
+                          <Stars rating={h.post.rating} />
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "collections":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">
+              Collections
+              <Link href="/collections" className="see-all">
+                See All ▸
+              </Link>
+            </div>
+            <div className="panel-body">
+              {collections.length === 0 ? (
+                <EmptySlot>
+                  Group reviews into a collection - &quot;songs for driving at 2am&quot; - and it
+                  gets pinned here for people to follow.
+                </EmptySlot>
+              ) : (
+                <div className="collection-list">
+                  {collections.map((collection) => {
+                    const follows = followsByCollection.get(collection.id) ?? [];
+                    return (
+                      <div className="collection-row" key={collection.id}>
+                        <Link href={`/collections/${collection.id}`} className="collection-row-main">
+                          <b>{collection.name}</b>
+                          {collection.description && (
+                            <span className="sub">{collection.description}</span>
+                          )}
+                        </Link>
+                        {user && !isOwnProfile ? (
+                          <CollectionFollowButton
+                            collectionId={collection.id}
+                            following={follows.some((f) => f.user_id === user.id)}
+                            count={follows.length}
+                          />
+                        ) : (
+                          follows.length > 0 && (
+                            <span className="collection-followers">
+                              {follows.length} follower{follows.length === 1 ? "" : "s"}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "favorites":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">Top artists, movies &amp; shows</div>
+            <div className="panel-body">
+              {favoriteCount === 0 ? (
+                <EmptySlot>Build your top eight - hand-picked, not counted up from your reviews.</EmptySlot>
+              ) : (
+                <div className="favorites-grid">
+                  {FAVORITE_KINDS.filter((kind) => favorites[kind].length > 0).map((kind) => (
+                    <div className="favorites-column" key={kind}>
+                      <div className="favorites-column-head">{FAVORITE_LABELS[kind]}</div>
+                      <ol className="favorites-list">
+                        {favorites[kind].map((item) => (
+                          <li key={item.id}>
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt="" />
+                            ) : (
+                              <span className="favorite-blank" />
+                            )}
+                            <span className="favorite-body">
+                              <b>{item.title}</b>
+                              {item.subtitle && <span className="sub">{item.subtitle}</span>}
+                              <PickReactions
+                                state={reactionState(item.id)}
+                                canReact={!!user && !isOwnProfile}
+                              />
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "stats":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">Stats</div>
+            <div className="stats-body">
+              {/* Only categories they've actually posted in. Otherwise every
+                  profile would carry a permanent "0 Photography reviews" line
+                  the day the category shipped. */}
+              {MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).length === 0 ? (
+                <div>No reviews yet.</div>
+              ) : (
+                MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).map((mt) => (
+                  <div key={mt}>
+                    {breakdown[mt]} {MEDIA_LABELS[mt]} review{breakdown[mt] === 1 ? "" : "s"}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        );
+
+      case "clubs":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">Clubs</div>
+            <div className="panel-body flush">
+              {clubs.map((club) => (
+                <Link href={`/clubs/${club.id}`} className="club-row" key={club.id}>
+                  <span className={`badge ${club.media_type}`}>{MEDIA_LABELS[club.media_type]}</span>
+                  <span className="club-row-name">{club.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "reviews":
+        return (
+          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">Reviews</div>
+            <div className="panel-body flush">
+              {posts.length === 0 ? (
+                <EmptySlot>No reviews yet.</EmptySlot>
+              ) : (
+                posts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={{
+                      id: post.id,
+                      userId: post.user_id,
+                      mediaType: post.media_type,
+                      title: post.title,
+                      body: post.body,
+                      rating: post.rating,
+                      createdAt: post.created_at,
+                      artist: post.artist,
+                      coverUrl: post.cover_url,
+                      spotifyTrackId: post.spotify_track_id,
+                      youtubeVideoId: post.youtube_video_id,
+                      username: profile.username,
+                    }}
+                    currentUserId={user?.id ?? null}
+                    liked={likedByMe.has(post.id)}
+                    likeCount={likeCounts.get(post.id) ?? 0}
+                    commentCount={commentCounts.get(post.id) ?? 0}
+                reactions={reactionsByPost.get(post.id)}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        );
+    }
   }
 
   return (
-    <>
+    <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
+      {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
       <div
         className="panel profile-head"
         style={
@@ -189,6 +1082,9 @@ export default async function ProfilePage({
                 backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.55)), url(${profile.banner_url})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
+                // The head takes the shape the banner was cropped to, so a
+                // tall banner isn't squashed into a wide strip.
+                aspectRatio: bannerAspectRatio(custom?.banner_aspect),
               }
             : undefined
         }
@@ -204,7 +1100,11 @@ export default async function ProfilePage({
               {profile.username}
               {profile.is_verified && <VerifiedBadge />}
             </div>
-            {profile.bio && <div className="profile-bio">{profile.bio}</div>}
+            {profile.bio && (
+              <div className="profile-bio" style={bioStyle}>
+                {renderRichBio(profile.bio)}
+              </div>
+            )}
             {status?.status_media_type && (
               <div className="profile-status">
                 {status.status_media_type === "music" ? "Listening to " : "Watching "}
@@ -219,6 +1119,11 @@ export default async function ProfilePage({
               <span>{totalLikesReceived} likes</span>
               {tasteMatch !== null && <span className="taste-match">{tasteMatch}% taste match</span>}
               {streak > 1 && <span className="streak-count">{streak} day streak</span>}
+              {/* Only the owner can read their own view rows, so this is
+                  null for everyone else rather than hidden by a check. */}
+              {isOwnProfile && viewerCount != null && viewerCount > 0 && (
+                <span>{viewerCount} profile views</span>
+              )}
             </div>
             {badges.length > 0 && (
               <div className="profile-badges">
@@ -235,96 +1140,73 @@ export default async function ProfilePage({
                 {nextBadge.threshold - posts.length === 1 ? "" : "s"} to unlock {nextBadge.label}
               </div>
             )}
-            <div className="profile-actions">
-              {isOwnProfile ? (
-                <>
-                  <AvatarPicker />
-                  <ProfileCustomize bio={profile.bio} />
-                  <StatusPicker hasStatus={!!status?.status_media_type} />
-                </>
-              ) : user ? (
-                <>
-                  <FollowButton
-                    followedId={profile.id}
-                    username={profile.username}
-                    following={isFollowing}
-                  />
-                  <Link href={`/messages/${profile.username}`} className="btn btn-ghost">
-                    Message
-                  </Link>
-                </>
-              ) : null}
-            </div>
+            {!isOwnProfile && user && (
+              <div className="profile-actions">
+                <FollowButton
+                  followedId={profile.id}
+                  username={profile.username}
+                  following={isFollowing}
+                />
+                <Link href={`/messages/${profile.username}`} className="btn btn-ghost">
+                  Message
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="panel">
-        <div className="panel-head">Stats</div>
-        <div className="stats-body">
-          {/* Only categories they've actually posted in. Otherwise every
-              profile would carry a permanent "0 Photography reviews" line
-              the day the category shipped. */}
-          {MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).length === 0 ? (
-            <div>No reviews yet.</div>
-          ) : (
-            MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).map((mt) => (
-              <div key={mt}>
-                {breakdown[mt]} {MEDIA_LABELS[mt]} review{breakdown[mt] === 1 ? "" : "s"}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {clubs.length > 0 && (
-        <div className="panel">
-          <div className="panel-head">Clubs</div>
-          <div className="panel-body flush">
-            {clubs.map((club) => (
-              <Link href={`/clubs/${club.id}`} className="club-row" key={club.id}>
-                <span className={`badge ${club.media_type}`}>{MEDIA_LABELS[club.media_type]}</span>
-                <span className="club-row-name">{club.name}</span>
-              </Link>
-            ))}
+      {/* The owner's controls live in their own panel rather than in the
+          head. There are eight of them now, and stacked inside the banner
+          they buried the profile they're meant to be editing. */}
+      {isOwnProfile && (
+        <div className="panel profile-editor-panel">
+          <div className="panel-head">Customize your profile</div>
+          <div className="panel-body">
+            <div className="profile-editor-actions">
+              <AvatarPicker />
+              <ProfileCustomize
+                bio={profile.bio}
+                bioFont={custom?.bio_font ?? null}
+                bioColor={custom?.bio_color ?? null}
+                bannerAspectId={custom?.banner_aspect ?? null}
+              />
+              <StatusPicker hasStatus={!!status?.status_media_type} />
+              <ObsessedPicker
+                current={{
+                  kind: obsessedKind,
+                  title: obsessedTitle,
+                  note: custom?.obsessed_note ?? null,
+                  imageUrl: custom?.obsessed_image_url ?? null,
+                }}
+              />
+              <ProfileSongPicker
+                current={{
+                  youtubeId: songId,
+                  title: custom?.profile_song_title ?? null,
+                  artist: custom?.profile_song_artist ?? null,
+                  thumbnailUrl: custom?.profile_song_thumbnail_url ?? null,
+                  autoplay: custom?.profile_song_autoplay === true,
+                }}
+              />
+              <FavoritesEditor favorites={favorites} />
+              <MoodRingEditor
+                emoji={moodEmoji}
+                color={custom?.mood_color ?? null}
+                text={custom?.mood_text ?? null}
+              />
+              <BlurbsEditor next={custom?.blurb_next ?? null} free={custom?.blurb_free ?? null} />
+              {/* Colours, fonts, background and module order all live in one
+                  editor now, and the same one runs on club pages. */}
+              <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />
+            </div>
           </div>
         </div>
       )}
 
-      <div className="panel">
-        <div className="panel-head">Reviews</div>
-        <div className="panel-body flush">
-          {posts.length === 0 ? (
-            <div className="empty-state" style={{ padding: 16 }}>
-              No reviews yet.
-            </div>
-          ) : (
-            posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={{
-                  id: post.id,
-                  userId: post.user_id,
-                  mediaType: post.media_type,
-                  title: post.title,
-                  body: post.body,
-                  rating: post.rating,
-                  createdAt: post.created_at,
-                  artist: post.artist,
-                  coverUrl: post.cover_url,
-                  spotifyTrackId: post.spotify_track_id,
-                  youtubeVideoId: post.youtube_video_id,
-                  username: profile.username,
-                }}
-                currentUserId={user?.id ?? null}
-                liked={likedByMe.has(post.id)}
-                likeCount={likeCounts.get(post.id) ?? 0}
-                commentCount={commentCounts.get(post.id) ?? 0}
-              />
-            ))
-          )}
-        </div>
-      </div>
-    </>
+      {visibleModules(config)
+        .filter((id) => isOwnProfile || sectionHasContent[id])
+        .map((id) => renderSection(id))}
+    </div>
   );
 }

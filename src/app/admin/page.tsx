@@ -210,6 +210,9 @@ export default async function AdminPage() {
           <Link href="/admin/themes" className="btn btn-ghost">
             Edit Themes
           </Link>
+          <Link href="/admin/retention" className="btn btn-ghost">
+            Retention
+          </Link>
         </div>
       </div>
 

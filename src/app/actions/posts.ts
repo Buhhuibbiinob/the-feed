@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { logEvent } from "@/lib/events";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { findOrCreateClub } from "@/lib/clubs";
@@ -72,6 +73,7 @@ export async function createPost(
     return { error: error.message };
   }
 
+  await logEvent(supabase, user.id, "review_posted", "feed");
   revalidatePath("/");
   revalidatePath("/clubs");
   return { ok: true };
@@ -155,6 +157,7 @@ export async function createClubPost(
   });
   if (error) return { error: error.message };
 
+  await logEvent(supabase, user.id, "review_posted", "club");
   revalidatePath(`/clubs/${clubId}`);
   return { ok: true };
 }

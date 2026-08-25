@@ -1,68 +1,139 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { highestBadge } from "@/lib/badges";
 import { guardBuiltinPage } from "@/lib/pages";
+import {
+  computeWeeklyBoards,
+  type LeaderboardEntry,
+  type LeaderboardMember,
+  type LeaderboardPost,
+} from "@/lib/weeklyLeaderboard";
 
-type ProfileRow = {
-  id: string;
-  username: string;
-  avatar_url: string | null;
+export const metadata = { title: "Leaderboard" };
+
+type ProfileRow = { id: string; username: string; avatar_url: string | null };
+type PostRow = {
+  user_id: string;
+  title: string;
+  artist: string | null;
+  rating: number | null;
+  created_at: string;
 };
+
+function Board({
+  title,
+  blurb,
+  entries,
+  emptyMessage,
+}: {
+  title: string;
+  blurb: string;
+  entries: LeaderboardEntry[];
+  emptyMessage: string;
+}) {
+  return (
+    <div className="panel">
+      <div className="panel-head">{title}</div>
+      <div className="panel-body" style={{ paddingBottom: 0 }}>
+        <p className="field-hint" style={{ marginTop: 0 }}>
+          {blurb}
+        </p>
+      </div>
+      <div className="side-list">
+        {entries.length === 0 ? (
+          <div className="empty-state">{emptyMessage}</div>
+        ) : (
+          entries.map((entry, i) => (
+            <div className="row" key={entry.member.id}>
+              <span className="num">{i + 1}</span>
+              <img
+                src={entry.member.avatarUrl || "/avatars/preset-1.svg"}
+                alt=""
+                className="leaderboard-avatar"
+              />
+              <div className="info">
+                <b>
+                  <Link href={`/profile/${entry.member.username}`}>{entry.member.username}</Link>
+                </b>
+                <span>{entry.detail}</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default async function LeaderboardPage() {
   const supabase = await createClient();
   await guardBuiltinPage(supabase, "leaderboard");
 
   const [{ data: profiles }, { data: posts }] = await Promise.all([
-    supabase.from("profiles").select("id, username, avatar_url").returns<ProfileRow[]>(),
-    supabase.from("posts").select("user_id"),
+    // Bots are left out: they post on a schedule and would hold every board
+    // permanently, which is the fastest way to make a leaderboard ignorable.
+    supabase
+      .from("profiles")
+      .select("id, username, avatar_url")
+      .eq("is_bot", false)
+      .eq("banned", false)
+      .returns<ProfileRow[]>(),
+    supabase
+      .from("posts")
+      .select("user_id, title, artist, rating, created_at")
+      .returns<PostRow[]>(),
   ]);
 
-  const counts = new Map<string, number>();
-  for (const post of posts ?? []) {
-    counts.set(post.user_id, (counts.get(post.user_id) ?? 0) + 1);
-  }
+  const members: LeaderboardMember[] = (profiles ?? []).map((p) => ({
+    id: p.id,
+    username: p.username,
+    avatarUrl: p.avatar_url,
+  }));
+  const memberIds = new Set(members.map((m) => m.id));
 
-  const ranked = (profiles ?? [])
-    .map((p) => ({ ...p, count: counts.get(p.id) ?? 0 }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 50);
+  const leaderboardPosts: LeaderboardPost[] = (posts ?? [])
+    .filter((p) => memberIds.has(p.user_id))
+    .map((p) => ({
+      userId: p.user_id,
+      title: p.title,
+      artist: p.artist,
+      rating: p.rating,
+      createdAt: p.created_at,
+    }));
+
+  const boards = computeWeeklyBoards(members, leaderboardPosts);
 
   return (
-    <div className="panel">
-      <div className="panel-head">Leaderboard</div>
-      <div className="side-list">
-        {ranked.length === 0 ? (
-          <div className="empty-state">No reviewers yet.</div>
-        ) : (
-          ranked.map((p, i) => {
-            const badge = highestBadge(p.count);
-            return (
-              <div className="row" key={p.id}>
-                <span className="num">{i + 1}</span>
-                <img
-                  src={p.avatar_url || "/avatars/preset-1.svg"}
-                  alt=""
-                  className="leaderboard-avatar"
-                />
-                <div className="info">
-                  <b>
-                    <Link href={`/profile/${p.username}`}>{p.username}</Link>
-                    {badge && (
-                      <span className="leaderboard-badge" title={`${badge.threshold}+ reviews`}>
-                        {badge.label}
-                      </span>
-                    )}
-                  </b>
-                  <span>
-                    {p.count} review{p.count === 1 ? "" : "s"}
-                  </span>
-                </div>
-              </div>
-            );
-          })
-        )}
+    <>
+      <div className="panel">
+        <div className="panel-head">This week</div>
+        <div className="panel-body">
+          <p className="field-hint" style={{ margin: 0 }}>
+            Every board below covers the last seven days and recalculates itself, so nobody builds
+            an unbeatable all-time lead and the standings are worth checking again next week.
+          </p>
+        </div>
       </div>
-    </div>
+
+      <Board
+        title="Top Reviewer"
+        blurb="Most reviews posted in the last seven days."
+        entries={boards.topReviewer}
+        emptyMessage="Nobody has posted a review this week yet."
+      />
+
+      <Board
+        title="Best Taste"
+        blurb="Whose ratings line up closest with everyone else's on the things you've both seen or heard. Being in tune with the room, not being liked by it."
+        entries={boards.bestTaste}
+        emptyMessage="Not enough overlapping reviews yet to compare anyone's taste."
+      />
+
+      <Board
+        title="Fastest Rising"
+        blurb="Biggest jump in reviews against the week before."
+        entries={boards.fastestRising}
+        emptyMessage="No one has stepped up their posting this week yet."
+      />
+    </>
   );
 }

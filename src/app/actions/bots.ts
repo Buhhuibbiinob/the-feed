@@ -537,12 +537,14 @@ async function pickReviewSubject(adminClient: AdminClient): Promise<ReviewSubjec
 
 /**
  * Runs one round of bot activity: a review, a chat message, and a like.
- * Admin-triggered rather than scheduled, so activity only appears when
- * someone asks for it.
+ *
+ * Split out from the admin action so a scheduler can run the same round
+ * without holding an admin session - see /api/bots/run. The flag check
+ * lives in here rather than at each caller so switching bots off in the
+ * admin screen switches off every path at once.
  */
-export async function adminRunBotActivity(_prev: BotState, _formData: FormData): Promise<BotState> {
-  const { supabase, user, admin } = await requireAdmin();
-  if (!user || !admin) return { error: "Admins only." };
+export async function runBotRound(requestedId = ""): Promise<BotState> {
+  const supabase = await createClient();
 
   const flags = await getSiteFlags(supabase);
   if (!flags.bots_enabled) {
@@ -552,8 +554,7 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
   const bots = (await listBots()).filter((b) => b.bot_active);
   if (bots.length === 0) return { error: "No active bots yet - create one below." };
 
-  // A specific bot when the admin asked for one, otherwise any active bot.
-  const requestedId = String(_formData?.get("bot_id") ?? "");
+  // A specific bot when one was asked for, otherwise any active bot.
   const requested = requestedId ? bots.find((b) => b.id === requestedId) : null;
   if (requestedId && !requested) {
     return { error: "That bot is paused or no longer exists." };
@@ -690,4 +691,15 @@ export async function adminRunBotActivity(_prev: BotState, _formData: FormData):
       ? `@${bot.username} ${done.join(", ")}. Skipped: ${skipped.join(". ")}.`
       : `@${bot.username} ${done.join(", ")}.`,
   };
+}
+
+/**
+ * The admin screen's button. Nothing but an auth gate in front of
+ * runBotRound - the work itself is identical however it's triggered.
+ */
+export async function adminRunBotActivity(_prev: BotState, _formData: FormData): Promise<BotState> {
+  const { user, admin } = await requireAdmin();
+  if (!user || !admin) return { error: "Admins only." };
+
+  return runBotRound(String(_formData?.get("bot_id") ?? ""));
 }

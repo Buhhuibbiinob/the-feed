@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { fetchPostReactions } from "@/lib/postReactions";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { OrbyBot } from "@/components/OrbyBot";
@@ -72,6 +73,7 @@ export default async function RecsPage() {
     commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1);
   }
 
+
   const trending = allPosts
     .filter((p) => p.user_id !== user?.id)
     .map((post) => ({
@@ -110,6 +112,14 @@ export default async function RecsPage() {
       .slice(0, 10);
   }
 
+  // Reaction tags for everything rendered on this page. Placed after both
+  // lists are final - forYou is only filled in for signed-in members.
+  const reactionsByPost = await fetchPostReactions(
+    supabase,
+    [...forYou, ...trending].map((p) => p.id),
+    user?.id ?? null
+  );
+
   return (
     <>
       <OrbyBot />
@@ -135,6 +145,7 @@ export default async function RecsPage() {
                 liked={likedByMe.has(post.id)}
                 likeCount={likeCounts.get(post.id) ?? 0}
                 commentCount={commentCounts.get(post.id) ?? 0}
+                reactions={reactionsByPost.get(post.id)}
               />
             ))
           )}
@@ -157,6 +168,7 @@ export default async function RecsPage() {
                 liked={likedByMe.has(post.id)}
                 likeCount={likeCounts.get(post.id) ?? 0}
                 commentCount={commentCounts.get(post.id) ?? 0}
+                reactions={reactionsByPost.get(post.id)}
               />
             ))
           )}

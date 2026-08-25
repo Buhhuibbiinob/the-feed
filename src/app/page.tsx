@@ -1,4 +1,6 @@
 import { Fragment, type ReactNode } from "react";
+import { fetchPostReactions } from "@/lib/postReactions";
+import { workKey } from "@/lib/taste";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
@@ -191,6 +193,10 @@ export default async function FeedPage({
 }) {
   const { filter, type, page } = await searchParams;
   const followingOnly = filter === "following";
+  // "For You" ranks the same feed by taste rather than cutting it down, so
+  // it can never show an emptier page than All - which is what killed the
+  // Following tab's usefulness for anyone who follows two people.
+  const forYouOnly = filter === "foryou";
   // Photography lives in the shared feed behind a filter rather than in its
   // own hub. At this volume a separate destination would just look empty,
   // which costs more than the tidier navigation gains.
@@ -202,6 +208,7 @@ export default async function FeedPage({
   const feedHref = (nextType: MediaType | null, nextPage: number) => {
     const params = new URLSearchParams();
     if (followingOnly) params.set("filter", "following");
+    if (forYouOnly) params.set("filter", "foryou");
     if (nextType) params.set("type", nextType);
     if (nextPage > 1) params.set("page", String(nextPage));
     const qs = params.toString();
@@ -369,7 +376,46 @@ export default async function FeedPage({
   // The category chips filter the list you're reading, not the whole page.
   // allPosts still feeds Top Reviewer, Trending, Now Watching, Feed TV and
   // the rest, so picking "Photography" must not empty the sidebar.
-  const feedPosts = typeFilter ? allPosts.filter((p) => p.media_type === typeFilter) : allPosts;
+  const typeFiltered = typeFilter ? allPosts.filter((p) => p.media_type === typeFilter) : allPosts;
+
+  // For You reorders rather than filters. The score leans on what the
+  // member has actually rated highly - the works they liked, the people who
+  // reviewed those works, and the categories they keep coming back to -
+  // with recency as the tie-breaker so the top of the feed still moves.
+  let feedPosts = typeFiltered;
+  if (user && forYouOnly) {
+    const [{ data: myPostRows }, { data: myFollowRows }] = await Promise.all([
+      supabase.from("posts").select("title, artist, media_type, rating").eq("user_id", user.id),
+      supabase.from("follows").select("followed_id").eq("follower_id", user.id),
+    ]);
+
+    const lovedWorks = new Set<string>();
+    const typeAffinity = new Map<string, number>();
+    for (const row of myPostRows ?? []) {
+      if ((row.rating ?? 0) >= 4) {
+        lovedWorks.add(workKey(row.title as string, (row.artist as string | null) ?? null));
+        typeAffinity.set(row.media_type as string, (typeAffinity.get(row.media_type as string) ?? 0) + 1);
+      }
+    }
+    const followed = new Set((myFollowRows ?? []).map((r) => r.followed_id as string));
+
+    const score = (post: (typeof typeFiltered)[number]) => {
+      let value = 0;
+      if (followed.has(post.user_id)) value += 5;
+      if (lovedWorks.has(workKey(post.title, post.artist))) value += 4;
+      value += Math.min(typeAffinity.get(post.media_type) ?? 0, 3);
+      value += (post.rating ?? 0) >= 4 ? 2 : 0;
+      // Your own reviews aren't a recommendation.
+      if (post.user_id === user.id) value -= 10;
+      return value;
+    };
+
+    feedPosts = [...typeFiltered].sort((a, b) => {
+      const diff = score(b) - score(a);
+      if (diff !== 0) return diff;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }
 
   // Paging happens here rather than in the query on purpose: allPosts feeds
   // Top Reviewer, Trending, Now Watching, Feed TV and the rest, so a
@@ -397,6 +443,14 @@ export default async function FeedPage({
   for (const comment of commentRows ?? []) {
     commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1);
   }
+
+  // Reaction tags for everything rendered on this page. Fetched here
+  // rather than inside PostCard so one query covers the whole list.
+  const reactionsByPost = await fetchPostReactions(
+    supabase,
+    feedPosts.map((p) => p.id),
+    user?.id ?? null
+  );
 
   let spotifyConnected = false;
   let onRepeat: ShelfItem[] = [];
@@ -649,7 +703,9 @@ export default async function FeedPage({
     ))}
     </>
   );
-  const sideMostActive = (
+  // Hidden rather than showing "No reviews yet." - the last homepage module
+  // that still announced its own emptiness to a first-time visitor.
+  const sideMostActive = topReviewers.length === 0 ? null : (
     <>
   <div className="panel hot-pages-panel">
     <div className="panel-head tabbed">
@@ -658,23 +714,17 @@ export default async function FeedPage({
         <span className="tab-main">Most Active</span>
       </span>
     </div>
-    {topReviewers.length === 0 ? (
-      <div className="side-list">
-        <div className="empty-state">No reviews yet.</div>
-      </div>
-    ) : (
-      <div className="hot-pages-strip">
-        {topReviewers.map(([name, { count, avatarUrl }]) => (
-          <div className="hot-pages-item" key={name}>
-            <div className="hot-pages-photo-wrap">
-              <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
-              <span className="hot-pages-badge">{count}</span>
-            </div>
-            <span className="hot-pages-name">{name}</span>
+    <div className="hot-pages-strip">
+      {topReviewers.map(([name, { count, avatarUrl }]) => (
+        <div className="hot-pages-item" key={name}>
+          <div className="hot-pages-photo-wrap">
+            <img src={avatarUrl || "/avatars/preset-1.svg"} alt="" className="hot-pages-photo" />
+            <span className="hot-pages-badge">{count}</span>
           </div>
-        ))}
-      </div>
-    )}
+          <span className="hot-pages-name">{name}</span>
+        </div>
+      ))}
+    </div>
   </div>
     </>
   );
@@ -953,7 +1003,7 @@ export default async function FeedPage({
                 <span className="tab-the">the</span>
                 <span className="tab-main">Recent Reviews</span>
               </span>
-              {user && <FollowingToggle following={followingOnly} />}
+              {user && <FollowingToggle filter={filter ?? null} />}
             </div>
             {/* Category chips. Links rather than buttons so the filter is a
                 real URL people can share and the back button works. The
@@ -1007,6 +1057,7 @@ export default async function FeedPage({
                     liked={likedByMe.has(post.id)}
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}
+                reactions={reactionsByPost.get(post.id)}
                     sticker={
                       post.id === newFavePost?.id
                         ? "new"
