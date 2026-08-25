@@ -1509,7 +1509,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['likes', 'comments', 'follows', 'post_reactions', 'favorite_reactions', 'profile_views']
+  foreach t in array array['likes', 'comments', 'follows', 'favorite_reactions', 'profile_views']
   loop
     begin
       execute format('alter publication supabase_realtime add table public.%I', t);
@@ -1677,3 +1677,18 @@ create policy "Members manage their own pins"
 -- ---------- club info page ----------
 alter table public.clubs add column if not exists info_body text;
 alter table public.clubs add column if not exists info_updated_at timestamptz;
+
+-- ---------- Reaction tags on reviews: removed ----------
+-- The five-emoji row under each review was dropped from the product. The
+-- table is left in place rather than dropped: nothing reads or writes it
+-- any more, and keeping it means the handful of reactions people already
+-- left aren't destroyed by a schema re-run if the idea comes back.
+--
+-- It is taken out of the realtime publication above, since nothing
+-- subscribes to it now. To remove it for good:
+--   drop table if exists public.post_reactions;
+do $$ begin
+  alter publication supabase_realtime drop table public.post_reactions;
+exception
+  when others then null;
+end $$;

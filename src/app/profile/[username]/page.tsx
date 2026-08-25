@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { fetchPostReactions } from "@/lib/postReactions";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/PostCard";
@@ -311,13 +310,6 @@ export default async function ProfilePage({
     commentCounts.set(comment.post_id, (commentCounts.get(comment.post_id) ?? 0) + 1);
   }
 
-  // Reaction tags for everything rendered on this page. Fetched here
-  // rather than inside PostCard so one query covers the whole list.
-  const reactionsByPost = await fetchPostReactions(
-    supabase,
-    posts.map((p) => p.id),
-    user?.id ?? null
-  );
 
   // Built from MEDIA_TYPES rather than a literal, so adding a category
   // can't silently leave a counter missing here again.
@@ -833,7 +825,6 @@ export default async function ProfilePage({
                       username: profile.username,
                     }}
                     currentUserId={user?.id ?? null}
-                    reactions={reactionsByPost.get(post.id)}
                     liked={likedByMe.has(post.id)}
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}
@@ -1064,7 +1055,6 @@ export default async function ProfilePage({
                     liked={likedByMe.has(post.id)}
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}
-                reactions={reactionsByPost.get(post.id)}
                   />
                 ))
               )}

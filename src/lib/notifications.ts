@@ -7,8 +7,7 @@ export type NotificationType =
   | "view"
   | "reaction"
   | "twin"
-  | "reply"
-  | "post_reaction";
+  | "reply";
 
 export type NotificationItem = {
   id: string;
@@ -37,13 +36,6 @@ type FollowRow = {
 };
 
 type ViewRow = {
-  created_at: string;
-  profiles: ProfileRef;
-};
-
-type PostReactionRow = {
-  post_id: string;
-  emoji: string;
   created_at: string;
   profiles: ProfileRef;
 };
@@ -148,7 +140,7 @@ export async function getNotifications(
   const favoriteIds = (favoriteRows ?? []).map((row) => row.id as string);
   const ownCommentIds = (ownCommentRows ?? []).map((row) => row.id as string);
 
-  const [likesRes, commentsRes, followsRes, viewsRes, reactionsRes, postReactionsRes, repliesRes] =
+  const [likesRes, commentsRes, followsRes, viewsRes, reactionsRes, repliesRes] =
     await Promise.all([
     postIds.length === 0
       ? Promise.resolve({ data: [] as RelatedRow[] })
@@ -199,17 +191,6 @@ export async function getNotifications(
           .order("created_at", { ascending: false })
           .limit(20)
           .returns<ReactionRow[]>(),
-    postIds.length === 0
-      ? Promise.resolve({ data: [] as PostReactionRow[] })
-      : supabase
-          .from("post_reactions")
-          .select("post_id, emoji, created_at, profiles(username, avatar_url)")
-          .in("post_id", postIds)
-          .neq("user_id", userId)
-          .gte("created_at", sinceIso)
-          .order("created_at", { ascending: false })
-          .limit(20)
-          .returns<PostReactionRow[]>(),
     ownCommentIds.length === 0
       ? Promise.resolve({ data: [] as ReplyRow[] })
       : supabase
@@ -301,21 +282,6 @@ export async function getNotifications(
     };
   });
 
-  const postReactions: NotificationItem[] = (postReactionsRes.data ?? []).map((row) => {
-    const profile = firstProfile(row.profiles);
-    return {
-      id: `postreaction-${row.post_id}-${row.created_at}`,
-      type: "post_reaction" as const,
-      actorUsername: profile?.username ?? "someone",
-      actorAvatarUrl: profile?.avatar_url ?? null,
-      postId: row.post_id,
-      postTitle: titleById.get(row.post_id) ?? null,
-      subject: null,
-      emoji: row.emoji,
-      createdAt: row.created_at,
-    };
-  });
-
   const replies: NotificationItem[] = (repliesRes.data ?? []).map((row) => {
     const profile = firstProfile(row.profiles);
     return {
@@ -337,7 +303,6 @@ export async function getNotifications(
     ...follows,
     ...views,
     ...reactions,
-    ...postReactions,
     ...replies,
     ...twin,
   ]

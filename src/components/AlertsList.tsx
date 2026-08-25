@@ -40,7 +40,6 @@ export function AlertsList({ initial }: { initial: AlertItem[] }) {
       "likes",
       "comments",
       "follows",
-      "post_reactions",
       "favorite_reactions",
       "profile_views",
     ]) {

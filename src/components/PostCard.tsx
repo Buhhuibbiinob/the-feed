@@ -12,7 +12,6 @@ import { AlertModal } from "@/components/AlertModal";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 import { Stars } from "@/components/Stars";
-import { ReviewReactions, type ReviewReactionState } from "@/components/ReviewReactions";
 
 export type PostCardData = {
   id: string;
@@ -92,7 +91,6 @@ export function PostCard({
   liked,
   likeCount,
   commentCount,
-  reactions,
   hideCommentLink = false,
   sticker,
   previewId,
@@ -105,9 +103,6 @@ export function PostCard({
   liked: boolean;
   likeCount: number;
   commentCount: number;
-  /** Per-viewer state like `liked`, so it sits beside it rather than
-      inside the post data every caller builds by hand. */
-  reactions?: ReviewReactionState;
   hideCommentLink?: boolean;
   sticker?: "hot" | "new";
   previewId?: string;
@@ -220,11 +215,6 @@ export function PostCard({
           </div>
         )}
         <SpoilerText text={post.body} />
-        <ReviewReactions
-          postId={post.id}
-          state={reactions ?? { counts: [], mine: null }}
-          canReact={!!currentUserId}
-        />
         <div className="post-meta">
           <Link href={`/profile/${post.username}`}>{post.username}</Link>
           {post.isVerified && <VerifiedBadge />}
