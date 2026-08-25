@@ -7,50 +7,41 @@ import {
   uploadSticker,
   type StickerState,
 } from "@/app/actions/stickers";
-import { MAX_STICKERS, MAX_STICKER_BYTES, type Sticker } from "@/lib/stickers";
+import { MAX_STICKERS, type Sticker } from "@/lib/stickers";
 
 const initialState: StickerState = {};
 
 /**
- * The profile photo with stickers stuck on it.
+ * Stickers scattered anywhere over the profile, not stuck to the photo.
  *
- * Dragging is pointer-based rather than HTML5 drag-and-drop: the native
- * API has no useful touch support and drags a ghost image around, neither
- * of which suits sticking a sticker to a photo with your thumb.
+ * The layer covers the whole profile column area and sits above the
+ * panels. When nobody is editing it ignores the pointer entirely, so a
+ * sticker sitting over a link doesn't stop you clicking the link - which
+ * is the thing that makes a free-floating layer usable rather than a trap.
  *
- * Position is kept in local state while dragging and written once on
- * release - saving on every pointer move would be hundreds of requests to
- * place one sticker.
+ * Coordinates are a percentage of the layer, so a sticker keeps its place
+ * as the page reflows between desktop and phone.
  */
-export function StickerPhoto({
-  avatarUrl,
-  username,
+export function StickerLayer({
   stickers,
   isOwner,
 }: {
-  avatarUrl: string;
-  username: string;
   stickers: Sticker[];
   isOwner: boolean;
 }) {
-  const boxRef = useRef<HTMLDivElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
   const [editing, setEditing] = useState(false);
   const [local, setLocal] = useState<Sticker[]>(stickers);
   const [selected, setSelected] = useState<string | null>(null);
   const dragRef = useRef<{ id: string; pointerId: number } | null>(null);
   const [state, formAction, pending] = useActionState(uploadSticker, initialState);
 
-  // Adopt the server's list whenever it changes underneath us.
   const [lastStickers, setLastStickers] = useState(stickers);
   if (lastStickers !== stickers) {
     setLastStickers(stickers);
     setLocal(stickers);
   }
 
-  // A successful upload clears the file input by remounting it. Calling
-  // form.reset() through a ref would mean touching a ref during render,
-  // and a key bump is the way React actually wants an uncontrolled input
-  // cleared.
   const [uploadKey, setUploadKey] = useState(0);
   const [lastOk, setLastOk] = useState(state.ok);
   if (lastOk !== state.ok) {
@@ -60,15 +51,6 @@ export function StickerPhoto({
 
   function patch(id: string, changes: Partial<Sticker>) {
     setLocal((current) => current.map((s) => (s.id === id ? { ...s, ...changes } : s)));
-  }
-
-  function pointFromEvent(e: React.PointerEvent) {
-    const box = boxRef.current?.getBoundingClientRect();
-    if (!box || box.width === 0) return null;
-    return {
-      x: ((e.clientX - box.left) / box.width) * 100,
-      y: ((e.clientY - box.top) / box.height) * 100,
-    };
   }
 
   function handlePointerDown(e: React.PointerEvent, id: string) {
@@ -81,16 +63,18 @@ export function StickerPhoto({
 
   function handlePointerMove(e: React.PointerEvent) {
     if (!dragRef.current || dragRef.current.pointerId !== e.pointerId) return;
-    const point = pointFromEvent(e);
-    if (point) patch(dragRef.current.id, point);
+    const box = layerRef.current?.getBoundingClientRect();
+    if (!box || box.width === 0 || box.height === 0) return;
+    patch(dragRef.current.id, {
+      x: ((e.clientX - box.left) / box.width) * 100,
+      y: ((e.clientY - box.top) / box.height) * 100,
+    });
   }
 
   function handlePointerUp(e: React.PointerEvent) {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== e.pointerId) return;
     dragRef.current = null;
-
-    // One save, on release.
     const sticker = local.find((s) => s.id === drag.id);
     if (sticker) void save(sticker);
   }
@@ -106,25 +90,23 @@ export function StickerPhoto({
   }
 
   function adjust(id: string, changes: Partial<Sticker>) {
-    const next = local.find((s) => s.id === id);
-    if (!next) return;
-    const updated = { ...next, ...changes };
+    const current = local.find((s) => s.id === id);
+    if (!current) return;
     patch(id, changes);
-    void save(updated);
+    void save({ ...current, ...changes });
   }
 
   const active = local.find((s) => s.id === selected) ?? null;
 
   return (
-    <div className="sticker-photo">
+    <>
       <div
-        ref={boxRef}
-        className={`sticker-box${editing ? " editing" : ""}`}
+        ref={layerRef}
+        className={`sticker-layer${editing ? " editing" : ""}`}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        <img src={avatarUrl} alt={username} className="sticker-base" />
         {local.map((sticker) => (
           <img
             key={sticker.id}
@@ -134,7 +116,8 @@ export function StickerPhoto({
             style={{
               left: `${sticker.x}%`,
               top: `${sticker.y}%`,
-              transform: `translate(-50%, -50%) rotate(${sticker.rotation}deg) scale(${sticker.scale})`,
+              width: `${14 * sticker.scale}%`,
+              transform: `translate(-50%, -50%) rotate(${sticker.rotation}deg)`,
               zIndex: sticker.z,
             }}
             onPointerDown={(e) => handlePointerDown(e, sticker.id)}
@@ -146,7 +129,7 @@ export function StickerPhoto({
       {isOwner && (
         <div className="sticker-tools">
           <button type="button" className="comment-action" onClick={() => setEditing((v) => !v)}>
-            {editing ? "Done stickering" : "Add stickers"}
+            {editing ? "Done stickering" : "Stickers"}
           </button>
 
           {editing && (
@@ -165,7 +148,7 @@ export function StickerPhoto({
                 </button>
               </form>
               <div className="field-hint">
-                Drag them about. Transparent PNGs work best. {MAX_STICKERS} max.
+                Drag them anywhere on the page. Transparent PNGs work best. {MAX_STICKERS} max.
               </div>
 
               {active ? (
@@ -194,14 +177,12 @@ export function StickerPhoto({
                       onPointerUp={() => adjust(active.id, { rotation: active.rotation })}
                     />
                   </label>
-                  <div className="form-actions">
-                    <form action={deleteSticker}>
-                      <input type="hidden" name="id" value={active.id} />
-                      <button type="submit" className="comment-action danger">
-                        Remove sticker
-                      </button>
-                    </form>
-                  </div>
+                  <form action={deleteSticker}>
+                    <input type="hidden" name="id" value={active.id} />
+                    <button type="submit" className="comment-action danger">
+                      Remove
+                    </button>
+                  </form>
                 </div>
               ) : (
                 local.length > 0 && <div className="field-hint">Tap one to resize or turn it.</div>
@@ -210,6 +191,6 @@ export function StickerPhoto({
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }

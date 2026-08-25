@@ -26,7 +26,7 @@ import { MoodRingEditor } from "@/components/MoodRing";
 import { BlurbsEditor } from "@/components/BlurbsEditor";
 import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
 import { TopConnections, type Connection } from "@/components/TopConnections";
-import { StickerPhoto } from "@/components/StickerPhoto";
+import { StickerLayer } from "@/components/StickerLayer";
 import type { Sticker } from "@/lib/stickers";
 import {
   FAVORITE_KINDS,
@@ -1099,6 +1099,8 @@ export default async function ProfilePage({
   return (
     <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
+      <StickerLayer stickers={stickers} isOwner={isOwnProfile} />
+
       <div className="profile-columns">
         <div className="profile-col-side">
           {/* The identity card: big square photo, actions stacked beside
@@ -1114,26 +1116,13 @@ export default async function ProfilePage({
               {profile.is_verified && <VerifiedBadge />}
             </div>
             <div className="pf-card-body">
-              {/* The photo runs the full width of the column, with the
-                  stickers stuck on top of it. It's the thing people came
-                  to look at, so it gets the room. */}
-              <StickerPhoto
-                avatarUrl={profile.avatar_url || "/avatars/preset-1.svg"}
-                username={profile.username}
-                stickers={stickers}
-                isOwner={isOwnProfile}
+              {/* The photo runs the full width of the column. It's the
+                  thing people came to look at, so it gets the room. */}
+              <img
+                src={profile.avatar_url || "/avatars/preset-1.svg"}
+                alt={profile.username}
+                className="pf-photo"
               />
-
-              {/* The banner sits beside the photo rather than as a strip
-                  across the page, at whatever shape it was cropped to. */}
-              {profile.banner_url && (
-                <div
-                  className="pf-banner"
-                  style={{ aspectRatio: bannerAspectRatio(custom?.banner_aspect) }}
-                >
-                  <img src={profile.banner_url} alt="" />
-                </div>
-              )}
 
               <div className="pf-id">
                 <div className="pf-links">
@@ -1318,6 +1307,16 @@ export default async function ProfilePage({
         </div>
 
         <div className="profile-col-main">
+          {/* The banner heads the main column - the wide space it was
+              made for, rather than squeezed into the narrow one. */}
+          {profile.banner_url && (
+            <div
+              className="pf-banner"
+              style={{ aspectRatio: bannerAspectRatio(custom?.banner_aspect) }}
+            >
+              <img src={profile.banner_url} alt="" />
+            </div>
+          )}
           {shownModules.filter((id) => moduleColumn(id) === "main").map((id) => renderSection(id))}
         </div>
       </div>
