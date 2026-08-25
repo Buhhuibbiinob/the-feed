@@ -5,6 +5,11 @@ import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { createClient } from "@/lib/supabase/server";
 import { MAX_AVATAR_BYTES, MAX_BANNER_BYTES, MAX_BACKGROUND_BYTES, megabytes, isImageFile, guessContentType } from "@/lib/uploads";
 import { checkBioSafety } from "@/lib/contentSafety";
+import { isProfileFontId, normalizeColor } from "@/lib/profileSkin";
+import { sanitizeProfileLayout } from "@/lib/profileLayout";
+import { isObsessedKind } from "@/lib/obsessed";
+import { isBannerAspect, DEFAULT_BANNER_ASPECT } from "@/lib/bannerShape";
+import { isFavoriteKind, MAX_FAVORITES_PER_KIND } from "@/lib/favorites";
 
 export type ProfileFormState = {
   error?: string;
@@ -115,7 +120,16 @@ export async function updateBio(
     return { error: bioSafety.reason };
   }
 
-  const { error } = await supabase.from("profiles").update({ bio }).eq("id", user.id);
+  // Styling rides along with the text so the two can't get out of step -
+  // saving a bio and saving how it looks is one action to the member.
+  const fontValue = formData.get("bio_font");
+  const bioFont = isProfileFontId(fontValue) ? fontValue : null;
+  const bioColor = normalizeColor(formData.get("bio_color"));
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ bio, bio_font: bioFont, bio_color: bioColor })
+    .eq("id", user.id);
   if (error) return { error: error.message };
 
   await revalidateProfile(supabase, user.id);
@@ -155,9 +169,12 @@ export async function uploadBanner(
     data: { publicUrl },
   } = supabase.storage.from("avatars").getPublicUrl(path);
 
+  const aspectValue = formData.get("banner_aspect");
+  const aspect = isBannerAspect(aspectValue) ? aspectValue : DEFAULT_BANNER_ASPECT;
+
   const { error } = await supabase
     .from("profiles")
-    .update({ banner_url: `${publicUrl}?t=${Date.now()}` })
+    .update({ banner_url: `${publicUrl}?t=${Date.now()}`, banner_aspect: aspect })
     .eq("id", user.id);
 
   if (error) return { error: error.message };
@@ -304,6 +321,288 @@ export async function clearStatus(formData: FormData) {
       status_updated_at: null,
     })
     .eq("id", user.id);
+
+  await revalidateProfile(supabase, user.id);
+}
+
+export async function updateProfileLayout(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  // The editor submits the whole arrangement as one comma-joined list
+  // rather than a field per section, so a section that was dragged and a
+  // section that was switched off arrive together and can't half-apply.
+  const raw = String(formData.get("layout") ?? "")
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const layout = sanitizeProfileLayout(raw);
+  if (layout.length === 0) return { error: "Pick at least one section." };
+
+  const { error } = await supabase.from("profiles").update({ profile_layout: layout }).eq("id", user.id);
+  if (error) return { error: error.message };
+
+  await revalidateProfile(supabase, user.id);
+  return { ok: true };
+}
+
+export async function updateProfileSkin(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  // A blank field clears that colour rather than failing, so "back to the
+  // site theme" is reachable without a separate reset action.
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      profile_bg_color: normalizeColor(formData.get("profile_bg_color")),
+      profile_panel_color: normalizeColor(formData.get("profile_panel_color")),
+      profile_text_color: normalizeColor(formData.get("profile_text_color")),
+      profile_accent_color: normalizeColor(formData.get("profile_accent_color")),
+    })
+    .eq("id", user.id);
+  if (error) return { error: error.message };
+
+  await revalidateProfile(supabase, user.id);
+  return { ok: true };
+}
+
+export async function setObsessed(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  const kind = formData.get("kind");
+  if (!isObsessedKind(kind)) return { error: "Pick what kind of thing it is." };
+
+  const title = String(formData.get("title") ?? "").trim().slice(0, 120);
+  if (!title) return { error: "Give it a name." };
+
+  const note = String(formData.get("note") ?? "").trim().slice(0, 140) || null;
+  if (note) {
+    const safety = checkBioSafety(note);
+    if (!safety.allowed) return { error: safety.reason };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      obsessed_kind: kind,
+      obsessed_title: title,
+      obsessed_note: note,
+      obsessed_image_url: String(formData.get("image_url") ?? "").trim() || null,
+      obsessed_updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+  if (error) return { error: error.message };
+
+  await revalidateProfile(supabase, user.id);
+  return { ok: true };
+}
+
+export async function clearObsessed() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("profiles")
+    .update({
+      obsessed_kind: null,
+      obsessed_title: null,
+      obsessed_note: null,
+      obsessed_image_url: null,
+      obsessed_updated_at: null,
+    })
+    .eq("id", user.id);
+
+  await revalidateProfile(supabase, user.id);
+}
+
+export async function setProfileSong(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  const youtubeId = String(formData.get("youtube_id") ?? "").trim() || null;
+  const spotifyId = String(formData.get("spotify_id") ?? "").trim() || null;
+  if (!youtubeId && !spotifyId) return { error: "Pick a track first." };
+
+  const title = String(formData.get("title") ?? "").trim().slice(0, 160);
+  if (!title) return { error: "Pick a track first." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      profile_song_youtube_id: youtubeId,
+      profile_song_spotify_id: spotifyId,
+      profile_song_title: title,
+      profile_song_artist: String(formData.get("artist") ?? "").trim().slice(0, 160) || null,
+      profile_song_thumbnail_url: String(formData.get("thumbnail_url") ?? "").trim() || null,
+      // Autoplay is opt-in and off by default. A page that starts making
+      // noise unannounced is the part of the Myspace profile song nobody
+      // actually misses.
+      profile_song_autoplay: formData.get("autoplay") === "on",
+    })
+    .eq("id", user.id);
+  if (error) return { error: error.message };
+
+  await revalidateProfile(supabase, user.id);
+  return { ok: true };
+}
+
+export async function clearProfileSong() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("profiles")
+    .update({
+      profile_song_youtube_id: null,
+      profile_song_spotify_id: null,
+      profile_song_title: null,
+      profile_song_artist: null,
+      profile_song_thumbnail_url: null,
+      profile_song_autoplay: false,
+    })
+    .eq("id", user.id);
+
+  await revalidateProfile(supabase, user.id);
+}
+
+export async function addFavorite(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  const kind = formData.get("kind");
+  if (!isFavoriteKind(kind)) return { error: "Unknown list." };
+
+  const title = String(formData.get("title") ?? "").trim().slice(0, 120);
+  if (!title) return { error: "Type a name first." };
+
+  const { data: existing } = await supabase
+    .from("profile_favorites")
+    .select("position")
+    .eq("user_id", user.id)
+    .eq("kind", kind)
+    .order("position", { ascending: false })
+    .limit(1);
+
+  const { count } = await supabase
+    .from("profile_favorites")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("kind", kind);
+
+  if ((count ?? 0) >= MAX_FAVORITES_PER_KIND) {
+    return { error: `That list holds ${MAX_FAVORITES_PER_KIND}. Remove one first.` };
+  }
+
+  const nextPosition = ((existing?.[0]?.position as number | undefined) ?? -1) + 1;
+
+  const { error } = await supabase.from("profile_favorites").insert({
+    user_id: user.id,
+    kind,
+    title,
+    subtitle: String(formData.get("subtitle") ?? "").trim().slice(0, 120) || null,
+    image_url: String(formData.get("image_url") ?? "").trim() || null,
+    position: nextPosition,
+  });
+  if (error) return { error: error.message };
+
+  await revalidateProfile(supabase, user.id);
+  return { ok: true };
+}
+
+export async function removeFavorite(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  // Scoped to the caller as well as the id: RLS already enforces this, but
+  // the filter means a wrong id fails as a no-op rather than a policy error.
+  await supabase.from("profile_favorites").delete().eq("id", id).eq("user_id", user.id);
+
+  await revalidateProfile(supabase, user.id);
+}
+
+export async function moveFavorite(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const id = String(formData.get("id") ?? "");
+  const direction = String(formData.get("direction") ?? "");
+  if (!id || (direction !== "up" && direction !== "down")) return;
+
+  const { data: row } = await supabase
+    .from("profile_favorites")
+    .select("id, kind, position")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!row) return;
+
+  // Positions can have gaps (they're only ever compared, never counted on
+  // to be contiguous), so the neighbour is whichever row is nearest on the
+  // requested side rather than position +/- 1.
+  const { data: neighbours } = await supabase
+    .from("profile_favorites")
+    .select("id, position")
+    .eq("user_id", user.id)
+    .eq("kind", row.kind)
+    .order("position", { ascending: direction === "down" })
+    [direction === "up" ? "lt" : "gt"]("position", row.position)
+    .limit(1);
+
+  const neighbour = neighbours?.[0];
+  if (!neighbour) return;
+
+  await Promise.all([
+    supabase.from("profile_favorites").update({ position: neighbour.position }).eq("id", row.id).eq("user_id", user.id),
+    supabase.from("profile_favorites").update({ position: row.position }).eq("id", neighbour.id).eq("user_id", user.id),
+  ]);
 
   await revalidateProfile(supabase, user.id);
 }

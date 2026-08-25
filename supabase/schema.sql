@@ -1225,3 +1225,93 @@ alter table public.profiles add column if not exists background_fit text
   check (background_fit in ('cover', 'contain', 'tile'));
 alter table public.profiles add column if not exists background_flipped boolean
   not null default false;
+
+-- ---------- Profile as the main event (Phase 1) ----------
+-- Everything below hangs off the profile page: a pinned "obsessed with"
+-- slot, a profile song, curated top lists, per-profile colours and fonts,
+-- and the order the sections are stacked in. All of it is nullable so a
+-- profile that has never been customised renders exactly as it did before.
+
+-- One pinned thing at the top of the profile, editable anytime. Deliberately
+-- separate from status_*: the status is "right now", this is "the thing I
+-- won't shut up about".
+alter table public.profiles add column if not exists obsessed_kind text
+  check (obsessed_kind in ('artist', 'movie', 'show', 'album', 'song'));
+alter table public.profiles add column if not exists obsessed_title text;
+alter table public.profiles add column if not exists obsessed_note text;
+alter table public.profiles add column if not exists obsessed_image_url text;
+alter table public.profiles add column if not exists obsessed_updated_at timestamptz;
+
+-- Profile song. Stored as the same pair of ids a post carries, so the
+-- existing PreviewPlayer renders it with no new embed code.
+alter table public.profiles add column if not exists profile_song_youtube_id text;
+alter table public.profiles add column if not exists profile_song_spotify_id text;
+alter table public.profiles add column if not exists profile_song_title text;
+alter table public.profiles add column if not exists profile_song_artist text;
+alter table public.profiles add column if not exists profile_song_thumbnail_url text;
+alter table public.profiles add column if not exists profile_song_autoplay boolean not null default false;
+
+-- Banner shape. The banner is cropped client-side to whichever of these
+-- the member picked, so the profile head can render at the same ratio
+-- instead of letterboxing one fixed template.
+alter table public.profiles add column if not exists banner_aspect text
+  check (banner_aspect in ('wide', 'standard', 'tall'));
+
+-- Bio styling. The bio text itself keeps its own column; these only decide
+-- how it is painted. Validated against fixed lists in the app - the columns
+-- are free text so adding a font doesn't need a migration.
+alter table public.profiles add column if not exists bio_font text;
+alter table public.profiles add column if not exists bio_color text;
+
+-- Per-profile palette, shown to visitors. This is not the same thing as
+-- profiles.theme, which is the theme the member sees while browsing; these
+-- four colours only ever repaint this member's own profile page.
+alter table public.profiles add column if not exists profile_bg_color text;
+alter table public.profiles add column if not exists profile_panel_color text;
+alter table public.profiles add column if not exists profile_text_color text;
+alter table public.profiles add column if not exists profile_accent_color text;
+
+-- Section order + which sections are shown, as an ordered list of section
+-- ids. Unknown or missing ids are reconciled against the app's section list
+-- on read, so shipping a new section never strands an old saved order.
+alter table public.profiles add column if not exists profile_layout text[];
+
+-- ---------- profile_favorites (curated top artists / movies / shows) ----------
+-- Hand-picked by the member rather than derived from their reviews - the
+-- whole point is that it says what they want it to say.
+create table if not exists public.profile_favorites (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  kind text not null check (kind in ('artist', 'movie', 'show')),
+  title text not null,
+  subtitle text,
+  image_url text,
+  position integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists profile_favorites_user_kind_idx
+  on public.profile_favorites (user_id, kind, position);
+
+alter table public.profile_favorites enable row level security;
+
+drop policy if exists "Profile favorites are viewable by everyone" on public.profile_favorites;
+create policy "Profile favorites are viewable by everyone"
+  on public.profile_favorites for select
+  using (true);
+
+drop policy if exists "Users can add their own profile favorites" on public.profile_favorites;
+create policy "Users can add their own profile favorites"
+  on public.profile_favorites for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own profile favorites" on public.profile_favorites;
+create policy "Users can update their own profile favorites"
+  on public.profile_favorites for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their own profile favorites" on public.profile_favorites;
+create policy "Users can delete their own profile favorites"
+  on public.profile_favorites for delete
+  using (auth.uid() = user_id);
