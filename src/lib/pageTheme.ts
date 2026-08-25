@@ -256,15 +256,23 @@ export function pageStyle(
     // The profile's solid title bars are derived from the accent rather
     // than picked separately: one colour choice should visibly change the
     // whole page, which is the entire appeal of picking a theme.
-    vars["--pf-bar"] = palette.accent;
-    vars["--pf-bar-text"] = `color-mix(in srgb, ${palette.accent} 12%, #fff)`;
-    vars["--pf-line"] = `color-mix(in srgb, ${palette.accent} 62%, #000)`;
-    vars["--pf-bar-alt"] = `color-mix(in srgb, ${palette.accent} 30%, #fff)`;
-    vars["--pf-bar-alt-text"] = `color-mix(in srgb, ${palette.accent} 78%, #000)`;
+    // The panel headers are glossy, so a theme supplies a gradient rather
+    // than a flat fill - a solid block where the rest of the page has a
+    // sheen is what makes a themed page look half-applied.
+    vars["--pf-bar"] =
+      `linear-gradient(180deg, color-mix(in srgb, ${palette.accent} 8%, #fff) 0%, ` +
+      `color-mix(in srgb, ${palette.accent} 18%, #fff) 50%, ` +
+      `color-mix(in srgb, ${palette.accent} 26%, #fff) 51%, ` +
+      `color-mix(in srgb, ${palette.accent} 36%, #fff) 100%)`;
+    vars["--pf-bar-text"] = `color-mix(in srgb, ${palette.accent} 80%, #000)`;
+    vars["--pf-line"] = `color-mix(in srgb, ${palette.accent} 45%, #000)`;
+    vars["--pf-bar-alt"] =
+      `linear-gradient(180deg, color-mix(in srgb, ${palette.accent} 68%, #fff) 0%, ` +
+      `${palette.accent} 50%, ` +
+      `color-mix(in srgb, ${palette.accent} 88%, #000) 51%, ` +
+      `color-mix(in srgb, ${palette.accent} 68%, #000) 100%)`;
+    vars["--pf-bar-alt-text"] = "#fff";
     vars["--pf-link"] = palette.accent;
-    // The side column's tint. Pale enough to read black text on, tinted
-    // enough that it doesn't just look like an off-white panel.
-    vars["--pf-tint"] = `color-mix(in srgb, ${palette.accent} 16%, #fff)`;
   }
 
   const pair = fontPair(fontPairId);
