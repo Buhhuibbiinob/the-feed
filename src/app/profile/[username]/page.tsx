@@ -621,7 +621,7 @@ export default async function ProfilePage({
       case "obsessed":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Currently obsessed with</div>
+            <div className="panel-head">Obsessed With</div>
             <div className="panel-body">
               {obsessedTitle ? (
                 <div className="obsessed">
@@ -635,7 +635,7 @@ export default async function ProfilePage({
                   </div>
                 </div>
               ) : (
-                <EmptySlot>Pin the one thing you can&apos;t stop playing or watching.</EmptySlot>
+                <EmptySlot>{isOwnProfile ? "Pin whatever you can't shut up about." : "Nothing pinned."}</EmptySlot>
               )}
             </div>
           </div>
@@ -644,7 +644,7 @@ export default async function ProfilePage({
       case "anthem":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Profile song</div>
+            <div className="panel-head">My Anthem</div>
             <div className="panel-body">
               {hasSong ? (
                 <ProfileAnthem
@@ -656,7 +656,7 @@ export default async function ProfilePage({
                   autoplay={custom?.profile_song_autoplay === true}
                 />
               ) : (
-                <EmptySlot>Pick the track that plays when someone lands here.</EmptySlot>
+                <EmptySlot>{isOwnProfile ? "No song yet. Pick one." : "Silence."}</EmptySlot>
               )}
             </div>
           </div>
@@ -666,11 +666,11 @@ export default async function ProfilePage({
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">
-              {isOwnProfile ? "Your week in taste" : `${profile.username}'s week in taste`}
+              This Week
             </div>
             <div className="panel-body">
               {!week ? (
-                <EmptySlot>Post a review this week and this fills itself in.</EmptySlot>
+                <EmptySlot>Quiet week.</EmptySlot>
               ) : (
                 <div className="week-taste">
                   <div className="week-figures">
@@ -720,13 +720,10 @@ export default async function ProfilePage({
         if (!isOwnProfile) return null;
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Your taste twin</div>
+            <div className="panel-head">Taste Twin</div>
             <div className="panel-body">
               {!twin ? (
-                <EmptySlot>
-                  Review a few more things and we&apos;ll find the person whose taste lines up with
-                  yours.
-                </EmptySlot>
+                <EmptySlot>Not enough overlap yet to name one.</EmptySlot>
               ) : (
                 <Link href={`/profile/${twin.username}`} className="taste-twin">
                   <img src={twin.avatarUrl || "/avatars/preset-1.svg"} alt="" />
@@ -746,10 +743,10 @@ export default async function ProfilePage({
       case "achievements":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Achievements</div>
+            <div className="panel-head">Trophies</div>
             <div className="panel-body">
               {achievements.length === 0 ? (
-                <EmptySlot>Post, rate and keep a streak going to start unlocking these.</EmptySlot>
+                <EmptySlot>None yet.</EmptySlot>
               ) : (
                 <div className="achievement-grid">
                   {achievements.map((a) => (
@@ -774,7 +771,7 @@ export default async function ProfilePage({
         return (
           <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Mood">
             {!moodEmoji && !custom?.mood_text ? (
-              <EmptySlot>Set a mood - an emoji, a colour and a few words.</EmptySlot>
+              <EmptySlot>{isOwnProfile ? "How are you, then?" : "No mood set."}</EmptySlot>
             ) : (
               <div className="mood-ring-row">
                 <span
@@ -791,13 +788,13 @@ export default async function ProfilePage({
 
       case "about":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="About me">
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="About Me">
             {profile.bio ? (
               <div className="profile-bio" style={bioStyle}>
                 {renderRichBio(profile.bio)}
               </div>
             ) : (
-              <EmptySlot>Write a few lines about yourself.</EmptySlot>
+              <EmptySlot>{isOwnProfile ? "Say something about yourself." : "Nothing written."}</EmptySlot>
             )}
           </Panel>
         );
@@ -806,7 +803,7 @@ export default async function ProfilePage({
         return (
           <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Blurbs">
             {!custom?.blurb_next && !custom?.blurb_free ? (
-              <EmptySlot>Say what you&apos;d like to review next.</EmptySlot>
+              <EmptySlot>{isOwnProfile ? "What are you putting off reviewing?" : "Empty."}</EmptySlot>
             ) : (
               <div className="blurb-list">
                 {custom?.blurb_next && (
@@ -823,16 +820,16 @@ export default async function ProfilePage({
 
       case "connections":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Top connections">
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Top 8">
             <TopConnections connections={connections} isOwner={isOwnProfile} />
           </Panel>
         );
 
       case "pinned":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Featured reviews">
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Pinned">
             {pinnedPosts.length === 0 ? (
-              <EmptySlot>Pin a review from its page to feature it here.</EmptySlot>
+              <EmptySlot>{isOwnProfile ? "Pin a review from its page." : "Nothing pinned."}</EmptySlot>
             ) : (
               <div className="panel-body flush">
                 {pinnedPosts.map((post) => (
@@ -877,7 +874,7 @@ export default async function ProfilePage({
 
       case "presence":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Presence">
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Online">
             <div className="week-figures">
               {isOwnProfile && viewerCount != null && (
                 <span>
@@ -899,10 +896,10 @@ export default async function ProfilePage({
       case "highlights":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Standout reviews</div>
+            <div className="panel-head">Greatest Hits</div>
             <div className="panel-body">
               {highlights.length === 0 ? (
-                <EmptySlot>Rate a review and your best one shows up here by itself.</EmptySlot>
+                <EmptySlot>{isOwnProfile ? "Rate something and your best turns up here." : "Nothing yet."}</EmptySlot>
               ) : (
                 <div className="highlight-list">
                   {highlights.map((h) => (
@@ -942,8 +939,9 @@ export default async function ProfilePage({
             <div className="panel-body">
               {collections.length === 0 ? (
                 <EmptySlot>
-                  Group reviews into a collection - &quot;songs for driving at 2am&quot; - and it
-                  gets pinned here for people to follow.
+                  {isOwnProfile
+                    ? "Songs for driving at 2am. That sort of thing."
+                    : "No collections."}
                 </EmptySlot>
               ) : (
                 <div className="collection-list">
@@ -982,10 +980,10 @@ export default async function ProfilePage({
       case "favorites":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Top artists, movies &amp; shows</div>
+            <div className="panel-head">Favorites</div>
             <div className="panel-body">
               {favoriteCount === 0 ? (
-                <EmptySlot>Build your top eight - hand-picked, not counted up from your reviews.</EmptySlot>
+                <EmptySlot>{isOwnProfile ? "Pick your eight." : "Empty."}</EmptySlot>
               ) : (
                 <div className="favorites-grid">
                   {FAVORITE_KINDS.filter((kind) => favorites[kind].length > 0).map((kind) => (
@@ -1021,7 +1019,7 @@ export default async function ProfilePage({
       case "stats":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Stats</div>
+            <div className="panel-head">Details</div>
             <div className="stats-body">
               {/* Only categories they've actually posted in. Otherwise every
                   profile would carry a permanent "0 Photography reviews" line
@@ -1165,7 +1163,7 @@ export default async function ProfilePage({
 
               {status?.status_media_type && (
                 <div className="pf-status">
-                  {status.status_media_type === "music" ? "🎧 Listening to " : "📺 Watching "}
+                  {status.status_media_type === "music" ? "Listening to " : "Watching "}
                   <b>{status.status_title}</b>
                   {status.status_artist && <> - {status.status_artist}</>}
                 </div>

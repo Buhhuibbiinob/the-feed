@@ -60,7 +60,7 @@ export function Guestbook({
             name="body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            placeholder="Sign the guestbook…"
+            placeholder="Leave something"
             maxLength={500}
           />
           <div className="form-actions">
@@ -73,7 +73,7 @@ export function Guestbook({
 
       {entries.length === 0 ? (
         <div className="empty-state">
-          {isOwner ? "Nobody's signed your guestbook yet." : "Be the first to sign this guestbook."}
+          {isOwner ? "Nobody's signed yet." : "Be the first to sign."}
         </div>
       ) : (
         <div className="guestbook-list">

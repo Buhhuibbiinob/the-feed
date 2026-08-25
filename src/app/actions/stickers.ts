@@ -52,14 +52,17 @@ export async function uploadSticker(
     data: { publicUrl },
   } = supabase.storage.from("avatars").getPublicUrl(path);
 
-  // Dropped slightly off-centre and stacked on top, so a second sticker
-  // doesn't land exactly under the first.
+  // Dropped off-centre, stacked on top, and slightly crooked. Nobody
+  // sticks a sticker on perfectly straight, and a grid of them sitting at
+  // exactly 0 degrees is the thing that stops it looking like a scrapbook.
+  const nth = count ?? 0;
   const { error } = await supabase.from("profile_stickers").insert({
     user_id: user.id,
     image_url: publicUrl,
-    x: 50 + ((count ?? 0) % 3) * 8 - 8,
-    y: 50 + ((count ?? 0) % 4) * 6 - 9,
-    z: (count ?? 0) + 1,
+    x: 50 + (nth % 3) * 8 - 8,
+    y: 50 + (nth % 4) * 6 - 9,
+    rotation: Math.round((Math.random() * 24 - 12) * 10) / 10,
+    z: nth + 1,
   });
   if (error) return { error: error.message };
 

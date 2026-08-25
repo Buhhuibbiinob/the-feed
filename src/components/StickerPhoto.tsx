@@ -165,8 +165,7 @@ export function StickerPhoto({
                 </button>
               </form>
               <div className="field-hint">
-                PNGs with transparent backgrounds look best. Up to {MAX_STICKERS}, max{" "}
-                {MAX_STICKER_BYTES / 1024 / 1024}MB each. Drag one to move it.
+                Drag them about. Transparent PNGs work best. {MAX_STICKERS} max.
               </div>
 
               {active ? (
@@ -205,7 +204,7 @@ export function StickerPhoto({
                   </div>
                 </div>
               ) : (
-                local.length > 0 && <div className="field-hint">Tap a sticker to resize or turn it.</div>
+                local.length > 0 && <div className="field-hint">Tap one to resize or turn it.</div>
               )}
             </>
           )}

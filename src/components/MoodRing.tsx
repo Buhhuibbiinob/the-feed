@@ -60,7 +60,7 @@ export function MoodRingEditor({
           aria-label="Mood emoji"
           className="mood-emoji-input"
         />
-        <input type="text" name="text" defaultValue={text ?? ""} placeholder="In a few words…" maxLength={60} />
+        <input type="text" name="text" defaultValue={text ?? ""} placeholder="In a few words" maxLength={60} />
         <label className="skin-field">
           <span>Ring colour</span>
           <input

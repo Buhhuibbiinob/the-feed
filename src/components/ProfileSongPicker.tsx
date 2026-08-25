@@ -63,7 +63,7 @@ export function ProfileSongPicker({ current }: { current: ProfileSongDraft }) {
             </span>
           </div>
         ) : (
-          <MediaSearchField placeholder="Search for your song…" onPick={setPicked} />
+          <MediaSearchField placeholder="Search for a song" onPick={setPicked} />
         )}
 
         <input type="hidden" name="youtube_id" value={picked?.id ?? ""} />
@@ -75,10 +75,7 @@ export function ProfileSongPicker({ current }: { current: ProfileSongDraft }) {
           <input type="checkbox" name="autoplay" defaultChecked={current.autoplay} />
           Start playing when someone opens my profile
         </label>
-        <div className="field-hint">
-          It starts muted, because every browser blocks autoplay with sound - visitors get a big
-          &quot;tap for sound&quot; button, and it loops.
-        </div>
+        <div className="field-hint">Starts muted and loops. Browsers insist.</div>
 
         <div className="form-actions">
           <button className="btn" type="submit" disabled={pending || !picked}>
