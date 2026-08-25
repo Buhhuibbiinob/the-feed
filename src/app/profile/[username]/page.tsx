@@ -26,6 +26,8 @@ import { MoodRingEditor } from "@/components/MoodRing";
 import { BlurbsEditor } from "@/components/BlurbsEditor";
 import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
 import { TopConnections, type Connection } from "@/components/TopConnections";
+import { StickerPhoto } from "@/components/StickerPhoto";
+import type { Sticker } from "@/lib/stickers";
 import {
   FAVORITE_KINDS,
   FAVORITE_LABELS,
@@ -127,6 +129,15 @@ type ConnectionRow = {
   profiles: ProfileRef | ProfileRef[] | null;
 };
 type PinnedRow = { post_id: string; position: number };
+type StickerRow = {
+  id: string;
+  image_url: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  z: number;
+};
 type CollectionFollowRow = { collection_id: string; user_id: string };
 
 type FavoriteRow = {
@@ -474,7 +485,8 @@ export default async function ProfilePage({
       : null,
   ].filter((h): h is { label: string; post: PostRow } => h !== null);
 
-  const [{ data: guestbookRows }, { data: connectionRows }, { data: pinnedRows }] = await Promise.all([
+  const [{ data: guestbookRows }, { data: connectionRows }, { data: pinnedRows }, { data: stickerRows }] =
+    await Promise.all([
     supabase
       .from("guestbook_entries")
       .select("id, body, created_at, author_id, profiles!guestbook_entries_author_id_fkey(username, avatar_url)")
@@ -494,6 +506,12 @@ export default async function ProfilePage({
       .eq("user_id", profile.id)
       .order("position", { ascending: true })
       .returns<PinnedRow[]>(),
+    supabase
+      .from("profile_stickers")
+      .select("id, image_url, x, y, scale, rotation, z")
+      .eq("user_id", profile.id)
+      .order("z", { ascending: true })
+      .returns<StickerRow[]>(),
   ]);
 
   const guestbook: GuestbookEntry[] = (guestbookRows ?? []).map((row) => {
@@ -512,6 +530,16 @@ export default async function ProfilePage({
     const friend = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
     return friend ? [{ id: row.friend_id, username: friend.username, avatarUrl: friend.avatar_url }] : [];
   });
+
+  const stickers: Sticker[] = (stickerRows ?? []).map((row) => ({
+    id: row.id,
+    imageUrl: row.image_url,
+    x: row.x,
+    y: row.y,
+    scale: row.scale,
+    rotation: row.rotation,
+    z: row.z,
+  }));
 
   const pinnedIds = new Set((pinnedRows ?? []).map((row) => row.post_id));
   const pinnedPosts = (pinnedRows ?? [])
@@ -593,7 +621,7 @@ export default async function ProfilePage({
       case "obsessed":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Currently obsessed with</div>
+            <div className="panel-head">Obsessed With</div>
             <div className="panel-body">
               {obsessedTitle ? (
                 <div className="obsessed">
@@ -607,7 +635,7 @@ export default async function ProfilePage({
                   </div>
                 </div>
               ) : (
-                <EmptySlot>Pin the one thing you can&apos;t stop playing or watching.</EmptySlot>
+                <EmptySlot>{isOwnProfile ? "Pin whatever you can't shut up about." : "Nothing pinned."}</EmptySlot>
               )}
             </div>
           </div>
@@ -616,7 +644,7 @@ export default async function ProfilePage({
       case "anthem":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Profile song</div>
+            <div className="panel-head">My Anthem</div>
             <div className="panel-body">
               {hasSong ? (
                 <ProfileAnthem
@@ -628,7 +656,7 @@ export default async function ProfilePage({
                   autoplay={custom?.profile_song_autoplay === true}
                 />
               ) : (
-                <EmptySlot>Pick the track that plays when someone lands here.</EmptySlot>
+                <EmptySlot>{isOwnProfile ? "No song yet. Pick one." : "Silence."}</EmptySlot>
               )}
             </div>
           </div>
@@ -638,11 +666,11 @@ export default async function ProfilePage({
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">
-              {isOwnProfile ? "Your week in taste" : `${profile.username}'s week in taste`}
+              This Week
             </div>
             <div className="panel-body">
               {!week ? (
-                <EmptySlot>Post a review this week and this fills itself in.</EmptySlot>
+                <EmptySlot>Quiet week.</EmptySlot>
               ) : (
                 <div className="week-taste">
                   <div className="week-figures">
@@ -692,13 +720,10 @@ export default async function ProfilePage({
         if (!isOwnProfile) return null;
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Your taste twin</div>
+            <div className="panel-head">Taste Twin</div>
             <div className="panel-body">
               {!twin ? (
-                <EmptySlot>
-                  Review a few more things and we&apos;ll find the person whose taste lines up with
-                  yours.
-                </EmptySlot>
+                <EmptySlot>Not enough overlap yet to name one.</EmptySlot>
               ) : (
                 <Link href={`/profile/${twin.username}`} className="taste-twin">
                   <img src={twin.avatarUrl || "/avatars/preset-1.svg"} alt="" />
@@ -718,10 +743,10 @@ export default async function ProfilePage({
       case "achievements":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Achievements</div>
+            <div className="panel-head">Trophies</div>
             <div className="panel-body">
               {achievements.length === 0 ? (
-                <EmptySlot>Post, rate and keep a streak going to start unlocking these.</EmptySlot>
+                <EmptySlot>None yet.</EmptySlot>
               ) : (
                 <div className="achievement-grid">
                   {achievements.map((a) => (
@@ -746,7 +771,7 @@ export default async function ProfilePage({
         return (
           <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Mood">
             {!moodEmoji && !custom?.mood_text ? (
-              <EmptySlot>Set a mood - an emoji, a colour and a few words.</EmptySlot>
+              <EmptySlot>{isOwnProfile ? "How are you, then?" : "No mood set."}</EmptySlot>
             ) : (
               <div className="mood-ring-row">
                 <span
@@ -763,13 +788,13 @@ export default async function ProfilePage({
 
       case "about":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="About me">
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="About Me">
             {profile.bio ? (
               <div className="profile-bio" style={bioStyle}>
                 {renderRichBio(profile.bio)}
               </div>
             ) : (
-              <EmptySlot>Write a few lines about yourself.</EmptySlot>
+              <EmptySlot>{isOwnProfile ? "Say something about yourself." : "Nothing written."}</EmptySlot>
             )}
           </Panel>
         );
@@ -778,7 +803,7 @@ export default async function ProfilePage({
         return (
           <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Blurbs">
             {!custom?.blurb_next && !custom?.blurb_free ? (
-              <EmptySlot>Say what you&apos;d like to review next.</EmptySlot>
+              <EmptySlot>{isOwnProfile ? "What are you putting off reviewing?" : "Empty."}</EmptySlot>
             ) : (
               <div className="blurb-list">
                 {custom?.blurb_next && (
@@ -795,16 +820,16 @@ export default async function ProfilePage({
 
       case "connections":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Top connections">
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Top 8">
             <TopConnections connections={connections} isOwner={isOwnProfile} />
           </Panel>
         );
 
       case "pinned":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Featured reviews">
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Pinned">
             {pinnedPosts.length === 0 ? (
-              <EmptySlot>Pin a review from its page to feature it here.</EmptySlot>
+              <EmptySlot>{isOwnProfile ? "Pin a review from its page." : "Nothing pinned."}</EmptySlot>
             ) : (
               <div className="panel-body flush">
                 {pinnedPosts.map((post) => (
@@ -849,7 +874,7 @@ export default async function ProfilePage({
 
       case "presence":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Presence">
+          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Online">
             <div className="week-figures">
               {isOwnProfile && viewerCount != null && (
                 <span>
@@ -871,10 +896,10 @@ export default async function ProfilePage({
       case "highlights":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Standout reviews</div>
+            <div className="panel-head">Greatest Hits</div>
             <div className="panel-body">
               {highlights.length === 0 ? (
-                <EmptySlot>Rate a review and your best one shows up here by itself.</EmptySlot>
+                <EmptySlot>{isOwnProfile ? "Rate something and your best turns up here." : "Nothing yet."}</EmptySlot>
               ) : (
                 <div className="highlight-list">
                   {highlights.map((h) => (
@@ -914,8 +939,9 @@ export default async function ProfilePage({
             <div className="panel-body">
               {collections.length === 0 ? (
                 <EmptySlot>
-                  Group reviews into a collection - &quot;songs for driving at 2am&quot; - and it
-                  gets pinned here for people to follow.
+                  {isOwnProfile
+                    ? "Songs for driving at 2am. That sort of thing."
+                    : "No collections."}
                 </EmptySlot>
               ) : (
                 <div className="collection-list">
@@ -954,10 +980,10 @@ export default async function ProfilePage({
       case "favorites":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Top artists, movies &amp; shows</div>
+            <div className="panel-head">Favorites</div>
             <div className="panel-body">
               {favoriteCount === 0 ? (
-                <EmptySlot>Build your top eight - hand-picked, not counted up from your reviews.</EmptySlot>
+                <EmptySlot>{isOwnProfile ? "Pick your eight." : "Empty."}</EmptySlot>
               ) : (
                 <div className="favorites-grid">
                   {FAVORITE_KINDS.filter((kind) => favorites[kind].length > 0).map((kind) => (
@@ -993,7 +1019,7 @@ export default async function ProfilePage({
       case "stats":
         return (
           <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Stats</div>
+            <div className="panel-head">Details</div>
             <div className="stats-body">
               {/* Only categories they've actually posted in. Otherwise every
                   profile would carry a permanent "0 Photography reviews" line
@@ -1073,96 +1099,179 @@ export default async function ProfilePage({
   return (
     <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
-      <div
-        className="panel profile-head"
-        style={
-          profile.banner_url
-            ? {
-                backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.55)), url(${profile.banner_url})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                // The head takes the shape the banner was cropped to, so a
-                // tall banner isn't squashed into a wide strip.
-                aspectRatio: bannerAspectRatio(custom?.banner_aspect),
-              }
-            : undefined
-        }
-      >
-        <div className="panel-body profile-head-body">
-          <img
-            src={profile.avatar_url || "/avatars/preset-1.svg"}
-            alt=""
-            className="profile-avatar"
-          />
-          <div className="profile-info">
-            <div className="profile-username" style={profile.name_color ? { color: profile.name_color } : undefined}>
-              {profile.username}
+      <div className="profile-columns">
+        <div className="profile-col-side">
+          {/* The identity card: big square photo, actions stacked beside
+              it, everything else underneath. This is the block the whole
+              page is built around, so it leads the column. */}
+          <div className="pf-card">
+            <div className="pf-card-head">
+              {isOwnProfile ? "Hello, " : ""}
+              <b style={profile.name_color ? { color: profile.name_color } : undefined}>
+                {profile.username}
+              </b>
+              <span>{isOwnProfile ? "!" : ""}</span>
               {profile.is_verified && <VerifiedBadge />}
             </div>
-            {profile.bio && (
-              <div className="profile-bio" style={bioStyle}>
-                {renderRichBio(profile.bio)}
+            <div className="pf-card-body">
+              {/* The photo runs the full width of the column, with the
+                  stickers stuck on top of it. It's the thing people came
+                  to look at, so it gets the room. */}
+              <StickerPhoto
+                avatarUrl={profile.avatar_url || "/avatars/preset-1.svg"}
+                username={profile.username}
+                stickers={stickers}
+                isOwner={isOwnProfile}
+              />
+
+              {/* The banner sits beside the photo rather than as a strip
+                  across the page, at whatever shape it was cropped to. */}
+              {profile.banner_url && (
+                <div
+                  className="pf-banner"
+                  style={{ aspectRatio: bannerAspectRatio(custom?.banner_aspect) }}
+                >
+                  <img src={profile.banner_url} alt="" />
+                </div>
+              )}
+
+              <div className="pf-id">
+                <div className="pf-links">
+                  {isOwnProfile ? (
+                    <>
+                      <Link href="/post/new">Post a Review</Link>
+                      <Link href="/settings">Account Settings</Link>
+                      <Link href="/collections">Manage Collections</Link>
+                      <Link href="/messages">Read Messages</Link>
+                      <Link href="/alerts">See Alerts</Link>
+                    </>
+                  ) : user ? (
+                    <>
+                      <FollowButton
+                        followedId={profile.id}
+                        username={profile.username}
+                        following={isFollowing}
+                      />
+                      <Link href={`/messages/${profile.username}`}>Send Message</Link>
+                      <Link href={`/profile/${profile.username}#guestbook`}>Sign Guestbook</Link>
+                    </>
+                  ) : (
+                    <Link href="/sign-in">Sign in to follow</Link>
+                  )}
+                </div>
               </div>
-            )}
-            {status?.status_media_type && (
-              <div className="profile-status">
-                {status.status_media_type === "music" ? "Listening to " : "Watching "}
-                <b>{status.status_title}</b>
-                {status.status_artist && <> - {status.status_artist}</>}
+
+              {status?.status_media_type && (
+                <div className="pf-status">
+                  {status.status_media_type === "music" ? "Listening to " : "Watching "}
+                  <b>{status.status_title}</b>
+                  {status.status_artist && <> - {status.status_artist}</>}
+                </div>
+              )}
+
+              {profile.bio && (
+                <div className="pf-blurb" style={bioStyle}>
+                  {renderRichBio(profile.bio)}
+                </div>
+              )}
+
+              <div className="pf-viewmy">
+                <b>View:</b> <Link href={`/profile/${profile.username}#reviews`}>Reviews</Link>
+                {" | "}
+                <Link href={`/profile/${profile.username}#guestbook`}>Guestbook</Link>
+                {clubs.length > 0 && (
+                  <>
+                    {" | "}
+                    <Link href="/clubs">Clubs</Link>
+                  </>
+                )}
+                {collections.length > 0 && (
+                  <>
+                    {" | "}
+                    <Link href="/collections">Collections</Link>
+                  </>
+                )}
               </div>
-            )}
-            <div className="profile-counts">
-              <span>{posts.length} reviews</span>
-              <span>{totalFollowerCount} followers</span>
-              <span>{followingCount ?? 0} following</span>
-              <span>{totalLikesReceived} likes</span>
-              {tasteMatch !== null && <span className="taste-match">{tasteMatch}% taste match</span>}
-              {streak > 1 && <span className="streak-count">{streak} day streak</span>}
-              {/* Only the owner can read their own view rows, so this is
-                  null for everyone else rather than hidden by a check. */}
-              {isOwnProfile && viewerCount != null && viewerCount > 0 && (
-                <span>{viewerCount} profile views</span>
+              <div className="pf-url">
+                <b>URL:</b> /profile/{profile.username}
+              </div>
+            </div>
+          </div>
+
+          {/* The numbers, in their own box the way the reference keeps
+              them - not crammed under the name. */}
+          <div className="pf-card">
+            <div className="pf-card-head alt">
+              {isOwnProfile ? "Your Stats" : `${profile.username}'s Stats`}
+            </div>
+            <div className="pf-card-body">
+              <table className="pf-stats">
+                <tbody>
+                  <tr>
+                    <td>Reviews</td>
+                    <td>{posts.length}</td>
+                  </tr>
+                  <tr>
+                    <td>Followers</td>
+                    <td>{totalFollowerCount}</td>
+                  </tr>
+                  <tr>
+                    <td>Following</td>
+                    <td>{followingCount ?? 0}</td>
+                  </tr>
+                  <tr>
+                    <td>Likes</td>
+                    <td>{totalLikesReceived}</td>
+                  </tr>
+                  {tasteMatch !== null && (
+                    <tr>
+                      <td>Taste match</td>
+                      <td className="taste-match">{tasteMatch}%</td>
+                    </tr>
+                  )}
+                  {streak > 1 && (
+                    <tr>
+                      <td>Streak</td>
+                      <td className="streak-count">{streak} days</td>
+                    </tr>
+                  )}
+                  {isOwnProfile && viewerCount != null && viewerCount > 0 && (
+                    <tr>
+                      <td>Profile views</td>
+                      <td>{viewerCount}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+              {badges.length > 0 && (
+                <div className="profile-badges">
+                  {badges.map((b) => (
+                    <span
+                      key={b.id}
+                      className="profile-badge"
+                      title={`${b.label} - ${b.threshold}+ reviews`}
+                    >
+                      {b.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {nextBadge && isOwnProfile && (
+                <div className="profile-badge-next">
+                  {nextBadge.threshold - posts.length} more review
+                  {nextBadge.threshold - posts.length === 1 ? "" : "s"} to unlock {nextBadge.label}
+                </div>
               )}
             </div>
-            {badges.length > 0 && (
-              <div className="profile-badges">
-                {badges.map((b) => (
-                  <span key={b.id} className="profile-badge" title={`${b.label} - ${b.threshold}+ reviews`}>
-                    {b.label}
-                  </span>
-                ))}
-              </div>
-            )}
-            {nextBadge && (
-              <div className="profile-badge-next">
-                {nextBadge.threshold - posts.length} more review
-                {nextBadge.threshold - posts.length === 1 ? "" : "s"} to unlock {nextBadge.label}
-              </div>
-            )}
-            {!isOwnProfile && user && (
-              <div className="profile-actions">
-                <FollowButton
-                  followedId={profile.id}
-                  username={profile.username}
-                  following={isFollowing}
-                />
-                <Link href={`/messages/${profile.username}`} className="btn btn-ghost">
-                  Message
-                </Link>
-              </div>
-            )}
           </div>
-        </div>
-      </div>
 
-      {/* The owner's controls live in their own panel rather than in the
-          head. There are eight of them now, and stacked inside the banner
-          they buried the profile they're meant to be editing. */}
-      {isOwnProfile && (
-        <div className="panel profile-editor-panel">
-          <div className="panel-head">Customize your profile</div>
-          <div className="panel-body">
-            <div className="profile-editor-actions">
+          {/* The owner's controls, in the side column under the card -
+              the same place the reference keeps "Edit Profile". */}
+          {isOwnProfile && (
+            <div className="pf-card">
+              <div className="pf-card-head alt">Customize</div>
+              <div className="pf-card-body">
+                <div className="profile-editor-actions">
               <AvatarPicker />
               <ProfileCustomize
                 bio={profile.bio}
@@ -1197,19 +1306,17 @@ export default async function ProfilePage({
               <BlurbsEditor next={custom?.blurb_next ?? null} free={custom?.blurb_free ?? null} />
               {/* Colours, fonts, background and module order all live in one
                   editor now, and the same one runs on club pages. */}
-              <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />
+                  <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Two columns on a wide screen, one on a phone. The single stack was
-          a long scroll before anyone got to the reviews - and a profile you
-          have to scroll through is a profile nobody reads. */}
-      <div className="profile-columns">
-        <div className="profile-col-side">
+          {/* The rest of the side column: the small identity modules,
+              below the card they belong to. */}
           {shownModules.filter((id) => moduleColumn(id) === "side").map((id) => renderSection(id))}
         </div>
+
         <div className="profile-col-main">
           {shownModules.filter((id) => moduleColumn(id) === "main").map((id) => renderSection(id))}
         </div>

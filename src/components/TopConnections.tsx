@@ -38,7 +38,7 @@ export function TopConnections({
     <div className="connections">
       {connections.length === 0 ? (
         <div className="empty-state">
-          {isOwner ? "Pick up to eight people to feature here." : "No top connections yet."}
+          {isOwner ? "Pick your eight." : "Nobody up here."}
         </div>
       ) : (
         <div className="connections-grid">
@@ -102,7 +102,7 @@ export function TopConnections({
               name="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Add by username…"
+              placeholder="Username"
               autoComplete="off"
             />
             <div className="form-actions">

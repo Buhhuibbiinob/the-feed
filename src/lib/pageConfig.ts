@@ -39,31 +39,41 @@ export type ModuleDef = {
    * order, so the phone view stays sensible.
    */
   column: "main" | "side";
+  /**
+   * Whether a page that has never been customised shows this.
+   *
+   * Most are off. Turning everything on by default meant a brand-new
+   * profile rendered eighteen panels, most of them empty prompts, which
+   * reads as a chore rather than a page. A handful are on so the profile
+   * isn't blank, and the rest are picked up in the editor by people who
+   * actually want them.
+   */
+  defaultOn?: boolean;
 };
 
 export const PAGE_MODULES: ModuleDef[] = [
   // Side column: who you are, at a glance.
-  { id: "mood", label: "Mood ring", surfaces: ["profile"], hint: "An emoji, a colour and a few words.", column: "side" },
-  { id: "anthem", label: "Anthem", surfaces: ["profile", "club"], hint: "A track pinned to the page.", column: "side" },
-  { id: "about", label: "About me", surfaces: ["profile", "club"], hint: "Your bio, with light formatting.", column: "side" },
-  { id: "blurbs", label: "Blurbs", surfaces: ["profile"], hint: "What you'd like to review next.", column: "side" },
-  { id: "connections", label: "Top connections", surfaces: ["profile"], hint: "Your Top 8.", column: "side" },
-  { id: "favorites", label: "Top artists, movies & shows", surfaces: ["profile"], column: "side" },
-  { id: "stats", label: "Stats", surfaces: ["profile", "club"], column: "side" },
-  { id: "achievements", label: "Achievements", surfaces: ["profile"], column: "side" },
+  { id: "mood", label: "Mood", surfaces: ["profile"], column: "side" },
+  { id: "anthem", label: "My Anthem", surfaces: ["profile", "club"], column: "side", defaultOn: true },
+  { id: "about", label: "About Me", surfaces: ["profile", "club"], column: "side", defaultOn: true },
+  { id: "blurbs", label: "Blurbs", surfaces: ["profile"], column: "side" },
+  { id: "connections", label: "Top 8", surfaces: ["profile"], column: "side" },
+  { id: "favorites", label: "Favorites", surfaces: ["profile"], column: "side", defaultOn: true },
+  { id: "stats", label: "Details", surfaces: ["profile", "club"], column: "side", defaultOn: true },
+  { id: "achievements", label: "Trophies", surfaces: ["profile"], column: "side" },
   { id: "clubs", label: "Clubs", surfaces: ["profile"], column: "side" },
-  { id: "presence", label: "Views & last online", surfaces: ["profile"], column: "side" },
-  { id: "members", label: "Members", surfaces: ["club"], column: "side" },
-  { id: "info", label: "About this artist", surfaces: ["club"], hint: "A wiki-style info panel.", column: "side" },
+  { id: "presence", label: "Online", surfaces: ["profile"], column: "side" },
+  { id: "members", label: "Members", surfaces: ["club"], column: "side", defaultOn: true },
+  { id: "info", label: "The Story", surfaces: ["club"], column: "side", defaultOn: true },
   // Main column: the things you actually read.
-  { id: "obsessed", label: "Currently obsessed with", surfaces: ["profile"], column: "main" },
-  { id: "twin", label: "Taste twin", surfaces: ["profile"], column: "main" },
-  { id: "week", label: "Week in taste", surfaces: ["profile"], column: "main" },
-  { id: "pinned", label: "Featured reviews", surfaces: ["profile", "club"], hint: "Reviews you pin yourself.", column: "main" },
-  { id: "highlights", label: "Standout reviews", surfaces: ["profile"], column: "main" },
+  { id: "obsessed", label: "Obsessed With", surfaces: ["profile"], column: "main", defaultOn: true },
+  { id: "twin", label: "Taste Twin", surfaces: ["profile"], column: "main" },
+  { id: "week", label: "This Week", surfaces: ["profile"], column: "main" },
+  { id: "pinned", label: "Pinned", surfaces: ["profile", "club"], column: "main" },
+  { id: "highlights", label: "Greatest Hits", surfaces: ["profile"], column: "main" },
   { id: "collections", label: "Collections", surfaces: ["profile"], column: "main" },
-  { id: "guestbook", label: "Guestbook", surfaces: ["profile", "club"], hint: "A public wall anyone can sign.", column: "main" },
-  { id: "reviews", label: "Reviews", surfaces: ["profile", "club"], column: "main" },
+  { id: "guestbook", label: "Guestbook", surfaces: ["profile", "club"], column: "main", defaultOn: true },
+  { id: "reviews", label: "Reviews", surfaces: ["profile", "club"], column: "main", defaultOn: true },
 ];
 
 export function moduleColumn(id: ModuleId): "main" | "side" {
@@ -167,11 +177,13 @@ function readModules(raw: unknown, surface: SurfaceKind): ModuleState[] {
     });
   }
 
-  // Modules that didn't exist when this config was saved are appended and
-  // shown, so shipping one doesn't make it invisible to everybody who has
-  // ever opened the editor.
+  // Modules missing from the stored list are appended in their default
+  // state. For a page that has never been customised that means the small
+  // starter set is on and the rest are off; for an existing config it
+  // means a newly shipped module arrives in the state it ships with,
+  // rather than silently switching itself on for everybody.
   for (const def of available) {
-    if (!seen.has(def.id)) out.push({ id: def.id, shown: true });
+    if (!seen.has(def.id)) out.push({ id: def.id, shown: def.defaultOn === true });
   }
 
   return out;

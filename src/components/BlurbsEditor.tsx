@@ -32,10 +32,10 @@ export function BlurbsEditor({ next, free }: { next: string | null; free: string
           name="blurb_next"
           defaultValue={next ?? ""}
           maxLength={300}
-          placeholder="The album you keep meaning to sit down with…"
+          placeholder="The album you keep meaning to sit down with"
         />
         <label className="field-hint">Anything else</label>
-        <textarea name="blurb_free" defaultValue={free ?? ""} maxLength={300} placeholder="A blurb." />
+        <textarea name="blurb_free" defaultValue={free ?? ""} maxLength={300} placeholder="Anything" />
         <div className="form-actions">
           <button className="btn" type="submit" disabled={pending}>
             {pending ? "Saving…" : "Save blurbs"}

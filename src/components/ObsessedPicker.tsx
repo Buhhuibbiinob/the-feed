@@ -57,7 +57,7 @@ export function ObsessedPicker({ current }: { current: ObsessedDraft }) {
         </select>
 
         <MediaSearchField
-          placeholder="Search to fill this in…"
+          placeholder="Search"
           onPick={(video) => {
             setTitle(video.title);
             setImageUrl(video.thumbnailUrl ?? "");
@@ -69,7 +69,7 @@ export function ObsessedPicker({ current }: { current: ObsessedDraft }) {
           name="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="What is it?"
+          placeholder="What is it"
           maxLength={120}
           required
         />
@@ -78,7 +78,7 @@ export function ObsessedPicker({ current }: { current: ObsessedDraft }) {
           name="note"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Why (optional)"
+          placeholder="Why"
           maxLength={140}
         />
         <input type="hidden" name="image_url" value={imageUrl} />

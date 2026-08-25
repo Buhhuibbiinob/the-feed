@@ -34,7 +34,7 @@ export default async function AlertsPage() {
       {notifications.length === 0 ? (
         <div className="panel-body">
           <div className="empty-state">
-            Nothing yet. Likes, comments, follows, profile views and reactions all show up here.
+            Nothing yet.
           </div>
         </div>
       ) : (

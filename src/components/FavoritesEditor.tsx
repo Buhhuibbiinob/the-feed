@@ -98,7 +98,7 @@ function KindEditor({ kind, items }: { kind: FavoriteKind; items: Favorite[] }) 
       )}
 
       {full ? (
-        <div className="field-hint">That list is full. Remove one to add another.</div>
+        <div className="field-hint">Full. Bump someone.</div>
       ) : (
         <form action={formAction} className="comment-form">
           <input type="hidden" name="kind" value={kind} />
@@ -124,7 +124,7 @@ function KindEditor({ kind, items }: { kind: FavoriteKind; items: Favorite[] }) 
             name="subtitle"
             value={subtitle}
             onChange={(e) => setSubtitle(e.target.value)}
-            placeholder="Note (optional)"
+            placeholder="Note"
             maxLength={120}
           />
           <input type="hidden" name="image_url" value={imageUrl} />

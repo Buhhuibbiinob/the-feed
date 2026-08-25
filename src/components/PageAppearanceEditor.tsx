@@ -101,9 +101,7 @@ export function PageAppearanceEditor({
         <div className="form-error">{state.error ?? presetState.error}</div>
       )}
 
-      <div className="field-hint" style={{ marginTop: 0 }}>
-        Pick a look. That&apos;s the whole thing - everything below is optional.
-      </div>
+      <div className="field-hint" style={{ marginTop: 0 }}>Pick a look.</div>
 
       {(
         <>
@@ -185,7 +183,7 @@ export function PageAppearanceEditor({
           className={`page-editor-tab${advanced === "modules" ? " active" : ""}`}
           onClick={() => setAdvanced(advanced === "modules" ? null : "modules")}
         >
-          Rearrange sections
+          Choose sections
         </button>
       </div>
 
@@ -194,15 +192,12 @@ export function PageAppearanceEditor({
           <form action={presetAction} className="comment-form saved-preset-form">
             <input type="hidden" name="surface" value={surface} />
             <input type="hidden" name="owner_id" value={ownerId} />
-            <input type="text" name="name" placeholder="Save this look as…" maxLength={40} required />
+            <input type="text" name="name" placeholder="Name this look" maxLength={40} required />
             <button className="btn btn-ghost" type="submit" disabled={presetPending}>
               {presetPending ? "Saving…" : "Save look"}
             </button>
           </form>
-          <div className="field-hint">
-            Saving stores the colours, font and background under a name. Save the page below first if
-            you&apos;ve just changed them.
-          </div>
+          <div className="field-hint">Save the page first, then name the look.</div>
 
           <div className="skin-fields">
             {COLOR_FIELDS.map((field) => (
@@ -269,16 +264,13 @@ export function PageAppearanceEditor({
               </button>
             ))}
           </div>
-          <div className="field-hint">
-            Patterns are drawn in CSS, so they cost nothing to load and can&apos;t break. They sit
-            over your background colour.
-          </div>
+
         </>
       )}
 
       {advanced === "modules" && (
         <>
-          <div className="field-hint">Drag a row or use the arrows. Untick to hide a module.</div>
+          <div className="field-hint">Tick what you want. Drag to reorder.</div>
           <ul className="layout-list">
             {draft.modules.map((module, index) => (
               <li

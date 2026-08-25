@@ -108,31 +108,30 @@ export default async function LeaderboardPage() {
         <div className="panel-head">This week</div>
         <div className="panel-body">
           <p className="field-hint" style={{ margin: 0 }}>
-            Every board below covers the last seven days and recalculates itself, so nobody builds
-            an unbeatable all-time lead and the standings are worth checking again next week.
+            Everything below covers the last seven days and resets. No permanent champions.
           </p>
         </div>
       </div>
 
       <Board
         title="Top Reviewer"
-        blurb="Most reviews posted in the last seven days."
+        blurb="Most reviews this week."
         entries={boards.topReviewer}
-        emptyMessage="Nobody has posted a review this week yet."
+        emptyMessage="Nobody yet."
       />
 
       <Board
         title="Best Taste"
-        blurb="Whose ratings line up closest with everyone else's on the things you've both seen or heard. Being in tune with the room, not being liked by it."
+        blurb="Whose ratings line up closest with everyone else's. In tune with the room, not liked by it."
         entries={boards.bestTaste}
-        emptyMessage="Not enough overlapping reviews yet to compare anyone's taste."
+        emptyMessage="Not enough overlap yet."
       />
 
       <Board
         title="Fastest Rising"
-        blurb="Biggest jump in reviews against the week before."
+        blurb="Biggest jump on last week."
         entries={boards.fastestRising}
-        emptyMessage="No one has stepped up their posting this week yet."
+        emptyMessage="Nobody yet."
       />
     </>
   );

@@ -104,7 +104,7 @@ export function ProfileAnthem({
           {artist && <span className="sub">{artist}</span>}
         </span>
         <button type="button" className="anthem-sound" onClick={toggleSound}>
-          {muted ? "🔇 Tap for sound" : "🔊 Sound on"}
+          {muted ? "Sound off" : "Sound on"}
         </button>
       </div>
       <iframe

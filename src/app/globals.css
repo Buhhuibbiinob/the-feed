@@ -2641,6 +2641,258 @@ a:hover {
   }
 }
 
+/* ---- Profile page: the boxed, dense, hard-edged look ----
+   Scoped under .profile-skin so it restyles the profile only. The rest of
+   the site keeps its rounded, glossy panels; this page is deliberately a
+   different object - solid title bars, square corners, thin borders,
+   small type. */
+/* The banner lives in the side column beside the photo, not as a strip
+   across the top of the page. */
+.pf-banner {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--pf-line, #6a86c4);
+  margin-top: 9px;
+  background: var(--panel-head-bg);
+}
+.pf-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pf-card {
+  border: 1px solid var(--pf-line, #2b5fb8);
+  margin-bottom: 12px;
+}
+.pf-card-head {
+  background: var(--pf-bar, #2b5fb8);
+  color: var(--pf-bar-text, #fff);
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.pf-card-head.alt {
+  background: var(--pf-bar-alt, #f5a623);
+  color: var(--pf-bar-alt-text, #3a2400);
+}
+/* The side column's boxes are tinted, not white. That contrast against
+   the white main column is most of what the reference's page reads as. */
+.pf-card-body {
+  padding: 10px;
+  font-size: 12px;
+  background: var(--pf-tint, #d9e5f8);
+}
+/* The name gets spaced out, the way people typed it. */
+.pf-card-head b {
+  letter-spacing: 0.16em;
+}
+
+/* The photo is the point of the page: full column width, square, with
+   the stickers layered over it. */
+.pf-id {
+  margin-top: 9px;
+}
+.sticker-photo {
+  width: 100%;
+}
+.sticker-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--pf-line, #6a86c4);
+  background: var(--panel-head-bg);
+  /* Stops the browser panning the page when a sticker is dragged. */
+  touch-action: none;
+}
+.sticker-box.editing {
+  cursor: grab;
+  outline: 2px dashed var(--link);
+  outline-offset: -3px;
+}
+.sticker-base {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+}
+.sticker {
+  position: absolute;
+  width: 34%;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+.sticker-box.editing .sticker {
+  pointer-events: auto;
+  cursor: grab;
+}
+.sticker.selected {
+  outline: 2px solid var(--link);
+}
+.sticker-tools {
+  margin-top: 7px;
+}
+.sticker-upload {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0;
+  font-size: 11px;
+}
+.sticker-upload input[type="file"] {
+  min-width: 0;
+  flex: 1;
+}
+.sticker-controls {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+}
+.sticker-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sticker-controls input[type="range"] {
+  flex: 1;
+}
+.pf-links {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11.5px;
+  min-width: 0;
+}
+.pf-links a,
+.pf-links button {
+  color: var(--pf-link, #2b5fb8);
+  font-weight: 700;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.pf-links .btn,
+.pf-links .btn-ghost {
+  text-decoration: underline;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--link);
+  padding: 0;
+  font: inherit;
+  height: auto;
+}
+
+.pf-status,
+.pf-blurb,
+.pf-viewmy,
+.pf-url {
+  margin-top: 8px;
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+.pf-blurb {
+  white-space: pre-wrap;
+}
+.pf-viewmy,
+.pf-url {
+  border-top: 1px solid var(--pf-line, #2b5fb8);
+  padding-top: 6px;
+  line-height: 1.7;
+}
+.pf-viewmy a {
+  color: var(--pf-link, #2b5fb8);
+  font-weight: 700;
+}
+
+.pf-stats {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+.pf-stats td {
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.pf-stats td:last-child {
+  text-align: right;
+  font-weight: 700;
+}
+.pf-stats tr:last-child td {
+  border-bottom: none;
+}
+
+/* Module panels on the profile take the same boxed treatment, so the page
+   reads as one thing rather than the new card plus the site's old panels. */
+.profile-columns .panel {
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid var(--pf-line, #2b5fb8);
+  margin-bottom: 12px;
+  overflow: visible;
+}
+.profile-columns .panel-head {
+  background: var(--pf-bar-alt, #f5a623);
+  color: var(--pf-bar-alt-text, #3a2400);
+  border-bottom: 1px solid var(--pf-line, #2b5fb8);
+  box-shadow: none;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+/* Side column: blue bars and a tinted body. Main column: orange bars on
+   white. Two different-looking columns, which is the whole layout. */
+.profile-col-side .panel-head {
+  background: var(--pf-bar, #2b5fb8);
+  color: var(--pf-bar-text, #fff);
+}
+.profile-col-side .panel-body {
+  background: var(--pf-tint, #d9e5f8);
+}
+.profile-columns .panel-head .see-all {
+  color: inherit;
+}
+.profile-columns .panel-body {
+  padding: 9px;
+}
+
+/* The owner's editor buttons as a stacked link list, like the reference's
+   Edit Profile / Edit Status column. */
+.profile-editor-actions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+.profile-editor-actions > .comment-action {
+  text-align: left;
+  text-decoration: underline;
+  font-size: 11.5px;
+}
+
+/* On a phone the side column is full width, so the photo would be huge.
+   Cap it and centre it instead. */
+@media (max-width: 899px) {
+  .sticker-photo {
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .pf-banner {
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 /* ---- Club rows (used in /clubs and profile Clubs panel) ---- */
 .club-row {
   display: flex;
