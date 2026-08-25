@@ -1073,96 +1073,172 @@ export default async function ProfilePage({
   return (
     <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
-      <div
-        className="panel profile-head"
-        style={
-          profile.banner_url
-            ? {
-                backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.55)), url(${profile.banner_url})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                // The head takes the shape the banner was cropped to, so a
-                // tall banner isn't squashed into a wide strip.
-                aspectRatio: bannerAspectRatio(custom?.banner_aspect),
-              }
-            : undefined
-        }
-      >
-        <div className="panel-body profile-head-body">
-          <img
-            src={profile.avatar_url || "/avatars/preset-1.svg"}
-            alt=""
-            className="profile-avatar"
-          />
-          <div className="profile-info">
-            <div className="profile-username" style={profile.name_color ? { color: profile.name_color } : undefined}>
-              {profile.username}
+      {/* The banner is a real image across the top of the page, not a
+          background with text laid over it. It's something the member
+          made - showing it whole is the point of letting them upload it. */}
+      {profile.banner_url && (
+        <div className="pf-banner" style={{ aspectRatio: bannerAspectRatio(custom?.banner_aspect) }}>
+          <img src={profile.banner_url} alt="" />
+        </div>
+      )}
+
+      <div className="profile-columns">
+        <div className="profile-col-side">
+          {/* The identity card: big square photo, actions stacked beside
+              it, everything else underneath. This is the block the whole
+              page is built around, so it leads the column. */}
+          <div className="pf-card">
+            <div className="pf-card-head">
+              {isOwnProfile ? "Hello, " : ""}
+              <b style={profile.name_color ? { color: profile.name_color } : undefined}>
+                {profile.username}
+              </b>
+              {isOwnProfile ? "!" : ""}
               {profile.is_verified && <VerifiedBadge />}
             </div>
-            {profile.bio && (
-              <div className="profile-bio" style={bioStyle}>
-                {renderRichBio(profile.bio)}
+            <div className="pf-card-body">
+              <div className="pf-id">
+                <img
+                  src={profile.avatar_url || "/avatars/preset-1.svg"}
+                  alt=""
+                  className="pf-photo"
+                />
+                <div className="pf-links">
+                  {isOwnProfile ? (
+                    <>
+                      <Link href="/post/new">Post a Review</Link>
+                      <Link href="/settings">Account Settings</Link>
+                      <Link href="/collections">Manage Collections</Link>
+                      <Link href="/messages">Read Messages</Link>
+                      <Link href="/alerts">See Alerts</Link>
+                    </>
+                  ) : user ? (
+                    <>
+                      <FollowButton
+                        followedId={profile.id}
+                        username={profile.username}
+                        following={isFollowing}
+                      />
+                      <Link href={`/messages/${profile.username}`}>Send Message</Link>
+                      <Link href={`/profile/${profile.username}#guestbook`}>Sign Guestbook</Link>
+                    </>
+                  ) : (
+                    <Link href="/sign-in">Sign in to follow</Link>
+                  )}
+                </div>
               </div>
-            )}
-            {status?.status_media_type && (
-              <div className="profile-status">
-                {status.status_media_type === "music" ? "Listening to " : "Watching "}
-                <b>{status.status_title}</b>
-                {status.status_artist && <> - {status.status_artist}</>}
+
+              {status?.status_media_type && (
+                <div className="pf-status">
+                  {status.status_media_type === "music" ? "🎧 Listening to " : "📺 Watching "}
+                  <b>{status.status_title}</b>
+                  {status.status_artist && <> - {status.status_artist}</>}
+                </div>
+              )}
+
+              {profile.bio && (
+                <div className="pf-blurb" style={bioStyle}>
+                  {renderRichBio(profile.bio)}
+                </div>
+              )}
+
+              <div className="pf-viewmy">
+                <b>View:</b> <Link href={`/profile/${profile.username}#reviews`}>Reviews</Link>
+                {" | "}
+                <Link href={`/profile/${profile.username}#guestbook`}>Guestbook</Link>
+                {clubs.length > 0 && (
+                  <>
+                    {" | "}
+                    <Link href="/clubs">Clubs</Link>
+                  </>
+                )}
+                {collections.length > 0 && (
+                  <>
+                    {" | "}
+                    <Link href="/collections">Collections</Link>
+                  </>
+                )}
               </div>
-            )}
-            <div className="profile-counts">
-              <span>{posts.length} reviews</span>
-              <span>{totalFollowerCount} followers</span>
-              <span>{followingCount ?? 0} following</span>
-              <span>{totalLikesReceived} likes</span>
-              {tasteMatch !== null && <span className="taste-match">{tasteMatch}% taste match</span>}
-              {streak > 1 && <span className="streak-count">{streak} day streak</span>}
-              {/* Only the owner can read their own view rows, so this is
-                  null for everyone else rather than hidden by a check. */}
-              {isOwnProfile && viewerCount != null && viewerCount > 0 && (
-                <span>{viewerCount} profile views</span>
+              <div className="pf-url">
+                <b>URL:</b> /profile/{profile.username}
+              </div>
+            </div>
+          </div>
+
+          {/* The numbers, in their own box the way the reference keeps
+              them - not crammed under the name. */}
+          <div className="pf-card">
+            <div className="pf-card-head alt">
+              {isOwnProfile ? "Your Stats" : `${profile.username}'s Stats`}
+            </div>
+            <div className="pf-card-body">
+              <table className="pf-stats">
+                <tbody>
+                  <tr>
+                    <td>Reviews</td>
+                    <td>{posts.length}</td>
+                  </tr>
+                  <tr>
+                    <td>Followers</td>
+                    <td>{totalFollowerCount}</td>
+                  </tr>
+                  <tr>
+                    <td>Following</td>
+                    <td>{followingCount ?? 0}</td>
+                  </tr>
+                  <tr>
+                    <td>Likes</td>
+                    <td>{totalLikesReceived}</td>
+                  </tr>
+                  {tasteMatch !== null && (
+                    <tr>
+                      <td>Taste match</td>
+                      <td className="taste-match">{tasteMatch}%</td>
+                    </tr>
+                  )}
+                  {streak > 1 && (
+                    <tr>
+                      <td>Streak</td>
+                      <td className="streak-count">{streak} days</td>
+                    </tr>
+                  )}
+                  {isOwnProfile && viewerCount != null && viewerCount > 0 && (
+                    <tr>
+                      <td>Profile views</td>
+                      <td>{viewerCount}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+              {badges.length > 0 && (
+                <div className="profile-badges">
+                  {badges.map((b) => (
+                    <span
+                      key={b.id}
+                      className="profile-badge"
+                      title={`${b.label} - ${b.threshold}+ reviews`}
+                    >
+                      {b.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {nextBadge && isOwnProfile && (
+                <div className="profile-badge-next">
+                  {nextBadge.threshold - posts.length} more review
+                  {nextBadge.threshold - posts.length === 1 ? "" : "s"} to unlock {nextBadge.label}
+                </div>
               )}
             </div>
-            {badges.length > 0 && (
-              <div className="profile-badges">
-                {badges.map((b) => (
-                  <span key={b.id} className="profile-badge" title={`${b.label} - ${b.threshold}+ reviews`}>
-                    {b.label}
-                  </span>
-                ))}
-              </div>
-            )}
-            {nextBadge && (
-              <div className="profile-badge-next">
-                {nextBadge.threshold - posts.length} more review
-                {nextBadge.threshold - posts.length === 1 ? "" : "s"} to unlock {nextBadge.label}
-              </div>
-            )}
-            {!isOwnProfile && user && (
-              <div className="profile-actions">
-                <FollowButton
-                  followedId={profile.id}
-                  username={profile.username}
-                  following={isFollowing}
-                />
-                <Link href={`/messages/${profile.username}`} className="btn btn-ghost">
-                  Message
-                </Link>
-              </div>
-            )}
           </div>
-        </div>
-      </div>
 
-      {/* The owner's controls live in their own panel rather than in the
-          head. There are eight of them now, and stacked inside the banner
-          they buried the profile they're meant to be editing. */}
-      {isOwnProfile && (
-        <div className="panel profile-editor-panel">
-          <div className="panel-head">Customize your profile</div>
-          <div className="panel-body">
-            <div className="profile-editor-actions">
+          {/* The owner's controls, in the side column under the card -
+              the same place the reference keeps "Edit Profile". */}
+          {isOwnProfile && (
+            <div className="pf-card">
+              <div className="pf-card-head alt">Customize</div>
+              <div className="pf-card-body">
+                <div className="profile-editor-actions">
               <AvatarPicker />
               <ProfileCustomize
                 bio={profile.bio}
@@ -1197,19 +1273,17 @@ export default async function ProfilePage({
               <BlurbsEditor next={custom?.blurb_next ?? null} free={custom?.blurb_free ?? null} />
               {/* Colours, fonts, background and module order all live in one
                   editor now, and the same one runs on club pages. */}
-              <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />
+                  <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Two columns on a wide screen, one on a phone. The single stack was
-          a long scroll before anyone got to the reviews - and a profile you
-          have to scroll through is a profile nobody reads. */}
-      <div className="profile-columns">
-        <div className="profile-col-side">
+          {/* The rest of the side column: the small identity modules,
+              below the card they belong to. */}
           {shownModules.filter((id) => moduleColumn(id) === "side").map((id) => renderSection(id))}
         </div>
+
         <div className="profile-col-main">
           {shownModules.filter((id) => moduleColumn(id) === "main").map((id) => renderSection(id))}
         </div>

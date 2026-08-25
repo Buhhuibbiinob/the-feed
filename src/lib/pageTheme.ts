@@ -252,6 +252,15 @@ export function pageStyle(
   if (palette.accent) {
     vars["--link"] = palette.accent;
     vars["--like-color"] = palette.accent;
+
+    // The profile's solid title bars are derived from the accent rather
+    // than picked separately: one colour choice should visibly change the
+    // whole page, which is the entire appeal of picking a theme.
+    vars["--pf-bar"] = palette.accent;
+    vars["--pf-bar-text"] = `color-mix(in srgb, ${palette.accent} 12%, #fff)`;
+    vars["--pf-line"] = `color-mix(in srgb, ${palette.accent} 62%, #000)`;
+    vars["--pf-bar-alt"] = `color-mix(in srgb, ${palette.accent} 30%, #fff)`;
+    vars["--pf-bar-alt-text"] = `color-mix(in srgb, ${palette.accent} 78%, #000)`;
   }
 
   const pair = fontPair(fontPairId);

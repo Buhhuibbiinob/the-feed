@@ -2641,6 +2641,169 @@ a:hover {
   }
 }
 
+/* ---- Profile page: the boxed, dense, hard-edged look ----
+   Scoped under .profile-skin so it restyles the profile only. The rest of
+   the site keeps its rounded, glossy panels; this page is deliberately a
+   different object - solid title bars, square corners, thin borders,
+   small type. */
+.pf-banner {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  margin-bottom: 12px;
+  background: var(--panel-head-bg);
+}
+.pf-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pf-card {
+  border: 1px solid var(--pf-line, #6a86c4);
+  background: var(--panel-body-bg);
+  margin-bottom: 12px;
+}
+.pf-card-head {
+  background: var(--pf-bar, #3b5998);
+  color: var(--pf-bar-text, #fff);
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.pf-card-head.alt {
+  background: var(--pf-bar-alt, #f0a830);
+  color: var(--pf-bar-alt-text, #3a2400);
+}
+.pf-card-body {
+  padding: 9px;
+  font-size: 12px;
+}
+
+/* The photo is the point of the page, so it's big and square rather than
+   a 72px circle tucked into a banner. */
+.pf-id {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.pf-photo {
+  width: 118px;
+  height: 118px;
+  object-fit: cover;
+  border: 1px solid var(--pf-line, #6a86c4);
+  flex-shrink: 0;
+  display: block;
+}
+.pf-links {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11.5px;
+  min-width: 0;
+}
+.pf-links a,
+.pf-links button {
+  color: var(--link);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pf-links .btn,
+.pf-links .btn-ghost {
+  text-decoration: underline;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--link);
+  padding: 0;
+  font: inherit;
+  height: auto;
+}
+
+.pf-status,
+.pf-blurb,
+.pf-viewmy,
+.pf-url {
+  margin-top: 8px;
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+.pf-blurb {
+  white-space: pre-wrap;
+}
+.pf-viewmy,
+.pf-url {
+  border-top: 1px solid var(--panel-border);
+  padding-top: 6px;
+}
+
+.pf-stats {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+.pf-stats td {
+  padding: 3px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+.pf-stats td:last-child {
+  text-align: right;
+  font-weight: 700;
+}
+.pf-stats tr:last-child td {
+  border-bottom: none;
+}
+
+/* Module panels on the profile take the same boxed treatment, so the page
+   reads as one thing rather than the new card plus the site's old panels. */
+.profile-columns .panel {
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid var(--pf-line, #6a86c4);
+  margin-bottom: 12px;
+  overflow: visible;
+}
+.profile-columns .panel-head {
+  background: var(--pf-bar-alt, #f0a830);
+  color: var(--pf-bar-alt-text, #3a2400);
+  border-bottom: 1px solid var(--pf-line, #6a86c4);
+  box-shadow: none;
+  padding: 5px 9px;
+  font-size: 12px;
+}
+.profile-columns .panel-head .see-all {
+  color: inherit;
+}
+.profile-columns .panel-body {
+  padding: 9px;
+}
+
+/* The owner's editor buttons as a stacked link list, like the reference's
+   Edit Profile / Edit Status column. */
+.profile-editor-actions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+.profile-editor-actions > .comment-action {
+  text-align: left;
+  text-decoration: underline;
+  font-size: 11.5px;
+}
+
+@media (max-width: 899px) {
+  .pf-photo {
+    width: 96px;
+    height: 96px;
+  }
+}
+
 /* ---- Club rows (used in /clubs and profile Clubs panel) ---- */
 .club-row {
   display: flex;
