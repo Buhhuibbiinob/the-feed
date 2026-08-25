@@ -3,7 +3,7 @@ import { fetchPostReactions } from "@/lib/postReactions";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard } from "@/components/PostCard";
-import { PreviewPlayer } from "@/components/PreviewPlayer";
+import { ProfileAnthem } from "@/components/ProfileAnthem";
 import { FollowButton } from "@/components/FollowButton";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { ProfileCustomize } from "@/components/ProfileCustomize";
@@ -20,7 +20,7 @@ import { bannerAspectRatio } from "@/lib/bannerShape";
 import { renderRichBio } from "@/lib/richBio";
 import { fontStack } from "@/lib/profileSkin";
 import { loadPageConfig } from "@/lib/pageConfigStore";
-import { moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
+import { moduleColumn, moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
 import { pageStyle } from "@/lib/pageTheme";
 import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
 import { MoodRingEditor } from "@/components/MoodRing";
@@ -551,6 +551,7 @@ export default async function ProfilePage({
   const achievements = earnedAchievements(achievementContext);
   const nextUp = nextAchievement(achievementContext);
 
+
   const bioStyle = {
     fontFamily: fontStack(custom?.bio_font) ?? undefined,
     color: custom?.bio_color ?? undefined,
@@ -626,10 +627,12 @@ export default async function ProfilePage({
             <div className="panel-head">Profile song</div>
             <div className="panel-body">
               {hasSong ? (
-                <PreviewPlayer
+                <ProfileAnthem
                   youtubeVideoId={songId}
                   spotifyTrackId={songSpotifyId}
-                  label={custom?.profile_song_title ?? "Profile song"}
+                  title={custom?.profile_song_title ?? "Profile song"}
+                  artist={custom?.profile_song_artist ?? null}
+                  thumbnailUrl={custom?.profile_song_thumbnail_url ?? null}
                   autoplay={custom?.profile_song_autoplay === true}
                 />
               ) : (
@@ -1071,6 +1074,12 @@ export default async function ProfilePage({
     }
   }
 
+  // Resolved once and split across the two columns below. Empty modules
+  // stay hidden from visitors and show the owner a prompt, as before.
+  const shownModules = visibleModules(config).filter(
+    (id) => isOwnProfile || sectionHasContent[id]
+  );
+
   return (
     <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
@@ -1204,9 +1213,17 @@ export default async function ProfilePage({
         </div>
       )}
 
-      {visibleModules(config)
-        .filter((id) => isOwnProfile || sectionHasContent[id])
-        .map((id) => renderSection(id))}
+      {/* Two columns on a wide screen, one on a phone. The single stack was
+          a long scroll before anyone got to the reviews - and a profile you
+          have to scroll through is a profile nobody reads. */}
+      <div className="profile-columns">
+        <div className="profile-col-side">
+          {shownModules.filter((id) => moduleColumn(id) === "side").map((id) => renderSection(id))}
+        </div>
+        <div className="profile-col-main">
+          {shownModules.filter((id) => moduleColumn(id) === "main").map((id) => renderSection(id))}
+        </div>
+      </div>
     </div>
   );
 }

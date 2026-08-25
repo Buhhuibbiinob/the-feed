@@ -48,7 +48,10 @@ export function PageAppearanceEditor({
   config: PageConfig;
 }) {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<"themes" | "colors" | "modules">("themes");
+  // Themes are the whole feature for most people: pick one, done. The
+  // pickers and the module list are still there, one click away, rather
+  // than presented as three equally necessary steps.
+  const [advanced, setAdvanced] = useState<"colors" | "modules" | null>(null);
   const [draft, setDraft] = useState<PageConfig>(config);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [state, formAction, pending] = useActionState(savePageAppearance, initialState);
@@ -98,20 +101,11 @@ export function PageAppearanceEditor({
         <div className="form-error">{state.error ?? presetState.error}</div>
       )}
 
-      <div className="page-editor-tabs">
-        {(["themes", "colors", "modules"] as const).map((name) => (
-          <button
-            type="button"
-            key={name}
-            className={`page-editor-tab${tab === name ? " active" : ""}`}
-            onClick={() => setTab(name)}
-          >
-            {name === "themes" ? "Themes" : name === "colors" ? "Colours & fonts" : "Modules"}
-          </button>
-        ))}
+      <div className="field-hint" style={{ marginTop: 0 }}>
+        Pick a look. That&apos;s the whole thing - everything below is optional.
       </div>
 
-      {tab === "themes" && (
+      {(
         <>
           <div className="theme-preset-grid">
             {PRESET_THEMES.map((preset) => (
@@ -175,6 +169,28 @@ export function PageAppearanceEditor({
             </div>
           )}
 
+        </>
+      )}
+
+      <div className="page-editor-tabs">
+        <button
+          type="button"
+          className={`page-editor-tab${advanced === "colors" ? " active" : ""}`}
+          onClick={() => setAdvanced(advanced === "colors" ? null : "colors")}
+        >
+          Colours &amp; fonts
+        </button>
+        <button
+          type="button"
+          className={`page-editor-tab${advanced === "modules" ? " active" : ""}`}
+          onClick={() => setAdvanced(advanced === "modules" ? null : "modules")}
+        >
+          Rearrange sections
+        </button>
+      </div>
+
+      {advanced === "colors" && (
+        <>
           <form action={presetAction} className="comment-form saved-preset-form">
             <input type="hidden" name="surface" value={surface} />
             <input type="hidden" name="owner_id" value={ownerId} />
@@ -187,11 +203,7 @@ export function PageAppearanceEditor({
             Saving stores the colours, font and background under a name. Save the page below first if
             you&apos;ve just changed them.
           </div>
-        </>
-      )}
 
-      {tab === "colors" && (
-        <>
           <div className="skin-fields">
             {COLOR_FIELDS.map((field) => (
               <label className="skin-field" key={field.key}>
@@ -264,7 +276,7 @@ export function PageAppearanceEditor({
         </>
       )}
 
-      {tab === "modules" && (
+      {advanced === "modules" && (
         <>
           <div className="field-hint">Drag a row or use the arrows. Untick to hide a module.</div>
           <ul className="layout-list">
