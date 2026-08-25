@@ -76,8 +76,8 @@ export function ProfileSongPicker({ current }: { current: ProfileSongDraft }) {
           Start playing when someone opens my profile
         </label>
         <div className="field-hint">
-          Off by default. Some browsers block autoplay with sound regardless, so visitors may still
-          have to press play.
+          It starts muted, because every browser blocks autoplay with sound - visitors get a big
+          &quot;tap for sound&quot; button, and it loops.
         </div>
 
         <div className="form-actions">
