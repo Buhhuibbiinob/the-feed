@@ -2663,24 +2663,31 @@ a:hover {
 }
 
 .pf-card {
-  border: 1px solid var(--pf-line, #6a86c4);
-  background: var(--panel-body-bg);
+  border: 1px solid var(--pf-line, #2b5fb8);
   margin-bottom: 12px;
 }
 .pf-card-head {
-  background: var(--pf-bar, #3b5998);
+  background: var(--pf-bar, #2b5fb8);
   color: var(--pf-bar-text, #fff);
-  padding: 5px 9px;
-  font-size: 12px;
+  padding: 6px 10px;
+  font-size: 13px;
   font-weight: 700;
+  letter-spacing: 0.02em;
 }
 .pf-card-head.alt {
-  background: var(--pf-bar-alt, #f0a830);
+  background: var(--pf-bar-alt, #f5a623);
   color: var(--pf-bar-alt-text, #3a2400);
 }
+/* The side column's boxes are tinted, not white. That contrast against
+   the white main column is most of what the reference's page reads as. */
 .pf-card-body {
-  padding: 9px;
+  padding: 10px;
   font-size: 12px;
+  background: var(--pf-tint, #d9e5f8);
+}
+/* The name gets spaced out, the way people typed it. */
+.pf-card-head b {
+  letter-spacing: 0.16em;
 }
 
 /* The photo is the point of the page: full column width, square, with
@@ -2765,12 +2772,13 @@ a:hover {
 }
 .pf-links a,
 .pf-links button {
-  color: var(--link);
+  color: var(--pf-link, #2b5fb8);
+  font-weight: 700;
   text-decoration: underline;
   background: none;
   border: none;
   padding: 0;
-  font: inherit;
+  font-size: 12px;
   text-align: left;
   cursor: pointer;
 }
@@ -2799,8 +2807,13 @@ a:hover {
 }
 .pf-viewmy,
 .pf-url {
-  border-top: 1px solid var(--panel-border);
+  border-top: 1px solid var(--pf-line, #2b5fb8);
   padding-top: 6px;
+  line-height: 1.7;
+}
+.pf-viewmy a {
+  color: var(--pf-link, #2b5fb8);
+  font-weight: 700;
 }
 
 .pf-stats {
@@ -2810,7 +2823,7 @@ a:hover {
 }
 .pf-stats td {
   padding: 3px 0;
-  border-bottom: 1px solid var(--panel-border);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 .pf-stats td:last-child {
   text-align: right;
@@ -2825,17 +2838,26 @@ a:hover {
 .profile-columns .panel {
   border-radius: 0;
   box-shadow: none;
-  border: 1px solid var(--pf-line, #6a86c4);
+  border: 1px solid var(--pf-line, #2b5fb8);
   margin-bottom: 12px;
   overflow: visible;
 }
 .profile-columns .panel-head {
-  background: var(--pf-bar-alt, #f0a830);
+  background: var(--pf-bar-alt, #f5a623);
   color: var(--pf-bar-alt-text, #3a2400);
-  border-bottom: 1px solid var(--pf-line, #6a86c4);
+  border-bottom: 1px solid var(--pf-line, #2b5fb8);
   box-shadow: none;
-  padding: 5px 9px;
-  font-size: 12px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+/* Side column: blue bars and a tinted body. Main column: orange bars on
+   white. Two different-looking columns, which is the whole layout. */
+.profile-col-side .panel-head {
+  background: var(--pf-bar, #2b5fb8);
+  color: var(--pf-bar-text, #fff);
+}
+.profile-col-side .panel-body {
+  background: var(--pf-tint, #d9e5f8);
 }
 .profile-columns .panel-head .see-all {
   color: inherit;

@@ -1110,7 +1110,7 @@ export default async function ProfilePage({
               <b style={profile.name_color ? { color: profile.name_color } : undefined}>
                 {profile.username}
               </b>
-              {isOwnProfile ? "!" : ""}
+              <span>{isOwnProfile ? "!" : ""}</span>
               {profile.is_verified && <VerifiedBadge />}
             </div>
             <div className="pf-card-body">
