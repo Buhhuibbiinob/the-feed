@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 /** The width the profile is composed at. Everything scales from here. */
 export const PROFILE_DESIGN_WIDTH = 880;
@@ -23,9 +23,18 @@ export const PROFILE_DESIGN_WIDTH = 880;
 export function ProfileScale({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  // Layout effect, not a plain effect: this runs before the browser
+  // paints, so the profile never flashes at full width and then snap to
+  // size.
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Firefox only gained `zoom` in 126. Where it's missing, fall back to
+    // a transform - which doesn't reflow, so the wrapper's height has to
+    // be corrected by hand or everything below sits in a gap.
+    const canZoom =
+      typeof CSS !== "undefined" && CSS.supports && CSS.supports("zoom", "0.5");
 
     function fit() {
       const node = ref.current;
@@ -34,7 +43,19 @@ export function ProfileScale({ children }: { children: React.ReactNode }) {
       // Never scale up: on a wide screen the profile sits at its design
       // width rather than stretching into something nobody arranged.
       const scale = Math.min(1, available / PROFILE_DESIGN_WIDTH);
-      node.style.zoom = scale >= 1 ? "" : String(scale);
+
+      if (canZoom) {
+        node.style.zoom = scale >= 1 ? "" : String(scale);
+        return;
+      }
+
+      if (scale >= 1) {
+        node.style.transform = "";
+        node.style.height = "";
+        return;
+      }
+      node.style.transform = `scale(${scale})`;
+      node.style.height = `${node.scrollHeight * scale}px`;
     }
 
     fit();
@@ -52,8 +73,10 @@ export function ProfileScale({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div ref={ref} className="profile-scale" style={{ width: PROFILE_DESIGN_WIDTH }}>
-      {children}
+    <div className="profile-scale-frame">
+      <div ref={ref} className="profile-scale" style={{ width: PROFILE_DESIGN_WIDTH }}>
+        {children}
+      </div>
     </div>
   );
 }
