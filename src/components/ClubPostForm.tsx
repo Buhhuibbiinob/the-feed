@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { createClubPost, type PostFormState } from "@/app/actions/posts";
 
 const initialState: PostFormState = {};
@@ -9,9 +9,15 @@ export function ClubPostForm({ clubId }: { clubId: string }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(createClubPost, initialState);
 
-  useEffect(() => {
+  // Collapse the form the moment the action reports success. Adjusted
+  // during render rather than in an effect: an effect would paint the
+  // still-open form for a frame first, and React now flags setState in an
+  // effect body as the cascading render it is.
+  const [lastOk, setLastOk] = useState(state.ok);
+  if (state.ok !== lastOk) {
+    setLastOk(state.ok);
     if (state.ok) setOpen(false);
-  }, [state]);
+  }
 
   if (!open) {
     return (

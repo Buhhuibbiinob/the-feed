@@ -26,7 +26,7 @@ export default async function Image() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
-          <img src={logoSrc} width={110} height={110} style={{ borderRadius: 24 }} />
+          <img src={logoSrc} alt="" width={110} height={110} style={{ borderRadius: 24 }} />
           <div style={{ display: "flex", fontSize: 100, fontWeight: 800, color: "#fff", letterSpacing: -2 }}>
             Feedback
           </div>

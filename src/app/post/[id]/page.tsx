@@ -191,6 +191,7 @@ export default async function PostPage({
           username: post.profiles?.username ?? "unknown",
         }}
         currentUserId={user?.id ?? null}
+        viewerIsAdmin={viewerIsAdmin}
         liked={liked}
         likeCount={likeCount ?? 0}
         commentCount={comments.reduce((n, c) => n + 1 + c.replies.length, 0)}

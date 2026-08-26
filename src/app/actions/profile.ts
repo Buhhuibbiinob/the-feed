@@ -330,7 +330,7 @@ export async function setStatus(
   return { ok: true };
 }
 
-export async function clearStatus(formData: FormData) {
+export async function clearStatus(_formData: FormData) {
   const supabase = await createClient();
   const {
     data: { user },

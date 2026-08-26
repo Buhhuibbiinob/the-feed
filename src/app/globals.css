@@ -3099,14 +3099,6 @@ a:hover {
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 12px;
 }
-.profile-card-rail {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 190px;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
 .profile-card {
   position: relative;
   display: block;

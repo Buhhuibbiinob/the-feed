@@ -1,7 +1,5 @@
 import { Fragment, type ReactNode } from "react";
 import { workKey } from "@/lib/taste";
-import { getDiscoverProfiles, sortProfiles } from "@/lib/discovery";
-import { ProfileCard } from "@/components/ProfileCard";
 import { WidgetCarousel } from "@/components/WidgetCarousel";
 import { layoutVariantFor, LAYOUT_EXPERIMENT } from "@/lib/experiments";
 import { logEventDaily } from "@/lib/events";
@@ -232,6 +230,9 @@ export default async function FeedPage({
   const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
   // One clock reading for the whole render, shared by the Live Now window
   // and the club activity labels, so "now" can't drift between them.
+  // Server component: this runs once per request, not in a render React
+  // can replay, so the purity rule does not apply.
+  // eslint-disable-next-line react-hooks/purity
   const renderNow = Date.now();
   // Signed-out visitors have no personal count, so skip the query entirely.
   const orbyWishesLeft = user ? await getOrbyWishesLeft() : null;
@@ -363,6 +364,8 @@ export default async function FeedPage({
   // 6 hours (4x/day) per placement, without needing a cron job.
   const allBanners = allBannerAdRows ?? [];
   const ROTATION_MS = 6 * 60 * 60 * 1000;
+  // Server component, as above.
+  // eslint-disable-next-line react-hooks/purity
   const rotationSlot = Math.floor(Date.now() / ROTATION_MS);
   const pickAds = (slotType: string, count: number) => {
     const pool = allBanners.filter((b) => b.slot_type === slotType);
@@ -707,39 +710,6 @@ export default async function FeedPage({
     ))}
     </>
   );
-  // Hidden rather than showing "No reviews yet." - the last homepage module
-  // that still announced its own emptiness to a first-time visitor.
-  const decorated = sortProfiles(
-    await getDiscoverProfiles(supabase, { limit: 40 }),
-    "customized",
-    new Map()
-  ).filter((p) => p.effort >= 3);
-
-  // Hidden until a few people have actually decorated something. A
-  // "look at these profiles" rail showing three default avatars argues
-  // against itself.
-  const sideDecorated =
-    decorated.length < 3 ? null : (
-      <div className="panel">
-        <div className="panel-head tabbed">
-          <span className="panel-head-tab">
-            <span className="tab-the">the</span>
-            <span className="tab-main">Decorated</span>
-          </span>
-          <Link href="/profiles" className="see-all">
-            See All ▸
-          </Link>
-        </div>
-        <div className="panel-body">
-          <div className="profile-card-rail">
-            {decorated.slice(0, 6).map((profile) => (
-              <ProfileCard key={profile.id} profile={profile} />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-
   const sideMostActive = topReviewers.length === 0 ? null : (
     <>
   <div className="panel hot-pages-panel">
@@ -1054,7 +1024,6 @@ export default async function FeedPage({
           </div>
           <div className="feedtv-flank">
             {sideMostActive}
-            {sideDecorated}
             {sideClubs}
             {sideStats}
           </div>
@@ -1080,7 +1049,6 @@ export default async function FeedPage({
               { key: "orby", node: <OrbyBot wishesLeft={orbyWishesLeft} /> },
               { key: "top-rated", node: sideTopRated },
               { key: "most-active", node: sideMostActive },
-              { key: "decorated", node: sideDecorated },
               { key: "clubs", node: sideClubs },
               { key: "stats", node: sideStats },
             ].filter((item) => item.node)}

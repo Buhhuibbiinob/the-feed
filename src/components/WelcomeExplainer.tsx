@@ -1,32 +1,54 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "feedback_welcome_seen";
 
-export function WelcomeExplainer({ signedIn = false }: { signedIn?: boolean }) {
-  const [visible, setVisible] = useState(false);
+// Whether the welcome has been dismissed lives in localStorage, which is
+// outside React. Reading it in an effect and calling setState meant a
+// first paint without the modal followed by a second one with it - the
+// cascading render React now warns about, and a visible flash.
+const listeners = new Set<() => void>();
 
-  useEffect(() => {
-    try {
-      if (!localStorage.getItem(STORAGE_KEY)) {
-        setVisible(true);
-      }
-    } catch {
-      // localStorage unavailable (e.g. private browsing) - just skip it
-    }
-  }, []);
+// Belt and braces for the case where reading localStorage works but
+// writing it doesn't (quota, some private modes): without this the modal
+// would refuse to close.
+let dismissedThisSession = false;
+
+function subscribe(onChange: () => void) {
+  listeners.add(onChange);
+  return () => {
+    listeners.delete(onChange);
+  };
+}
+
+function hasSeenWelcome() {
+  if (dismissedThisSession) return true;
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== null;
+  } catch {
+    // localStorage unavailable - treat it as seen rather than showing the
+    // modal on every single page load.
+    return true;
+  }
+}
+
+export function WelcomeExplainer({ signedIn = false }: { signedIn?: boolean }) {
+  // The server has no localStorage, so it renders nothing and the first
+  // client snapshot decides.
+  const seen = useSyncExternalStore(subscribe, hasSeenWelcome, () => true);
 
   function dismiss() {
-    setVisible(false);
+    dismissedThisSession = true;
     try {
       localStorage.setItem(STORAGE_KEY, "1");
     } catch {
       // ignore
     }
+    for (const onChange of listeners) onChange();
   }
 
-  if (!visible) return null;
+  if (seen) return null;
 
   return (
     <div className="welcome-modal-backdrop" onClick={dismiss}>

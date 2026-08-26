@@ -218,7 +218,6 @@ export function ImageCropField({
               background: "#e5e5e5",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               ref={imgRef}
               src={srcUrl}
