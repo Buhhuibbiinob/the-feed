@@ -2522,6 +2522,14 @@ a:hover {
 .profile-scale {
   transform-origin: top left;
 }
+/* If scaling fails outright - scripting off, a browser without zoom and
+   without the fallback - the profile is 880px wide inside a narrow
+   viewport. A scroll is a poor result; silently breaking the page layout
+   around it is a worse one. */
+.profile-scale-frame {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .profile-col-side .panel,
 .profile-col-main .panel {
   margin-bottom: 14px;
@@ -6440,16 +6448,64 @@ footer .copy {
   .apple-nav {
     display: none;
   }
+  /* The iOS 5 UINavigationBar: blue-grey gloss with a hard highlight
+     across the top half, a bright hairline above it, a dark rule below,
+     and a centred title cut into the metal. */
   .sk-ios-topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 11px 12px;
-    background: var(--nav-bg);
-    color: var(--nav-text);
-    border-bottom: 1px solid var(--nav-border);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 3px 8px rgba(0, 0, 0, 0.3);
+    padding: 9px 10px;
+    min-height: 44px;
+    box-sizing: border-box;
+    background: linear-gradient(
+      180deg,
+      #b7c2d4 0%,
+      #8e9db6 48%,
+      #7d8ea9 52%,
+      #6d7f9c 100%
+    );
+    color: #fff;
+    border-bottom: 1px solid #4d5a70;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.22) inset, 0 2px 6px rgba(0, 0, 0, 0.32);
     position: relative;
+  }
+  .sk-ios-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+  }
+  /* Buttons on the bar are the glossy bevelled capsules of that era. */
+  .sk-ios-back,
+  .sk-ios-action {
+    position: relative;
+    z-index: 1;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+    padding: 5px 11px;
+    border-radius: 5px;
+    border: 1px solid #4d5a70;
+    background: linear-gradient(180deg, #9aa8bf 0%, #78889f 48%, #6a7b94 52%, #5b6c86 100%);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+  }
+  .sk-ios-back:active,
+  .sk-ios-action:active {
+    background: linear-gradient(180deg, #6a7b94 0%, #5b6c86 100%);
+  }
+  /* The back button keeps its pointed left edge. */
+  .sk-ios-back::before {
+    content: "‹ ";
+    font-weight: 700;
   }
   .sk-ios-back {
     display: flex;
