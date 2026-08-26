@@ -3204,6 +3204,81 @@ a:hover {
   border-radius: 0;
 }
 
+/* ---- Paired homepage layout (A/B variant) ----
+   Feed TV and the review feed side by side above the fold, rather than
+   the clips sitting above a stack you have to scroll past. */
+.paired-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .paired-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  /* The clips stay put while the feed scrolls - the pairing is the
+     point, and a video that scrolls away undoes it. */
+  .paired-tv {
+    position: sticky;
+    top: 12px;
+  }
+}
+.paired-reviews > .panel {
+  margin-bottom: 0;
+}
+
+/* ---- Secondary widgets as a rail ---- */
+.widget-carousel {
+  margin-bottom: 18px;
+}
+.widget-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.widget-rail::-webkit-scrollbar {
+  display: none;
+}
+.widget-slide {
+  scroll-snap-align: start;
+  min-width: 0;
+}
+.widget-slide > .panel {
+  margin-bottom: 0;
+}
+@media (min-width: 900px) {
+  /* Two at a time on a wide screen - one panel stretched across the page
+     looks like a mistake. */
+  .widget-rail {
+    grid-auto-columns: calc(50% - 7px);
+  }
+}
+.widget-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.widget-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  cursor: pointer;
+}
+.widget-dot.active {
+  background: var(--link);
+  border-color: var(--link);
+}
+
 /* ---- Club rows (used in /clubs and profile Clubs panel) ---- */
 .club-row {
   display: flex;
