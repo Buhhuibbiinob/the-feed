@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type ConversationSummary = {
+  /** One-sided, from someone you don't follow. */
+  isRequest: boolean;
   otherUserId: string;
   otherUsername: string;
   otherAvatarUrl: string | null;
@@ -32,6 +34,18 @@ async function getProfilesById(supabase: SupabaseClient, ids: string[]) {
   return new Map((data ?? []).map((p) => [p.id as string, { username: p.username as string, avatar_url: p.avatar_url as string | null }]));
 }
 
+/**
+ * Splits the inbox into conversations and requests.
+ *
+ * A thread is a request while it's one-sided from someone you don't
+ * follow - they've written, you haven't replied, and there's no
+ * relationship to imply you wanted it. Replying once, or following them,
+ * moves it into the inbox for good.
+ *
+ * Derived rather than stored: a status column would need writing at the
+ * right moment from three different places, and would be wrong the first
+ * time one of them was missed.
+ */
 export async function getConversations(
   supabase: SupabaseClient,
   userId: string
@@ -46,10 +60,12 @@ export async function getConversations(
   const rows = data ?? [];
   const byOther = new Map<string, MessageRow>();
   const unreadByOther = new Map<string, number>();
+  const repliedTo = new Set<string>();
 
   for (const row of rows) {
     const otherId = row.sender_id === userId ? row.recipient_id : row.sender_id;
     if (!byOther.has(otherId)) byOther.set(otherId, row);
+    if (row.sender_id === userId) repliedTo.add(otherId);
     if (row.recipient_id === userId && !row.read_at) {
       unreadByOther.set(otherId, (unreadByOther.get(otherId) ?? 0) + 1);
     }
@@ -57,6 +73,12 @@ export async function getConversations(
 
   const otherIds = [...byOther.keys()];
   const profiles = await getProfilesById(supabase, otherIds);
+
+  const { data: followRows } = await supabase
+    .from("follows")
+    .select("followed_id")
+    .eq("follower_id", userId);
+  const following = new Set((followRows ?? []).map((r) => r.followed_id as string));
 
   return otherIds
     .map((otherId) => {
@@ -69,6 +91,7 @@ export async function getConversations(
         lastBody: last.body,
         lastCreatedAt: last.created_at,
         unreadCount: unreadByOther.get(otherId) ?? 0,
+        isRequest: !repliedTo.has(otherId) && !following.has(otherId),
       };
     })
     .sort((a, b) => new Date(b.lastCreatedAt).getTime() - new Date(a.lastCreatedAt).getTime());

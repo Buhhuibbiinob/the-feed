@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checkMessageSafety } from "@/lib/contentSafety";
+import { logEvent } from "@/lib/events";
 
 export type MessageFormState = {
   error?: string;
@@ -45,6 +46,10 @@ export async function sendMessage(
   });
 
   if (error) {
+    // Recorded so the block/failure rate is a number rather than a guess.
+    // The only thing that can reject a send today is the block list, so a
+    // rise here means blocking, not a policy nobody can see.
+    await logEvent(supabase, user.id, "dm_failed", "insert_rejected");
     return { error: "Couldn't send that message - you may be blocked by this user." };
   }
 

@@ -255,3 +255,56 @@ export function computeExperiment(
     }))
     .sort((a, b) => a.variant.localeCompare(b.variant));
 }
+
+export type DmStamp = { sender_id: string; recipient_id: string; created_at: string };
+
+export type DmHealth = {
+  messages: number;
+  senders: number;
+  /** Distinct pairs who have exchanged anything at all. */
+  threads: number;
+  /** Threads where only one side ever wrote. */
+  oneSided: number;
+  /** Sends the database refused - today that only happens on a block. */
+  blocked: number;
+  /** Members on the receiving end of at least one one-sided thread. */
+  membersWithRequests: number;
+};
+
+/**
+ * The DM numbers the spec asks for before anyone redesigns messaging.
+ *
+ * Reads sender and recipient ids and timestamps only - never a body. The
+ * question is whether unsolicited messaging is a real problem here, and
+ * the shape of that is in who wrote to whom, not in what they said.
+ */
+export function computeDmHealth(messages: DmStamp[], events: EventRow[]): DmHealth {
+  const senders = new Set<string>();
+  // Keyed on the unordered pair, so A->B and B->A are one thread.
+  const directed = new Set<string>();
+  const threads = new Set<string>();
+
+  for (const m of messages) {
+    senders.add(m.sender_id);
+    directed.add(`${m.sender_id}>${m.recipient_id}`);
+    threads.add([m.sender_id, m.recipient_id].sort().join("~"));
+  }
+
+  let oneSided = 0;
+  const recipients = new Set<string>();
+  for (const key of directed) {
+    const [from, to] = key.split(">");
+    if (directed.has(`${to}>${from}`)) continue;
+    oneSided++;
+    recipients.add(to);
+  }
+
+  return {
+    messages: messages.length,
+    senders: senders.size,
+    threads: threads.size,
+    oneSided,
+    blocked: events.filter((e) => e.kind === "dm_failed").length,
+    membersWithRequests: recipients.size,
+  };
+}

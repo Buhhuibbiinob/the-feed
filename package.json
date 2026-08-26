@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint && node scripts/check-theme-purity.mjs && node scripts/check-theme-contrast.mjs",
+    "lint": "node scripts/check-theme-purity.mjs && node scripts/check-theme-contrast.mjs && eslint",
     "check:themes": "node scripts/check-theme-purity.mjs",
     "check:contrast": "node scripts/check-theme-contrast.mjs --verbose"
   },

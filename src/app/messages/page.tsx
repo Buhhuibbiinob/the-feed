@@ -13,7 +13,11 @@ function timeAgo(iso: string) {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-export default async function MessagesInboxPage() {
+export default async function MessagesInboxPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -21,18 +25,49 @@ export default async function MessagesInboxPage() {
 
   if (!user) redirect("/sign-in");
 
+  const { tab } = await searchParams;
+  const showRequests = tab === "requests";
+
   const conversations = await getConversations(supabase, user.id);
+  const inbox = conversations.filter((c) => !c.isRequest);
+  const requests = conversations.filter((c) => c.isRequest);
+  const shown = showRequests ? requests : inbox;
+
+  const requestUnread = requests.reduce((n, c) => n + c.unreadCount, 0);
+  const inboxUnread = inbox.reduce((n, c) => n + c.unreadCount, 0);
 
   return (
     <div className="panel">
       <div className="panel-head">Messages</div>
       <div className="panel-body flush">
-        {conversations.length === 0 ? (
+        {/* Requests only get their own tab once one exists. Showing an
+            always-empty second tab to the 12 people who have never had a
+            message request is just clutter. */}
+        {requests.length > 0 && (
+          <div className="dm-tabs">
+            <Link href="/messages" className={`dm-tab${showRequests ? "" : " active"}`}>
+              Inbox{inboxUnread > 0 ? ` (${inboxUnread})` : ""}
+            </Link>
+            <Link href="/messages?tab=requests" className={`dm-tab${showRequests ? " active" : ""}`}>
+              Requests{requestUnread > 0 ? ` (${requestUnread})` : ""}
+            </Link>
+          </div>
+        )}
+
+        {showRequests && (
+          <div className="dm-requests-note">
+            People you don&apos;t follow who messaged first. Reply once and they move to your inbox.
+          </div>
+        )}
+
+        {shown.length === 0 ? (
           <div className="empty-state" style={{ padding: 16 }}>
-            No conversations yet - visit a profile and send someone a message.
+            {showRequests
+              ? "No requests."
+              : "Nothing here yet. Go to someone's profile and say something."}
           </div>
         ) : (
-          conversations.map((c) => (
+          shown.map((c) => (
             <Link href={`/messages/${c.otherUsername}`} key={c.otherUserId} className="dm-inbox-row">
               <img src={c.otherAvatarUrl || "/avatars/preset-1.svg"} alt="" className="dm-inbox-avatar" />
               <div className="dm-inbox-info">
