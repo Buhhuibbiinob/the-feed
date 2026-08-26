@@ -11,6 +11,7 @@ export const BUILTIN_PAGES: { slug: string; label: string; path: string }[] = [
   { slug: "leaderboard", label: "Leaderboard", path: "/leaderboard" },
   { slug: "new-releases", label: "New Releases", path: "/new-releases" },
   { slug: "recs", label: "Discover", path: "/recs" },
+  { slug: "profiles", label: "Profiles", path: "/profiles" },
   { slug: "clubs", label: "Clubs", path: "/clubs" },
   { slug: "artists", label: "Creators", path: "/artists" },
   { slug: "collections", label: "Collections", path: "/collections" },

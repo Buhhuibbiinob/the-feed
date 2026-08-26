@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { loadPageConfig } from "@/lib/pageConfigStore";
+import { pageStyle } from "@/lib/pageTheme";
+import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
+import { ClubInfoEditor } from "@/components/ClubInfoEditor";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 import { joinClub, leaveClub, reportClub, uploadClubBanner, uploadClubAvatar } from "@/app/actions/clubs";
@@ -13,6 +17,11 @@ import { ClubImageForms } from "@/components/ClubImageForms";
 import { isAdmin } from "@/lib/admin";
 import { getWikipediaSummary } from "@/lib/wikipedia";
 
+type MemberRow = {
+  user_id: string;
+  profiles: { username: string; avatar_url: string | null } | { username: string; avatar_url: string | null }[] | null;
+};
+
 type ClubRow = {
   id: string;
   media_type: MediaType;
@@ -21,6 +30,7 @@ type ClubRow = {
   banner_url: string | null;
   avatar_url: string | null;
   created_by: string | null;
+  info_body: string | null;
 };
 
 type ChatMessageRow = {
@@ -94,7 +104,7 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
 
   const { data: clubData } = await supabase
     .from("clubs")
-    .select("id, media_type, name, status, banner_url, avatar_url, created_by")
+    .select("id, media_type, name, status, banner_url, avatar_url, created_by, info_body")
     .eq("id", id)
     .maybeSingle();
   const club = clubData as ClubRow | null;
@@ -173,6 +183,22 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
 
   const wikiSummary = await getWikipediaSummary(club.name);
 
+  // The same engine the profile uses, so a club page is customisable
+  // without a second set of controls that drift from the first.
+  const config = await loadPageConfig(supabase, "club", club.id);
+
+  const { data: memberRows } = await supabase
+    .from("club_members")
+    .select("user_id, profiles(username, avatar_url)")
+    .eq("club_id", club.id)
+    .limit(60)
+    .returns<MemberRow[]>();
+
+  const members = (memberRows ?? []).flatMap((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return profile ? [{ id: row.user_id, username: profile.username, avatarUrl: profile.avatar_url }] : [];
+  });
+
   const [{ data: chatRows }, { data: blockRows }, { data: myProfile }] = await Promise.all([
     supabase
       .from("chat_messages")
@@ -199,7 +225,10 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
   const blockedIds = (blockRows ?? []).map((r) => r.blocked_id);
 
   return (
-    <>
+    <div
+      className="profile-skin club-skin"
+      style={pageStyle(config.palette, config.fontPairId, config.background)}
+    >
       <div
         className="page-header"
         style={
@@ -269,6 +298,11 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
           <div className="panel-head">Manage Club{isOwner && !admin && " (you created this club)"}</div>
           <div className="panel-body">
             <ClubImageForms clubId={club.id} />
+            {/* Same editor as a profile - themes, colours, background,
+                and which panels show. */}
+            {isOwner && (
+              <PageAppearanceEditor surface="club" ownerId={club.id} config={config} />
+            )}
           </div>
         </div>
       )}
@@ -426,6 +460,42 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
+      {/* The story: the owner's own write-up, which the Wikipedia blurb
+          above can't provide - that one is a summary, this is why the
+          club exists. */}
+      {(club.info_body || isOwner) && (
+        <div className="panel" id="story">
+          <div className="panel-head">The Story</div>
+          <div className="panel-body">
+            {club.info_body ? (
+              <div className="club-story">{club.info_body}</div>
+            ) : (
+              <div className="empty-state">Nothing written yet.</div>
+            )}
+            {isOwner && <ClubInfoEditor clubId={club.id} body={club.info_body} />}
+          </div>
+        </div>
+      )}
+
+      {members.length > 0 && (
+        <div className="panel" id="members">
+          <div className="panel-head">
+            Members
+            <span className="favorites-count">{memberCount ?? members.length}</span>
+          </div>
+          <div className="panel-body">
+            <div className="connections-grid">
+              {members.map((member) => (
+                <Link href={`/profile/${member.username}`} className="connection" key={member.id}>
+                  <img src={member.avatarUrl || "/avatars/preset-1.svg"} alt="" />
+                  <span>{member.username}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <ChatRoom
         initialMessages={chatMessages}
         userId={user?.id ?? null}
@@ -435,6 +505,6 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
         clubId={club.id}
         heading={`${club.name} Chat`}
       />
-    </>
+    </div>
   );
 }
