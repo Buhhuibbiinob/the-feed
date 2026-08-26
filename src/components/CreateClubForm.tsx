@@ -22,7 +22,7 @@ export function CreateClubForm() {
   if (state.ok && state.clubId) {
     return (
       <div className="form-message">
-        Submitted for review - you can manage it once it's approved.{" "}
+        Submitted for review - you can manage it once it&apos;s approved.{" "}
         <Link href={`/clubs/${state.clubId}`}>View your club</Link>
       </div>
     );
@@ -38,8 +38,8 @@ export function CreateClubForm() {
           <option value="movie_tv">{MEDIA_LABELS.movie_tv}</option>
         </select>
         <div className="field-hint">
-          New clubs are reviewed by an admin before they're listed publicly. Once approved, you'll be
-          able to manage its banner and picture.
+          New clubs are reviewed by an admin before they&apos;re listed publicly. Once approved,
+          you&apos;ll be able to manage its banner and picture.
         </div>
         <div className="form-actions">
           <button className="btn" type="submit" disabled={pending}>

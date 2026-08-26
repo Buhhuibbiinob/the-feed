@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { createEvent, type EventFormState } from "@/app/actions/events";
 import { MAX_EVENT_FLYER_BYTES, megabytes } from "@/lib/uploads";
 
@@ -11,9 +11,12 @@ export function CreateEventForm({ clubId }: { clubId: string }) {
   const [state, formAction, pending] = useActionState(createEvent, initialState);
   const [clientError, setClientError] = useState<string | null>(null);
 
-  useEffect(() => {
+  // See ClubPostForm: collapse on success during render, not in an effect.
+  const [lastOk, setLastOk] = useState(state.ok);
+  if (state.ok !== lastOk) {
+    setLastOk(state.ok);
     if (state.ok) setOpen(false);
-  }, [state]);
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     const input = e.currentTarget.elements.namedItem("flyer_file") as HTMLInputElement | null;

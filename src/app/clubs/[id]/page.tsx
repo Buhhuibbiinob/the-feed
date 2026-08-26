@@ -7,7 +7,7 @@ import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
 import { ClubInfoEditor } from "@/components/ClubInfoEditor";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
-import { joinClub, leaveClub, reportClub, uploadClubBanner, uploadClubAvatar } from "@/app/actions/clubs";
+import { joinClub, leaveClub, reportClub } from "@/app/actions/clubs";
 import { setRsvp, clearRsvp, deleteEvent } from "@/app/actions/events";
 import { adminApproveClub, adminBanClub, adminUnbanClub, adminDeleteClub } from "@/app/actions/admin";
 import { CreateEventForm } from "@/components/CreateEventForm";

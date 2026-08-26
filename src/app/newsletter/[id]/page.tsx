@@ -36,7 +36,6 @@ export default async function NewsletterIssuePage({
         <div className="newsletter-headline">{issue.title}</div>
         {issue.cover_image_url && (
           <div style={{ padding: "18px 20px 0" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={issue.cover_image_url}
               alt=""

@@ -550,7 +550,6 @@ export default async function ProfilePage({
     z: row.z,
   }));
 
-  const pinnedIds = new Set((pinnedRows ?? []).map((row) => row.post_id));
   const pinnedPosts = (pinnedRows ?? [])
     .map((row) => posts.find((p) => p.id === row.post_id))
     .filter((p): p is PostRow => p !== undefined);

@@ -16,9 +16,12 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
   const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
   const [videoSearching, setVideoSearching] = useState(false);
 
-  useEffect(() => {
+  // See ClubPostForm: collapse on success during render, not in an effect.
+  const [lastOk, setLastOk] = useState(state.ok);
+  if (state.ok !== lastOk) {
+    setLastOk(state.ok);
     if (state.ok) setOpen(false);
-  }, [state.ok]);
+  }
 
   useEffect(() => {
     if (!videoQuery.trim()) return;

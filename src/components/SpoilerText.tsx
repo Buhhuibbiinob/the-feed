@@ -2,15 +2,17 @@
 
 import { Fragment, useState } from "react";
 
-const SPOILER_PATTERN = /\|\|([\s\S]+?)\|\|/g;
-
 export function SpoilerText({ text }: { text: string }) {
+  // Built fresh per render. A shared /g regex carries lastIndex between
+  // calls, so one module-level copy meant every post on the page walking
+  // over the same cursor - and resetting it was a mutation of shared
+  // state during render.
+  const pattern = /\|\|([\s\S]+?)\|\|/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let key = 0;
-  SPOILER_PATTERN.lastIndex = 0;
   let match: RegExpExecArray | null;
-  while ((match = SPOILER_PATTERN.exec(text)) !== null) {
+  while ((match = pattern.exec(text)) !== null) {
     if (match.index > lastIndex) {
       parts.push(<Fragment key={key++}>{text.slice(lastIndex, match.index)}</Fragment>);
     }
