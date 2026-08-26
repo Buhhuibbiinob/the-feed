@@ -2642,6 +2642,43 @@ a:hover {
   }
 }
 
+/* ---- Rearranging panels on the page ---- */
+.arrange-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.profile-col-side.arranging,
+.profile-col-main.arranging {
+  outline: 2px dashed var(--link);
+  outline-offset: 4px;
+  border-radius: 8px;
+  min-height: 80px;
+}
+.arrange-slot.dragging {
+  opacity: 0.45;
+}
+.arrange-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  margin-bottom: -6px;
+  border-radius: 6px 6px 0 0;
+  background: var(--link);
+  color: #fff;
+  cursor: grab;
+}
+.arrange-bar .comment-action {
+  margin-left: auto;
+  color: #fff;
+  text-decoration: underline;
+}
+
 /* ---- Profile hero ----
    The identity card, the numbers and the owner's controls read across the
    top like a contact card rather than stacking down a left rail. Three
@@ -2784,6 +2821,17 @@ a:hover {
 .sticker-layer.editing.front {
   outline: 2px dashed var(--link);
   outline-offset: -4px;
+}
+/* A sticker sent behind an opaque panel disappears completely, which
+   reads as having deleted it. While editing, the behind layer is lifted
+   over the panels at low opacity so you can still see and grab it. */
+.sticker-layer.ghost {
+  z-index: 4;
+  opacity: 0.45;
+}
+.sticker-layer.ghost .sticker {
+  outline: 1px dashed var(--link);
+  outline-offset: 2px;
 }
 .sticker {
   position: absolute;

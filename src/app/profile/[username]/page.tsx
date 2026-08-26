@@ -19,7 +19,8 @@ import { bannerAspectRatio } from "@/lib/bannerShape";
 import { renderRichBio } from "@/lib/richBio";
 import { fontStack } from "@/lib/profileSkin";
 import { loadPageConfig } from "@/lib/pageConfigStore";
-import { moduleColumn, moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
+import { moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
+import { ProfileArranger } from "@/components/ProfileArranger";
 import { pageStyle } from "@/lib/pageTheme";
 import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
 import { MoodRingEditor } from "@/components/MoodRing";
@@ -1108,12 +1109,18 @@ export default async function ProfilePage({
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
       <StickerLayer stickers={stickers} isOwner={isOwnProfile} />
 
-      {/* The identity card spans the page rather than sitting in a left
-          rail. That rail is the single most recognisable thing about the
-          obvious reference, and this is not that site: photo, details and
-          numbers read across the top like a contact card, and the modules
-          flow underneath. */}
-      <div className="pf-hero">
+      {/* The columns belong to the arranger now: it places each panel and
+          lets the owner drag them between the two. The panels themselves
+          are still rendered here on the server - the arranger only decides
+          where they go. */}
+      <ProfileArranger
+        ownerId={profile.id}
+        config={config}
+        order={shownModules}
+        isOwner={isOwnProfile}
+        panels={Object.fromEntries(shownModules.map((id) => [id, renderSection(id)]))}
+        sideHeader={
+          <>
           {/* The identity card: big square photo, actions stacked beside
               it, everything else underneath. This is the block the whole
               page is built around, so it leads the column. */}
@@ -1311,16 +1318,11 @@ export default async function ProfilePage({
               </div>
             </div>
           )}
-      </div>
 
-      <div className="profile-columns">
-        <div className="profile-col-side">
-          {/* The rest of the side column: the small identity modules,
-              below the card they belong to. */}
-          {shownModules.filter((id) => moduleColumn(id) === "side").map((id) => renderSection(id))}
-        </div>
-
-        <div className="profile-col-main">
+          </>
+        }
+        mainHeader={
+          <>
           {/* The banner heads the main column - the wide space it was
               made for, rather than squeezed into the narrow one. */}
           {profile.banner_url && (
@@ -1331,9 +1333,9 @@ export default async function ProfilePage({
               <img src={profile.banner_url} alt="" />
             </div>
           )}
-          {shownModules.filter((id) => moduleColumn(id) === "main").map((id) => renderSection(id))}
-        </div>
-      </div>
+          </>
+        }
+      />
     </div>
   );
 }
