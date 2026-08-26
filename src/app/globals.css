@@ -286,9 +286,10 @@ a:hover {
   align-items: center;
   padding: 0 20px;
   color: var(--nav-text);
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.6);
+  border-right: 1px solid rgba(0, 0, 0, 0.18);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.22);
   height: 34px;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
 .apple-nav a.disabled {
   color: #999;
@@ -5363,28 +5364,30 @@ footer .copy {
   --star-gold: #e0b400;
   --divider: #b9b9be;
 
-  /* Linen. The single most recognisable thing about this era of iOS -
-     a woven grey-blue cloth behind everything, drawn here as two crossed
-     hatches over a grey so it costs nothing to load. */
+  /* Pinstripes. This is the iOS 5 backdrop - fine vertical stripes in
+     blue-grey behind the grouped tables. Linen came a version later, so
+     it's the wrong texture for this era. */
   --body-bg: repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.055) 0px,
-      rgba(255, 255, 255, 0.055) 1px,
+      90deg,
+      rgba(255, 255, 255, 0.5) 0px,
+      rgba(255, 255, 255, 0.5) 1px,
       transparent 1px,
       transparent 3px
     ),
-    repeating-linear-gradient(
-      -45deg,
-      rgba(0, 0, 0, 0.045) 0px,
-      rgba(0, 0, 0, 0.045) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(180deg, #d3d4d9, #c2c3c9 45%, #cbccd1);
+    linear-gradient(180deg, #c3cbd8, #b3bdcc 45%, #bcc5d2);
   --body-glyph-color: rgba(0, 0, 0, 0.05);
 
-  --nav-bg: linear-gradient(180deg, #fdfdfe 0%, #eceef3 3%, #d3d7e0 50%, #c2c7d2 51%, #b6bcc9 100%);
-  --nav-border: #8c9099;
+  --nav-bg: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.1) 0px,
+      rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px,
+      transparent 2px
+    ),
+    linear-gradient(180deg, #b9c5d7 0%, #9dabc3 48%, #8d9db7 52%, #7d8ea9 100%);
+  --nav-border: #5c6b82;
+  --nav-text: #ffffff;
+  --nav-active-text: #ffffff;
   --nav-text: #2a2a2d;
   --nav-active-text: var(--link-blue);
 
@@ -6448,112 +6451,96 @@ footer .copy {
   .apple-nav {
     display: none;
   }
-  /* The iOS 5 UINavigationBar: blue-grey gloss with a hard highlight
-     across the top half, a bright hairline above it, a dark rule below,
-     and a centred title cut into the metal. */
+  /* The iOS 5 UINavigationBar, matched to the real artwork: a blue-grey
+     gradient carrying fine vertical pinstripes, a bright hairline along
+     the very top, a dark rule beneath, and a white title cut into it with
+     a shadow *below* the glyphs rather than above. */
   .sk-ios-topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 9px 10px;
+    padding: 0 8px;
     min-height: 44px;
     box-sizing: border-box;
-    background: linear-gradient(
-      180deg,
-      #b7c2d4 0%,
-      #8e9db6 48%,
-      #7d8ea9 52%,
-      #6d7f9c 100%
-    );
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.1) 0px,
+        rgba(255, 255, 255, 0.1) 1px,
+        transparent 1px,
+        transparent 2px
+      ),
+      linear-gradient(180deg, #b9c5d7 0%, #9dabc3 48%, #8d9db7 52%, #7d8ea9 100%);
     color: #fff;
-    border-bottom: 1px solid #4d5a70;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset,
-      0 -1px 0 rgba(0, 0, 0, 0.22) inset, 0 2px 6px rgba(0, 0, 0, 0.32);
+    border-bottom: 1px solid #5c6b82;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.18) inset;
     position: relative;
   }
   .sk-ios-title {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: #fff;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+    /* The shadow sits under the letters on this bar, not above them. */
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
     pointer-events: none;
+    white-space: nowrap;
   }
-  /* Buttons on the bar are the glossy bevelled capsules of that era. */
-  .sk-ios-back,
+
+  /* Right-hand buttons: bevelled capsules in the same metal. */
   .sk-ios-action {
     position: relative;
     z-index: 1;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: #fff;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
-    padding: 5px 11px;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+    padding: 6px 12px;
     border-radius: 5px;
-    border: 1px solid #4d5a70;
-    background: linear-gradient(180deg, #9aa8bf 0%, #78889f 48%, #6a7b94 52%, #5b6c86 100%);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 1px 2px rgba(0, 0, 0, 0.3);
+    border: 1px solid #5c6b82;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.08) 0px,
+        rgba(255, 255, 255, 0.08) 1px,
+        transparent 1px,
+        transparent 2px
+      ),
+      linear-gradient(180deg, #a4b1c7 0%, #8695b0 48%, #7d8ca7 52%, #6b7c96 100%);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 1px 1px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+  }
+
+  /* The back button is a real arrow, not a rounded rect with a chevron
+     glued on - clipped to a point on its left edge the way the artwork
+     was drawn. */
+  .sk-ios-back {
+    position: relative;
+    z-index: 1;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+    padding: 6px 12px 6px 18px;
+    border: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.08) 0px,
+        rgba(255, 255, 255, 0.08) 1px,
+        transparent 1px,
+        transparent 2px
+      ),
+      linear-gradient(180deg, #a4b1c7 0%, #8695b0 48%, #7d8ca7 52%, #6b7c96 100%);
+    clip-path: polygon(9px 0, 100% 0, 100% 100%, 9px 100%, 0 50%);
     cursor: pointer;
   }
   .sk-ios-back:active,
   .sk-ios-action:active {
-    background: linear-gradient(180deg, #6a7b94 0%, #5b6c86 100%);
+    filter: brightness(0.9);
   }
-  /* The back button keeps its pointed left edge. */
-  .sk-ios-back::before {
-    content: "‹ ";
-    font-weight: 700;
-  }
-  .sk-ios-back {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    color: var(--nav-text);
-    font-size: 14px;
-    font-weight: 600;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-  }
-  .sk-ios-back::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    border-left: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: rotate(45deg);
-    margin-right: 3px;
-  }
-  .sk-ios-title {
-    position: absolute;
-    left: 0;
-    right: 0;
-    text-align: center;
-    color: var(--nav-text);
-    font-size: 16px;
-    font-weight: 700;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
-    pointer-events: none;
-  }
-  .sk-ios-action {
-    position: relative;
-    color: var(--nav-text);
-    font-size: 13px;
-    font-weight: 600;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-left: auto;
-  }
-  /* The early-iPhone tab bar: near-black brushed gradient, a bright
-     hairline along the very top, glyphs that light up rather than change
-     colour, and a home-indicator safe area underneath. */
+
   .sk-ios-tabbar {
     display: flex;
     position: fixed;
