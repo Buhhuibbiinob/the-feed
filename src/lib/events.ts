@@ -15,6 +15,10 @@ export const EVENT_KINDS = [
   // than once a visit: the analysis needs to know their bucket, not how
   // many times they refreshed.
   "layout_view",
+  // A direct message that couldn't be delivered. The spec asks for real
+  // block/failure rates before anyone redesigns messaging, and there is
+  // no way to know them without recording the failures.
+  "dm_failed",
 ] as const;
 
 export type EventKind = (typeof EVENT_KINDS)[number];

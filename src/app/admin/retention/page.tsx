@@ -1,12 +1,15 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { LAYOUT_EXPERIMENT } from "@/lib/experiments";
 import {
+  computeDmHealth,
   computeExperiment,
   computeEditFrequency,
   computeEditToReview,
   computeRetention,
+  type DmStamp,
   type EventRow,
   type MemberRow,
   type PostStamp,
@@ -40,6 +43,14 @@ export default async function RetentionPage() {
     supabase.from("posts").select("user_id, created_at").returns<PostStamp[]>(),
   ]);
 
+  // Service role, because the DM policy is "you can read your own", and an
+  // admin's own inbox says nothing about everyone else's. Only the two ids
+  // and the timestamp are selected - no bodies leave the database.
+  const { data: dmRows } = await createAdminClient()
+    .from("direct_messages")
+    .select("sender_id, recipient_id, created_at")
+    .returns<DmStamp[]>();
+
   const events = eventRows ?? [];
   const members = memberRows ?? [];
   const posts = postRows ?? [];
@@ -48,6 +59,7 @@ export default async function RetentionPage() {
   const conversion = computeEditToReview(events, posts);
   const retention = computeRetention(members, events, posts);
   const experiment = computeExperiment(events, posts, LAYOUT_EXPERIMENT);
+  const dm = computeDmHealth(dmRows ?? [], events);
 
   return (
     <>
@@ -155,6 +167,42 @@ export default async function RetentionPage() {
             say which bucket caught the older accounts. Members are split by a hash of their id, so
             each person always sees the same layout. Signed-out visitors all get the current one.
           </p>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Messages</div>
+        <div className="panel-body">
+          {dm.messages === 0 ? (
+            <div className="empty-state">Nobody has sent a message yet.</div>
+          ) : (
+            <>
+              <div className="metric-row">
+                <span className="metric">
+                  <b>{dm.messages}</b>messages
+                </span>
+                <span className="metric">
+                  <b>{dm.senders}</b>people sending
+                </span>
+                <span className="metric">
+                  <b>{dm.threads}</b>threads
+                </span>
+                <span className="metric">
+                  <b>{percent(dm.oneSided, dm.threads)}</b>never answered
+                </span>
+                <span className="metric">
+                  <b>{dm.blocked}</b>sends refused
+                </span>
+              </div>
+              <p className="field-hint">
+                {dm.membersWithRequests} member{dm.membersWithRequests === 1 ? "" : "s"} have an
+                unanswered thread sitting in requests. Decide the DM rules off these numbers, not
+                off a guess: if almost nothing is refused and almost everything gets answered,
+                messaging is not the problem it is assumed to be. Sender and recipient ids only -
+                no message text is read to build this.
+              </p>
+            </>
+          )}
         </div>
       </div>
 
