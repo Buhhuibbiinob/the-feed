@@ -145,7 +145,11 @@ export function StickerLayer({
   const active = local.find((s) => s.id === selected) ?? null;
 
   const renderLayer = (behind: boolean) => (
-    <div className={`sticker-layer${behind ? " behind" : " front"}${editing ? " editing" : ""}`}>
+    <div
+      className={`sticker-layer${behind ? " behind" : " front"}${editing ? " editing" : ""}${
+        behind && editing ? " ghost" : ""
+      }`}
+    >
       {local
         .filter((s) => (s.z < 0) === behind)
         .map((sticker) => (

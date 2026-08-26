@@ -80,11 +80,22 @@ export function moduleColumn(id: ModuleId): "main" | "side" {
   return PAGE_MODULES.find((m) => m.id === id)?.column ?? "main";
 }
 
+/** Where a module actually sits: the member's choice, else its default. */
+export function resolvedColumn(state: ModuleState | undefined, id: ModuleId): "main" | "side" {
+  return state?.column ?? moduleColumn(id);
+}
+
 export type ModuleId = string;
 
 export type ModuleState = {
   id: ModuleId;
   shown: boolean;
+  /**
+   * Which column the member put it in. Absent means "wherever the module
+   * ships by default" - so the layout only becomes theirs once they have
+   * actually moved something.
+   */
+  column?: "main" | "side";
   /** Limited per-module styling. Deliberately not arbitrary CSS. */
   style?: { headerColor?: string | null; borderColor?: string | null };
 };
@@ -167,9 +178,12 @@ function readModules(raw: unknown, surface: SurfaceKind): ModuleState[] {
     seen.add(id);
 
     const style = (source.style ?? {}) as Record<string, unknown>;
+    const column = source.column === "main" || source.column === "side" ? source.column : undefined;
+
     out.push({
       id,
       shown: source.shown !== false,
+      ...(column ? { column } : {}),
       style: {
         headerColor: normalizeColor(style.headerColor),
         borderColor: normalizeColor(style.borderColor),
