@@ -51,10 +51,15 @@ export function normalizeSticker(raw: {
   skew: unknown;
 }): { x: number; y: number; scale: number; scale_y: number; rotation: number; skew: number } {
   return {
-    // Well past the edge is allowed on purpose - half a sticker hanging
-    // off the side of the page is the look.
+    // Both axes are measured against the profile's WIDTH, not its height.
+    // Height changes constantly - opening the sticker tools, posting a
+    // review, someone signing the guestbook - and anything measured
+    // against it slides around every time. Width is fixed by the design
+    // canvas, so a sticker stays put.
     x: clampPlacement(Number(raw.x), -20, 120, 50),
-    y: clampPlacement(Number(raw.y), -20, 120, 50),
+    // Generous, because y is in width-units and a profile is far taller
+    // than it is wide.
+    y: clampPlacement(Number(raw.y), -20, 900, 50),
     // Wide open: a sticker the size of the whole page is a legitimate
     // thing to want, and so is a tiny one tucked in a corner.
     scale: clampPlacement(Number(raw.scale), 0.05, 12, 1),

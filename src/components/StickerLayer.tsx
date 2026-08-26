@@ -8,6 +8,7 @@ import {
   type StickerState,
 } from "@/app/actions/stickers";
 import { MAX_STICKERS, stickerTransform, Z_BEHIND, Z_FRONT, type Sticker } from "@/lib/stickers";
+import { PROFILE_DESIGN_WIDTH } from "@/components/ProfileScale";
 
 const initialState: StickerState = {};
 
@@ -54,7 +55,9 @@ function StickerImage({
       className={`sticker${selected && editing ? " selected" : ""}`}
       style={{
         left: `${sticker.x}%`,
-        top: `${sticker.y}%`,
+        // Measured off the design width, not the layer's height - so
+        // opening the tools or gaining a review doesn't move it.
+        top: `calc(${PROFILE_DESIGN_WIDTH}px * ${sticker.y} / 100)`,
         width: `${14 * sticker.scale}%`,
         transform: stickerTransform(sticker),
       }}
@@ -69,11 +72,14 @@ function StickerImage({
       onPointerMove={(e) => {
         if (dragging.current !== e.pointerId) return;
         const box = layerBox(e.currentTarget);
-        if (!box || box.width === 0 || box.height === 0) return;
+        if (!box || box.width === 0) return;
+        // box.width divides BOTH axes: y is in width-units to match how
+        // it's rendered. Using box.height here is what made a sticker
+        // jump as soon as the page got taller or shorter.
         onMove(
           sticker.id,
           ((e.clientX - box.left) / box.width) * 100,
-          ((e.clientY - box.top) / box.height) * 100
+          ((e.clientY - box.top) / box.width) * 100
         );
       }}
       onPointerUp={(e) => {
@@ -179,7 +185,7 @@ export function StickerLayer({
       {renderLayer(false)}
 
       {isOwner && (
-        <div className="sticker-tools">
+        <div className={`sticker-tools${editing ? " floating" : ""}`}>
           <button type="button" className="comment-action" onClick={() => setEditing((v) => !v)}>
             {editing ? "Done stickering" : "Stickers"}
           </button>

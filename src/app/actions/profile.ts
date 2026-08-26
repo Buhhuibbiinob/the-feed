@@ -3,7 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { createClient } from "@/lib/supabase/server";
-import { MAX_AVATAR_BYTES, MAX_BANNER_BYTES, MAX_BACKGROUND_BYTES, megabytes, isImageFile, guessContentType } from "@/lib/uploads";
+import {
+  MAX_AVATAR_BYTES,
+  MAX_BANNER_BYTES,
+  MAX_BACKGROUND_BYTES,
+  megabytes,
+  isImageFile,
+  guessContentType,
+  limitFor,
+} from "@/lib/uploads";
 import { checkBioSafety } from "@/lib/contentSafety";
 import { logEvent } from "@/lib/events";
 import { isProfileFontId, normalizeColor } from "@/lib/profileSkin";
@@ -90,8 +98,9 @@ export async function uploadAvatar(
   if (!isImageFile(file)) {
     return { error: "File must be an image." };
   }
-  if (file.size > MAX_AVATAR_BYTES) {
-    return { error: `Image must be under ${megabytes(MAX_AVATAR_BYTES)}MB.` };
+  const avatarLimit = limitFor(file, MAX_AVATAR_BYTES);
+  if (file.size > avatarLimit) {
+    return { error: `Image must be under ${megabytes(avatarLimit)}MB.` };
   }
 
   const ext = file.name.split(".").pop() || "jpg";
@@ -167,8 +176,9 @@ export async function uploadBanner(
   if (!isImageFile(file)) {
     return { error: "File must be an image." };
   }
-  if (file.size > MAX_BANNER_BYTES) {
-    return { error: `Image must be under ${megabytes(MAX_BANNER_BYTES)}MB.` };
+  const bannerLimit = limitFor(file, MAX_BANNER_BYTES);
+  if (file.size > bannerLimit) {
+    return { error: `Image must be under ${megabytes(bannerLimit)}MB.` };
   }
 
   const ext = file.name.split(".").pop() || "jpg";
