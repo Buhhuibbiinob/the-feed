@@ -2509,26 +2509,28 @@ a:hover {
    The side column holds the small identity pieces; the main column holds
    what people came to read. Below the breakpoint it collapses to one
    column, side first, which keeps the phone view close to the old one. */
+/* Two columns at every width. The profile is rendered at a fixed design
+   width and scaled down by ProfileScale, rather than reflowing - so a
+   page someone arranged on a desktop reaches a phone looking the same,
+   stickers included. */
 .profile-columns {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(230px, 280px) 1fr;
   gap: 0 18px;
   align-items: start;
+}
+.profile-scale {
+  transform-origin: top left;
 }
 .profile-col-side .panel,
 .profile-col-main .panel {
   margin-bottom: 14px;
 }
-@media (min-width: 900px) {
-  .profile-columns {
-    grid-template-columns: minmax(240px, 300px) 1fr;
-  }
-  /* The side column tracks with the page rather than running off the top
-     of a long review list. */
-  .profile-col-side {
-    position: sticky;
-    top: 12px;
-  }
+/* The side column tracks with the page rather than running off the top
+   of a long review list. */
+.profile-col-side {
+  position: sticky;
+  top: 12px;
 }
 
 /* Panels in the profile columns are tighter than the site default - the
@@ -3053,14 +3055,7 @@ a:hover {
   font-size: 11.5px;
 }
 
-/* On a phone the side column is full width, so the photo would be huge.
-   Cap it and centre it instead. */
-@media (max-width: 899px) {
-  .pf-photo {
-    max-width: 320px;
-    margin: 0 auto;
-  }
-}
+
 
 /* ---- Club rows (used in /clubs and profile Clubs panel) ---- */
 .club-row {
@@ -6476,6 +6471,9 @@ footer .copy {
     cursor: pointer;
     margin-left: auto;
   }
+  /* The early-iPhone tab bar: near-black brushed gradient, a bright
+     hairline along the very top, glyphs that light up rather than change
+     colour, and a home-indicator safe area underneath. */
   .sk-ios-tabbar {
     display: flex;
     position: fixed;
@@ -6484,10 +6482,42 @@ footer .copy {
     bottom: 0;
     max-width: 480px;
     margin: 0 auto;
-    background: var(--nav-bg);
-    border-top: 1px solid var(--nav-border);
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.03) 0px,
+        rgba(255, 255, 255, 0.03) 1px,
+        transparent 1px,
+        transparent 3px
+      ),
+      linear-gradient(180deg, #4b4d54 0%, #303238 6%, #1c1d21 55%, #121316 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.32);
+    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.45);
     z-index: 30;
+  }
+  .sk-ios-tab {
+    color: #a9adb6;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+    padding: 6px 0 5px;
+  }
+  .sk-ios-tab-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  /* Selected tabs glow the way they did, instead of just going blue. */
+  .sk-ios-tab.active {
+    color: #6cb6ff;
+  }
+  .sk-ios-tab.active .sk-ios-tab-icon {
+    filter: drop-shadow(0 0 5px rgba(108, 182, 255, 0.65));
+  }
+  .sk-ios-tab.active .sk-ios-tab-label {
+    text-shadow: 0 0 6px rgba(108, 182, 255, 0.5);
+  }
+  /* The centre Post button keeps its glossy pill against the dark bar. */
+  .sk-ios-post-fab {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.55) inset;
   }
   .sk-ios-tab {
     flex: 1;

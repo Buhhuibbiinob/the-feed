@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { isGif } from "@/lib/uploads";
 
 type Offset = { x: number; y: number };
 type NaturalSize = { w: number; h: number };
@@ -43,6 +44,7 @@ export function ImageCropField({
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState<Offset>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isAnimated, setIsAnimated] = useState(false);
 
   const baseScale = naturalSize.w && naturalSize.h ? Math.max(boxWidth / naturalSize.w, boxHeight / naturalSize.h) : 1;
   const scale = baseScale * zoom;
@@ -64,6 +66,7 @@ export function ImageCropField({
   // Regenerate the cropped image and push it onto the real submit input
   // whenever the crop changes, so the form always has the current result.
   useEffect(() => {
+    if (isAnimated) return;
     if (!srcUrl || !imgRef.current || !naturalSize.w || !submitInputRef.current) return;
     const timer = setTimeout(() => {
       const img = imgRef.current;
@@ -94,15 +97,28 @@ export function ImageCropField({
       );
     }, 120);
     return () => clearTimeout(timer);
-  }, [srcUrl, naturalSize, offset, scale, boxWidth, boxHeight, targetWidth, targetHeight]);
+  }, [isAnimated, srcUrl, naturalSize, offset, scale, boxWidth, boxHeight, targetWidth, targetHeight]);
 
   function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (srcUrl) URL.revokeObjectURL(srcUrl);
     if (!file) {
       setSrcUrl(null);
+      setIsAnimated(false);
       return;
     }
+
+    // A GIF sent through the canvas comes back as a single flattened
+    // JPEG frame - the animation is simply gone. So an animated file
+    // skips cropping entirely and is uploaded as-is.
+    const animated = isGif(file);
+    setIsAnimated(animated);
+    if (animated && submitInputRef.current) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      submitInputRef.current.files = dt.files;
+    }
+
     setSrcUrl(URL.createObjectURL(file));
     setZoom(1);
   }
@@ -174,7 +190,16 @@ export function ImageCropField({
       <input ref={submitInputRef} type="file" name={name} style={{ display: "none" }} />
       {hint && <div className="field-hint">{hint}</div>}
 
-      {srcUrl && (
+      {srcUrl && isAnimated && (
+        <div style={{ marginTop: 10 }}>
+          <img src={srcUrl} alt="" style={{ maxWidth: boxWidth, borderRadius: 6, display: "block" }} />
+          <div className="field-hint">
+            Animated GIF - uploaded whole so it keeps moving. Cropping would flatten it to one frame.
+          </div>
+        </div>
+      )}
+
+      {srcUrl && !isAnimated && (
         <div style={{ marginTop: 10 }}>
           <div
             onPointerDown={handlePointerDown}

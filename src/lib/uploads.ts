@@ -5,6 +5,10 @@
 // a friendly, specific error message (checked client-side before the file
 // is even sent, and re-checked server-side).
 export const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+// GIFs carry every frame, so a perfectly ordinary animated avatar is
+// several times the size of a still. Holding them to the still limit is
+// what made "upload a GIF" fail for most real GIFs.
+export const MAX_GIF_BYTES = 6 * 1024 * 1024;
 export const MAX_BANNER_BYTES = 3 * 1024 * 1024;
 export const MAX_BACKGROUND_BYTES = 3 * 1024 * 1024;
 export const MAX_CLUB_IMAGE_BYTES = 3 * 1024 * 1024;
@@ -45,4 +49,15 @@ export function guessContentType(file: File): string {
   if (file.type) return file.type;
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   return EXTENSION_CONTENT_TYPES[ext] ?? "application/octet-stream";
+}
+
+export function isGif(file: File): boolean {
+  if (file.type === "image/gif") return true;
+  // iOS sometimes hands over an empty type, so fall back to the name.
+  return file.type === "" && file.name.toLowerCase().endsWith(".gif");
+}
+
+/** The size limit that applies to this file, given GIFs get more room. */
+export function limitFor(file: File, stillLimit: number): number {
+  return isGif(file) ? Math.max(stillLimit, MAX_GIF_BYTES) : stillLimit;
 }
