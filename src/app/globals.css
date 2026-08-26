@@ -7935,7 +7935,13 @@ button.btn,
   --panel-head-text: #ffffff;
   --btn-image: linear-gradient(180deg, #ffd6ec 0%, #ff7cc0 46%, #ec3f96 54%, #b81f6d 100%);
   --btn-border: #9c1257;
-  --nav-bg: linear-gradient(180deg, #ffd6ec 0%, #ff8fc8 46%, #ec3f96 54%, #a8175f 100%);
+  /* The bar used to run from near-white pink to deep magenta, which no
+     single text colour survives - white vanished at the top, dark
+     vanished at the bottom. Pulling the light end down keeps the gloss
+     and lets white read the whole way. */
+  --nav-bg: linear-gradient(180deg, #d94d95 0%, #cc3a85 46%, #b82a73 54%, #8f1250 100%);
+  --nav-text: #ffffff;
+  --nav-active-text: #ffffff;
   --nav-seam: #ffd700;
   --like-color: #ff2d95;
 }
@@ -8064,6 +8070,9 @@ button.btn,
   --btn-image: linear-gradient(180deg, #ff8a5c, #f2542d);
   --btn-border: #b8331a;
   --nav-bg: linear-gradient(180deg, #a8e02b, #5fc93f);
+  /* White on light lime was 1.57:1. Deep green sits on both stops. */
+  --nav-text: #133d0c;
+  --nav-active-text: #ffffff;
   --like-color: #f2542d;
 }
 
