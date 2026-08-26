@@ -35,6 +35,11 @@ export type PostCardData = {
       computed for profiles; surfacing it in the feed is what makes the
       ladder worth climbing. */
   authorRank?: string | null;
+  /** The author's banner, shown as a strip behind their name. A username
+      alone gives nobody a reason to open a profile; a glimpse of the page
+      someone made does. */
+  authorBannerUrl?: string | null;
+  authorAvatarUrl?: string | null;
 };
 
 const initialState: PostFormState = {};
@@ -216,7 +221,20 @@ export function PostCard({
         )}
         <SpoilerText text={post.body} />
         <div className="post-meta">
-          <Link href={`/profile/${post.username}`}>{post.username}</Link>
+          <Link
+            href={`/profile/${post.username}`}
+            className="post-author"
+            style={
+              post.authorBannerUrl
+                ? { backgroundImage: `url(${post.authorBannerUrl})` }
+                : undefined
+            }
+          >
+            {post.authorAvatarUrl && (
+              <img src={post.authorAvatarUrl} alt="" className="post-author-avatar" />
+            )}
+            <span>{post.username}</span>
+          </Link>
           {post.isVerified && <VerifiedBadge />}
           {post.authorRank && <span className="author-rank">{post.authorRank}</span>} ·{" "}
           {timeAgo(post.createdAt)}

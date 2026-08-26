@@ -304,3 +304,8 @@ export function pageStyle(
 
   return Object.keys(vars).length === 0 ? undefined : (vars as CSSProperties);
 }
+
+/** Whether any colour has actually been chosen, rather than left to the theme. */
+export function hasSkinChoices(palette: Palette): boolean {
+  return !!(palette.bg || palette.panel || palette.text || palette.accent);
+}

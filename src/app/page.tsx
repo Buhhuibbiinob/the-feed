@@ -1,5 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { workKey } from "@/lib/taste";
+import { getDiscoverProfiles, sortProfiles } from "@/lib/discovery";
+import { ProfileCard } from "@/components/ProfileCard";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
@@ -34,7 +36,12 @@ type PostRow = {
   cover_url: string | null;
   spotify_track_id: string | null;
   youtube_video_id: string | null;
-  profiles: { username: string; avatar_url: string | null; is_verified: boolean } | null;
+  profiles: {
+    username: string;
+    avatar_url: string | null;
+    is_verified: boolean;
+    banner_url: string | null;
+  } | null;
 };
 
 type StatusRow = {
@@ -130,7 +137,9 @@ const POST_COLUMNS =
 async function fetchFeedPosts(supabase: Awaited<ReturnType<typeof createClient>>): Promise<PostRow[]> {
   const { data, error } = await supabase
     .from("posts")
-    .select(`${POST_COLUMNS}, profiles!posts_user_id_fkey(username, avatar_url, is_verified)`)
+    .select(
+      `${POST_COLUMNS}, profiles!posts_user_id_fkey(username, avatar_url, is_verified, banner_url)`
+    )
     .order("created_at", { ascending: false })
     // 62 posts exist and a cap of 50 was silently hiding the 12 oldest,
     // which were the earliest real member reviews. Raised well clear of
@@ -697,6 +706,37 @@ export default async function FeedPage({
   );
   // Hidden rather than showing "No reviews yet." - the last homepage module
   // that still announced its own emptiness to a first-time visitor.
+  const decorated = sortProfiles(
+    await getDiscoverProfiles(supabase, { limit: 40 }),
+    "customized",
+    new Map()
+  ).filter((p) => p.effort >= 3);
+
+  // Hidden until a few people have actually decorated something. A
+  // "look at these profiles" rail showing three default avatars argues
+  // against itself.
+  const sideDecorated =
+    decorated.length < 3 ? null : (
+      <div className="panel">
+        <div className="panel-head tabbed">
+          <span className="panel-head-tab">
+            <span className="tab-the">the</span>
+            <span className="tab-main">Decorated</span>
+          </span>
+          <Link href="/profiles" className="see-all">
+            See All ▸
+          </Link>
+        </div>
+        <div className="panel-body">
+          <div className="profile-card-rail">
+            {decorated.slice(0, 6).map((profile) => (
+              <ProfileCard key={profile.id} profile={profile} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+
   const sideMostActive = topReviewers.length === 0 ? null : (
     <>
   <div className="panel hot-pages-panel">
@@ -902,6 +942,7 @@ export default async function FeedPage({
           </div>
           <div className="feedtv-flank">
             {sideMostActive}
+            {sideDecorated}
             {sideClubs}
             {sideStats}
           </div>
@@ -1041,6 +1082,8 @@ export default async function FeedPage({
                       youtubeVideoId: post.youtube_video_id,
                       username: post.profiles?.username ?? "unknown",
                       isVerified: post.profiles?.is_verified ?? false,
+                      authorBannerUrl: post.profiles?.banner_url ?? null,
+                      authorAvatarUrl: post.profiles?.avatar_url ?? null,
                       alsoReviewedCount: alsoReviewedFor(post),
                       authorRank: highestBadge(authorPostCounts.get(post.user_id) ?? 0)?.label ?? null,
                     }}
