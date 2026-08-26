@@ -2642,6 +2642,39 @@ a:hover {
   }
 }
 
+/* ---- Profile hero ----
+   The identity card, the numbers and the owner's controls read across the
+   top like a contact card rather than stacking down a left rail. Three
+   columns on a wide screen, stacked on a phone. */
+.pf-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+@media (min-width: 900px) {
+  .pf-hero {
+    grid-template-columns: 1.6fr 1fr 1fr;
+    align-items: start;
+  }
+  /* The card carrying the photo gets the wide slot. */
+  .pf-hero > .pf-card:first-child .pf-id {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .pf-hero > .pf-card:first-child .pf-links {
+    flex: 1;
+  }
+  .pf-hero > .pf-card:first-child .pf-photo {
+    width: 150px;
+    flex-shrink: 0;
+  }
+}
+.pf-hero .pf-card {
+  margin-bottom: 0;
+}
+
 /* ---- Profile page: the boxed, dense, hard-edged look ----
    Scoped under .profile-skin so it restyles the profile only. The rest of
    the site keeps its rounded, glossy panels; this page is deliberately a
@@ -2668,22 +2701,31 @@ a:hover {
    colour bar. Not the flat web-forum boxes of the obvious references:
    this is a music library, so it should look like one. */
 .pf-card {
-  border: 1px solid var(--pf-line, #b4b7bf);
+  border: 1px solid var(--pf-line, #566880);
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 12px;
   background: var(--panel-body-bg, #fff);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 1px 0 rgba(255, 255, 255, 0.85) inset;
 }
+/* The header is the early-iPhone grouped-table bar: a blue-grey gradient
+   with fine vertical pinstripes and white text cut into it. */
 .pf-card-head {
-  background: var(--pf-bar, linear-gradient(180deg, #fbfbfc 0%, #eaebef 50%, #dfe0e5 51%, #d4d6dc 100%));
-  color: var(--pf-bar-text, #23252b);
+  background: var(--pf-bar-stripes, repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.09) 0px,
+      rgba(255, 255, 255, 0.09) 1px,
+      transparent 1px,
+      transparent 3px
+    )),
+    var(--pf-bar, linear-gradient(180deg, #9aa7bd 0%, #7d8da8 48%, #6f819e 52%, #54688a 100%));
+  color: var(--pf-bar-text, #fff);
   padding: 7px 11px;
   font-size: 12.5px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  border-bottom: 1px solid var(--pf-line, #b4b7bf);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid var(--pf-line, #566880);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.42);
 }
 /* The accent header - used on the boxes worth catching the eye. */
 .pf-card-head.alt {
@@ -2716,20 +2758,30 @@ a:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
 }
 
-/* Stickers float over the whole profile, not stuck to the photo.
-   The layer ignores the pointer unless it's being edited - otherwise a
-   sticker sitting over a link would quietly swallow the click. */
+/* Stickers float over the whole profile.
+   The layers themselves are never interactive - only the sticker images
+   inside them are. An interactive layer covers the entire page including
+   the controls underneath, which is what made Remove and the sliders look
+   dead. */
 .sticker-layer {
   position: absolute;
   inset: 0;
-  z-index: 5;
   pointer-events: none;
   overflow: visible;
 }
-.sticker-layer.editing {
-  pointer-events: auto;
-  z-index: 40;
-  background: rgba(255, 255, 255, 0.08);
+/* Painted under the panels; the front layer sits over them. The columns
+   are pinned between the two. */
+.sticker-layer.behind {
+  z-index: 1;
+}
+.sticker-layer.front {
+  z-index: 3;
+}
+.profile-columns {
+  position: relative;
+  z-index: 2;
+}
+.sticker-layer.editing.front {
   outline: 2px dashed var(--link);
   outline-offset: -4px;
 }
@@ -2748,6 +2800,55 @@ a:hover {
 .sticker.selected {
   outline: 2px solid var(--link);
 }
+
+/* Picking a sticker from a row of thumbnails, so selecting one never
+   depends on hitting it with a pointer. */
+.sticker-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 7px 0;
+}
+.sticker-chip {
+  width: 40px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: var(--panel-body-bg);
+  cursor: pointer;
+}
+.sticker-chip.active {
+  outline: 2px solid var(--link);
+}
+.sticker-chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.sticker-nudge,
+.sticker-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* Visually hidden but still read out, for the labels that would clutter
+   the panel if they were shown. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .sticker-tools {
   margin-top: 7px;
 }
@@ -2851,19 +2952,26 @@ a:hover {
    reads as one thing rather than the new card plus the site's old panels. */
 .profile-columns .panel {
   border-radius: 10px;
-  border: 1px solid var(--pf-line, #b4b7bf);
+  border: 1px solid var(--pf-line, #566880);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 1px 0 rgba(255, 255, 255, 0.85) inset;
   margin-bottom: 12px;
   overflow: hidden;
 }
 .profile-columns .panel-head {
-  background: var(--pf-bar, linear-gradient(180deg, #fbfbfc 0%, #eaebef 50%, #dfe0e5 51%, #d4d6dc 100%));
-  color: var(--pf-bar-text, #23252b);
-  border-bottom: 1px solid var(--pf-line, #b4b7bf);
+  background: var(--pf-bar-stripes, repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.09) 0px,
+      rgba(255, 255, 255, 0.09) 1px,
+      transparent 1px,
+      transparent 3px
+    )),
+    var(--pf-bar, linear-gradient(180deg, #9aa7bd 0%, #7d8da8 48%, #6f819e 52%, #54688a 100%));
+  color: var(--pf-bar-text, #fff);
+  border-bottom: 1px solid var(--pf-line, #566880);
   box-shadow: none;
   padding: 7px 11px;
   font-size: 12.5px;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.42);
 }
 /* The main column's headers take the accent, the side column's stay
    quiet - the emphasis reads as hierarchy rather than as two unrelated
@@ -10258,4 +10366,18 @@ body {
     order: -1;
     margin-bottom: 16px;
   }
+}
+
+/* ---- Focus visibility ----
+   The profile editor is a lot of small controls; without this, tabbing
+   through it is invisible. */
+.sticker-chip:focus-visible,
+.pf-links a:focus-visible,
+.pf-links button:focus-visible,
+.comment-action:focus-visible,
+.page-editor-tab:focus-visible,
+.theme-preset:focus-visible,
+.pattern-chip:focus-visible {
+  outline: 2px solid var(--link, #2f6fce);
+  outline-offset: 2px;
 }

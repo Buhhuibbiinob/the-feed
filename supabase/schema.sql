@@ -1724,3 +1724,10 @@ create policy "Members manage their own stickers"
   on public.profile_stickers for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+-- ---------- Stickers: squish and warp ----------
+-- scale was a single number, so a sticker could only ever be scaled
+-- evenly. These let it be squashed on one axis and skewed, which is most
+-- of what makes a sticker look stuck on rather than placed.
+alter table public.profile_stickers add column if not exists scale_y real not null default 1;
+alter table public.profile_stickers add column if not exists skew real not null default 0;

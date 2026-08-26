@@ -90,12 +90,19 @@ export async function placeSticker(formData: FormData) {
     x: formData.get("x"),
     y: formData.get("y"),
     scale: formData.get("scale"),
+    scaleY: formData.get("scale_y"),
     rotation: formData.get("rotation"),
+    skew: formData.get("skew"),
   });
+
+  // z only ever carries a sign here - which layer the sticker belongs to.
+  // Its exact magnitude is stacking order within that layer.
+  const rawZ = Number(formData.get("z"));
+  const z = Number.isFinite(rawZ) ? Math.max(-99, Math.min(99, Math.round(rawZ))) : null;
 
   await supabase
     .from("profile_stickers")
-    .update(placement)
+    .update(z === null ? placement : { ...placement, z })
     .eq("id", id)
     .eq("user_id", user.id);
 
