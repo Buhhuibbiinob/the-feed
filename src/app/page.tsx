@@ -2,6 +2,9 @@ import { Fragment, type ReactNode } from "react";
 import { workKey } from "@/lib/taste";
 import { getDiscoverProfiles, sortProfiles } from "@/lib/discovery";
 import { ProfileCard } from "@/components/ProfileCard";
+import { WidgetCarousel } from "@/components/WidgetCarousel";
+import { layoutVariantFor, LAYOUT_EXPERIMENT } from "@/lib/experiments";
+import { logEventDaily } from "@/lib/events";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
@@ -899,6 +902,115 @@ export default async function FeedPage({
     </div>
   );
 
+  // Pulled out as a value so the paired layout can put it beside Feed
+  // TV rather than under it, without the two layouts owning separate
+  // copies of the feed that then drift apart.
+  // Which homepage this visitor gets. Recorded once a day so the
+  // analysis knows their bucket without a row per refresh.
+  const layout = layoutVariantFor(user?.id ?? null);
+  if (user) await logEventDaily(supabase, user.id, "layout_view", `${LAYOUT_EXPERIMENT}:${layout}`);
+
+  const reviewsPanel = (
+      <div className="panel" id="reviews">
+        <div className="panel-head tabbed">
+          <span className="panel-head-tab">
+            <span className="tab-the">the</span>
+            <span className="tab-main">Recent Reviews</span>
+          </span>
+          {user && <FollowingToggle filter={filter ?? null} />}
+        </div>
+        {/* Category chips. Links rather than buttons so the filter is a
+            real URL people can share and the back button works. The
+            following filter is carried through so the two compose. */}
+        <div className="feed-chips">
+          <Link href={feedHref(null, 1)} className={`feed-chip ${typeFilter ? "" : "active"}`}>
+            All
+          </Link>
+          {MEDIA_TYPES.map((mt) => (
+            <Link
+              key={mt}
+              href={feedHref(mt, 1)}
+              className={`feed-chip ${typeFilter === mt ? "active" : ""}`}
+            >
+              {MEDIA_FILTER_LABELS[mt]}
+            </Link>
+          ))}
+        </div>
+        <div className="panel-body flush">
+          {feedPosts.length === 0 ? (
+            <div className="empty-state" style={{ padding: 16 }}>
+              {typeFilter
+                ? `No ${MEDIA_FILTER_LABELS[typeFilter].toLowerCase()} reviews yet - be the first to post one.`
+                : followingOnly
+                  ? "No reviews yet from people you follow."
+                  : "No reviews yet - be the first to post one."}
+            </div>
+          ) : (
+            pagePosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={{
+                  id: post.id,
+                  userId: post.user_id,
+                  mediaType: post.media_type,
+                  title: post.title,
+                  body: post.body,
+                  rating: post.rating,
+                  createdAt: post.created_at,
+                  artist: post.artist,
+                  coverUrl: post.cover_url,
+                  spotifyTrackId: post.spotify_track_id,
+                  youtubeVideoId: post.youtube_video_id,
+                  username: post.profiles?.username ?? "unknown",
+                  isVerified: post.profiles?.is_verified ?? false,
+                  authorBannerUrl: post.profiles?.banner_url ?? null,
+                  authorAvatarUrl: post.profiles?.avatar_url ?? null,
+                  alsoReviewedCount: alsoReviewedFor(post),
+                  authorRank: highestBadge(authorPostCounts.get(post.user_id) ?? 0)?.label ?? null,
+                }}
+                currentUserId={user?.id ?? null}
+                viewerIsAdmin={viewerIsAdmin}
+                liked={likedByMe.has(post.id)}
+                likeCount={likeCounts.get(post.id) ?? 0}
+                commentCount={commentCounts.get(post.id) ?? 0}
+                sticker={
+                  post.id === newFavePost?.id
+                    ? "new"
+                    : post.id === hotTakePost?.id
+                      ? "hot"
+                      : undefined
+                }
+              />
+            ))
+          )}
+        </div>
+        {totalPages > 1 && (
+          <div className="feed-pager">
+            {currentPage > 1 ? (
+              <Link href={feedHref(typeFilter, currentPage - 1)} className="feed-pager-btn">
+                ‹ Newer
+              </Link>
+            ) : (
+              <span className="feed-pager-btn disabled">‹ Newer</span>
+            )}
+            <span className="feed-pager-status">
+              Page {currentPage} of {totalPages}
+              <span className="feed-pager-count">
+                {feedPosts.length} review{feedPosts.length === 1 ? "" : "s"}
+              </span>
+            </span>
+            {currentPage < totalPages ? (
+              <Link href={feedHref(typeFilter, currentPage + 1)} className="feed-pager-btn">
+                Older ›
+              </Link>
+            ) : (
+              <span className="feed-pager-btn disabled">Older ›</span>
+            )}
+          </div>
+        )}
+      </div>
+  );
+
   return (
     <>
       {siteFlags.homepage_ad_hero &&
@@ -931,7 +1043,7 @@ export default async function FeedPage({
           flanks are lifted out of the sidebar, not duplicated, so nothing
           renders twice. Below the tablet breakpoint the three columns stack
           and the flanks fall back into their old sidebar order. */}
-      {feedTvClips.length > 0 && (
+      {layout === "stack" && feedTvClips.length > 0 && (
         <div className="feedtv-row">
           <div className="feedtv-flank">
             <OrbyBot wishesLeft={orbyWishesLeft} />
@@ -947,6 +1059,33 @@ export default async function FeedPage({
             {sideStats}
           </div>
         </div>
+      )}
+
+      {/* The paired layout under test: the two things people actually come
+          for - the clips and the reviews - side by side above the fold,
+          with everything secondary moved into a rail below. */}
+      {layout === "paired" && (
+        <>
+          <div className="paired-hero">
+            {feedTvClips.length > 0 && (
+              <div className="paired-tv">
+                <FeedTV clips={feedTvClips} />
+              </div>
+            )}
+            <div className="paired-reviews">{reviewsPanel}</div>
+          </div>
+
+          <WidgetCarousel
+            items={[
+              { key: "orby", node: <OrbyBot wishesLeft={orbyWishesLeft} /> },
+              { key: "top-rated", node: sideTopRated },
+              { key: "most-active", node: sideMostActive },
+              { key: "decorated", node: sideDecorated },
+              { key: "clubs", node: sideClubs },
+              { key: "stats", node: sideStats },
+            ].filter((item) => item.node)}
+          />
+        </>
       )}
 
 
@@ -1030,104 +1169,7 @@ export default async function FeedPage({
             <Fragment key={block.key}>{block.node}</Fragment>
           ))}
 
-          <div className="panel" id="reviews">
-            <div className="panel-head tabbed">
-              <span className="panel-head-tab">
-                <span className="tab-the">the</span>
-                <span className="tab-main">Recent Reviews</span>
-              </span>
-              {user && <FollowingToggle filter={filter ?? null} />}
-            </div>
-            {/* Category chips. Links rather than buttons so the filter is a
-                real URL people can share and the back button works. The
-                following filter is carried through so the two compose. */}
-            <div className="feed-chips">
-              <Link href={feedHref(null, 1)} className={`feed-chip ${typeFilter ? "" : "active"}`}>
-                All
-              </Link>
-              {MEDIA_TYPES.map((mt) => (
-                <Link
-                  key={mt}
-                  href={feedHref(mt, 1)}
-                  className={`feed-chip ${typeFilter === mt ? "active" : ""}`}
-                >
-                  {MEDIA_FILTER_LABELS[mt]}
-                </Link>
-              ))}
-            </div>
-            <div className="panel-body flush">
-              {feedPosts.length === 0 ? (
-                <div className="empty-state" style={{ padding: 16 }}>
-                  {typeFilter
-                    ? `No ${MEDIA_FILTER_LABELS[typeFilter].toLowerCase()} reviews yet - be the first to post one.`
-                    : followingOnly
-                      ? "No reviews yet from people you follow."
-                      : "No reviews yet - be the first to post one."}
-                </div>
-              ) : (
-                pagePosts.map((post) => (
-                  <PostCard
-                    key={post.id}
-                    post={{
-                      id: post.id,
-                      userId: post.user_id,
-                      mediaType: post.media_type,
-                      title: post.title,
-                      body: post.body,
-                      rating: post.rating,
-                      createdAt: post.created_at,
-                      artist: post.artist,
-                      coverUrl: post.cover_url,
-                      spotifyTrackId: post.spotify_track_id,
-                      youtubeVideoId: post.youtube_video_id,
-                      username: post.profiles?.username ?? "unknown",
-                      isVerified: post.profiles?.is_verified ?? false,
-                      authorBannerUrl: post.profiles?.banner_url ?? null,
-                      authorAvatarUrl: post.profiles?.avatar_url ?? null,
-                      alsoReviewedCount: alsoReviewedFor(post),
-                      authorRank: highestBadge(authorPostCounts.get(post.user_id) ?? 0)?.label ?? null,
-                    }}
-                    currentUserId={user?.id ?? null}
-                    viewerIsAdmin={viewerIsAdmin}
-                    liked={likedByMe.has(post.id)}
-                    likeCount={likeCounts.get(post.id) ?? 0}
-                    commentCount={commentCounts.get(post.id) ?? 0}
-                    sticker={
-                      post.id === newFavePost?.id
-                        ? "new"
-                        : post.id === hotTakePost?.id
-                          ? "hot"
-                          : undefined
-                    }
-                  />
-                ))
-              )}
-            </div>
-            {totalPages > 1 && (
-              <div className="feed-pager">
-                {currentPage > 1 ? (
-                  <Link href={feedHref(typeFilter, currentPage - 1)} className="feed-pager-btn">
-                    ‹ Newer
-                  </Link>
-                ) : (
-                  <span className="feed-pager-btn disabled">‹ Newer</span>
-                )}
-                <span className="feed-pager-status">
-                  Page {currentPage} of {totalPages}
-                  <span className="feed-pager-count">
-                    {feedPosts.length} review{feedPosts.length === 1 ? "" : "s"}
-                  </span>
-                </span>
-                {currentPage < totalPages ? (
-                  <Link href={feedHref(typeFilter, currentPage + 1)} className="feed-pager-btn">
-                    Older ›
-                  </Link>
-                ) : (
-                  <span className="feed-pager-btn disabled">Older ›</span>
-                )}
-              </div>
-            )}
-          </div>
+          {layout === "stack" && reviewsPanel}
         </div>
 
         {/* Sidebar order is deliberate and NOT shuffled, unlike the left

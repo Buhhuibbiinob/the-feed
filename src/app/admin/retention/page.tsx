@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { LAYOUT_EXPERIMENT } from "@/lib/experiments";
 import {
+  computeExperiment,
   computeEditFrequency,
   computeEditToReview,
   computeRetention,
@@ -45,6 +47,7 @@ export default async function RetentionPage() {
   const edits = computeEditFrequency(events);
   const conversion = computeEditToReview(events, posts);
   const retention = computeRetention(members, events, posts);
+  const experiment = computeExperiment(events, posts, LAYOUT_EXPERIMENT);
 
   return (
     <>
@@ -112,6 +115,45 @@ export default async function RetentionPage() {
           <p className="field-hint">
             Measured forward from each member&apos;s first edit, so someone who was already posting
             before they ever touched their profile does not count as converted.
+          </p>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Homepage layout test</div>
+        <div className="panel-body">
+          {experiment.length === 0 ? (
+            <div className="empty-state">
+              Nobody bucketed yet. Members are assigned on their first homepage visit.
+            </div>
+          ) : (
+            <table className="metric-table">
+              <thead>
+                <tr>
+                  <th>Layout</th>
+                  <th>Members</th>
+                  <th>Posted a review</th>
+                  <th>Edited profile</th>
+                  <th>Reviews each</th>
+                </tr>
+              </thead>
+              <tbody>
+                {experiment.map((row) => (
+                  <tr key={row.variant}>
+                    <td>{row.variant === "paired" ? "Paired (test)" : "Stack (current)"}</td>
+                    <td>{row.members}</td>
+                    <td>{percent(row.posted, row.members)}</td>
+                    <td>{percent(row.edited, row.members)}</td>
+                    <td>{row.reviewsPerMember.toFixed(1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <p className="field-hint">
+            Only activity after a member was bucketed counts - comparing lifetime totals would just
+            say which bucket caught the older accounts. Members are split by a hash of their id, so
+            each person always sees the same layout. Signed-out visitors all get the current one.
           </p>
         </div>
       </div>

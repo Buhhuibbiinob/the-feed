@@ -183,3 +183,75 @@ export function computeRetention(
     };
   });
 }
+
+export type VariantResult = {
+  variant: string;
+  members: number;
+  /** Members who posted a review after being bucketed. */
+  posted: number;
+  /** Members who edited their profile after being bucketed. */
+  edited: number;
+  reviewsPerMember: number;
+};
+
+/**
+ * How each homepage layout performed.
+ *
+ * Only activity *after* a member was first bucketed counts. Comparing
+ * lifetime totals would just say that whichever bucket happened to catch
+ * the older accounts is winning, which is a fact about signup dates
+ * rather than about the layout.
+ */
+export function computeExperiment(
+  events: EventRow[],
+  posts: PostStamp[],
+  experiment: string
+): VariantResult[] {
+  const bucketedAt = new Map<string, { variant: string; at: number }>();
+  for (const event of events) {
+    if (event.kind !== "layout_view") continue;
+    const detail = event.meta?.detail ?? "";
+    if (!detail.startsWith(`${experiment}:`)) continue;
+    const variant = detail.slice(experiment.length + 1);
+    const at = new Date(event.created_at).getTime();
+    const existing = bucketedAt.get(event.user_id);
+    if (!existing || at < existing.at) bucketedAt.set(event.user_id, { variant, at });
+  }
+
+  const postsByUser = new Map<string, number[]>();
+  for (const post of posts) {
+    const list = postsByUser.get(post.user_id) ?? [];
+    list.push(new Date(post.created_at).getTime());
+    postsByUser.set(post.user_id, list);
+  }
+
+  const editsByUser = new Map<string, number[]>();
+  for (const event of events) {
+    if (event.kind !== "profile_edit") continue;
+    const list = editsByUser.get(event.user_id) ?? [];
+    list.push(new Date(event.created_at).getTime());
+    editsByUser.set(event.user_id, list);
+  }
+
+  const byVariant = new Map<string, VariantResult>();
+  for (const [userId, { variant, at }] of bucketedAt) {
+    const row =
+      byVariant.get(variant) ??
+      { variant, members: 0, posted: 0, edited: 0, reviewsPerMember: 0 };
+
+    row.members++;
+    const reviews = (postsByUser.get(userId) ?? []).filter((t) => t >= at);
+    if (reviews.length > 0) row.posted++;
+    row.reviewsPerMember += reviews.length;
+    if ((editsByUser.get(userId) ?? []).some((t) => t >= at)) row.edited++;
+
+    byVariant.set(variant, row);
+  }
+
+  return [...byVariant.values()]
+    .map((row) => ({
+      ...row,
+      reviewsPerMember: row.members === 0 ? 0 : row.reviewsPerMember / row.members,
+    }))
+    .sort((a, b) => a.variant.localeCompare(b.variant));
+}

@@ -11,6 +11,10 @@ export const EVENT_KINDS = [
   "review_posted",
   "profile_view",
   "signup",
+  // Which homepage layout a member was served. Logged once a day rather
+  // than once a visit: the analysis needs to know their bucket, not how
+  // many times they refreshed.
+  "layout_view",
 ] as const;
 
 export type EventKind = (typeof EVENT_KINDS)[number];
@@ -34,5 +38,35 @@ export async function logEvent(
     });
   } catch {
     // Intentionally swallowed - see the note above.
+  }
+}
+
+/**
+ * Logs an event at most once per member per day.
+ *
+ * For things like "which layout did they see", a row per page load buries
+ * the events that actually matter under thousands of duplicates.
+ */
+export async function logEventDaily(
+  supabase: SupabaseClient,
+  userId: string,
+  kind: EventKind,
+  detail?: string
+): Promise<void> {
+  try {
+    const since = new Date();
+    since.setUTCHours(0, 0, 0, 0);
+
+    const { count } = await supabase
+      .from("activity_events")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("kind", kind)
+      .gte("created_at", since.toISOString());
+
+    if ((count ?? 0) > 0) return;
+    await logEvent(supabase, userId, kind, detail);
+  } catch {
+    // Same as logEvent: analytics must never break the page.
   }
 }
