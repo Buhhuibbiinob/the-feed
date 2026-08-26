@@ -135,7 +135,9 @@ type StickerRow = {
   x: number;
   y: number;
   scale: number;
+  scale_y: number | null;
   rotation: number;
+  skew: number | null;
   z: number;
 };
 type CollectionFollowRow = { collection_id: string; user_id: string };
@@ -189,16 +191,18 @@ function lastOnlineLabel(iso: string): string {
 }
 
 function Panel({
+  id,
   title,
   style,
   children,
 }: {
+  id?: string;
   title: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   return (
-    <div className="panel" style={style}>
+    <div className="panel" id={id} style={style}>
       <div className="panel-head">{title}</div>
       <div className="panel-body">{children}</div>
     </div>
@@ -508,7 +512,7 @@ export default async function ProfilePage({
       .returns<PinnedRow[]>(),
     supabase
       .from("profile_stickers")
-      .select("id, image_url, x, y, scale, rotation, z")
+      .select("id, image_url, x, y, scale, scale_y, rotation, skew, z")
       .eq("user_id", profile.id)
       .order("z", { ascending: true })
       .returns<StickerRow[]>(),
@@ -537,7 +541,10 @@ export default async function ProfilePage({
     x: row.x,
     y: row.y,
     scale: row.scale,
+    // Null for stickers placed before these columns existed.
+    scaleY: row.scale_y ?? 1,
     rotation: row.rotation,
+    skew: row.skew ?? 0,
     z: row.z,
   }));
 
@@ -620,7 +627,7 @@ export default async function ProfilePage({
     switch (id) {
       case "obsessed":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Obsessed With</div>
             <div className="panel-body">
               {obsessedTitle ? (
@@ -643,7 +650,7 @@ export default async function ProfilePage({
 
       case "anthem":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">My Anthem</div>
             <div className="panel-body">
               {hasSong ? (
@@ -664,7 +671,7 @@ export default async function ProfilePage({
 
       case "week":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">
               This Week
             </div>
@@ -719,7 +726,7 @@ export default async function ProfilePage({
         // if someone re-orders the sections.
         if (!isOwnProfile) return null;
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Taste Twin</div>
             <div className="panel-body">
               {!twin ? (
@@ -742,7 +749,7 @@ export default async function ProfilePage({
 
       case "achievements":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Trophies</div>
             <div className="panel-body">
               {achievements.length === 0 ? (
@@ -769,7 +776,7 @@ export default async function ProfilePage({
 
       case "mood":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Mood">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Mood">
             {!moodEmoji && !custom?.mood_text ? (
               <EmptySlot>{isOwnProfile ? "How are you, then?" : "No mood set."}</EmptySlot>
             ) : (
@@ -788,7 +795,7 @@ export default async function ProfilePage({
 
       case "about":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="About Me">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="About Me">
             {profile.bio ? (
               <div className="profile-bio" style={bioStyle}>
                 {renderRichBio(profile.bio)}
@@ -801,7 +808,7 @@ export default async function ProfilePage({
 
       case "blurbs":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Blurbs">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Blurbs">
             {!custom?.blurb_next && !custom?.blurb_free ? (
               <EmptySlot>{isOwnProfile ? "What are you putting off reviewing?" : "Empty."}</EmptySlot>
             ) : (
@@ -820,14 +827,14 @@ export default async function ProfilePage({
 
       case "connections":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Top 8">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Top 8">
             <TopConnections connections={connections} isOwner={isOwnProfile} />
           </Panel>
         );
 
       case "pinned":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Pinned">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Pinned">
             {pinnedPosts.length === 0 ? (
               <EmptySlot>{isOwnProfile ? "Pin a review from its page." : "Nothing pinned."}</EmptySlot>
             ) : (
@@ -862,7 +869,7 @@ export default async function ProfilePage({
 
       case "guestbook":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Guestbook">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Guestbook">
             <Guestbook
               profileId={profile.id}
               entries={guestbook}
@@ -874,7 +881,7 @@ export default async function ProfilePage({
 
       case "presence":
         return (
-          <Panel key={id} style={moduleStyle(moduleStates.get(id))} title="Online">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Online">
             <div className="week-figures">
               {isOwnProfile && viewerCount != null && (
                 <span>
@@ -895,7 +902,7 @@ export default async function ProfilePage({
 
       case "highlights":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Greatest Hits</div>
             <div className="panel-body">
               {highlights.length === 0 ? (
@@ -929,7 +936,7 @@ export default async function ProfilePage({
 
       case "collections":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">
               Collections
               <Link href="/collections" className="see-all">
@@ -979,7 +986,7 @@ export default async function ProfilePage({
 
       case "favorites":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Favorites</div>
             <div className="panel-body">
               {favoriteCount === 0 ? (
@@ -1018,7 +1025,7 @@ export default async function ProfilePage({
 
       case "stats":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Details</div>
             <div className="stats-body">
               {/* Only categories they've actually posted in. Otherwise every
@@ -1039,7 +1046,7 @@ export default async function ProfilePage({
 
       case "clubs":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Clubs</div>
             <div className="panel-body flush">
               {clubs.map((club) => (
@@ -1054,7 +1061,7 @@ export default async function ProfilePage({
 
       case "reviews":
         return (
-          <div className="panel" key={id} style={moduleStyle(moduleStates.get(id))}>
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Reviews</div>
             <div className="panel-body flush">
               {posts.length === 0 ? (
@@ -1101,8 +1108,12 @@ export default async function ProfilePage({
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
       <StickerLayer stickers={stickers} isOwner={isOwnProfile} />
 
-      <div className="profile-columns">
-        <div className="profile-col-side">
+      {/* The identity card spans the page rather than sitting in a left
+          rail. That rail is the single most recognisable thing about the
+          obvious reference, and this is not that site: photo, details and
+          numbers read across the top like a contact card, and the modules
+          flow underneath. */}
+      <div className="pf-hero">
           {/* The identity card: big square photo, actions stacked beside
               it, everything else underneath. This is the block the whole
               page is built around, so it leads the column. */}
@@ -1300,7 +1311,10 @@ export default async function ProfilePage({
               </div>
             </div>
           )}
+      </div>
 
+      <div className="profile-columns">
+        <div className="profile-col-side">
           {/* The rest of the side column: the small identity modules,
               below the card they belong to. */}
           {shownModules.filter((id) => moduleColumn(id) === "side").map((id) => renderSection(id))}

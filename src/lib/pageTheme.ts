@@ -264,7 +264,12 @@ export function pageStyle(
       `color-mix(in srgb, ${palette.accent} 18%, #fff) 50%, ` +
       `color-mix(in srgb, ${palette.accent} 26%, #fff) 51%, ` +
       `color-mix(in srgb, ${palette.accent} 36%, #fff) 100%)`;
-    vars["--pf-bar-text"] = `color-mix(in srgb, ${palette.accent} 80%, #000)`;
+    vars["--pf-bar"] =
+      `linear-gradient(180deg, color-mix(in srgb, ${palette.accent} 55%, #fff) 0%, ` +
+      `color-mix(in srgb, ${palette.accent} 75%, #fff) 48%, ` +
+      `color-mix(in srgb, ${palette.accent} 88%, #000) 52%, ` +
+      `color-mix(in srgb, ${palette.accent} 70%, #000) 100%)`;
+    vars["--pf-bar-text"] = "#fff";
     vars["--pf-line"] = `color-mix(in srgb, ${palette.accent} 45%, #000)`;
     vars["--pf-bar-alt"] =
       `linear-gradient(180deg, color-mix(in srgb, ${palette.accent} 68%, #fff) 0%, ` +
