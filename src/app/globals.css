@@ -8713,20 +8713,28 @@ body {
 /* Mobile chrome: same charcoal bar top and bottom, so the phone layout
    reads as an app shell rather than a website with a strip on it. */
 [data-theme="ios-light"] .sk-ios-topbar,
+/* Pinstriped like the tab bar artwork rather than plain brushed steel.
+   These beat the base rules on specificity, so the iOS 5 pass never
+   reached the default theme until they were updated too. */
 [data-theme="ios-light"] .sk-ios-tabbar {
-  background: linear-gradient(180deg, #6f7175 0%, #4a4c50 6%, #333539 48%, #232427 51%, #2b2c30 92%, #17181a 100%);
-  border-color: #0d0e0f;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.24) inset, 0 2px 8px rgba(0, 0, 0, 0.45);
+  background: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.035) 0px,
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(180deg, #4b4d54 0%, #303238 6%, #1c1d21 55%, #121316 100%);
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.45);
 }
-[data-theme="ios-light"] .sk-ios-title,
-[data-theme="ios-light"] .sk-ios-back,
-[data-theme="ios-light"] .sk-ios-action,
 [data-theme="ios-light"] .sk-ios-tab-label {
-  color: #eaeaee;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.65);
+  color: #a9adb6;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
 }
 [data-theme="ios-light"] .sk-ios-tab.active .sk-ios-tab-label {
-  color: #ffffff;
+  color: #6cb6ff;
+  text-shadow: 0 0 6px rgba(108, 182, 255, 0.5);
 }
 
 /* ================================================================
@@ -9863,8 +9871,12 @@ body {
    variables every theme already defines for the old top nav. ios-light
    additionally hardcodes its own exempted dark-steel-topbar/light-tabbar
    look below, which - being a more specific selector - wins over this shared base for that theme only. */
-.sk-ios-topbar, .sk-ios-tabbar, .sk-more-sheet-backdrop {
-  display: none;
+@media (min-width: 761px) {
+  .sk-ios-topbar,
+  .sk-ios-tabbar,
+  .sk-more-sheet-backdrop {
+    display: none;
+  }
 }
 /* Bright specular band across the top of the bar. */
 .apple-nav {

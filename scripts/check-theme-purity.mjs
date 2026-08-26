@@ -70,8 +70,35 @@ for (const rule of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
   }
 }
 
+// ---- Mobile chrome must not be hidden at top level ----
+// The bottom tab bar and top nav are switched on inside a max-width media
+// query. A `display: none` for them written at top level sits later in the
+// file at equal specificity, so it wins at every width and the mobile
+// chrome silently disappears - on phones as well as desktops. That is
+// exactly how it broke once already. Keep the desktop-side hide inside a
+// min-width query so the two rules cover different widths and neither can
+// out-order the other.
+const chromeOffenders = [];
+for (const rule of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+  const [, selector, body] = rule;
+  if (!/\.sk-ios-(tabbar|topbar)/.test(selector)) continue;
+  if (!/display\s*:\s*none/.test(body)) continue;
+  if (inMedia(rule.index)) continue;
+  chromeOffenders.push(lineOf(rule.index));
+}
+
+if (chromeOffenders.length > 0) {
+  console.error(
+    `\nMobile chrome FAILED - \`display: none\` on .sk-ios-tabbar/.sk-ios-topbar ` +
+      `at top level (line ${chromeOffenders.join(", ")}).\n` +
+      `Wrap it in @media (min-width: 761px) so it only applies on desktop.\n`
+  );
+  process.exit(1);
+}
+
 if (violations.length === 0) {
   console.log("Theme purity OK: no theme sets layout, spacing or sizing.");
+  console.log("Mobile chrome OK: tab bar and top nav are not hidden at every width.");
   process.exit(0);
 }
 
@@ -85,3 +112,4 @@ for (const v of violations) {
   console.error(`  ${CSS}:${v.line}  ${v.prop}  in  ${v.selector}`);
 }
 process.exit(1);
+
