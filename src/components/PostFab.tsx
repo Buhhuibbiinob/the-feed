@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { openComposeSheet } from "@/components/ComposeSheet";
 
 // A floating Post button, so posting is reachable from anywhere rather
 // than only from the top of the page.
@@ -19,7 +20,17 @@ export function PostFab({ signedIn }: { signedIn: boolean }) {
   if (HIDDEN_ON.some((path) => pathname.startsWith(path))) return null;
 
   return (
-    <Link href="/post/new" className="post-fab" aria-label="Post a review">
+    <Link
+      href="/post/new"
+      className="post-fab"
+      aria-label="Post a review"
+      onClick={(e) => {
+        // Still a real link to a real page. This only takes over once
+        // the sheet has mounted, so no-JS and pre-hydration clicks
+        // navigate exactly as before.
+        if (openComposeSheet()) e.preventDefault();
+      }}
+    >
       <span className="post-fab-plus" aria-hidden="true">
         +
       </span>

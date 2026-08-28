@@ -9,6 +9,7 @@ import { LightDarkToggle } from "@/components/LightDarkToggle";
 import { MORE_PAGES } from "@/lib/builtinPages";
 import { IconButtonLink } from "@/components/IconButton";
 import { AccountMenu } from "@/components/AccountMenu";
+import { openComposeSheet } from "@/components/ComposeSheet";
 
 // Built from the same list the admin Pages screen archives, so a page can
 // never be missing from the nav while still offering an Archive toggle.
@@ -290,7 +291,15 @@ export function SiteHeader({
           </span>
           <span className="sk-ios-tab-label">Search</span>
         </Link>
-        <Link href={username ? "/post/new" : "/sign-in"} className="sk-ios-tab sk-ios-tab-post">
+        <Link
+          href={username ? "/post/new" : "/sign-in"}
+          className="sk-ios-tab sk-ios-tab-post"
+          onClick={(e) => {
+            // Only signed-in members get the sheet; everyone else needs
+            // the sign-in page the link already points at.
+            if (username && openComposeSheet()) e.preventDefault();
+          }}
+        >
           <span className="sk-ios-post-fab">
             <PlusIcon />
           </span>

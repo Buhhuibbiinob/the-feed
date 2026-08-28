@@ -25,8 +25,11 @@ const MAX_INLINE_BLUR = 6;
 const FLOATERS = [
   "menu", "modal", "backdrop", "popover", "dropdown", "tooltip", "toast",
   "fab", "dialog", "overlay", "sticker", "drag", "lightbox", "picker-pop",
-  // Chrome that genuinely floats above the scrolling page.
-  "tabbar", "more-sheet", "app-shell", "circle-icon-btn",
+  // Chrome that genuinely floats above the scrolling page. "sheet"
+  // covers the compose sheet and the mobile more-sheet: a modal sheet
+  // is lifted off the page by definition, which is the one case this
+  // guard exists to permit rather than prevent.
+  "tabbar", "sheet", "app-shell", "circle-icon-btn",
   // Drawn objects rather than UI surfaces. The record and its sleeves are
   // an illustration of a stack, so they really are meant to sit on top of
   // one another; cover art and the now-playing artwork are pictures of

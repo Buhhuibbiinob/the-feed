@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { PageTransition } from "@/components/PageTransition";
 import { SideRail } from "@/components/SideRail";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { ComposeSheet } from "@/components/ComposeSheet";
 import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { PostFab } from "@/components/PostFab";
 import { createClient } from "@/lib/supabase/server";
@@ -178,6 +179,7 @@ export default async function RootLayout({
           </div>
         </div>
         <PostFab signedIn={!!user} />
+        {user && <ComposeSheet />}
         <WelcomeExplainer signedIn={!!user} />
       </body>
     </html>
