@@ -6,9 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "node scripts/check-theme-purity.mjs && node scripts/check-theme-contrast.mjs && eslint",
+    "lint": "node scripts/check-theme-purity.mjs && node scripts/check-theme-contrast.mjs && node scripts/check-shadow-weight.mjs && eslint",
     "check:themes": "node scripts/check-theme-purity.mjs",
-    "check:contrast": "node scripts/check-theme-contrast.mjs --verbose"
+    "check:contrast": "node scripts/check-theme-contrast.mjs --verbose",
+    "check:shadows": "node scripts/check-shadow-weight.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",
