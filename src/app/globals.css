@@ -74,7 +74,7 @@
   --wordmark-color: #2f3237;
 
   /* Bar buttons: bevelled rounded rects, not pills. */
-  --acct-btn-bg: linear-gradient(180deg, #fdfdfe 0%, #e9ebef 48%, #dadde2 52%, #c4c8d0 100%);
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f2f4f7 47%, #dfe2e7 53%, #c6cad1 100%);
   --acct-btn-border: #8f939b;
   --acct-btn-text: #2f3237;
   --acct-btn-primary-bg: linear-gradient(180deg, #6aa9f8 0%, #3a86ee 48%, #2775e6 52%, #1560cf 100%);
@@ -87,7 +87,7 @@
   --panel-body-bg: #ffffff;
   --shelf-bg: #ffffff;
 
-  --btn-bg: linear-gradient(180deg, #6aa9f8 0%, #3a86ee 48%, #2775e6 52%, #1560cf 100%);
+  --btn-bg: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
   --btn-border: #14509f;
   --btn-text: #ffffff;
 
@@ -5692,7 +5692,7 @@ footer .copy {
   --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f0f1f4 48%, #e2e4ea 52%, #cfd2da 100%);
   --acct-btn-border: #9aa0ab;
   --acct-btn-text: #333333;
-  --acct-btn-primary-bg: linear-gradient(180deg, #7fbcff 0%, #3f8bef 22%, #2a76e4 48%, #1a60cc 52%, #114694 100%);
+  --acct-btn-primary-bg: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
   --acct-btn-primary-border: #14509f;
 
   --panel-border: #b6b6bb;
@@ -5702,7 +5702,7 @@ footer .copy {
   --panel-body-bg: #ffffff;
   --shelf-bg: #ffffff;
 
-  --btn-bg: linear-gradient(180deg, #7fbcff 0%, #3f8bef 22%, #2a76e4 48%, #1a60cc 52%, #114694 100%);
+  --btn-bg: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
   --btn-border: #14509f;
   --btn-text: #fff;
 
@@ -8754,7 +8754,7 @@ body {
   color: #fff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
   border-radius: var(--btn-radius);
-  background: linear-gradient(180deg, #7fbcff 0%, #3f8bef 22%, #2a76e4 48%, #1a60cc 52%, #114694 100%);
+  background: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
   border: 1px solid #14509f;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
   transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.12s ease;
@@ -8948,55 +8948,52 @@ body {
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.65);
 }
 
-/* Recessed search well. */
+/* The search field, as in the reference: a white pill with a thin grey
+   edge and one pixel of shade inside the top. It was a near-black
+   recessed well, which was right when the bar was charcoal - on silver
+   it was a black slab, the heaviest thing on the screen. */
 [data-theme="ios-light"] .nav-search {
-  background: linear-gradient(180deg, #17181a, #303236);
-  border: 1px solid #0c0d0e;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7) inset, 0 1px 0 rgba(255, 255, 255, 0.14);
+  background: #ffffff;
+  border: 1px solid #a8abb2;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.14) inset, 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 [data-theme="ios-light"] .nav-search input {
-  color: #eaeaee;
+  color: #2a2a2d;
 }
 [data-theme="ios-light"] .nav-search input::placeholder {
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(0, 0, 0, 0.38);
 }
 
-/* More button and account chrome, sitting on the dark bar. */
+/* Bar chrome. All of this was lit for a charcoal bar - white text with
+   the shadow above it, a white hover wash, a near-black pressed state.
+   On silver every one of those is inverted. */
 [data-theme="ios-light"] .nav-more-btn,
 [data-theme="ios-light"] .nav-user,
 [data-theme="ios-light"] .nav-bell-btn {
   color: var(--nav-text);
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 [data-theme="ios-light"] .nav-more-btn:hover,
 [data-theme="ios-light"] .nav-bell-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.06);
 }
 [data-theme="ios-light"] .nav-more-btn.active {
-  background: linear-gradient(180deg, #101113, #26282c);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6) inset;
+  background: linear-gradient(180deg, #c8ccd3, #dfe2e7);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) inset;
 }
 
-/* Deeper brushed metal on the section header bars. The extra hard stop
-   at the midpoint is the difference between "grey gradient" and "milled
-   aluminium" - the iPad iPod toolbar has exactly this break. */
+/* Section headers are labels now, so this token no longer paints a bar.
+   It is still read by a few smaller surfaces, so it keeps the milled
+   gradient - but the 100deg hatch is gone. That diagonal weave over
+   everything was the texture that read as noise at small sizes. */
 [data-theme="ios-light"] {
-  --panel-head-bg: repeating-linear-gradient(
-      100deg,
-      rgba(255, 255, 255, 0.38) 0px,
-      rgba(255, 255, 255, 0.38) 1px,
-      rgba(0, 0, 0, 0.035) 1px,
-      rgba(0, 0, 0, 0.035) 2px
-    ),
-    linear-gradient(
-      180deg,
-      #fdfdfe 0%,
-      #e6e6ea 8%,
-      #d4d4d9 49%,
-      #c4c4ca 51%,
-      #d2d2d7 92%,
-      #b4b4ba 100%
-    );
+  --panel-head-bg: linear-gradient(
+    180deg,
+    #fdfdfe 0%,
+    #eceef1 47%,
+    #dcdfe3 53%,
+    #c6c9cf 100%
+  );
 }
 [data-theme="ios-light"] .panel-head {
   box-shadow: none;
@@ -10419,7 +10416,12 @@ body {
 [data-theme="ios-light"] .acct-btn {
   color: #2a2a2d;
   border-color: #8b8f96;
-  background: linear-gradient(180deg, #fdfdfe 0%, #eaecf0 48%, #d9dce1 52%, #c3c7ce 100%);
+  /* The shine is the whole face of the button, corner to corner: bright
+     at the top, a hard step at the midpoint, darker below. It used to be
+     a separate rounded shape covering part of the button, which is the
+     "circle thing" - you could see where it stopped. A real bevel has no
+     edge of its own; it is just how the one surface is lit. */
+  background: linear-gradient(180deg, #ffffff 0%, #f2f4f7 47%, #dfe2e7 53%, #c6cad1 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 1px 1px rgba(0, 0, 0, 0.18);
@@ -10830,14 +10832,9 @@ body {
 /* Panels lift very slightly on hover. Pointer-only: on a touchscreen
    :hover sticks after a tap and would leave a panel raised until you
    touched something else. */
-@media (hover: hover) and (pointer: fine) {
-  .panel {
-    transition: box-shadow var(--t-base) var(--ease), transform var(--t-base) var(--ease);
-  }
-  .panel:hover {
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.13), 0 1px 0 rgba(255, 255, 255, 0.55) inset;
-  }
-}
+/* Panels used to lift on hover. Nothing in iOS does that - a section of
+   a list is not something you can pick up, and a card that rises when
+   the cursor passes over it is decoration rather than feedback. */
 
 a,
 .btn,
@@ -10874,21 +10871,9 @@ a,
   transition-duration: 60ms;
 }
 
-/* Content settles in on load instead of appearing mid-scroll. Opacity
-   only - a translate would shift the page under a tap. */
-@keyframes surface-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-.content-grid,
-.feedtv-row,
-.paired-hero {
-  animation: surface-in var(--t-base) var(--ease) both;
-}
+/* The homepage faded its own sections in as well, on top of the page
+   fade - two overlapping animations for one navigation. The page
+   handles it. */
 
 @media (prefers-reduced-motion: reduce) {
   .panel,
@@ -10905,11 +10890,6 @@ a,
   .see-all {
     transition: none;
   }
-  .content-grid,
-  .feedtv-row,
-  .paired-hero {
-    animation: none;
-  }
   .btn:active,
   .comment-action:active,
   .avatar-preset-btn:active,
@@ -10925,18 +10905,18 @@ a,
 
    Paired with PageTransition, which keys this wrapper on the pathname so
    the animation restarts on each route rather than playing once on load. */
+/* Opacity only, and short. The 4px rise looked considered in a demo and
+   reads as lag by the twentieth visit. */
 @keyframes page-enter {
   from {
     opacity: 0;
-    transform: translate3d(0, 4px, 0);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
   }
 }
 .page-enter {
-  animation: page-enter 220ms var(--ease) both;
+  animation: page-enter 140ms linear both;
 }
 
 /* Sections settle in just behind the page, so a long page reads as
@@ -10950,14 +10930,10 @@ a,
    Capped at five steps. Past that the last panel is queueing behind a
    sequence nobody asked to watch, and the whole thing totals 130ms - a
    stagger you feel rather than sit through. */
-.page-enter .panel {
-  animation: page-enter 200ms var(--ease) both;
-}
-.page-enter .panel:nth-of-type(1) { animation-delay: 0ms; }
-.page-enter .panel:nth-of-type(2) { animation-delay: 35ms; }
-.page-enter .panel:nth-of-type(3) { animation-delay: 70ms; }
-.page-enter .panel:nth-of-type(4) { animation-delay: 100ms; }
-.page-enter .panel:nth-of-type(n + 5) { animation-delay: 130ms; }
+/* The panel stagger is gone. Watching sections arrive one after another
+   is a thing you notice, and anything you notice on every navigation
+   becomes something you wait through. The page fades; the content is
+   simply there. */
 
 /* Editors and pickers open rather than appear. Height can't be animated
    from auto, so this scales and fades the panel instead - no layout
@@ -10983,7 +10959,6 @@ a,
 
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
-  .page-enter .panel,
   .avatar-picker,
   .page-editor,
   .sticker-tools,
@@ -11156,4 +11131,107 @@ a,
   align-items: start;
 }
 
-/* =====================================================
+
+/* ============================================================
+   Grouped tables
+   ------------------------------------------------------------
+   The last thing still making this look like the old site, and the
+   biggest single difference from the reference.
+
+   Every module wore a brushed-metal title bar. Stack eight of those
+   down a page and you get eight bars competing with the one bar that
+   should be doing the work - the nav. Look at the reference: there is
+   exactly ONE piece of metal on the screen, at the very top. Below it
+   is white, grey text, and hairlines. Nothing else has chrome.
+
+   So the head stops being a bar and becomes what iOS actually used: a
+   small grey uppercase label sitting on the background ABOVE the group,
+   outside its edges. The card is the content.
+
+   Written against `.panel > *` rather than `.panel-body`, because a
+   third of the panels put a list, a stats block or a grid directly
+   inside the panel with no body wrapper, and those need to become the
+   card too.
+   ============================================================ */
+
+.panel {
+  background: none;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.panel-head,
+.panel-head.tabbed {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  background: none;
+  background-image: none;
+  border: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 12px 5px;
+  overflow: visible;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+/* The gloss band the bar used to carry. */
+.panel-head::before,
+.panel-head::after {
+  content: none;
+}
+/* The pill tab was a bar-on-a-bar. As a label it is just the words. */
+.panel-head .panel-head-tab {
+  display: inline-flex;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  top: 0;
+}
+.panel-head .tab-the {
+  opacity: 1;
+  font-weight: inherit;
+}
+.panel-head .tab-main {
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+.panel-head .see-all {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  color: var(--link);
+  text-shadow: none;
+}
+
+/* The card. */
+.panel > *:not(.panel-head) {
+  background: var(--panel-body-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+  overflow: hidden;
+}
+
+[data-mode="dark"] .panel-head,
+[data-mode="dark"] .panel-head.tabbed {
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
