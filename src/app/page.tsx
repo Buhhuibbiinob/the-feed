@@ -1022,105 +1022,111 @@ export default async function FeedPage({
         </div>
       </div>
 
-      {/* Feed TV runs down the middle with panels either side, rather than
-          floating in dead space. Orby leads on the left because the daily
-          wish counter is the strongest reason to come back and this is the
-          first thing anyone looks at; social proof sits on the right. Both
-          flanks are lifted out of the sidebar, not duplicated, so nothing
-          renders twice. Below the tablet breakpoint the three columns stack
-          and the flanks fall back into their old sidebar order. */}
-      {layout === "stack" && feedTvClips.length > 0 && (
-        <div className="feedtv-row">
-          <div className="feedtv-flank">
-            <OrbyBot wishesLeft={orbyWishesLeft} />
-            {sideTopRated}
+      {/* Everything below the feed. On a phone this is a wall of eight
+          modules between the reviews and the end of the page, so it is
+          not rendered there - the tab bar and the section list below
+          reach all of it. On a wide screen there is room, so it stays. */}
+      <div className="home-extras">
+        {/* Feed TV runs down the middle with panels either side, rather than
+            floating in dead space. Orby leads on the left because the daily
+            wish counter is the strongest reason to come back and this is the
+            first thing anyone looks at; social proof sits on the right. Both
+            flanks are lifted out of the sidebar, not duplicated, so nothing
+            renders twice. Below the tablet breakpoint the three columns stack
+            and the flanks fall back into their old sidebar order. */}
+        {layout === "stack" && feedTvClips.length > 0 && (
+          <div className="feedtv-row">
+            <div className="feedtv-flank">
+              <OrbyBot wishesLeft={orbyWishesLeft} />
+              {sideTopRated}
+            </div>
+            <div className="feedtv-top">
+              <FeedTV clips={feedTvClips} />
+            </div>
+            <div className="feedtv-flank">
+              {sideMostActive}
+              {sideClubs}
+              {sideStats}
+            </div>
           </div>
-          <div className="feedtv-top">
-            <FeedTV clips={feedTvClips} />
+        )}
+
+        {/* The paired layout under test: the two things people actually come
+            for - the clips and the reviews - side by side above the fold,
+            with everything secondary moved into a rail below. */}
+        {layout === "paired" && (
+          <>
+            <div className="paired-hero">
+              {feedTvClips.length > 0 && (
+                <div className="paired-tv">
+                  <FeedTV clips={feedTvClips} />
+                </div>
+              )}
+              <div className="paired-reviews">{reviewsPanel}</div>
+            </div>
+
+            <WidgetCarousel
+              items={[
+                { key: "orby", node: <OrbyBot wishesLeft={orbyWishesLeft} /> },
+                { key: "top-rated", node: sideTopRated },
+                { key: "most-active", node: sideMostActive },
+                { key: "clubs", node: sideClubs },
+                { key: "stats", node: sideStats },
+              ].filter((item) => item.node)}
+            />
+          </>
+        )}
+
+
+        {siteFlags.homepage_wrapped && (
+          <Link href="/wrapped" className="wrapped-promo-banner">
+            <span className="wrapped-promo-label">Your Wrapped</span>
+            <span className="wrapped-promo-text">See your year in reviews - updates all year, not just December.</span>
+            <span className="wrapped-promo-cta">View Wrapped ▸</span>
+          </Link>
+        )}
+
+        {siteFlags.homepage_new_releases && upcomingMovies.length > 0 && (
+          <div className="panel">
+            <div className="panel-head tabbed">
+              <span className="panel-head-tab">
+                <span className="tab-the">the</span>
+                <span className="tab-main">New Movies &amp; TV</span>
+              </span>
+              <Link href="/new-releases" className="see-all">
+                See All ▸
+              </Link>
+            </div>
+            <div className="release-grid" style={{ padding: 16 }}>
+              {upcomingMovies.map((item) => (
+                <div className="release-card" key={item.id}>
+                  <CoverArt imageUrl={item.imageUrl} seed={item.id} />
+                  <div className="release-title">{item.title}</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="feedtv-flank">
-            {sideMostActive}
-            {sideClubs}
-            {sideStats}
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* The paired layout under test: the two things people actually come
-          for - the clips and the reviews - side by side above the fold,
-          with everything secondary moved into a rail below. */}
-      {layout === "paired" && (
-        <>
-          <div className="paired-hero">
-            {feedTvClips.length > 0 && (
-              <div className="paired-tv">
-                <FeedTV clips={feedTvClips} />
-              </div>
-            )}
-            <div className="paired-reviews">{reviewsPanel}</div>
-          </div>
-
-          <WidgetCarousel
-            items={[
-              { key: "orby", node: <OrbyBot wishesLeft={orbyWishesLeft} /> },
-              { key: "top-rated", node: sideTopRated },
-              { key: "most-active", node: sideMostActive },
-              { key: "clubs", node: sideClubs },
-              { key: "stats", node: sideStats },
-            ].filter((item) => item.node)}
-          />
-        </>
-      )}
-
-
-      {siteFlags.homepage_wrapped && (
-        <Link href="/wrapped" className="wrapped-promo-banner">
-          <span className="wrapped-promo-label">Your Wrapped</span>
-          <span className="wrapped-promo-text">See your year in reviews - updates all year, not just December.</span>
-          <span className="wrapped-promo-cta">View Wrapped ▸</span>
-        </Link>
-      )}
-
-      {siteFlags.homepage_new_releases && upcomingMovies.length > 0 && (
-        <div className="panel">
-          <div className="panel-head tabbed">
-            <span className="panel-head-tab">
-              <span className="tab-the">the</span>
-              <span className="tab-main">New Movies &amp; TV</span>
-            </span>
-            <Link href="/new-releases" className="see-all">
-              See All ▸
-            </Link>
-          </div>
-          <div className="release-grid" style={{ padding: 16 }}>
-            {upcomingMovies.map((item) => (
-              <div className="release-card" key={item.id}>
-                <CoverArt imageUrl={item.imageUrl} seed={item.id} />
-                <div className="release-title">{item.title}</div>
-              </div>
+        {siteFlags.homepage_ads && artistSpotlights.length > 0 && (
+          <div className="feature-row">
+            {artistSpotlights.map((spotlight) => (
+                <BannerLink href={spotlight.link_url} className="feature-banner" key={spotlight.id}>
+                  <span
+                    className="feature-banner-bg"
+                    style={{
+                      backgroundImage: spotlight.image_url
+                        ? `linear-gradient(180deg, rgba(10, 12, 20, 0.2), rgba(10, 12, 20, 0.72)), url(${spotlight.image_url})`
+                        : "var(--panel-head-bg)",
+                    }}
+                  />
+                  <span className="label">{spotlight.artist_name}</span>
+                  <span className="sub">{spotlight.message || "Artist Spotlight"}</span>
+              </BannerLink>
             ))}
           </div>
-        </div>
-      )}
-
-      {siteFlags.homepage_ads && artistSpotlights.length > 0 && (
-        <div className="feature-row">
-          {artistSpotlights.map((spotlight) => (
-              <BannerLink href={spotlight.link_url} className="feature-banner" key={spotlight.id}>
-                <span
-                  className="feature-banner-bg"
-                  style={{
-                    backgroundImage: spotlight.image_url
-                      ? `linear-gradient(180deg, rgba(10, 12, 20, 0.2), rgba(10, 12, 20, 0.72)), url(${spotlight.image_url})`
-                      : "var(--panel-head-bg)",
-                  }}
-                />
-                <span className="label">{spotlight.artist_name}</span>
-                <span className="sub">{spotlight.message || "Artist Spotlight"}</span>
-            </BannerLink>
-          ))}
-        </div>
-      )}
+        )}
+      </div>
 
     </>
   );
