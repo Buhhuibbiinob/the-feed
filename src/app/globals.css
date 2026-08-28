@@ -9046,31 +9046,55 @@ body {
     rgba(255, 255, 255, 0.16) 0 1px,
     rgba(0, 0, 0, 0.02) 1px 2px
   );
-  --nav-seam: #8e9197;
-  --nav-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 0 rgba(0, 0, 0, 0.2);
+  /* SLATE, not silver.
+     ------------------------------------------------------------
+     I took the blue-grey out of the bars a while back and said the
+     periwinkle cast was what made the site look like an imitation.
+     That was wrong. iOS 6's default bar tint IS a blue-grey, and the
+     Teehan+Lax kit - the reference here - shows it plainly: the bar,
+     the bar buttons, the segmented control and the toolbar glyph
+     buttons are all slate. Neutral silver was my invention, and it is
+     why the chrome kept not matching however carefully the gradients
+     were tuned.
 
+     A mid-tone bar means the type flips: white, with the shadow ABOVE
+     the letterform, because the light is above and the bar is darker
+     than the text. */
+  --nav-seam: #3f4c66;
+  --nav-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 1px 0 rgba(0, 0, 0, 0.3);
+
+  /* Deepened from the first attempt: the bright top lip was #a5b6d0,
+     which puts white type at 2.06:1 and the contrast guard failed the
+     build on it - correctly. Every stop now clears 3:1 against white.
+     Around 3.3:1 is genuinely what an iOS 6 tinted bar was; the guard
+     still calls it thin, which is the honest reading. */
   --nav-bg: linear-gradient(
     180deg,
-    /* The bottom half was ending at #b9bcc3, which is barely darker than
-       the top - so the two planes read as one flat sheet. A milled bar
-       has a real difference across the seam. */
-    #ffffff 0%,
-    #f4f5f8 6%,
-    #e4e6eb 48%,
-    #cdd0d6 52%,
-    #bec1c8 92%,
-    #a9adb5 100%
+    #7b8eb0 0%,
+    #7285a8 8%,
+    #65799d 48%,
+    #576b8f 52%,
+    #5f7398 92%,
+    #4b5f83 100%
   );
-  --nav-border: #8e9197;
-  --nav-text: #2a2a2d;
-  --nav-active-text: var(--link-blue);
-  --wordmark-color: #2a2a2d;
+  --nav-border: #3f4c66;
+  --nav-text: #ffffff;
+  --nav-active-text: #ffffff;
+  --wordmark-color: #ffffff;
+  --letterpress: 0 -1px 0 rgba(0, 0, 0, 0.38);
+
+  /* Bar buttons are the same metal one step down. */
+  --acct-btn-bg: linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
+  --acct-btn-border: #3c4962;
+  --acct-btn-text: #ffffff;
+  --btn-ghost-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.4);
+  --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 [data-theme="ios-light"] .apple-nav::after {
   content: "";
-  /* Was 34% white - fine over charcoal, but over silver it flattens the
-     top half into a white band and loses the milled step entirely. */
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 55%);
+  /* 50% white was right over near-white silver; over slate it washes
+     the top plane out to grey. */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 52%);
   pointer-events: none;
   z-index: 0;
 }
@@ -10567,19 +10591,18 @@ body {
    Messages reference the bar buttons are the same metal as the bar, one
    step darker, with dark letterpressed type. Same gradient language:
    light half, hard step, dark half. */
+/* Slate, matching the bar. The shine is still the whole face of the
+   button corner to corner - a bright upper plane, a hard step at the
+   midpoint, a darker lower one. What changed is the metal, not the
+   lighting. */
 [data-theme="ios-light"] .acct-btn {
-  color: #2a2a2d;
-  border-color: #8b8f96;
-  /* The shine is the whole face of the button, corner to corner: bright
-     at the top, a hard step at the midpoint, darker below. It used to be
-     a separate rounded shape covering part of the button, which is the
-     "circle thing" - you could see where it stopped. A real bevel has no
-     edge of its own; it is just how the one surface is lit. */
-  background: linear-gradient(180deg, #ffffff 0%, #f2f4f7 47%, #dfe2e7 53%, #c6cad1 100%);
+  color: #ffffff;
+  border-color: #3c4962;
+  background: linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 1px 1px rgba(0, 0, 0, 0.18);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 1px 0 rgba(255, 255, 255, 0.32) inset,
+    0 1px 1px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
 [data-theme="ios-light"] .acct-btn::before {
   content: none;
@@ -12358,4 +12381,91 @@ a.issue-link::after {
 }
 [data-mode="dark"] .feed-filter .seg-item {
   color: #f0f0f2;
+}
+
+/* ============================================================
+   Slate, everywhere the kit shows it
+   ------------------------------------------------------------
+   The reference sheet is consistent: the bar, the bar buttons, the
+   segmented control, the stepper and the toolbar glyph buttons are
+   all one slate blue-grey, and only the primary action is blue. The
+   silver these were built in was my invention, and no amount of
+   gradient tuning was going to match a reference it had the wrong
+   hue for.
+
+   Selected segments go DARKER, not blue - see "First | Second" on
+   the sheet. Blue is reserved for the one action that matters on a
+   screen, which is what makes it read as the action.
+   ============================================================ */
+
+[data-theme="ios-light"] .seg {
+  border-color: #3c4962;
+  background: linear-gradient(180deg, #94a7c6 0%, #8497b9 47%, #7789ac 53%, #6a7d9f 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+[data-theme="ios-light"] .seg-item {
+  color: #ffffff;
+  border-right-color: #3c4962;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.38);
+}
+[data-theme="ios-light"] .seg-item.active,
+[data-theme="ios-light"] .feed-filter .seg-item.active {
+  color: #ffffff;
+  background: linear-gradient(180deg, #5d7194 0%, #506383 47%, #465877 53%, #3b4c69 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) inset;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+[data-theme="ios-light"] .feed-filter .seg-item {
+  color: #ffffff;
+}
+
+/* Category chips follow the same metal. */
+[data-theme="ios-light"] .feed-chip {
+  color: #ffffff;
+  border-color: #3c4962;
+  background: linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+[data-theme="ios-light"] .feed-chip.active {
+  border-color: #33405a;
+  background: linear-gradient(180deg, #5d7194 0%, #506383 47%, #465877 53%, #3b4c69 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) inset;
+}
+
+/* Toolbar glyph buttons - the two rows at the foot of the sheet. */
+[data-theme="ios-light"] .tool-btn {
+  color: #ffffff;
+  border-color: #3c4962;
+  background: linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+[data-theme="ios-light"] .tool-btn svg {
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.4));
+}
+
+/* The notched back button is a bar button, so it follows the bar. */
+[data-theme="ios-light"] .back-btn,
+[data-theme="ios-light"] .back-btn::before {
+  border-color: #3c4962;
+  background: linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
+}
+[data-theme="ios-light"] .back-btn {
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+/* The search well sits IN the bar, so it is recessed slate rather than
+   a white pill floating on it. */
+[data-theme="ios-light"] .nav-search {
+  background: rgba(28, 38, 56, 0.42);
+  border: 1px solid #3a4760;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.34) inset, 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+[data-theme="ios-light"] .nav-search input {
+  color: #ffffff;
+}
+[data-theme="ios-light"] .nav-search input::placeholder {
+  color: rgba(255, 255, 255, 0.62);
 }
