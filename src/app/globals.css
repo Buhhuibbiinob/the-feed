@@ -9790,7 +9790,10 @@ body {
 [data-theme="ios-light"] {
   --wrap-bg: transparent;
   --wrap-shadow: none;
-  --wrap-radius: 0px;
+  /* --wrap-radius is a layout token, so it belongs in :root and not in
+     a theme block - a theme that reshapes the page has to be re-tested
+     against every other theme's layout. The purity guard rejected it
+     here, correctly; it is set once at the top instead. */
 }
 /* --wrap-bg is used as `background`, so a gradient works, but the fine
    brush lines need a second layer - hence background-image here. */
@@ -10987,4 +10990,165 @@ a,
   }
 }
 
-/* =====================================================
+/* ============================================================
+   Split view
+   ------------------------------------------------------------
+   The structural idea shared by all three references: you navigate
+   from a list, and the thing you picked fills the space next to it.
+   None of them is a page with twelve modules stacked down it.
+
+   The rail is the whole site's navigation in one column, so pages
+   stop carrying their own - no More dropdown, no link panel in the
+   footer of the page, no module links scattered through the feed.
+
+   Desktop only. Below the breakpoint the tab bar is already the
+   navigation, and a rail there would just be a wall of links above
+   the content.
+   ============================================================ */
+
+.split {
+  display: grid;
+  grid-template-columns: 214px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.split-detail {
+  min-width: 0;
+}
+
+/* Sticks so the list is always reachable, the way the pane in a
+   split view doesn't scroll away with the content. */
+.rail {
+  position: sticky;
+  top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Grey, small, uppercase, above the group and outside its box. This
+   is the iOS grouped-table section header - putting the label inside
+   a bar on top of the group is the other convention, and mixing the
+   two is what makes a list look improvised. */
+.rail-heading {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  padding: 0 10px 5px;
+}
+[data-mode="dark"] .rail-heading {
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.rail-rows {
+  background: var(--panel-body-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  overflow: hidden;
+  box-shadow: var(--panel-shadow);
+}
+
+.rail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  transition: background-color var(--t-fast) var(--ease);
+}
+.rail-row:last-child {
+  border-bottom: none;
+}
+.rail-row:hover {
+  text-decoration: none;
+  background: rgba(0, 0, 0, 0.035);
+}
+.rail-label {
+  flex: 1;
+  min-width: 0;
+}
+.rail-chevron {
+  color: rgba(0, 0, 0, 0.28);
+  font-size: 15px;
+  line-height: 1;
+}
+[data-mode="dark"] .rail-chevron {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* The selected row, as in the reference: a saturated blue fill with a
+   hard highlight along its top edge, white text stamped the other way
+   round - shadow above, because on a dark fill the light is behind
+   the letterform. */
+.rail-row.current {
+  background: linear-gradient(180deg, #5b9cf8 0%, #2f79e8 50%, #2470e2 51%, #1a60cf 100%);
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.32);
+  border-bottom-color: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+}
+.rail-row.current:hover {
+  background: linear-gradient(180deg, #5b9cf8 0%, #2f79e8 50%, #2470e2 51%, #1a60cf 100%);
+}
+.rail-row.current .rail-chevron {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.rail-badge {
+  min-width: 17px;
+  padding: 1px 5px;
+  border-radius: 100px;
+  background: #e03b3b;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+}
+.rail-row.current .rail-badge {
+  background: #fff;
+  color: #1a60cf;
+  text-shadow: none;
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .rail {
+    display: none;
+  }
+}
+
+/* One column of content beside the rail.
+   ------------------------------------------------------------
+   Pages that used a feed column plus a 300px sidebar of widgets now
+   sit inside the split, and rail + feed + sidebar is three columns.
+   At that point the middle one - the reviews, the reason anyone is
+   here - ends up the narrowest thing on screen.
+
+   So the sidebar stops being a column and becomes what follows the
+   content. Nothing is removed; the order just stops pretending two
+   unequal things deserve equal billing. */
+.split-detail .content-grid {
+  flex-direction: column;
+  gap: 0;
+}
+.split-detail .right-col {
+  width: auto;
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0 18px;
+  align-items: start;
+}
