@@ -148,7 +148,7 @@ export default async function ArtistPostPage({ params }: { params: Promise<{ id:
       />
 
       <p>
-        <Link href="/artists">← Back to Underground Creators</Link>
+        <Link href="/artists" className="back-btn">Creators</Link>
       </p>
     </>
   );

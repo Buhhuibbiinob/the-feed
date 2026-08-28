@@ -997,19 +997,37 @@ export default async function ProfilePage({
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
             <div className="panel-head">Details</div>
-            <div className="stats-body">
+            <div className="panel-body flush">
+              {/* Three figures across the top, the way a profile states
+                  itself in every one of the references - big number over a
+                  small grey label, one object rather than three boxes. */}
+              <div className="stat-strip">
+                <span className="stat-cell">
+                  <span className="stat-num">{posts.length}</span>
+                  <span className="stat-label">Reviews</span>
+                </span>
+                <span className="stat-cell">
+                  <span className="stat-num">{totalFollowerCount}</span>
+                  <span className="stat-label">Followers</span>
+                </span>
+                <span className="stat-cell">
+                  <span className="stat-num">{totalLikesReceived}</span>
+                  <span className="stat-label">Ratings</span>
+                </span>
+              </div>
               {/* Only categories they've actually posted in. Otherwise every
                   profile would carry a permanent "0 Photography reviews" line
-                  the day the category shipped. */}
-              {MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).length === 0 ? (
-                <div>No reviews yet.</div>
-              ) : (
-                MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).map((mt) => (
-                  <div key={mt}>
-                    {breakdown[mt]} {MEDIA_LABELS[mt]} review{breakdown[mt] === 1 ? "" : "s"}
-                  </div>
-                ))
-              )}
+                  the day the category shipped.
+
+                  Label on the left, count on the right: "Music / 12" is a
+                  table you scan, where "12 Music reviews" is a sentence you
+                  have to read. */}
+              {MEDIA_TYPES.filter((mt) => breakdown[mt] > 0).map((mt) => (
+                <div className="kv-row" key={mt}>
+                  <span className="kv-key">{MEDIA_LABELS[mt]}</span>
+                  <span className="kv-val">{breakdown[mt]}</span>
+                </div>
+              ))}
             </div>
           </div>
         );

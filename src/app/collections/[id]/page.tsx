@@ -151,8 +151,8 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
         </div>
       </div>
       <div style={{ marginTop: 12 }}>
-        <Link href="/collections" className="comment-action">
-          ← All collections
+        <Link href="/collections" className="back-btn">
+          Collections
         </Link>
       </div>
     </>
