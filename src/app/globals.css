@@ -6462,7 +6462,11 @@ footer .copy {
    so switching between them never moves or reshapes anything.
    ================================================================ */
 [data-theme="ios-light"] .panel {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+  /* The panel is a wrapper now; its content carries the card.
+     See "Grouped tables" at the end of this file. */
+  border: 0;
+  box-shadow: none;
+  background: none;
 }
 [data-theme="ios-light"] .btn,
 [data-theme="ios-light"] .acct-btn {
@@ -6482,12 +6486,14 @@ footer .copy {
   color: #ffffff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
-/* Dropped the floating pill-tab look for this theme - it's back to a
-   normal flush header bar like every other panel on the site. */
+/* Panel heads are labels now, not bars - see "Grouped tables" at the
+   end of this file. The metal is stripped here at source rather than
+   overridden later, because these theme rules outrank a bare
+   .panel-head on specificity and would have won wherever they were. */
 [data-theme="ios-light"] .panel-head.tabbed {
-  background: var(--panel-head-bg);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 -4px 6px rgba(0, 0, 0, 0.08) inset;
-  border-bottom: 1px solid var(--panel-head-border);
+  background: none;
+  box-shadow: none;
+  border-bottom: 0;
 }
 [data-theme="ios-light"] .panel-head.tabbed .panel-head-tab {
   background: transparent;
@@ -7513,8 +7519,11 @@ button.btn-ghost {
   );
 }
 [data-mode="dark"] .panel {
-  border-color: #17181a;
-  box-shadow:0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 0 0 1px rgba(255, 255, 255, 0.05), 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+  /* The panel is a wrapper now; its content carries the card.
+     See "Grouped tables" at the end of this file. */
+  border: 0;
+  box-shadow: none;
+  background: none;
 }
 [data-mode="dark"] .panel-body,
 [data-mode="dark"] .side-list,
@@ -8990,8 +8999,8 @@ body {
     );
 }
 [data-theme="ios-light"] .panel-head {
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 -1px 0 rgba(0, 0, 0, 0.14) inset;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+  box-shadow: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 /* Mobile chrome: same charcoal bar top and bottom, so the phone layout
@@ -9732,16 +9741,14 @@ body {
     0 3px 6px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 
-/* ---- Section headers as raised tabs ----
-   The header bars were brushed but flat-edged, so panels read as
-   printed rather than assembled. A lit top lip, a dark undercut and
-   engraved type make the bar sit proud of the body beneath it. */
+/* ---- Section headers ----
+   These made the header bar sit proud of the body: a lit top lip, a
+   dark undercut, a drop shadow. It was good work on the wrong object.
+   There is no bar any more - the reference has exactly one piece of
+   metal on the screen and it is the nav. */
 [data-theme="ios-light"] .panel-head {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.28) inset,
-    0 2px 3px rgba(0, 0, 0, 0.16);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 /* The coloured tab on the left of each header gets the same moulding as
    the category badges, so the two speak the same language. */
@@ -9757,21 +9764,16 @@ body {
 /* Panels themselves get a contact shadow so they sit on the brushed
    background instead of floating over it. */
 [data-theme="ios-light"] .panel {
-  box-shadow:0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.16) inset,
-    0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.14);
+  /* The panel is a wrapper now; its content carries the card.
+     See "Grouped tables" at the end of this file. */
+  border: 0;
+  box-shadow: none;
+  background: none;
 }
 
-/* The tabbed variant carries its own box-shadow at higher specificity
-   ([data-theme] + two classes), so the raised-tab treatment above never
-   reached the headers that actually use it - which is nearly all of
-   them. Same lighting, stated at a specificity that wins. */
 [data-theme="ios-light"] .panel-head.tabbed {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.28) inset,
-    0 2px 3px rgba(0, 0, 0, 0.16);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 /* ================================================================
@@ -9875,18 +9877,18 @@ body {
 /* A milled rim around the whole panel: bright top lip, dark undercut,
    then the contact shadow onto the deck. */
 [data-theme="ios-light"] .panel {
-  box-shadow:0 1px 0 rgba(255, 255, 255, 0.95) inset,
-    0 0 0 1px rgba(255, 255, 255, 0.28) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.3) inset,
-    0 2px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+  /* The panel is a wrapper now; its content carries the card.
+     See "Grouped tables" at the end of this file. */
+  border: 0;
+  box-shadow: none;
+  background: none;
 }
 [data-theme="ios-light"] .panel-head.tabbed,
 [data-theme="ios-light"] .panel-head {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 1) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.34) inset,
-    0 2px 4px rgba(0, 0, 0, 0.2);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95);
+  background: none;
+  border-bottom: 0;
+  box-shadow: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 /* The stitched leather strip that used to sit under the bar is gone.
    It was the one genuine material on the page and it was well made,
@@ -11152,4 +11154,108 @@ a,
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 0 18px;
   align-items: start;
+}
+
+/* ============================================================
+   Grouped tables
+   ------------------------------------------------------------
+   The last thing still making this look like the old site, and the
+   biggest single difference from the reference.
+
+   Every module wore a brushed-metal title bar. Stack eight of those
+   down a page and you get eight bars competing with the one bar that
+   should be doing the work - the nav. Look at the reference: there is
+   exactly ONE piece of metal on the screen, at the very top. Below it
+   is white, grey text, and hairlines. Nothing else has chrome.
+
+   So the head stops being a bar and becomes what iOS actually used: a
+   small grey uppercase label sitting on the background ABOVE the group,
+   outside its edges. The card is the content.
+
+   Written against `.panel > *` rather than `.panel-body`, because a
+   third of the panels put a list, a stats block or a grid directly
+   inside the panel with no body wrapper, and those need to become the
+   card too.
+   ============================================================ */
+
+.panel {
+  background: none;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.panel-head,
+.panel-head.tabbed {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  background: none;
+  background-image: none;
+  border: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 12px 5px;
+  overflow: visible;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+/* The gloss band the bar used to carry. */
+.panel-head::before,
+.panel-head::after {
+  content: none;
+}
+/* The pill tab was a bar-on-a-bar. As a label it is just the words. */
+.panel-head .panel-head-tab {
+  display: inline-flex;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  top: 0;
+}
+.panel-head .tab-the {
+  opacity: 1;
+  font-weight: inherit;
+}
+.panel-head .tab-main {
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+}
+.panel-head .see-all {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  color: var(--link);
+  text-shadow: none;
+}
+
+/* The card. */
+.panel > *:not(.panel-head) {
+  background: var(--panel-body-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+  overflow: hidden;
+}
+
+[data-mode="dark"] .panel-head,
+[data-mode="dark"] .panel-head.tabbed {
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
 }
