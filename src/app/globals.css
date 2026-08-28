@@ -4419,10 +4419,10 @@ select:focus {
 /* Inbox / Requests switch. Built from the subnav and button tokens so it
    recolours with the theme instead of needing its own per-theme override
    in eighteen places. */
+/* Now just the padding around the kit's segmented control. */
 .dm-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--panel-head-border);
-  background: var(--subnav-bg);
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(60, 60, 67, 0.16);
 }
 .dm-tab {
   flex: 1;
@@ -11598,4 +11598,239 @@ a.issue-link::after {
 .panel > .panel-body.dm-thread-body {
   background: var(--body-bg);
   background-attachment: local;
+}
+
+/* ============================================================
+   UI kit
+   ------------------------------------------------------------
+   The components from the reference sheet, built once and used
+   everywhere, so the site stops inventing a slightly different
+   control each time it needs one.
+
+   Everything here follows the two rules the rest of the chrome
+   already does: a hard 1px step at the vertical midpoint, and a
+   letterpress whose direction follows the surface - shadow below
+   on light, above on dark.
+   ============================================================ */
+
+/* ---- Segmented control ------------------------------------------------
+   One track, hairline dividers, the selected segment recessed rather
+   than raised. That inversion is the point: in iOS the chosen segment
+   looks pressed IN, which is why a segmented control reads as one
+   switch instead of two buttons sitting next to each other. */
+.seg {
+  display: inline-flex;
+  width: 100%;
+  border: 1px solid #8e9298;
+  border-radius: 5px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #f2f4f7 47%, #dfe2e7 53%, #c6cad1 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.seg-item {
+  flex: 1;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2a2a2d;
+  text-decoration: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-right: 1px solid #8e9298;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+.seg-item:last-child {
+  border-right: none;
+}
+.seg-item:hover {
+  text-decoration: none;
+}
+.seg-item.active {
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, #4a90f0 0%, #2a72e2 47%, #1f66d6 53%, #1355bd 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+}
+.seg-count {
+  font-size: 10.5px;
+  opacity: 0.7;
+}
+.seg-item.active .seg-count {
+  opacity: 0.85;
+}
+[data-mode="dark"] .seg {
+  border-color: #0d0e10;
+  background: linear-gradient(180deg, #6b6d73 0%, #4c4e54 47%, #35373c 53%, #212327 100%);
+}
+[data-mode="dark"] .seg-item {
+  color: #f0f0f2;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+  border-right-color: #0d0e10;
+}
+
+/* ---- Stat strip -------------------------------------------------------
+   Three figures across, big number over a small grey label, hairline
+   rules between. Reads as one object; three separate boxes would not. */
+.stat-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 11px 6px;
+  border-right: 1px solid rgba(60, 60, 67, 0.16);
+  color: inherit;
+  text-decoration: none;
+}
+.stat-cell:last-child {
+  border-right: none;
+}
+.stat-cell:hover {
+  text-decoration: none;
+  background: rgba(0, 0, 0, 0.03);
+}
+.stat-num {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+}
+.stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+[data-mode="dark"] .stat-cell {
+  border-right-color: rgba(255, 255, 255, 0.13);
+}
+[data-mode="dark"] .stat-cell:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ---- Label / value rows -----------------------------------------------
+   A grey label on the left, the value on the right, on one 44px line.
+   Facts read faster this way than as sentences - "12 Music reviews" is
+   a sentence you parse; "Music / 12" is a table you scan. */
+.kv-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(60, 60, 67, 0.16);
+  font-size: 12.5px;
+}
+.kv-row:last-child {
+  border-bottom: none;
+}
+.kv-key {
+  font-weight: 700;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.kv-val {
+  margin-left: auto;
+  text-align: right;
+  font-weight: 600;
+}
+[data-mode="dark"] .kv-row {
+  border-bottom-color: rgba(255, 255, 255, 0.13);
+}
+
+/* ---- Back button ------------------------------------------------------
+   The notched arrow. Drawn as a rotated square behind a clipped edge
+   rather than a border triangle, so it carries the same gradient and
+   1px seam as the button body - a flat triangle glued to a glossy
+   button is the usual giveaway. */
+.back-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 29px;
+  margin-left: 7px;
+  padding: 0 11px 0 8px;
+  border: 1px solid var(--acct-btn-border);
+  border-left: none;
+  border-radius: 0 5px 5px 0;
+  background: var(--acct-btn-bg);
+  color: var(--acct-btn-text);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  text-shadow: var(--btn-ghost-letterpress);
+  box-shadow: var(--btn-ghost-shadow);
+}
+.back-btn::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  border-radius: 3px 0 0 0;
+  border-left: 1px solid var(--acct-btn-border);
+  border-top: 1px solid var(--acct-btn-border);
+  background: var(--acct-btn-bg);
+  transform: rotate(-45deg);
+  /* Only the protruding half shows; the rest is covered by the body. */
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.back-btn:hover {
+  text-decoration: none;
+  filter: brightness(1.04);
+}
+.back-btn:active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) inset;
+}
+
+/* ---- Toolbar icon buttons ---------------------------------------------
+   The bottom two rows of the reference sheet: square-ish glossy buttons
+   holding one glyph. Sized to 30px, which is the touch target the rest
+   of the bar is built around. */
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 30px;
+  border: 1px solid var(--acct-btn-border);
+  border-radius: 5px;
+  background: var(--acct-btn-bg);
+  color: var(--acct-btn-text);
+  box-shadow: var(--btn-ghost-shadow);
+  cursor: pointer;
+  padding: 0;
+}
+.tool-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.7));
+}
+.tool-btn:active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) inset;
+}
+.tool-btn.danger {
+  background: linear-gradient(180deg, #f2554b 0%, #e0342a 47%, #d62c22 53%, #b81f16 100%);
+  border-color: #9c1a12;
+  color: #fff;
+}
+.tool-btn.danger svg {
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.3));
+}
+[data-mode="dark"] .tool-btn svg {
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.6));
 }

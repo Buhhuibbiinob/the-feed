@@ -159,8 +159,9 @@ export default async function PostPage({
   return (
     <>
       <div style={{ marginBottom: 14 }}>
-        <Link href="/" className="comment-action">
-          ← Back to Feed
+        {/* The kit's notched back button, not an arrow glyph in a link. */}
+        <Link href="/" className="back-btn">
+          Feed
         </Link>
       </div>
 

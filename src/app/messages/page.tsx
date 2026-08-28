@@ -43,14 +43,22 @@ export default async function MessagesInboxPage({
         {/* Requests only get their own tab once one exists. Showing an
             always-empty second tab to the 12 people who have never had a
             message request is just clutter. */}
+        {/* The kit's segmented control, not a bespoke tab strip. */}
         {requests.length > 0 && (
           <div className="dm-tabs">
-            <Link href="/messages" className={`dm-tab${showRequests ? "" : " active"}`}>
-              Inbox{inboxUnread > 0 ? ` (${inboxUnread})` : ""}
-            </Link>
-            <Link href="/messages?tab=requests" className={`dm-tab${showRequests ? " active" : ""}`}>
-              Requests{requestUnread > 0 ? ` (${requestUnread})` : ""}
-            </Link>
+            <div className="seg">
+              <Link href="/messages" className={`seg-item${showRequests ? "" : " active"}`}>
+                Inbox
+                {inboxUnread > 0 && <span className="seg-count">{inboxUnread}</span>}
+              </Link>
+              <Link
+                href="/messages?tab=requests"
+                className={`seg-item${showRequests ? " active" : ""}`}
+              >
+                Requests
+                {requestUnread > 0 && <span className="seg-count">{requestUnread}</span>}
+              </Link>
+            </div>
           </div>
         )}
 
