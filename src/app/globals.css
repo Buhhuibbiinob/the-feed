@@ -81,7 +81,9 @@
   --acct-btn-primary-border: #14509f;
 
   /* Grouped tables: white, hairline separator, no heavy frame. */
-  --panel-border: #c4c4c9;
+  /* iOS's own separator grey. Anything darker draws the box instead of
+     the content inside it. */
+  --panel-border: #c8c7cc;
   --panel-head-bg: linear-gradient(180deg, #fbfbfc 0%, #e8eaee 48%, #dcdfe4 52%, #cbcfd6 100%);
   --panel-head-border: #a4a8b0;
   --panel-body-bg: #ffffff;
@@ -127,7 +129,10 @@
      tables lift by about a pixel; so does this now. The inset highlight
      stays, because that hairline of light along the top edge is what
      makes the surface look convex rather than printed. */
-  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  /* A grouped table cell does not float. One hairline of light along the
+     top edge is the entire effect; the drop shadow under every card was
+     the last thing making eight of them read as eight objects. */
+  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
   --panel-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
   --panel-head-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
 
@@ -188,7 +193,7 @@
   --art-sweep: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
   --tab-gloss: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
   --row-stripe: rgba(0, 0, 0, 0.03);
-  --chip-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  --chip-shadow: 0 1px 1px rgba(0, 0, 0, 0.16), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 
   /* Layout, so a theme can rearrange the page and not just repaint it. */
   --content-direction: row;
@@ -5661,7 +5666,11 @@ footer .copy {
       rgba(0, 0, 0, 0) 1px,
       rgba(0, 0, 0, 0) 5px
     ),
-    linear-gradient(180deg, #b2b2b7 0%, #a6a6ab 55%, #9e9ea3 100%);
+    /* Was #b2b2b7 to #9e9ea3 - dark, and cold. Real iOS 6 linen is light
+       and slightly warm; a cold mid-grey behind white cards reads as
+       "grey box on grey background" instead of cloth under paper, and
+       that flatness is most of what looks cheap here. */
+    linear-gradient(180deg, #cfccc5 0%, #c5c2ba 55%, #bcb9b1 100%);
   --body-glyph-color: rgba(0, 0, 0, 0.05);
 
   /* Milled aluminium, neutral. The hard 1px step at the midpoint is the
@@ -5695,7 +5704,7 @@ footer .copy {
   --acct-btn-primary-bg: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
   --acct-btn-primary-border: #14509f;
 
-  --panel-border: #b6b6bb;
+  --panel-border: #c8c7cc;
   --panel-head-bg: linear-gradient(180deg, #fcfcfd 0%, #edeef1 48%, #dfe0e4 52%, #ccced3 100%);
   --panel-head-border: #a6a8ae;
   /* Grouped-table white, the way a list looked sitting on the linen. */
@@ -7254,16 +7263,15 @@ button.btn-ghost {
   --btn-border: #16407f;
   --btn-text: #fff;
   --btn-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.45);
-  --btn-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 -8px 10px rgba(0, 0, 0, 0.22) inset,
-    0 4px 10px rgba(0, 0, 0, 0.35);
-  --btn-shadow-active: 0 3px 7px rgba(0, 0, 0, 0.35) inset, 0 1px 0 rgba(255, 255, 255, 0.25);
+  /* The -8px inner cloud is the muddy lower half again, in token form. */
+  --btn-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 1px 1px rgba(0, 0, 0, 0.24);
+  --btn-shadow-active: 0 1px 3px rgba(0, 0, 0, 0.35) inset;
 
   --btn-ghost-image: linear-gradient(180deg, #ffffff 0%, #f0f0f0 47%, #dcdcdc 53%, #c2c2c2 100%);
   --btn-ghost-frame: #9b9b9b;
   --btn-ghost-text: #222;
   --btn-ghost-letterpress: 0 1px 0 rgba(255, 255, 255, 0.9);
-  --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 -6px 8px rgba(0, 0, 0, 0.1) inset,
-    0 3px 7px rgba(0, 0, 0, 0.25);
+  --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 /* ---- 3. Cast shadows + stacked cover-art decks ---- */
@@ -7506,17 +7514,28 @@ button.btn-ghost {
 .stats-body {
   background-image: var(--panel-texture);
 }
-/* The default theme's own: double bevel and Aqua pinstripes. */
+/* The default theme's cards.
+   ------------------------------------------------------------
+   This was a double bevel over pinstripes, with a #8e939a frame and a
+   `0 14px 30px rgba(0,0,0,0.34)` drop shadow. That is the modal shadow
+   again - the one the whole quieting pass removed - and it survived
+   because it lives in a TOKEN rather than a box-shadow declaration, so
+   check-shadow-weight.mjs never looked at it. The guard reads tokens
+   now too.
+
+   It is what put a hard dark outline and a bloom under every card,
+   which is precisely the difference between the reference and a page
+   of grey boxes. A grouped cell has a hairline edge, one pixel of
+   light along its top, and nothing else.
+
+   The pinstripe texture inside the cards goes as well: cells in the
+   reference are flat white. Striping the paper is the sort of detail
+   that looks like effort up close and like noise from arm's length. */
 [data-theme="ios-light"] {
-  --panel-radius: 8px;
-  --panel-frame: #8e939a;
-  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 0 0 1px rgba(255, 255, 255, 0.55),
-    0 14px 30px rgba(0, 0, 0, 0.34), 0 3px 8px rgba(0, 0, 0, 0.22);
-  --panel-texture: repeating-linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.55) 0 1px,
-    rgba(0, 0, 0, 0.012) 1px 4px
-  );
+  --panel-radius: 10px;
+  --panel-frame: #c8c7cc;
+  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  --panel-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
 }
 [data-mode="dark"] .panel {
   /* The panel is a wrapper now; its content carries the card.
@@ -7574,8 +7593,9 @@ button.btn-ghost {
     repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0 1px, rgba(0, 0, 0, 0.05) 1px 2px),
     linear-gradient(180deg, #fdfdfd 0%, #e8e8ea 44%, #cfcfd4 52%, #a9a9b0 100%);
   --nav-seam: #6f7076;
-  --nav-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 -6px 10px rgba(0, 0, 0, 0.12) inset,
-    0 4px 12px rgba(0, 0, 0, 0.35);
+  /* A bar is bolted to the page, not hovering over it: a hairline of
+     light on its own top edge, a hairline of contact underneath. */
+  --nav-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 0 rgba(0, 0, 0, 0.22);
 }
 
 /* ---- Artwork: frame and glass sweep, both theme-controlled ---- */
@@ -7648,8 +7668,7 @@ button.btn,
   box-shadow: var(--chip-shadow);
 }
 [data-theme="ios-light"] {
-  --chip-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 0 0 1px rgba(255, 255, 255, 0.4),
-    0 16px 32px rgba(0, 0, 0, 0.36), 0 4px 8px rgba(0, 0, 0, 0.24);
+  --chip-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 /* ---- Admin-only BOT tag ----
@@ -11034,12 +11053,16 @@ a,
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 11px;
+  /* 44px tall, which is the iOS row height everything else is spaced
+     against. The old 9px padding made rows that read as a dense web
+     list rather than something built for a thumb. */
+  min-height: 44px;
+  padding: 0 12px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text);
   text-decoration: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(60, 60, 67, 0.16);
   transition: background-color var(--t-fast) var(--ease);
 }
 .rail-row:last-child {
@@ -11257,4 +11280,85 @@ a,
 [data-mode="dark"] .panel-head.tabbed {
   color: rgba(255, 255, 255, 0.5);
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+
+/* ============================================================
+   The bar, per mode
+   ------------------------------------------------------------
+   The two references disagree on the bar, and it turns out they are
+   not in conflict - they are the two modes.
+
+   Light: Messages. Milled silver, dark title stamped in with a white
+   highlight below it, hairline underneath.
+
+   Dark: Tapbots. Charcoal glass, white title with a black shadow
+   ABOVE it, and a hairline of light along the top edge rather than
+   below - on a dark bar the light catches the near edge, so the
+   highlight moves to the top and the shadow flips with it. That
+   reversal is the whole difference; a dark bar with light-mode
+   lettering looks like a light bar someone tinted.
+   ============================================================ */
+
+[data-theme="ios-light"][data-mode="dark"] {
+  --nav-bg: linear-gradient(
+    180deg,
+    #55575c 0%,
+    #3d3f44 6%,
+    #2c2e32 48%,
+    #1e2023 52%,
+    #26282b 92%,
+    #141517 100%
+  );
+  --nav-texture: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0 1px,
+    rgba(0, 0, 0, 0.09) 1px 2px
+  );
+  --nav-border: #0b0c0d;
+  --nav-seam: #0b0c0d;
+  --nav-text: #ffffff;
+  --nav-active-text: #6ab4ff;
+  --wordmark-color: #f4f4f6;
+  --nav-shadow: 0 1px 0 rgba(255, 255, 255, 0.13) inset, 0 1px 0 rgba(0, 0, 0, 0.6);
+  /* Shadow above the letterform, not below. */
+  --letterpress: 0 -1px 0 rgba(0, 0, 0, 0.55);
+}
+[data-theme="ios-light"][data-mode="dark"] .apple-nav .t,
+[data-theme="ios-light"][data-mode="dark"] .wordmark {
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
+}
+/* The gloss sweep is tuned for silver; over charcoal it has to be far
+   weaker or the top half turns to fog. */
+[data-theme="ios-light"][data-mode="dark"] .apple-nav::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0) 55%);
+}
+/* Bar buttons follow the bar. */
+[data-theme="ios-light"][data-mode="dark"] .acct-btn {
+  color: #f0f0f2;
+  border-color: #0d0e10;
+  background: linear-gradient(180deg, #6b6d73 0%, #4c4e54 47%, #35373c 53%, #212327 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 1px 1px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+[data-theme="ios-light"][data-mode="dark"] .nav-search {
+  background: #1c1d20;
+  border: 1px solid #0c0d0e;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) inset, 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+[data-theme="ios-light"][data-mode="dark"] .nav-search input {
+  color: #eaeaee;
+}
+[data-theme="ios-light"][data-mode="dark"] .nav-search input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+[data-theme="ios-light"][data-mode="dark"] .nav-more-btn,
+[data-theme="ios-light"][data-mode="dark"] .nav-user,
+[data-theme="ios-light"][data-mode="dark"] .nav-bell-btn {
+  color: #f0f0f2;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+[data-theme="ios-light"][data-mode="dark"] .nav-more-btn:hover,
+[data-theme="ios-light"][data-mode="dark"] .nav-bell-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
 }
