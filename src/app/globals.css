@@ -429,12 +429,12 @@ a:hover {
   overflow: hidden;
   font-size: 11px;
   padding: 5px 16px;
-  border-radius: 100px;
+  /* Bar buttons in both references are rounded rects. */
+  border-radius: var(--btn-radius);
   color: var(--acct-btn-text);
   background: var(--acct-btn-bg);
   border: 1px solid var(--acct-btn-border);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 2px 0 rgba(255, 255, 255, 0.5) inset,
-    0 -3px 6px rgba(0, 0, 0, 0.25) inset;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.18), 0 1px 0 rgba(255, 255, 255, 0.75) inset;
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
@@ -442,22 +442,17 @@ a:hover {
   transform: translateY(1px);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) inset;
 }
+/* Same floating inner pill as .btn had; same reason it is gone. The
+   gradient on --acct-btn-bg carries the gloss. */
 .acct-btn::before {
-  content: "";
-  position: absolute;
-  top: 8%;
-  left: 5%;
-  right: 5%;
-  height: 32%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
-  border-radius: 100px;
+  content: none;
 }
 .acct-btn.primary {
   color: #fff;
   font-weight: 600;
   background: var(--acct-btn-primary-bg);
   border-color: var(--acct-btn-primary-border);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
 }
 .acct-btn span {
   position: relative;
@@ -4128,26 +4123,42 @@ select:focus {
   overflow: hidden;
   font-size: 11.5px;
   padding: 7px 20px;
-  border-radius: 100px;
+  /* Was a hard-coded 100px pill, which is why setting --btn-radius to 5
+     appeared to do nothing at all - the token existed and nothing read
+     it. */
+  border-radius: var(--btn-radius);
   color: var(--btn-text);
   font-weight: 600;
   background: var(--btn-bg);
   border: 1px solid var(--btn-border);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
-    0 -4px 8px rgba(0, 0, 0, 0.3) inset;
+  /* Crisp, one pixel, upward. It was a 2px BLUR downward, which is a
+     drop shadow rather than a letterpress - white text with a soft dark
+     halo under it reads as embossed clip-art, and it was the muddiest
+     thing on the button. */
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
+  /* The -4px 8px inset was a dark cloud rising off the bottom edge
+     inside the button, which is what made the lower half look dirty
+     rather than lit. A real button has a lit top edge and nothing else
+     inside it. */
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
+/* No inner dome.
+   ------------------------------------------------------------
+   This drew a separate white pill inset 6% from each edge and 8% from
+   the top, with its own 100px radius. Against the button's own corners
+   it never lined up: you could see a bright rounded shape floating
+   inside the button with a visible gap all the way round it, and a
+   hard horizontal cut where it stopped. That seam is the single thing
+   that made the button look pasted together.
+
+   The reference has nothing like it. The gloss on an iOS 6 button is
+   the gradient itself - a light upper half, a hard 1px step at the
+   midpoint, a saturated lower half - which --btn-bg already draws. One
+   surface, one light source, no floating parts. */
 .btn::before {
-  content: "";
-  position: absolute;
-  top: 8%;
-  left: 6%;
-  right: 6%;
-  height: 32%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
-  border-radius: 100px;
+  content: none;
 }
 .btn:active:not(:disabled) {
   transform: translateY(1px);
@@ -6455,8 +6466,7 @@ footer .copy {
 }
 [data-theme="ios-light"] .btn,
 [data-theme="ios-light"] .acct-btn {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.5) inset,
-    0 -2px 4px rgba(0, 0, 0, 0.2) inset;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.18), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 [data-theme="ios-light"] .brand-logo {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.4),
@@ -8734,22 +8744,17 @@ body {
   text-decoration: none;
   color: #fff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
-  background: linear-gradient(180deg, #7ad0ff 0%, #2f9fe6 48%, #1d7fc4 52%, #175f9c 100%);
-  border: 1px solid #14568c;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.7) inset,
-    0 -4px 8px rgba(0, 0, 0, 0.28) inset;
+  border-radius: var(--btn-radius);
+  background: linear-gradient(180deg, #7fbcff 0%, #3f8bef 22%, #2a76e4 48%, #1a60cc 52%, #114694 100%);
+  border: 1px solid #14509f;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
   transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.12s ease;
 }
+/* The third copy of the floating inner pill. Gone for the same reason:
+   inset from every edge with its own radius, it read as a separate
+   shape sitting inside the button rather than light falling on it. */
 .nav-post-btn::before {
-  content: "";
-  position: absolute;
-  top: 7%;
-  left: 4%;
-  right: 4%;
-  height: 38%;
-  border-radius: 100px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
-  pointer-events: none;
+  content: none;
 }
 .nav-post-btn:hover {
   filter: brightness(1.08);
@@ -9907,27 +9912,22 @@ body {
 [data-theme="ios-light"] .btn,
 [data-theme="ios-light"] .nav-post-btn,
 [data-theme="ios-light"] .acct-btn.primary {
-  box-shadow:0 1px 0 rgba(255, 255, 255, 0.75) inset,
-    0 0 0 1px rgba(255, 255, 255, 0.22) inset,
-    0 -6px 10px rgba(0, 0, 0, 0.26) inset,
-    0 2px 3px rgba(0, 0, 0, 0.32), 0 1px 2px rgba(0, 0, 0, 0.14);
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.42);
+  /* The -6px 10px inset was a dark cloud inside the bottom of the
+     button; on a small control that reads as dirt, not depth. */
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 1px 1px rgba(0, 0, 0, 0.22);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
-/* Taller, brighter dome with a hard cut, replacing the soft 32% fade
-   the shared button rule uses. */
+/* These restyled the inner gloss dome. There is no dome any more - it
+   was a separate pill floating inside the button, and removing it is
+   what fixed the seam - so this only needs to keep it gone. */
 [data-theme="ios-light"] .btn::before,
 [data-theme="ios-light"] .nav-post-btn::before,
 [data-theme="ios-light"] .acct-btn.primary::before {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(255, 255, 255, 0.42) 65%,
-    rgba(255, 255, 255, 0.16) 100%
-  );
+  content: none;
 }
 [data-theme="ios-light"] .btn:active,
 [data-theme="ios-light"] .nav-post-btn:active {
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) inset, 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) inset;
 }
 /* Orby's Ask button sits on the dark housing, so it needs its own
    deeper seat rather than the light-panel shadow. */
@@ -10049,17 +10049,23 @@ body {
 .panel-head {
   border-radius: 14px 14px 0 0;
 }
+/* The fourth place a button radius was set, and the last one in the
+   file, so this is the one that actually won. Setting --btn-radius and
+   then --btn-radius again at the rule level did nothing while this
+   stood - which is why the buttons stayed pills through two passes.
+   It reads the token now like everything else. */
 .btn, .acct-btn {
-  border-radius: 100px;
+  border-radius: var(--btn-radius);
 }
 /* ---- ios-light (default): Y2K skeuomorphic component-kit overrides ----
    Reuses .gel-btn's taller, flat-bottomed glass cap and .panel's corner
    screws from skeuomorphic-components.html, scoped to this theme only so
    the other 28 themes' button/panel mechanics stay untouched. */
+/* Shaped the inner glass cap. The cap is gone - it was a separate pill
+   floating inside the button with a visible gap round it - so this
+   keeps it gone rather than reintroducing a box. */
 .btn::before, .acct-btn::before {
-  top: 1px;
-  height: 52%;
-  border-radius: 999px 999px 60% 60%;
+  content: none;
 }
 .panel {
   position: relative;
@@ -10325,18 +10331,9 @@ body {
 .apple-nav::after {
   bottom: 0;
 }
-/* The gloss dome, reshaped. It was cut to a 100px pill because that is
-   what the buttons used to be; against a 5px rounded rect the pill
-   corners floated clear of the button's own edges. Now it follows the
-   button: 4px at the top, flat across the midpoint where the highlight
-   stops dead. */
-.btn::before, .nav-post-btn::before, .acct-btn.primary::before {
-  top: 1px;
-  left: 1px;
-  right: 1px;
-  height: 47%;
-  border-radius: 4px 4px 0 0;
-}
+/* This reshaped the inner gloss dome to follow the new corners. The
+   dome is gone entirely now - it was the seam - so there is nothing
+   left to reshape and the rule would only reintroduce a box. */
 /* Orby's housing rounds harder than a plain panel, but the later
    [data-theme] .panel rule matched at the same specificity and won, flattening it back to 10px. Restated so the gadget keeps its shape. */
 .panel.orby-panel {
@@ -10412,24 +10409,28 @@ body {
    nav they read as pale plastic pills borrowed from another design.
    They now use the same milled-metal-and-gloss language as the rest of
    the bar, with the primary action in the nav's blue. */
+/* Bar buttons were charcoal, which was right when the bar was charcoal.
+   On silver they were the darkest thing on the screen - and in the
+   Messages reference the bar buttons are the same metal as the bar, one
+   step darker, with dark letterpressed type. Same gradient language:
+   light half, hard step, dark half. */
 [data-theme="ios-light"] .acct-btn {
-  color: #e8eaee;
-  border-color: #101114;
-  background: linear-gradient(180deg, #7c7e85 0%, #5c5e65 46%, #45474d 52%, #2d2f34 100%);
+  color: #2a2a2d;
+  border-color: #8b8f96;
+  background: linear-gradient(180deg, #fdfdfe 0%, #eaecf0 48%, #d9dce1 52%, #c3c7ce 100%);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.28) inset,
-    0 -4px 7px rgba(0, 0, 0, 0.3) inset,
-    0 2px 3px rgba(0, 0, 0, 0.45);
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 1px 1px rgba(0, 0, 0, 0.18);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 [data-theme="ios-light"] .acct-btn::before {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+  content: none;
 }
 [data-theme="ios-light"] .acct-btn:hover {
   filter: brightness(1.12);
 }
 [data-theme="ios-light"] .acct-btn:active {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) inset;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) inset;
 }
 /* Create Account is the one call to action up there, so it keeps the
    blue and matches the Post button rather than the grey siblings. */
