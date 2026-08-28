@@ -747,7 +747,7 @@ export default async function FeedPage({
       </div>
       <div className="panel-body">
         {latestIssue && (
-          <Link href={`/newsletter/${latestIssue.id}`} className="site-links-link" style={{ marginBottom: 10 }}>
+          <Link href={`/newsletter/${latestIssue.id}`} className="issue-link" style={{ marginBottom: 10 }}>
             <span>{latestIssue.title}</span>
             <span className="dm-inbox-time">{latestIssue.issue_date}</span>
           </Link>
