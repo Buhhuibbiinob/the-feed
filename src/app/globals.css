@@ -4346,14 +4346,25 @@ select:focus {
   align-items: center;
 }
 
+/* The Messages sidebar row, which is the anatomy every list on this
+   site is now built to: avatar, bold name, one grey line of preview,
+   timestamp at the top right, chevron at the end. */
 .dm-inbox-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-bottom: 1px solid #e2e2e2;
+  gap: 11px;
+  min-height: 58px;
+  padding: 9px 12px 9px 14px;
+  border-bottom: 1px solid rgba(60, 60, 67, 0.16);
   text-decoration: none;
   color: inherit;
+}
+.dm-inbox-row::after {
+  content: "\203A";
+  margin-left: 2px;
+  font-size: 15px;
+  line-height: 1;
+  color: rgba(60, 60, 67, 0.3);
 }
 .dm-inbox-row:last-child {
   border-bottom: none;
@@ -4363,8 +4374,8 @@ select:focus {
   text-decoration: none;
 }
 .dm-inbox-avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -4375,18 +4386,26 @@ select:focus {
   min-width: 0;
   flex: 1;
 }
+.dm-inbox-info b {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+}
 .dm-inbox-info span {
   font-size: 11.5px;
-  color: #777;
+  color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .dm-inbox-meta {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
   flex-shrink: 0;
+  align-self: flex-start;
+  padding-top: 2px;
 }
 .dm-inbox-time {
   font-size: 10px;
@@ -4433,14 +4452,19 @@ select:focus {
   border-bottom: 1px solid var(--panel-head-border);
 }
 
+/* ---- Messages, built to the reference -------------------------------
+   The thread pane is linen, not flat grey - that is the surface the
+   bubbles sit on in the screenshot, and it is the one place a texture
+   genuinely reads as "conversation" rather than decoration. */
 .dm-thread-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 16px;
+  gap: 3px;
+  padding: 14px 12px;
   max-height: 480px;
   overflow-y: auto;
-  background: #f9f9f9;
+  background: var(--body-bg);
+  background-attachment: local;
 }
 .dm-bubble-row {
   display: flex;
@@ -4449,28 +4473,70 @@ select:focus {
 .dm-bubble-row.mine {
   justify-content: flex-end;
 }
+/* A bubble is a rounded rect with a tail, and the tail is the whole
+   reason it reads as speech rather than a chip. Drawn with a rotated
+   pseudo-element clipped by the parent's own rounding, so it inherits
+   the gradient instead of needing a matching flat colour.
+
+   Incoming: light grey, gradient top to bottom, dark text.
+   Outgoing: the system blue, same gradient language as the buttons,
+   white text with the shadow above it. */
 .dm-bubble {
-  max-width: 70%;
-  padding: 8px 12px;
-  border-radius: 14px;
-  background: var(--panel-body-bg);
-  border: 1px solid #e0e0e0;
-  font-size: 12px;
-  color: #1a1a1a;
+  position: relative;
+  max-width: 72%;
+  padding: 8px 13px;
+  border-radius: 17px;
+  background: linear-gradient(180deg, #f4f4f6 0%, #e4e4e8 100%);
+  border: 1px solid #cfcfd4;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: #1a1a1c;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+}
+.dm-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: -5px;
+  width: 12px;
+  height: 15px;
+  background: inherit;
+  border-left: 1px solid #cfcfd4;
+  border-bottom: 1px solid #cfcfd4;
+  border-bottom-left-radius: 14px 10px;
+  transform: skewX(-14deg);
+  z-index: -1;
 }
 .dm-bubble-row.mine .dm-bubble {
-  background: var(--btn-bg);
-  border-color: var(--btn-border);
-  color: var(--btn-text);
+  background: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
+  border-color: #14509f;
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.28);
+}
+.dm-bubble-row.mine .dm-bubble::after {
+  left: auto;
+  right: -5px;
+  border-left: 0;
+  border-right: 1px solid #14509f;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 14px 10px;
+  transform: skewX(14deg);
+}
+/* Consecutive messages from the same person are one run: only the last
+   keeps a tail, which is what stops a reply of four lines looking like
+   four separate shouts. */
+.dm-bubble-row + .dm-bubble-row:not(.mine) .dm-bubble::after,
+.dm-bubble-row.mine + .dm-bubble-row.mine .dm-bubble::after {
+  content: none;
 }
 .dm-bubble-time {
   display: block;
   margin-top: 3px;
   font-size: 9.5px;
-  color: #999;
+  color: #8a8a8e;
 }
 .dm-bubble-row.mine .dm-bubble-time {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.78);
 }
 .dm-bubble-foot {
   display: flex;
@@ -11361,4 +11427,175 @@ a,
 [data-theme="ios-light"][data-mode="dark"] .nav-more-btn:hover,
 [data-theme="ios-light"][data-mode="dark"] .nav-bell-btn:hover {
   background: rgba(255, 255, 255, 0.09);
+}
+
+/* ============================================================
+   List rows
+   ------------------------------------------------------------
+   One anatomy, applied to every list on the site: a 44px minimum,
+   a hairline separator in iOS's own separator grey, and a chevron
+   on anything that navigates somewhere.
+
+   The chevron is the part that was missing everywhere. In the
+   reference every row that goes somewhere says so; without it a list
+   of names is just text, and you cannot tell what is a link, what is
+   a label, and what is a heading. That ambiguity is most of why the
+   lists read as a web page rather than an app.
+   ============================================================ */
+
+.side-list .row,
+.club-row,
+.leaderboard-row,
+.search-person-row,
+.artist-post-row,
+.issue-link {
+  min-height: 44px;
+  border-bottom: 1px solid rgba(60, 60, 67, 0.16);
+}
+.side-list .row:last-child,
+.club-row:last-child,
+.leaderboard-row:last-child,
+.search-person-row:last-child {
+  border-bottom: none;
+}
+
+/* Only on rows that are actually links - a chevron on something that
+   does not navigate is a lie about what tapping it does. */
+a.club-row::after,
+a.search-person-row::after,
+a.leaderboard-row::after,
+a.issue-link::after {
+  content: "\203A";
+  margin-left: auto;
+  padding-left: 8px;
+  font-size: 15px;
+  line-height: 1;
+  color: rgba(60, 60, 67, 0.3);
+  flex-shrink: 0;
+}
+[data-mode="dark"] a.club-row::after,
+[data-mode="dark"] a.search-person-row::after,
+[data-mode="dark"] a.leaderboard-row::after,
+[data-mode="dark"] a.issue-link::after,
+[data-mode="dark"] .dm-inbox-row::after {
+  color: rgba(255, 255, 255, 0.35);
+}
+[data-mode="dark"] .side-list .row,
+[data-mode="dark"] .club-row,
+[data-mode="dark"] .leaderboard-row,
+[data-mode="dark"] .search-person-row,
+[data-mode="dark"] .dm-inbox-row,
+[data-mode="dark"] .rail-row {
+  border-bottom-color: rgba(255, 255, 255, 0.13);
+}
+
+/* ---- Pull to refresh --------------------------------------------------
+   Sits above the bar and grows with the gesture rather than appearing at
+   a fixed height, so the indicator is attached to your finger instead of
+   popping in at a threshold. */
+.ptr {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(60, 60, 67, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  background: var(--body-bg);
+  pointer-events: none;
+}
+[data-mode="dark"] .ptr {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+.ptr-spinner {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid rgba(60, 60, 67, 0.25);
+  border-top-color: rgba(60, 60, 67, 0.6);
+}
+[data-mode="dark"] .ptr-spinner {
+  border-color: rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.7);
+}
+.ptr-spinner.spinning {
+  animation: ptr-spin 620ms linear infinite;
+}
+@keyframes ptr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- Swipe to delete --------------------------------------------------
+   The action sits underneath and is revealed, rather than sliding in
+   from off-screen - which is what makes the row feel like a physical
+   cover over a fixed button. */
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+}
+.swipe-row-action {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #f2554b 0%, #e0342a 50%, #d62c22 51%, #b81f16 100%);
+}
+.swipe-row-action button,
+.swipe-row-action .danger {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #fff;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+.swipe-row-face {
+  position: relative;
+  background: var(--panel-body-bg);
+  touch-action: pan-y;
+  transition: transform 180ms var(--ease);
+}
+/* Tapping anywhere else closes an open row, the way it does in Mail. */
+.swipe-row-close {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: none;
+  border: 0;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe-row-face {
+    transition: none;
+  }
+  .ptr-spinner.spinning {
+    animation: none;
+  }
+}
+
+/* The thread pane is linen in the reference, not white paper. Stated at
+   the card rule's own specificity, since `.panel > *:not(.panel-head)`
+   paints every panel child white and would otherwise win by coming
+   later in the file. */
+.panel > .panel-body.dm-thread-body {
+  background: var(--body-bg);
+  background-attachment: local;
 }
