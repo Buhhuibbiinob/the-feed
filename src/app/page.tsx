@@ -556,23 +556,6 @@ export default async function FeedPage({
   }, null);
   const newFavePost = allPosts[0] ?? null;
 
-  const SITE_LINKS: { heading: string; links: { label: string; href: string }[] }[] = [
-    {
-      heading: "Community",
-      links: [
-        { label: "Leaderboard", href: "/leaderboard" },
-        { label: "Collections", href: "/collections" },
-      ],
-    },
-    {
-      heading: "Site",
-      links: [
-        { label: "Privacy Policy", href: "/privacy" },
-        { label: "Terms of Service", href: "/terms" },
-      ],
-    },
-  ];
-
   const memberClips: FeedTvClip[] = [];
   const seenVideoIds = new Set<string>();
   for (const post of allPosts) {
@@ -592,7 +575,10 @@ export default async function FeedPage({
 
   // Pulled out of the JSX so the shuffle can reorder them as values. Each is
   // null when its flag is off, which orderBlocks drops.
-  const leftWideAd = !siteFlags.homepage_ad_wide ? null : wideAd ? (
+  // An empty slot renders nothing. Four house ads for our own /advertise
+  // page was the site selling to itself on every screen, and it read as
+  // clutter to anyone who had just arrived.
+  const leftWideAd = !siteFlags.homepage_ad_wide || !wideAd ? null : (
     <BannerLink href={wideAd.link_url} className="banner-slot-wide">
       <span className="banner-slot-tag">Ad</span>
       {wideAd.image_url ? (
@@ -604,14 +590,6 @@ export default async function FeedPage({
         </div>
       )}
     </BannerLink>
-  ) : (
-    <Link href="/advertise" className="banner-slot-wide">
-      <span className="banner-slot-tag">Ad</span>
-      <div className="banner-slot-wide-fallback">
-        <b>Advertise on Feedback</b>
-        <span>Get your music or film in front of the community - free for now.</span>
-      </div>
-    </Link>
   );
 
 
@@ -685,8 +663,7 @@ export default async function FeedPage({
   const sideSidebarAds = (
     <>
   {siteFlags.homepage_ad_sidebar &&
-    (sidebarAds.length > 0 ? (
-      sidebarAds.map((ad) => (
+    sidebarAds.map((ad) => (
         <BannerLink href={ad.link_url} className="banner-slot" key={ad.id}>
           <span className="banner-slot-tag">Ad</span>
           {ad.image_url ? (
@@ -698,15 +675,6 @@ export default async function FeedPage({
             </div>
           )}
         </BannerLink>
-      ))
-    ) : (
-      <Link href="/advertise" className="banner-slot">
-        <span className="banner-slot-tag">Ad</span>
-        <div className="banner-slot-fallback">
-          <b>Advertise on Feedback</b>
-          <span>Get your music or film in front of the community - free for now.</span>
-        </div>
-      </Link>
     ))}
     </>
   );
@@ -983,8 +951,7 @@ export default async function FeedPage({
 
   return (
     <>
-      {siteFlags.homepage_ad_hero &&
-        (heroAd ? (
+      {siteFlags.homepage_ad_hero && heroAd && (
           <BannerLink href={heroAd.link_url} className="banner-slot-hero">
             <span className="banner-slot-tag">Ad</span>
             {heroAd.image_url ? (
@@ -995,16 +962,65 @@ export default async function FeedPage({
                 {heroAd.message && <span>{heroAd.message}</span>}
               </div>
             )}
-          </BannerLink>
-        ) : (
-          <Link href="/advertise" className="banner-slot-hero">
-            <span className="banner-slot-tag">Ad</span>
-            <div className="banner-slot-hero-fallback">
-              <b>Advertise on Feedback</b>
-              <span>Get your music or film in front of the community - free for now.</span>
+        </BannerLink>
+      )}
+
+      <div className="content-grid">
+        <div className="left-col">
+          {/* The feed leads. Everything under it is a reason to stay,
+              but none of it is a reason to arrive, and on a phone the
+              columns stack - so anything above this is something a new
+              visitor has to scroll past before reaching the thing the
+              site is for. */}
+          {layout === "stack" && reviewsPanel}
+
+          {orderBlocks(
+            [
+              {
+                key: "on-repeat",
+                node: spotifyConnected ? (
+                  <Shelf
+                    title="On Repeat"
+                    items={onRepeat}
+                    emptyMessage="Play something on Spotify and it'll show up here."
+                  />
+                ) : null,
+              },
+              { key: "now-watching", node: <Shelf title="Now Watching" items={nowWatching} /> },
+              { key: "wide-ad", node: leftWideAd },
+              { key: "creators", node: leftCreators },
+            ],
+            siteFlags.homepage_shuffle
+          ).map((block) => (
+            <Fragment key={block.key}>{block.node}</Fragment>
+          ))}
+        </div>
+
+        {/* Sidebar order is deliberate and NOT shuffled, unlike the left
+            column: it runs top-to-bottom by how much a module gives someone
+            a reason to come back tomorrow. Orby's daily wishes lead, social
+            proof sits in the middle, and pure utility (stats, newsletter)
+            drops to the bottom. Shuffling this would throw that away. */}
+        <div className="right-col">
+          {!user && (
+            <div className="panel new-post-card">
+              <div className="panel-body">
+                <p style={{ margin: "0 0 10px" }}>Have something to review?</p>
+                <Link href="/sign-up" className="btn new-post-btn">
+                  Create Account
+                </Link>
+                <div className="auth-switch" style={{ textAlign: "center" }}>
+                  <Link href="/sign-in">Sign in</Link>
+                </div>
+              </div>
             </div>
-          </Link>
-        ))}
+          )}
+
+          {sideLiveNow}
+          {sideSidebarAds}
+          {sideNewsletter}
+        </div>
+      </div>
 
       {/* Feed TV runs down the middle with panels either side, rather than
           floating in dead space. Orby leads on the left because the daily
@@ -1087,108 +1103,25 @@ export default async function FeedPage({
         </div>
       )}
 
-      {siteFlags.homepage_ads && (
+      {siteFlags.homepage_ads && artistSpotlights.length > 0 && (
         <div className="feature-row">
-          {artistSpotlights.length > 0 ? (
-            artistSpotlights.map((spotlight) => (
+          {artistSpotlights.map((spotlight) => (
               <BannerLink href={spotlight.link_url} className="feature-banner" key={spotlight.id}>
                 <span
                   className="feature-banner-bg"
                   style={{
                     backgroundImage: spotlight.image_url
                       ? `linear-gradient(180deg, rgba(10, 12, 20, 0.2), rgba(10, 12, 20, 0.72)), url(${spotlight.image_url})`
-                      : "linear-gradient(160deg, #7b2ff7, #f107a3)",
+                      : "var(--panel-head-bg)",
                   }}
                 />
                 <span className="label">{spotlight.artist_name}</span>
                 <span className="sub">{spotlight.message || "Artist Spotlight"}</span>
-              </BannerLink>
-            ))
-          ) : (
-            <Link href="/advertise" className="feature-banner">
-              <span className="feature-banner-bg" style={{ backgroundImage: "linear-gradient(160deg, #7b2ff7, #f107a3)" }} />
-              <span className="label">Artist Spotlight</span>
-              <span className="sub">Feature an artist here - submit at /advertise</span>
-            </Link>
-          )}
+            </BannerLink>
+          ))}
         </div>
       )}
 
-      <div className="content-grid">
-        <div className="left-col">
-          {orderBlocks(
-            [
-              {
-                key: "on-repeat",
-                node: spotifyConnected ? (
-                  <Shelf
-                    title="On Repeat"
-                    items={onRepeat}
-                    emptyMessage="Play something on Spotify and it'll show up here."
-                  />
-                ) : null,
-              },
-              { key: "now-watching", node: <Shelf title="Now Watching" items={nowWatching} /> },
-              { key: "wide-ad", node: leftWideAd },
-              { key: "creators", node: leftCreators },
-            ],
-            siteFlags.homepage_shuffle
-          ).map((block) => (
-            <Fragment key={block.key}>{block.node}</Fragment>
-          ))}
-
-          {layout === "stack" && reviewsPanel}
-        </div>
-
-        {/* Sidebar order is deliberate and NOT shuffled, unlike the left
-            column: it runs top-to-bottom by how much a module gives someone
-            a reason to come back tomorrow. Orby's daily wishes lead, social
-            proof sits in the middle, and pure utility (stats, newsletter)
-            drops to the bottom. Shuffling this would throw that away. */}
-        <div className="right-col">
-          {!user && (
-            <div className="panel new-post-card">
-              <div className="panel-body">
-                <p style={{ margin: "0 0 10px" }}>Have something to review?</p>
-                <Link href="/sign-up" className="btn new-post-btn">
-                  Create Account
-                </Link>
-                <div className="auth-switch" style={{ textAlign: "center" }}>
-                  <Link href="/sign-in">Sign in</Link>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {sideLiveNow}
-          {sideSidebarAds}
-          {sideNewsletter}
-        </div>
-      </div>
-
-      <div className="panel site-links-panel">
-        <div className="panel-head tabbed">
-          <span className="panel-head-tab">
-            <span className="tab-the">the</span>
-            <span className="tab-main">Site Links</span>
-          </span>
-        </div>
-        <div className="site-links-body">
-          {SITE_LINKS.map((group) => (
-            <div className="site-links-group" key={group.heading}>
-              <b>{group.heading}</b>
-              <div className="site-links-rows">
-                {group.links.map((link) => (
-                  <Link key={link.href} href={link.href} className="site-links-link">
-                    <span>{link.label}</span>
-                    <span className="site-links-chevron">›</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </>
   );
 }

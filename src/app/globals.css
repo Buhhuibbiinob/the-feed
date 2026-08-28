@@ -5771,22 +5771,7 @@ footer .copy {
 }
 [data-theme="ios-light"][data-mode="dark"] .artist-post-row-desc {
   color: #aeaeb2;
-}
-[data-theme="ios-light"][data-mode="dark"] .site-links-body {
-  background: #1a1a1c;
-}
-[data-theme="ios-light"][data-mode="dark"] .site-links-rows {
-  border-color: #3a3a3c;
-}
-[data-theme="ios-light"][data-mode="dark"] .site-links-link {
-  background: linear-gradient(180deg, #232325, #1a1a1c);
-  border-bottom-color: #2c2c2e;
-  color: #f2f2f2;
-}
-[data-theme="ios-light"][data-mode="dark"] .site-links-link:hover {
-  background: linear-gradient(180deg, #2c2c2e, #1c1c1e);
-}
-[data-theme="ios-light"][data-mode="dark"] .fun-fact-banner {
+}[data-theme="ios-light"][data-mode="dark"] .fun-fact-banner {
   background: linear-gradient(180deg, #1c1c1e, #101012);
   border-color: #000;
   color: #f2f2f2;
@@ -6520,56 +6505,8 @@ footer .copy {
 .theslap-3col .chat-body {
   flex: 1;
 }
-
-.site-links-body {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  padding: 16px;
-  background: var(--panel-body-bg);
-}
-.site-links-group b {
-  display: block;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: #888;
-  margin-bottom: 8px;
-}
-.site-links-rows {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #c3ceda;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.site-links-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #1c2733;
-  background: linear-gradient(180deg, #ffffff, #f2f5f8);
-  border-bottom: 1px solid #dbe2ea;
-  text-decoration: none;
-}
-.site-links-link:last-child {
-  border-bottom: none;
-}
-.site-links-link:hover {
-  background: linear-gradient(180deg, #eef3f8, #dfe7ee);
-  text-decoration: none;
-}
-.site-links-chevron {
-  color: #9aa9b8;
-  font-size: 14px;
-  font-weight: 700;
-}
-
 @media (max-width: 900px) {
-  .theslap-3col,
-  .site-links-body {
+  .theslap-3col {
     grid-template-columns: 1fr;
   }
 }
@@ -8532,22 +8469,19 @@ body {
 .chat-body,
 .chat-preview-body,
 .right-now-body,
-.site-links-body,
 .connect-body,
 .track-results {
   color: var(--text);
 }
 .post-card .ts,
 .side-list .row span,
-.site-links-link span,
 .right-now-ad-fallback span {
   color: var(--muted);
 }
 .post-card,
 .chat-row,
 .side-list .row,
-.leaderboard-row,
-.site-links-link {
+.leaderboard-row {
   border-color: var(--panel-border);
 }
 .chat-input,

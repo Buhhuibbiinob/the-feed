@@ -20,6 +20,7 @@ export function ImageCropField({
   hint,
   targetWidth,
   targetHeight,
+  round = false,
 }: {
   id: string;
   name: string;
@@ -27,6 +28,10 @@ export function ImageCropField({
   hint?: string;
   targetWidth: number;
   targetHeight: number;
+  /** Shows the crop box as a circle. The exported file is still square -
+   *  this only makes the preview match where the image ends up, so nobody
+   *  frames a photo against a rectangle and then loses the corners. */
+  round?: boolean;
 }) {
   const aspectRatio = targetWidth / targetHeight;
   // On-screen crop box is capped to a manageable size - the exported image
@@ -192,7 +197,18 @@ export function ImageCropField({
 
       {srcUrl && isAnimated && (
         <div style={{ marginTop: 10 }}>
-          <img src={srcUrl} alt="" style={{ maxWidth: boxWidth, borderRadius: 6, display: "block" }} />
+          <img
+            src={srcUrl}
+            alt=""
+            style={{
+              width: round ? boxWidth : undefined,
+              height: round ? boxWidth : undefined,
+              objectFit: round ? "cover" : undefined,
+              maxWidth: boxWidth,
+              borderRadius: round ? "50%" : 6,
+              display: "block",
+            }}
+          />
           <div className="field-hint">
             Animated GIF - uploaded whole so it keeps moving. Cropping would flatten it to one frame.
           </div>
@@ -211,7 +227,7 @@ export function ImageCropField({
               height: boxHeight,
               overflow: "hidden",
               position: "relative",
-              borderRadius: 6,
+              borderRadius: round ? "50%" : 6,
               border: "1px solid var(--panel-border, #ccc)",
               cursor: isDragging ? "grabbing" : "grab",
               touchAction: "none",
