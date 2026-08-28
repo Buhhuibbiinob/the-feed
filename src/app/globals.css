@@ -12184,3 +12184,178 @@ a.issue-link::after {
     opacity: 0.72;
   }
 }
+
+/* ============================================================
+   Compose sheet
+   ------------------------------------------------------------
+   Posting rises from the bottom edge instead of replacing the page.
+   The value is not the animation - it is that the feed stays where
+   it was. Posting from halfway down used to mean leaving and coming
+   back to the top.
+
+   Full height on a phone, a centred card on a desktop: on a small
+   screen a partial sheet with a keyboard open leaves the form in a
+   sliver, which is the usual way this pattern goes wrong.
+   ============================================================ */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  animation: page-enter 200ms var(--ease-ios) both;
+}
+.sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  background: var(--panel-body-bg);
+  border: 1px solid var(--panel-border);
+  border-bottom: none;
+  box-shadow: 0 -6px 26px rgba(0, 0, 0, 0.34);
+  animation: sheet-rise 320ms var(--ease-ios) both;
+}
+/* From fully off the bottom edge, not a nudge. A sheet that starts
+   80% of the way there reads as a fade with extra steps. */
+@keyframes sheet-rise {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+.sheet-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--nav-texture), var(--nav-bg);
+  border-bottom: 1px solid var(--nav-border);
+  box-shadow: var(--nav-shadow);
+  flex-shrink: 0;
+}
+.sheet-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nav-text);
+  text-shadow: var(--letterpress);
+}
+/* Keeps the title optically centred without a second button that could
+   disagree with the form about whether it is ready to submit. */
+.sheet-bar-spacer {
+  min-width: 62px;
+}
+.sheet-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px;
+}
+/* Inside the sheet the form is the whole content, so it drops its own
+   frame - a panel inside a sheet is a box inside a box. */
+.sheet-body > .panel {
+  margin-bottom: 0;
+}
+.sheet-body > .panel > .panel-head {
+  display: none;
+}
+.sheet-body > .panel > *:not(.panel-head) {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+@media (min-width: 620px) {
+  .sheet-backdrop {
+    align-items: center;
+  }
+  .sheet {
+    border-radius: 12px;
+    border-bottom: 1px solid var(--panel-border);
+    max-height: 86vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-backdrop,
+  .sheet {
+    animation: none;
+  }
+}
+
+/* ---- One tab style ----------------------------------------------------
+   The feed carried three ways of saying "pick one of these": a pill
+   strip for the views, a row of separate chips for the categories, and
+   the segmented control from the kit. Three controls doing one job on a
+   single screen is exactly the inconsistency that makes a site look
+   assembled rather than designed.
+
+   The kit's segmented control wins - it is the one iOS actually uses for
+   mutually exclusive choices, and it was already shipped. The pill
+   strip's own chrome is stripped back to a wrapper so the control inside
+   is the only thing you see. */
+.feed-filter {
+  position: static;
+  display: block;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  min-width: 210px;
+}
+
+/* Category chips keep their shape - four scoping filters is a different
+   job from three mutually exclusive views, and stacking two identical
+   segmented bars would read as one control broken in half. What changes
+   is the finish: the exact gradient, border and letterpress the
+   segmented control uses, so they are visibly the same family. */
+.feed-chips {
+  background: none;
+  border-bottom: 1px solid rgba(60, 60, 67, 0.16);
+}
+/* Shape is layout, so it belongs outside the theme block - a theme that
+   reshapes the page has to be re-tested against every other theme, which
+   is exactly what the purity guard is protecting. It rejected this. */
+.feed-chip {
+  border-radius: 5px;
+}
+[data-theme="ios-light"] .feed-chip {
+  border-color: #8e9298;
+  background: linear-gradient(180deg, #ffffff 0%, #f2f4f7 47%, #dfe2e7 53%, #c6cad1 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+[data-theme="ios-light"] .feed-chip.active {
+  border-color: #14509f;
+  background: linear-gradient(180deg, #4a90f0 0%, #2a72e2 47%, #1f66d6 53%, #1355bd 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* The pill strip's old descendant rules still matched the segmented
+   control's links, because .seg-item is an <a> inside .feed-filter -
+   so the segments kept a 100px radius and their own active fill,
+   fighting the control they now live in. Cleared here rather than by
+   deleting the old rules, which other markup may still rely on. */
+.feed-filter .seg-item {
+  padding: 0 12px;
+  border-radius: 0;
+  color: #2a2a2d;
+}
+.feed-filter .seg-item.active {
+  color: #fff;
+  background: linear-gradient(180deg, #4a90f0 0%, #2a72e2 47%, #1f66d6 53%, #1355bd 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+}
+[data-mode="dark"] .feed-filter .seg-item {
+  color: #f0f0f2;
+}
