@@ -3,6 +3,7 @@ import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PageTransition } from "@/components/PageTransition";
+import { SideRail } from "@/components/SideRail";
 import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { PostFab } from "@/components/PostFab";
 import { createClient } from "@/lib/supabase/server";
@@ -155,7 +156,21 @@ export default async function RootLayout({
           />
           <div className="sk-app-content">
             <div className="wrap">
-              <PageTransition>{children}</PageTransition>
+              {/* Split view: the list stays, the detail changes. Both
+                  columns live here rather than in each page, so every
+                  route gets the same navigation without knowing it
+                  exists. */}
+              <div className="split">
+                <SideRail
+                  username={username}
+                  isAdmin={admin}
+                  notificationCount={notificationCount}
+                  unreadDmCount={unreadDmCount}
+                />
+                <div className="split-detail">
+                  <PageTransition>{children}</PageTransition>
+                </div>
+              </div>
             </div>
             <SiteFooter />
           </div>

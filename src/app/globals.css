@@ -194,10 +194,20 @@
   --content-direction: row;
   --content-gap: 18px;
   --sidebar-width: 300px;
-  --wrap-max: 1240px;
-  --wrap-bg: #f4f6fa;
-  --wrap-radius: 20px;
-  --wrap-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  /* Room for the rail (214) plus its gap (22) alongside what the
+     content column had before. */
+  --wrap-max: 1420px;
+  /* No container. In the reference the grouped tables sit straight on
+     the linen - there is no card holding the whole app. The panel of
+     the moment is the only thing with edges, which is what makes the
+     backdrop read as the surface the app is on rather than a border
+     drawn around it.
+
+     A theme that wants a window frame still sets these; the default
+     just doesn't. */
+  --wrap-bg: transparent;
+  --wrap-radius: 0px;
+  --wrap-shadow: none;
 }
 * {
   box-sizing: border-box;
@@ -5753,8 +5763,9 @@ footer .copy {
   --like-color: var(--scrub-red);
 }
 [data-theme="ios-light"][data-mode="dark"] .wrap {
-  background: linear-gradient(160deg, #151011, #000000);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  /* No deck at night either - the dark linen is the surface. */
+  background: transparent;
+  box-shadow: none;
 }
 [data-theme="ios-light"][data-mode="dark"] .feedtv-upnext-strip {
   background: #1a1a1c;
@@ -9761,47 +9772,49 @@ body {
 /* ================================================================
    The page field
 
-   Everything above was lighting: bevels, gradients, brushed strips.
-   None of it could read, because .wrap inherited the generic
-   --wrap-bg (#f4f6fa) and so every panel sat on a near-white sheet.
-   Light chrome on near-white has no figure-ground separation, which
-   is why the album deck - the one element with dark shadows and cards
-   behind it - was the only thing that looked physical.
+   This was a slate metal deck - the whole app sat on a brushed blue-grey
+   sheet so the light panels had something to float above. It solved a
+   real problem: --wrap-bg was #f4f6fa, near-white, and light chrome on
+   near-white has no figure-ground separation at all.
 
-   The field is now the slate metal deck from the iPad iPod reference:
-   a cool blue-grey with fine vertical brushing, so the light panels
-   float above it the way they do in that screenshot. Panels are left
-   exactly as they are; only what's behind them changes.
+   The linen solves the same problem better, and the deck now works
+   against it. Two framed surfaces stacked means the texture doing the
+   work is never actually visible, and the reference has nothing of the
+   kind: grouped tables sit straight on the linen and the only object
+   with edges is the panel you are reading.
+
+   So the field is the linen, and the deck is gone. The shadow tokens go
+   with it - a 60px drop under a full-page container is the modal shadow
+   problem again, at page scale.
    ================================================================ */
 [data-theme="ios-light"] {
-  --wrap-bg: linear-gradient(180deg, #7a828e 0%, #6b7280 22%, #5f6672 60%, #545b66 100%);
-  --wrap-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.35) inset,
-    0 -14px 26px rgba(0, 0, 0, 0.28) inset,
-    0 26px 60px rgba(0, 0, 0, 0.45);
+  --wrap-bg: transparent;
+  --wrap-shadow: none;
+  /* --wrap-radius is a layout token, so it belongs in :root and not in
+     a theme block - a theme that reshapes the page has to be re-tested
+     against every other theme's layout. The purity guard rejected it
+     here, correctly; it is set once at the top instead. */
 }
 /* --wrap-bg is used as `background`, so a gradient works, but the fine
    brush lines need a second layer - hence background-image here. */
-[data-theme="ios-light"] .wrap {
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.055) 0px,
-      rgba(255, 255, 255, 0.055) 1px,
-      rgba(0, 0, 0, 0.05) 1px,
-      rgba(0, 0, 0, 0.05) 2px
-    ),
-    linear-gradient(180deg, #7a828e 0%, #6b7280 22%, #5f6672 60%, #545b66 100%);
-  border: 1px solid #3f444d;
-}
+/* The slate deck is gone. It was a brushed metal sheet holding the whole
+   app, and it is the single thing that most separated this from the
+   reference: there, grouped tables sit straight on the linen and the
+   only object with edges is the panel you are reading. A deck under
+   everything meant two framed surfaces stacked, and the linen - the
+   texture doing the work - was never actually visible.
 
-/* Type that sat on the old near-white sheet has to come up off the
-   slate, or the page headings vanish into it. */
+   It also darkened everything on it, which is why the rules below had
+   to exist at all. */
+
+/* Headings sat on the slate and were lightened to survive it. On linen
+   they go back to dark with a letterpress highlight, or they would be
+   near-white type on a light ground. */
 [data-theme="ios-light"] .page-header h1,
 [data-theme="ios-light"] .page-header p,
 [data-theme="ios-light"] .page-header {
-  color: #f2f4f7;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
+  color: #2a2a2d;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 /* The fun-fact strip and promo banners were tuned for the white sheet
@@ -9816,8 +9829,8 @@ body {
    .page-header and left dark grey text sitting on the slate at about
    1.4:1. Stated directly so it wins. */
 [data-theme="ios-light"] .page-header .tagline {
-  color: #dfe3e9;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+  color: #4d5158;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* ================================================================
@@ -10975,4 +10988,167 @@ a,
   .nav-bell-menu {
     animation: none;
   }
+}
+
+/* ============================================================
+   Split view
+   ------------------------------------------------------------
+   The structural idea shared by all three references: you navigate
+   from a list, and the thing you picked fills the space next to it.
+   None of them is a page with twelve modules stacked down it.
+
+   The rail is the whole site's navigation in one column, so pages
+   stop carrying their own - no More dropdown, no link panel in the
+   footer of the page, no module links scattered through the feed.
+
+   Desktop only. Below the breakpoint the tab bar is already the
+   navigation, and a rail there would just be a wall of links above
+   the content.
+   ============================================================ */
+
+.split {
+  display: grid;
+  grid-template-columns: 214px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.split-detail {
+  min-width: 0;
+}
+
+/* Sticks so the list is always reachable, the way the pane in a
+   split view doesn't scroll away with the content. */
+.rail {
+  position: sticky;
+  top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Grey, small, uppercase, above the group and outside its box. This
+   is the iOS grouped-table section header - putting the label inside
+   a bar on top of the group is the other convention, and mixing the
+   two is what makes a list look improvised. */
+.rail-heading {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  padding: 0 10px 5px;
+}
+[data-mode="dark"] .rail-heading {
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.rail-rows {
+  background: var(--panel-body-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  overflow: hidden;
+  box-shadow: var(--panel-shadow);
+}
+
+.rail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  transition: background-color var(--t-fast) var(--ease);
+}
+.rail-row:last-child {
+  border-bottom: none;
+}
+.rail-row:hover {
+  text-decoration: none;
+  background: rgba(0, 0, 0, 0.035);
+}
+.rail-label {
+  flex: 1;
+  min-width: 0;
+}
+.rail-chevron {
+  color: rgba(0, 0, 0, 0.28);
+  font-size: 15px;
+  line-height: 1;
+}
+[data-mode="dark"] .rail-chevron {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* The selected row, as in the reference: a saturated blue fill with a
+   hard highlight along its top edge, white text stamped the other way
+   round - shadow above, because on a dark fill the light is behind
+   the letterform. */
+.rail-row.current {
+  background: linear-gradient(180deg, #5b9cf8 0%, #2f79e8 50%, #2470e2 51%, #1a60cf 100%);
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.32);
+  border-bottom-color: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+}
+.rail-row.current:hover {
+  background: linear-gradient(180deg, #5b9cf8 0%, #2f79e8 50%, #2470e2 51%, #1a60cf 100%);
+}
+.rail-row.current .rail-chevron {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.rail-badge {
+  min-width: 17px;
+  padding: 1px 5px;
+  border-radius: 100px;
+  background: #e03b3b;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+}
+.rail-row.current .rail-badge {
+  background: #fff;
+  color: #1a60cf;
+  text-shadow: none;
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .rail {
+    display: none;
+  }
+}
+
+/* One column of content beside the rail.
+   ------------------------------------------------------------
+   Pages that used a feed column plus a 300px sidebar of widgets now
+   sit inside the split, and rail + feed + sidebar is three columns.
+   At that point the middle one - the reviews, the reason anyone is
+   here - ends up the narrowest thing on screen.
+
+   So the sidebar stops being a column and becomes what follows the
+   content. Nothing is removed; the order just stops pretending two
+   unequal things deserve equal billing. */
+.split-detail .content-grid {
+  flex-direction: column;
+  gap: 0;
+}
+.split-detail .right-col {
+  width: auto;
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0 18px;
+  align-items: start;
 }
