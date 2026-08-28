@@ -21,7 +21,6 @@ import { fontStack } from "@/lib/profileSkin";
 import { loadPageConfig } from "@/lib/pageConfigStore";
 import { moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
 import { ProfileArranger } from "@/components/ProfileArranger";
-import { ProfileScale } from "@/components/ProfileScale";
 import { pageStyle } from "@/lib/pageTheme";
 import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
 import { MoodRingEditor } from "@/components/MoodRing";
@@ -1092,8 +1091,7 @@ export default async function ProfilePage({
   );
 
   return (
-    <ProfileScale>
-      <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
+    <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
       <StickerLayer stickers={stickers} isOwner={isOwnProfile} />
 
@@ -1324,7 +1322,6 @@ export default async function ProfilePage({
           </>
         }
       />
-      </div>
-    </ProfileScale>
+    </div>
   );
 }

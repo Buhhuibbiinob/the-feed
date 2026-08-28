@@ -2546,36 +2546,51 @@ a:hover {
    The side column holds the small identity pieces; the main column holds
    what people came to read. Below the breakpoint it collapses to one
    column, side first, which keeps the phone view close to the old one. */
-/* Two columns at every width. The profile is rendered at a fixed design
-   width and scaled down by ProfileScale, rather than reflowing - so a
-   page someone arranged on a desktop reaches a phone looking the same,
-   stickers included. */
+/* The profile is a normal responsive page again.
+   ------------------------------------------------------------
+   It used to render at a fixed 880px and zoom the whole thing down to
+   fit, so that an arrangement made on a desktop reached a phone
+   unchanged. It did travel unchanged - at about 44% on a 390px screen,
+   which is a legible desktop page turned into an illegible miniature of
+   one. Nobody could read their own profile.
+
+   The reason for the fixed width was stickers: they are placed as a
+   share of the profile's width, and a vertical percentage would have
+   been a share of HEIGHT, which changes every time someone posts. That
+   is solved properly now with container query units - 1cqw is one
+   percent of the container's width - so a sticker lands in the same
+   spot at any size without freezing the page around it.
+
+   So: one column on a phone, two on a desktop, stickers proportionally
+   identical on both, and every customization intact. */
+.profile-skin {
+  /* The measuring stick every sticker is positioned against. */
+  container-type: inline-size;
+}
 .profile-columns {
   display: grid;
-  grid-template-columns: minmax(230px, 280px) 1fr;
-  gap: 0 18px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   align-items: start;
 }
-.profile-scale {
-  transform-origin: top left;
-}
-/* If scaling fails outright - scripting off, a browser without zoom and
-   without the fallback - the profile is 880px wide inside a narrow
-   viewport. A scroll is a poor result; silently breaking the page layout
-   around it is a worse one. */
-.profile-scale-frame {
-  overflow-x: auto;
-  overflow-y: hidden;
+@media (min-width: 761px) {
+  .profile-columns {
+    grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+    gap: 0 18px;
+  }
 }
 .profile-col-side .panel,
 .profile-col-main .panel {
   margin-bottom: 14px;
 }
 /* The side column tracks with the page rather than running off the top
-   of a long review list. */
-.profile-col-side {
-  position: sticky;
-  top: 12px;
+   of a long review list - but only once it IS a column. Stacked on a
+   phone, sticky would pin the identity card over the reviews. */
+@media (min-width: 761px) {
+  .profile-col-side {
+    position: sticky;
+    top: 12px;
+  }
 }
 
 /* Panels in the profile columns are tighter than the site default - the

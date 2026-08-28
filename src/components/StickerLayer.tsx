@@ -8,7 +8,6 @@ import {
   type StickerState,
 } from "@/app/actions/stickers";
 import { MAX_STICKERS, stickerTransform, Z_BEHIND, Z_FRONT, type Sticker } from "@/lib/stickers";
-import { PROFILE_DESIGN_WIDTH } from "@/components/ProfileScale";
 
 const initialState: StickerState = {};
 
@@ -55,9 +54,18 @@ function StickerImage({
       className={`sticker${selected && editing ? " selected" : ""}`}
       style={{
         left: `${sticker.x}%`,
-        // Measured off the design width, not the layer's height - so
-        // opening the tools or gaining a review doesn't move it.
-        top: `calc(${PROFILE_DESIGN_WIDTH}px * ${sticker.y} / 100)`,
+        // Both axes are a share of the profile's WIDTH. Horizontal is a
+        // plain percentage; vertical uses cqw - one percent of the
+        // container's inline size - because a percentage top would be a
+        // share of HEIGHT, and the page's height changes every time
+        // someone posts a review or opens the tools.
+        //
+        // This used to read off a fixed 880px design width, which forced
+        // the whole profile to render at 880 and zoom down. Against the
+        // container instead, the same number lands in the same place at
+        // any width, so the profile can be a normal responsive page and
+        // an arrangement still travels between devices intact.
+        top: `calc(${sticker.y} * 1cqw)`,
         width: `${14 * sticker.scale}%`,
         transform: stickerTransform(sticker),
       }}
