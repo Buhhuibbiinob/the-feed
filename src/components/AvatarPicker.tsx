@@ -7,6 +7,7 @@ import {
   type ProfileFormState,
 } from "@/app/actions/profile";
 import { MAX_AVATAR_BYTES, megabytes } from "@/lib/uploads";
+import { ImageCropField } from "@/components/ImageCropField";
 
 const PRESETS = [
   "/avatars/preset-1.svg",
@@ -67,8 +68,21 @@ export function AvatarPicker() {
         ))}
       </div>
       <form action={uploadAction} onSubmit={handleUploadSubmit} className="comment-form avatar-upload-form">
-        <input type="file" name="avatar_file" accept="image/*" required />
-        <div className="field-hint">Max {megabytes(MAX_AVATAR_BYTES)}MB.</div>
+        {/* Avatars used to be a bare file input: whatever you picked got
+            dropped into a circle and centre-cropped. A photo that wasn't
+            already square - most phone photos - lost its edges, and a
+            face off to one side got cut in half. You choose the framing
+            now, same as the banner does. Animated GIFs skip the canvas
+            and upload untouched, so they keep moving. */}
+        <ImageCropField
+          id="avatar-crop"
+          name="avatar_file"
+          label="Photo"
+          hint={`Square. Max ${megabytes(MAX_AVATAR_BYTES)}MB.`}
+          targetWidth={400}
+          targetHeight={400}
+          round
+        />
         <div className="form-actions">
           <button className="btn" type="submit" disabled={uploadPending}>
             {uploadPending ? "Uploading…" : "Upload photo"}

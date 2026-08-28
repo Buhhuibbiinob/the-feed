@@ -5771,22 +5771,7 @@ footer .copy {
 }
 [data-theme="ios-light"][data-mode="dark"] .artist-post-row-desc {
   color: #aeaeb2;
-}
-[data-theme="ios-light"][data-mode="dark"] .site-links-body {
-  background: #1a1a1c;
-}
-[data-theme="ios-light"][data-mode="dark"] .site-links-rows {
-  border-color: #3a3a3c;
-}
-[data-theme="ios-light"][data-mode="dark"] .site-links-link {
-  background: linear-gradient(180deg, #232325, #1a1a1c);
-  border-bottom-color: #2c2c2e;
-  color: #f2f2f2;
-}
-[data-theme="ios-light"][data-mode="dark"] .site-links-link:hover {
-  background: linear-gradient(180deg, #2c2c2e, #1c1c1e);
-}
-[data-theme="ios-light"][data-mode="dark"] .fun-fact-banner {
+}[data-theme="ios-light"][data-mode="dark"] .fun-fact-banner {
   background: linear-gradient(180deg, #1c1c1e, #101012);
   border-color: #000;
   color: #f2f2f2;
@@ -6152,6 +6137,30 @@ footer .copy {
 }
 
 /* ---- Wrapped promo banner: colorful, distinct from the fun-fact strip ---- */
+/* The one link left over from the old Site Links panel: the newsletter
+   panel's latest issue. Kept as its own name, since "site links" stopped
+   describing anything once the panel went. */
+.issue-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: var(--panel-head-bg);
+  color: inherit;
+  text-decoration: none;
+  font-size: 12px;
+}
+.issue-link:hover {
+  text-decoration: none;
+  filter: brightness(1.04);
+}
+
+/* Was a flat #7b2ff7 slab - the last hard-coded purple on the site, and
+   the only element that ignored the member's theme entirely. Uses the
+   button gloss now, so it reads as part of the page in all 18 themes. */
 .wrapped-promo-banner {
   display: flex;
   align-items: center;
@@ -6159,10 +6168,10 @@ footer .copy {
   padding: 12px 16px;
   margin-bottom: 16px;
   border-radius: 9px;
-  background-color: #7b2ff7;
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.08) 40%, rgba(255, 255, 255, 0) 55%);
-  box-shadow: 0 6px 14px rgba(123, 47, 247, 0.35), 0 1px 0 rgba(255, 255, 255, 0.35) inset;
-  color: #fff;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  color: var(--btn-text);
   text-decoration: none;
   font-size: 12px;
 }
@@ -6520,56 +6529,8 @@ footer .copy {
 .theslap-3col .chat-body {
   flex: 1;
 }
-
-.site-links-body {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  padding: 16px;
-  background: var(--panel-body-bg);
-}
-.site-links-group b {
-  display: block;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: #888;
-  margin-bottom: 8px;
-}
-.site-links-rows {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #c3ceda;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.site-links-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #1c2733;
-  background: linear-gradient(180deg, #ffffff, #f2f5f8);
-  border-bottom: 1px solid #dbe2ea;
-  text-decoration: none;
-}
-.site-links-link:last-child {
-  border-bottom: none;
-}
-.site-links-link:hover {
-  background: linear-gradient(180deg, #eef3f8, #dfe7ee);
-  text-decoration: none;
-}
-.site-links-chevron {
-  color: #9aa9b8;
-  font-size: 14px;
-  font-weight: 700;
-}
-
 @media (max-width: 900px) {
-  .theslap-3col,
-  .site-links-body {
+  .theslap-3col {
     grid-template-columns: 1fr;
   }
 }
@@ -8532,22 +8493,19 @@ body {
 .chat-body,
 .chat-preview-body,
 .right-now-body,
-.site-links-body,
 .connect-body,
 .track-results {
   color: var(--text);
 }
 .post-card .ts,
 .side-list .row span,
-.site-links-link span,
 .right-now-ad-fallback span {
   color: var(--muted);
 }
 .post-card,
 .chat-row,
 .side-list .row,
-.leaderboard-row,
-.site-links-link {
+.leaderboard-row {
   border-color: var(--panel-border);
 }
 .chat-input,
