@@ -1,58 +1,99 @@
 :root {
-  --page-bg: #e6e6e6;
-  --text: #333;
-  --muted: #666;
-  --link: #444444;
+  /* ================================================================
+     iOS 6: brushed aluminium, linen, white grouped tables.
+     ----------------------------------------------------------------
+     Rebuilt from the reference screenshots (iPad Messages, a Tapbots
+     iPhone app, a dark media player). What actually makes that era
+     look expensive is four things, and they are all here:
+
+       1. Bars are milled metal, not flat colour. A hard 1px seam at
+          the vertical midpoint is what reads as machined - a smooth
+          gradient reads as a web page.
+       2. Text on a light bar is DARK with a white shadow BELOW it
+          (letterpress - stamped in). Text on a dark bar is light with
+          a black shadow ABOVE it. Getting this backwards is the single
+          most common tell of a fake skeuomorphic UI.
+       3. Content sits on white grouped cards over a textured ground.
+          The texture is what stops large empty areas looking unfinished.
+       4. One accent colour, used only for selection and the primary
+          action. Everything else is grey.
+     ================================================================ */
+
+  --page-bg: #a8a8ad;
+  --text: #2f3033;
+  --muted: #7b7d82;
+  --link: #0a5fd6;
   --blue-hi: #e8e8e8;
   --blue-lo: #7a7a7a;
 
-  /* ---- Theme tokens (default = "Classic Aqua") ----
-     A theme is just a redefinition of these custom properties, scoped under
-     html[data-theme="id"]. See the theme blocks near the end of this file. */
-  --body-bg: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 38%),
-    radial-gradient(ellipse at 15% 85%, rgba(120, 235, 220, 0.35), transparent 55%),
-    radial-gradient(ellipse at 85% 10%, rgba(120, 210, 255, 0.25), transparent 50%),
-    linear-gradient(155deg, #04101c 0%, #0a3548 30%, #0f6a78 60%, #17a698 85%, #4be0c9 100%);
+  /* iOS 6 linen. Two fine cross-hatches over a warm grey, which is the
+     weave; the vertical band keeps it from tiling visibly on a wide
+     desktop window. Drawn rather than an image so it costs no request
+     and stays crisp at any density. */
+  --body-bg: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.045) 0px,
+      rgba(255, 255, 255, 0.045) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 3px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(0, 0, 0, 0.045) 0px,
+      rgba(0, 0, 0, 0.045) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.02) 0px,
+      rgba(0, 0, 0, 0.02) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 4px
+    ),
+    linear-gradient(180deg, #b0b0b5 0%, #a4a4a9 100%);
   --body-glyph-color: rgba(255, 255, 255, 0.05);
 
-  --nav-bg: repeating-linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.06) 0px,
-      rgba(255, 255, 255, 0.06) 1px,
-      transparent 1px,
-      transparent 2px
-    ),
-    linear-gradient(180deg, #f5f5f5, #d6d6d6 60%, #b9b9b9);
-  --nav-border: #999;
-  --nav-text: #333;
-  --nav-active-text: #fff;
+  /* The bar. Light half, hard seam, dark half - milled aluminium. */
+  --nav-bg: linear-gradient(
+    180deg,
+    #fdfdfe 0%,
+    #e6e8ec 48%,
+    #d2d5db 52%,
+    #b9bdc5 100%
+  );
+  --nav-border: #8f939b;
+  --nav-text: #33363b;
+  --nav-active-text: #0a5fd6;
 
-  --subnav-bg: linear-gradient(180deg, #f2f2f2, #cfcfcf);
-  --subnav-border: #a0a0a0;
-  --subnav-text: #444444;
+  --subnav-bg: linear-gradient(180deg, #f4f5f7 0%, #e2e4e9 50%, #d6d9df 51%, #c6cad1 100%);
+  --subnav-border: #9ba0a8;
+  --subnav-text: #3d4046;
 
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #999 75%);
-  --wordmark-color: #222;
+  --orb-bg: radial-gradient(circle at 35% 28%, #ffffff, #b6bac2 70%, #8f939b 100%);
+  --wordmark-color: #2f3237;
 
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #e8e8e8 46%, #cccccc 50%, #a0a0a0 100%);
-  --acct-btn-border: #999999;
-  --acct-btn-text: #2a5a80;
-  --acct-btn-primary-bg: linear-gradient(180deg, #c4c4c4 0%, #8a8a8a 46%, #6a6a6a 50%, #3a3a3a 100%);
-  --acct-btn-primary-border: #1a1a1a;
+  /* Bar buttons: bevelled rounded rects, not pills. */
+  --acct-btn-bg: linear-gradient(180deg, #fdfdfe 0%, #e9ebef 48%, #dadde2 52%, #c4c8d0 100%);
+  --acct-btn-border: #8f939b;
+  --acct-btn-text: #2f3237;
+  --acct-btn-primary-bg: linear-gradient(180deg, #6aa9f8 0%, #3a86ee 48%, #2775e6 52%, #1560cf 100%);
+  --acct-btn-primary-border: #14509f;
 
-  --panel-border: #c9c9c9;
-  --panel-head-bg: linear-gradient(180deg, #f2f2f2, #d3d3d3);
-  --panel-head-border: #aaaaaa;
-  --panel-body-bg: #fff;
-  --shelf-bg: #fff;
+  /* Grouped tables: white, hairline separator, no heavy frame. */
+  --panel-border: #c4c4c9;
+  --panel-head-bg: linear-gradient(180deg, #fbfbfc 0%, #e8eaee 48%, #dcdfe4 52%, #cbcfd6 100%);
+  --panel-head-border: #a4a8b0;
+  --panel-body-bg: #ffffff;
+  --shelf-bg: #ffffff;
 
-  --btn-bg: linear-gradient(180deg, #c4c4c4 0%, #8a8a8a 46%, #6a6a6a 50%, #3a3a3a 100%);
-  --btn-border: #1a1a1a;
-  --btn-text: #fff;
+  --btn-bg: linear-gradient(180deg, #6aa9f8 0%, #3a86ee 48%, #2775e6 52%, #1560cf 100%);
+  --btn-border: #14509f;
+  --btn-text: #ffffff;
 
-  --hero-title-color: #fff;
-  --hero-tagline-color: #dceaf7;
-  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  --hero-title-color: #2f3237;
+  --hero-tagline-color: #5c6067;
+  --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 
   --like-color: #d9345c;
 
@@ -77,7 +118,7 @@
      They are tokens now, so a theme can change its own shape, weight and
      texture, not just its palette. Defaults here are deliberately plain;
      the default theme sets its own below. */
-  --panel-radius: 9px;
+  --panel-radius: 10px;
   --panel-frame: var(--panel-border);
   /* A 28px blur at 28% opacity is a modal dialog's shadow. It was on
      every panel, so ten list-sized boxes down a page each cast a shadow
@@ -86,7 +127,7 @@
      tables lift by about a pixel; so does this now. The inset highlight
      stays, because that hairline of light along the top edge is what
      makes the surface look convex rather than printed. */
-  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.09), 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
   --panel-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
   --panel-head-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
 
@@ -95,35 +136,44 @@
 
   --nav-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
   --nav-seam: var(--nav-border);
-  --nav-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  /* A bar sits ON the page, so its shadow is a tight contact shadow plus
+     a hairline of light along its own top edge. A soft 6px cloud under it
+     read as a floating web header, not a fixed piece of chrome. */
+  --nav-shadow: 0 1px 0 rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.85) inset;
 
-  --hero-size: 34px;
-  --hero-weight: 800;
-  --hero-spacing: -0.4px;
+  --hero-size: 30px;
+  --hero-weight: 700;
+  --hero-spacing: -0.5px;
   --hero-transform: none;
 
-  --letterpress: none;
-  --btn-radius: 999px;
+  /* Stamped in: dark ink, white highlight BELOW. The direction is the
+     whole illusion - a shadow above would read as raised. */
+  --letterpress: 0 1px 0 rgba(255, 255, 255, 0.8);
+  /* iOS 6 bar buttons are ~5px rounded rects. The pill was the one shape
+     that dated the whole site to a decade later than everything else. */
+  --btn-radius: 5px;
 
   /* Surface treatments. Defaults point at the palette tokens every theme
      already defines, so a theme that says nothing here still gets its own
      colours rather than the default theme's chrome. */
-  --panel-head-text: var(--text);
-  --panel-head-letterpress: none;
-  --panel-head-shadow: none;
+  --panel-head-text: #33363b;
+  --panel-head-letterpress: 0 1px 0 rgba(255, 255, 255, 0.85);
+  --panel-head-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 
   --btn-image: var(--btn-bg);
   --btn-image-hover: var(--btn-bg);
   --btn-image-active: var(--btn-bg);
-  --btn-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  --btn-shadow-active: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
-  --btn-letterpress: none;
+  --btn-shadow: 0 1px 1px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+  --btn-shadow-active: 0 1px 3px rgba(0, 0, 0, 0.35) inset;
+  /* On a dark button the highlight goes ABOVE the text: light falls from
+     the top, so the shadow it casts lands under the letterform. */
+  --btn-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.35);
 
   --btn-ghost-image: var(--panel-head-bg);
   --btn-ghost-frame: var(--panel-border);
   --btn-ghost-text: var(--text);
-  --btn-ghost-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  --btn-ghost-letterpress: none;
+  --btn-ghost-shadow: 0 1px 1px rgba(0, 0, 0, 0.18), 0 1px 0 rgba(255, 255, 255, 0.75) inset;
+  --btn-ghost-letterpress: 0 1px 0 rgba(255, 255, 255, 0.8);
 
   --star-on: linear-gradient(180deg, #ffd75e, #f0a800);
   --star-off: linear-gradient(180deg, #cfcfcf, #9a9a9a);
@@ -5550,37 +5600,64 @@ footer .copy {
   --chrome-low: #8d8d92;
   --chrome-dark: #3a3a3d;
   --chrome-black: #141416;
-  --link-blue: #2f6fce;
-  --link-blue-dark: #1e4f9c;
+  /* iOS 6 system blue. */
+  --link-blue: #0a5fd6;
+  --link-blue-dark: #1148a0;
   --scrub-red: #e0261f;
   --scrub-blue: #2f8fe0;
   --star-gold: #e0b400;
   --divider: #b9b9be;
 
-  /* Pinstripes. This is the iOS 5 backdrop - fine vertical stripes in
-     blue-grey behind the grouped tables. Linen came a version later, so
-     it's the wrong texture for this era. */
+  /* Linen. This was pinstripes, which is the iOS 5 backdrop - the note
+     here used to argue linen was a version too late. The reference is
+     iOS 6, so linen is now the correct texture and the pinstripes were
+     the anachronism.
+
+     Two cross-hatches at opposing 45s over a neutral grey: that is the
+     weave. A third, very faint vertical band breaks up the repeat so it
+     does not read as tiled across a wide desktop window. The grey is
+     deliberately neutral - the old backdrop was blue-grey, and that
+     periwinkle cast under silver chrome is most of what made the site
+     look like an imitation rather than the thing itself. */
   --body-bg: repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.5) 0px,
-      rgba(255, 255, 255, 0.5) 1px,
-      transparent 1px,
-      transparent 3px
+      45deg,
+      rgba(255, 255, 255, 0.05) 0px,
+      rgba(255, 255, 255, 0.05) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 3px
     ),
-    linear-gradient(180deg, #c3cbd8, #b3bdcc 45%, #bcc5d2);
+    repeating-linear-gradient(
+      -45deg,
+      rgba(0, 0, 0, 0.05) 0px,
+      rgba(0, 0, 0, 0.05) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.022) 0px,
+      rgba(0, 0, 0, 0.022) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 5px
+    ),
+    linear-gradient(180deg, #b2b2b7 0%, #a6a6ab 55%, #9e9ea3 100%);
   --body-glyph-color: rgba(0, 0, 0, 0.05);
 
-  --nav-bg: repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.1) 0px,
-      rgba(255, 255, 255, 0.1) 1px,
-      transparent 1px,
-      transparent 2px
-    ),
-    linear-gradient(180deg, #b9c5d7 0%, #9dabc3 48%, #8d9db7 52%, #7d8ea9 100%);
-  --nav-border: #5c6b82;
-  --nav-text: #ffffff;
-  --nav-active-text: #ffffff;
+  /* Milled aluminium, neutral. The hard 1px step at the midpoint is the
+     machined edge - without it a bar reads as a web gradient. Was
+     blue-grey, which no iOS bar ever was.
+
+     Only one --nav-text here now: there were two, white and then dark,
+     and only source order decided which applied. The white pair was
+     left over from the dark-bar version and had been dead for a while. */
+  --nav-bg: linear-gradient(
+    180deg,
+    #fdfdfe 0%,
+    #eceef1 48%,
+    #dcdfe3 52%,
+    #c2c5ca 100%
+  );
+  --nav-border: #8e9197;
   --nav-text: #2a2a2d;
   --nav-active-text: var(--link-blue);
 
@@ -5594,18 +5671,18 @@ footer .copy {
   --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f0f1f4 48%, #e2e4ea 52%, #cfd2da 100%);
   --acct-btn-border: #9aa0ab;
   --acct-btn-text: #333333;
-  --acct-btn-primary-bg: linear-gradient(180deg, #8ecaff 0%, #4a97ec 22%, #2f7fdb 48%, #1f5fc0 52%, #123c85 100%);
-  --acct-btn-primary-border: #1e4b85;
+  --acct-btn-primary-bg: linear-gradient(180deg, #7fbcff 0%, #3f8bef 22%, #2a76e4 48%, #1a60cc 52%, #114694 100%);
+  --acct-btn-primary-border: #14509f;
 
-  --panel-border: #a8abb3;
-  --panel-head-bg: linear-gradient(180deg, #fbfbfc 0%, #eaebef 50%, #dfe0e5 51%, #d4d6dc 100%);
-  --panel-head-border: #a8abb3;
+  --panel-border: #b6b6bb;
+  --panel-head-bg: linear-gradient(180deg, #fcfcfd 0%, #edeef1 48%, #dfe0e4 52%, #ccced3 100%);
+  --panel-head-border: #a6a8ae;
   /* Grouped-table white, the way a list looked sitting on the linen. */
   --panel-body-bg: #ffffff;
   --shelf-bg: #ffffff;
 
-  --btn-bg: linear-gradient(180deg, #8ecaff 0%, #4a97ec 22%, #2f7fdb 48%, #1f5fc0 52%, #123c85 100%);
-  --btn-border: #1e4b85;
+  --btn-bg: linear-gradient(180deg, #7fbcff 0%, #3f8bef 22%, #2a76e4 48%, #1a60cc 52%, #114694 100%);
+  --btn-border: #14509f;
   --btn-text: #fff;
 
   --hero-title-color: #2a2a2d;
@@ -7351,20 +7428,43 @@ button.btn-ghost {
    itself reads as an anodised surface the windows sit on. */
 /* The default theme's brushed-aluminium body, now scoped to it rather than
    painted over every other theme. */
+/* Texture paints ON TOP of --body-bg, and this layer used to end in an
+   opaque gradient - so it covered the backdrop completely and the linen
+   underneath was never visible at all. Every layer here is now partly
+   transparent, which is what lets the weave read through.
+
+   The blue and teal pools are gone with it. They were an Aqua reference,
+   and an aqua wash under silver chrome is exactly the mismatch that makes
+   a skeuomorphic UI look like a knock-off: the light in the bars and the
+   light on the page disagreed. What is left is a single neutral light
+   source above the fold and a slight settling of shade at the bottom. */
 [data-theme="ios-light"] {
   --body-texture:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0 1px, rgba(0, 0, 0, 0.03) 1px 2px),
-    radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, 0.85), transparent 60%),
-    radial-gradient(ellipse at 12% 8%, rgba(150, 215, 255, 0.3), transparent 45%),
-    radial-gradient(ellipse at 88% 4%, rgba(160, 240, 220, 0.26), transparent 42%),
-    linear-gradient(180deg, #dfe3e8 0%, #c8ccd2 40%, #b3b8bf 100%);
+    radial-gradient(ellipse at 50% -8%, rgba(255, 255, 255, 0.34), transparent 58%),
+    radial-gradient(ellipse at 50% 108%, rgba(0, 0, 0, 0.09), transparent 62%);
 }
 [data-theme="ios-light"][data-mode="dark"] {
+  /* Dark linen: the same weave, unlit. Kept as its own backdrop rather
+     than a scrim over the light one, because a dark overlay on light
+     linen greys the weave out until it may as well not be there. */
+  --body-bg: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 3px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(0, 0, 0, 0.16) 0px,
+      rgba(0, 0, 0, 0.16) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 3px
+    ),
+    linear-gradient(180deg, #34363a 0%, #2a2c30 55%, #232528 100%);
   --body-texture:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0.22) 1px 2px),
-    radial-gradient(ellipse at 50% -10%, rgba(255, 255, 255, 0.16), transparent 60%),
-    radial-gradient(ellipse at 12% 8%, rgba(60, 140, 210, 0.24), transparent 45%),
-    linear-gradient(180deg, #3a3d42 0%, #26282c 45%, #131417 100%);
+    radial-gradient(ellipse at 50% -8%, rgba(255, 255, 255, 0.10), transparent 58%),
+    radial-gradient(ellipse at 50% 108%, rgba(0, 0, 0, 0.28), transparent 62%);
 }
 
 /* ---- Panels: shape and weight come from the theme ---- */
@@ -8740,39 +8840,58 @@ body {
    not like it's wearing one.
    ================================================================ */
 
+/* THE BAR.
+   ------------------------------------------------------------------
+   This was charcoal glass. The two references disagree on it: the
+   Tapbots screenshot has a black bar, Apple's own Messages has silver.
+   Both shipped in iOS 6 - they were UIBarStyleBlack and the default -
+   so neither is wrong, and this goes silver because Messages is the
+   system look, it is the more detailed of the two references, and this
+   site is a list-and-content app of exactly that kind.
+
+   To go back to the black bar, only the four values in this block need
+   swapping; nothing else in the stylesheet assumes a light bar.
+
+   Three details do the work, and all three are easy to get wrong:
+     - The hard 1px step at the vertical midpoint. A smooth gradient
+       reads as a web header; the step reads as milled metal catching
+       light on two planes.
+     - Dark text with a WHITE shadow below it. Stamped in, not raised.
+       Reverse those and the whole bar looks fake.
+     - A tight 1px contact shadow, not a soft cloud. The bar is bolted
+       to the top of the page, not floating over it.
+
+   --nav-texture paints OVER --nav-bg, so it has to stay translucent -
+   an opaque texture here is why overriding --nav-bg alone once appeared
+   to do nothing at all. */
 [data-theme="ios-light"] {
-  /* --nav-texture paints OVER --nav-bg, and the default theme's texture
-     was an opaque light aluminium gradient, so overriding --nav-bg alone
-     changed nothing visible. The texture is now just the brush lines,
-     letting the charcoal underneath show through. */
   --nav-texture: repeating-linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.055) 0 1px,
-    rgba(0, 0, 0, 0.1) 1px 2px
+    rgba(255, 255, 255, 0.16) 0 1px,
+    rgba(0, 0, 0, 0.02) 1px 2px
   );
-  --nav-seam: #0c0d0e;
-  --nav-shadow: 0 1px 0 rgba(255, 255, 255, 0.26) inset, 0 -6px 12px rgba(0, 0, 0, 0.3) inset,
-    0 4px 12px rgba(0, 0, 0, 0.5);
+  --nav-seam: #8e9197;
+  --nav-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 0 rgba(0, 0, 0, 0.2);
 
-  /* Charcoal glass. The hard 50/51% break is what reads as a real
-     lit surface rather than a soft CSS gradient. */
   --nav-bg: linear-gradient(
     180deg,
-    #6f7175 0%,
-    #4a4c50 6%,
-    #333539 48%,
-    #232427 51%,
-    #2b2c30 92%,
-    #17181a 100%
+    #fdfdfe 0%,
+    #f0f1f4 6%,
+    #e2e4e8 48%,
+    #d3d6db 52%,
+    #c6c9cf 92%,
+    #b9bcc3 100%
   );
-  --nav-border: #0d0e0f;
-  --nav-text: #e9e9ec;
-  --nav-active-text: #ffffff;
-  --wordmark-color: #f4f4f6;
+  --nav-border: #8e9197;
+  --nav-text: #2a2a2d;
+  --nav-active-text: var(--link-blue);
+  --wordmark-color: #2a2a2d;
 }
 [data-theme="ios-light"] .apple-nav::after {
   content: "";
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.04));
+  /* Was 34% white - fine over charcoal, but over silver it flattens the
+     top half into a white band and loses the milled step entirely. */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 55%);
   pointer-events: none;
   z-index: 0;
 }
@@ -9751,27 +9870,20 @@ body {
     0 2px 4px rgba(0, 0, 0, 0.2);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95);
 }
+/* The stitched leather strip that used to sit under the bar is gone.
+   It was the one genuine material on the page and it was well made,
+   but it belonged to the charcoal bar it was designed against: dark
+   hide under silver aluminium, on grey linen, is three materials in
+   nine pixels and none of them agree. Neither reference has anything
+   like it - iOS put a hairline under the bar and nothing else.
+
+   So: a hairline. A dark rule for the edge of the metal, and a single
+   pixel of white under it, which is the light catching the top of the
+   page below. That is the entire detail. */
 [data-theme="ios-light"] .apple-nav::before {
   content: "";
   z-index: 2;
-  background-color: #2a211c;
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgba(228, 214, 190, 0.85) 0px,
-      rgba(228, 214, 190, 0.85) 5px,
-      transparent 5px,
-      transparent 11px
-    ),
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.05) 0.5px, transparent 1px),
-    radial-gradient(circle at 70% 65%, rgba(0, 0, 0, 0.28) 0.5px, transparent 1px),
-    linear-gradient(180deg, #3a2d26 0%, #241c18 60%, #16110e 100%);
-  background-size: 11px 1px, 4px 4px, 5px 5px, 100% 100%;
-  background-position: 0 4px, 0 0, 0 0, 0 0;
-  background-repeat: repeat-x, repeat, repeat, no-repeat;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.1) inset,
-    0 -1px 2px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, #83868c 0%, #83868c 50%, rgba(255, 255, 255, 0.7) 50%);
   pointer-events: none;
 }
 
@@ -10183,34 +10295,34 @@ body {
 .panel {
   border-radius: 10px;
 }
-/* ---- 2. Stitched leather seam ----
-   The one genuine material on the page, kept to a single 9px strip
-   directly under the nav so it reads as a deliberate detail rather
-   than costume. Dark hide rather than the reference's tan, because
-   tan under a charcoal bar fights the red logo. Two dashed lines make
-   the stitch: a dark needle hole with a cream thread above it. */
+/* ---- 2. The hairline under the bar ----
+   Was a 9px stitched leather strip; see the note on the ::before rule.
+   Two pixels now: the edge of the metal, and the light on the page
+   under it. */
 .apple-nav {
-  padding-bottom: 9px;
+  padding-bottom: 0;
 }
 .apple-nav::before {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
-  height: 9px;
+  bottom: -2px;
+  height: 2px;
 }
-/* The nav's gloss band must not wash over the seam. */
 .apple-nav::after {
-  bottom: 9px;
+  bottom: 0;
 }
-/* Taller, brighter dome with a hard cut, replacing the soft 32% fade
-   the shared button rule uses. */
+/* The gloss dome, reshaped. It was cut to a 100px pill because that is
+   what the buttons used to be; against a 5px rounded rect the pill
+   corners floated clear of the button's own edges. Now it follows the
+   button: 4px at the top, flat across the midpoint where the highlight
+   stops dead. */
 .btn::before, .nav-post-btn::before, .acct-btn.primary::before {
   top: 1px;
   left: 1px;
   right: 1px;
   height: 47%;
-  border-radius: 100px 100px 60% 60% / 100px 100px 22px 22px;
+  border-radius: 4px 4px 0 0;
 }
 /* Orby's housing rounds harder than a plain panel, but the later
    [data-theme] .panel rule matched at the same specificity and won, flattening it back to 10px. Restated so the gadget keeps its shape. */
@@ -10787,5 +10899,80 @@ a,
   .avatar-preset-btn:active,
   .nav-post-btn:active {
     transform: none;
+  }
+}
+
+/* ---- Page transitions -------------------------------------------------
+   Content rises 4px into place on every navigation. Deliberately quiet:
+   a page transition is read peripherally, and anything you actually
+   notice becomes something you wait through on the twentieth visit.
+
+   Paired with PageTransition, which keys this wrapper on the pathname so
+   the animation restarts on each route rather than playing once on load. */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+.page-enter {
+  animation: page-enter 220ms var(--ease) both;
+}
+
+/* Sections settle in just behind the page, so a long page reads as
+   assembling rather than arriving as one slab.
+
+   The delays need something to delay: an earlier draft of this set
+   animation-delay on panels that had no animation on them at all, which
+   is CSS that validates, ships, and does nothing. The animation is
+   declared here too now.
+
+   Capped at five steps. Past that the last panel is queueing behind a
+   sequence nobody asked to watch, and the whole thing totals 130ms - a
+   stagger you feel rather than sit through. */
+.page-enter .panel {
+  animation: page-enter 200ms var(--ease) both;
+}
+.page-enter .panel:nth-of-type(1) { animation-delay: 0ms; }
+.page-enter .panel:nth-of-type(2) { animation-delay: 35ms; }
+.page-enter .panel:nth-of-type(3) { animation-delay: 70ms; }
+.page-enter .panel:nth-of-type(4) { animation-delay: 100ms; }
+.page-enter .panel:nth-of-type(n + 5) { animation-delay: 130ms; }
+
+/* Editors and pickers open rather than appear. Height can't be animated
+   from auto, so this scales and fades the panel instead - no layout
+   property is touched, so nothing below it jumps as it opens. */
+@keyframes editor-open {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translate3d(0, -2px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+.avatar-picker,
+.page-editor,
+.sticker-tools,
+.nav-more-menu,
+.nav-bell-menu {
+  animation: editor-open 160ms var(--ease) both;
+  transform-origin: top center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .page-enter .panel,
+  .avatar-picker,
+  .page-editor,
+  .sticker-tools,
+  .nav-more-menu,
+  .nav-bell-menu {
+    animation: none;
   }
 }
