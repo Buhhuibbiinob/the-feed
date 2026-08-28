@@ -89,7 +89,7 @@
   --panel-body-bg: #ffffff;
   --shelf-bg: #ffffff;
 
-  --btn-bg: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
+  --btn-bg: linear-gradient(180deg, #7cb2f6 0%, #3d84e8 47%, #2468d8 53%, #1150ac 100%);
   --btn-border: #14509f;
   --btn-text: #ffffff;
 
@@ -4570,7 +4570,7 @@ select:focus {
   z-index: -1;
 }
 .dm-bubble-row.mine .dm-bubble {
-  background: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
+  background: linear-gradient(180deg, #7cb2f6 0%, #3d84e8 47%, #2468d8 53%, #1150ac 100%);
   border-color: #14509f;
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.28);
@@ -5775,15 +5775,15 @@ footer .copy {
      look like an imitation rather than the thing itself. */
   --body-bg: repeating-linear-gradient(
       45deg,
-      rgba(255, 255, 255, 0.05) 0px,
-      rgba(255, 255, 255, 0.05) 1px,
+      rgba(255, 255, 255, 0.14) 0px,
+      rgba(255, 255, 255, 0.14) 1px,
       rgba(0, 0, 0, 0) 1px,
       rgba(0, 0, 0, 0) 3px
     ),
     repeating-linear-gradient(
       -45deg,
-      rgba(0, 0, 0, 0.05) 0px,
-      rgba(0, 0, 0, 0.05) 1px,
+      rgba(0, 0, 0, 0.055) 0px,
+      rgba(0, 0, 0, 0.055) 1px,
       rgba(0, 0, 0, 0) 1px,
       rgba(0, 0, 0, 0) 3px
     ),
@@ -5798,7 +5798,11 @@ footer .copy {
        and slightly warm; a cold mid-grey behind white cards reads as
        "grey box on grey background" instead of cloth under paper, and
        that flatness is most of what looks cheap here. */
-    linear-gradient(180deg, #cfccc5 0%, #c5c2ba 55%, #bcb9b1 100%);
+    /* Was #cfccc5 to #bcb9b1: too dark, and too far into beige, which is
+       what made it read as dull tan rather than cloth. iOS 6 linen is a
+       light NEUTRAL grey with only a trace of warmth. Lighter here, and
+       the yellow pulled most of the way out. */
+    linear-gradient(180deg, #d8d5d0 0%, #cecbc6 55%, #c4c1bc 100%);
   --body-glyph-color: rgba(0, 0, 0, 0.05);
 
   /* Milled aluminium, neutral. The hard 1px step at the midpoint is the
@@ -5829,7 +5833,7 @@ footer .copy {
   --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f0f1f4 48%, #e2e4ea 52%, #cfd2da 100%);
   --acct-btn-border: #9aa0ab;
   --acct-btn-text: #333333;
-  --acct-btn-primary-bg: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
+  --acct-btn-primary-bg: linear-gradient(180deg, #7cb2f6 0%, #3d84e8 47%, #2468d8 53%, #1150ac 100%);
   --acct-btn-primary-border: #14509f;
 
   --panel-border: #c8c7cc;
@@ -5839,7 +5843,7 @@ footer .copy {
   --panel-body-bg: #ffffff;
   --shelf-bg: #ffffff;
 
-  --btn-bg: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
+  --btn-bg: linear-gradient(180deg, #7cb2f6 0%, #3d84e8 47%, #2468d8 53%, #1150ac 100%);
   --btn-border: #14509f;
   --btn-text: #fff;
 
@@ -8901,7 +8905,7 @@ body {
   color: #fff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
   border-radius: var(--btn-radius);
-  background: linear-gradient(180deg, #8dc0fb 0%, #4a90f0 47%, #2a72e2 53%, #1355bd 100%);
+  background: linear-gradient(180deg, #7cb2f6 0%, #3d84e8 47%, #2468d8 53%, #1150ac 100%);
   border: 1px solid #14509f;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
   transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.12s ease;
@@ -9047,12 +9051,15 @@ body {
 
   --nav-bg: linear-gradient(
     180deg,
-    #fdfdfe 0%,
-    #f0f1f4 6%,
-    #e2e4e8 48%,
-    #d3d6db 52%,
-    #c6c9cf 92%,
-    #b9bcc3 100%
+    /* The bottom half was ending at #b9bcc3, which is barely darker than
+       the top - so the two planes read as one flat sheet. A milled bar
+       has a real difference across the seam. */
+    #ffffff 0%,
+    #f4f5f8 6%,
+    #e4e6eb 48%,
+    #cdd0d6 52%,
+    #bec1c8 92%,
+    #a9adb5 100%
   );
   --nav-border: #8e9197;
   --nav-text: #2a2a2d;
@@ -10971,6 +10978,12 @@ body {
    ============================================================ */
 
 :root {
+  /* UIView's default curve: a long, hard deceleration. Almost everything
+     Apple animates uses this, which is why the whole system feels like
+     one thing rather than a set of separately-tuned screens. */
+  --ease-ios: cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* The sharper one, for things that respond to a finger rather than
+     travel: presses, hovers, a control changing state. */
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --t-fast: 120ms;
   --t-base: 180ms;
@@ -11052,18 +11065,34 @@ a,
 
    Paired with PageTransition, which keys this wrapper on the pathname so
    the animation restarts on each route rather than playing once on load. */
-/* Opacity only, and short. The 4px rise looked considered in a demo and
-   reads as lag by the twentieth visit. */
+/* The push.
+   ------------------------------------------------------------
+   A fade is a web transition. iOS pushes: the new screen comes in from
+   the trailing edge and decelerates hard into place. That deceleration
+   is the whole character - the standard iOS curve spends most of its
+   time almost stopped, so the screen appears to arrive and settle
+   rather than slide at a constant rate. A linear slide of the same
+   distance and duration feels mechanical; this feels physical.
+
+   28px, not the full screen width. A real push moves the whole
+   viewport because the old screen leaves at the same time; here the
+   old content is already gone, so a full-width slide would just be a
+   long wait for something to cross the screen. The short distance
+   reads as the same gesture without the cost.
+
+   Only transform and opacity, so it composites and never reflows. */
 @keyframes page-enter {
   from {
     opacity: 0;
+    transform: translate3d(28px, 0, 0);
   }
   to {
     opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 .page-enter {
-  animation: page-enter 140ms linear both;
+  animation: page-enter 340ms var(--ease-ios) both;
 }
 
 /* Sections settle in just behind the page, so a long page reads as
@@ -12070,5 +12099,88 @@ a.issue-link::after {
   }
   .tl-card::before {
     top: 15px;
+  }
+}
+
+/* Modals rise from the bottom edge, the way a sheet does, rather than
+   appearing in the middle. The alert is the exception and keeps its
+   scale - an alert interrupts you where you are; a sheet arrives from
+   somewhere. */
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+.welcome-modal,
+.nav-more-menu,
+.nav-bell-menu,
+.sk-more-sheet {
+  animation: sheet-up 300ms var(--ease-ios) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-modal,
+  .nav-more-menu,
+  .nav-bell-menu,
+  .sk-more-sheet {
+    animation: none;
+  }
+}
+
+/* ---- Review card actions ----------------------------------------------
+   Six actions per card - Rate, Comment, Save, Share, Edit, Delete - and
+   on a phone they wrap to four lines, so the controls took more height
+   than the review did. That is the clutter you can see in the feed.
+
+   Rate and Comment stay on the row: they are what a reader does. The
+   rest are owner and admin tools, which belong to a different job and
+   almost never happen. They collapse to one line below, quieter and out
+   of the way, without being hidden from anyone who needs them.
+
+   Nothing is removed and no markup changed - only what leads. */
+.track-action-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* The pipes were doing the separating; at these sizes the spacing does
+   it better and the row stops looking like a run-on sentence. */
+.track-actions .sep {
+  color: rgba(60, 60, 67, 0.28);
+}
+[data-mode="dark"] .track-actions .sep {
+  color: rgba(255, 255, 255, 0.24);
+}
+.track-actions .danger {
+  color: #c9302c;
+  font-weight: 600;
+}
+/* The red Delete pill was the single loudest thing on a review card -
+   brighter than the title, on every card, for an action taken once in a
+   hundred. It reads as text like its neighbours now, and stays red so it
+   is still obviously the destructive one. */
+.track-actions form .danger {
+  background: none;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+@media (max-width: 560px) {
+  /* Owner and admin tools drop to their own line so the reader actions
+     never wrap. */
+  .track-actions {
+    row-gap: 3px;
+  }
+  .track-actions .track-action-item:nth-child(n + 4) {
+    font-size: 10.5px;
+    opacity: 0.72;
   }
 }
