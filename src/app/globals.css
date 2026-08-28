@@ -79,8 +79,14 @@
      the default theme sets its own below. */
   --panel-radius: 9px;
   --panel-frame: var(--panel-border);
-  --panel-shadow: 0 14px 28px rgba(0, 0, 0, 0.28), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.25) inset;
+  /* A 28px blur at 28% opacity is a modal dialog's shadow. It was on
+     every panel, so ten list-sized boxes down a page each cast a shadow
+     meant for something floating above the whole screen - which is most
+     of what made the page look heavy and cheap. Real iOS 5 grouped
+     tables lift by about a pixel; so does this now. The inset highlight
+     stays, because that hairline of light along the top edge is what
+     makes the surface look convex rather than printed. */
+  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.09), 0 1px 0 rgba(255, 255, 255, 0.55) inset;
   --panel-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
   --panel-head-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
 
@@ -254,7 +260,7 @@ a:hover {
   position: relative;
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.35);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.6) inset,
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.6) inset,
     0 -3px 5px rgba(0, 0, 0, 0.25) inset;
   display: flex;
   align-items: center;
@@ -303,7 +309,7 @@ a:hover {
   background: linear-gradient(180deg, var(--blue-hi), var(--blue-lo));
   color: var(--nav-active-text);
   font-weight: 600;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 0 14px rgba(0, 0, 0, 0.35);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 .brand {
   display: flex;
@@ -367,7 +373,7 @@ a:hover {
   color: var(--acct-btn-text);
   background: var(--acct-btn-bg);
   border: 1px solid var(--acct-btn-border);
-  box-shadow: 0 4px 9px rgba(0, 0, 0, 0.35), 0 2px 0 rgba(255, 255, 255, 0.5) inset,
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 2px 0 rgba(255, 255, 255, 0.5) inset,
     0 -3px 6px rgba(0, 0, 0, 0.25) inset;
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
@@ -434,7 +440,7 @@ a:hover {
   background: linear-gradient(180deg, var(--blue-hi), var(--blue-lo));
   color: var(--nav-active-text);
   font-weight: 600;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 0 14px rgba(0, 0, 0, 0.35);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 .nav-more-caret {
   font-size: 9px;
@@ -757,7 +763,7 @@ a:hover {
   border: 1px solid #8f8f94;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
 }
 .yt-topbar {
   background: linear-gradient(180deg, #4a4a4a, #1c1c1c 60%, #0a0a0a);
@@ -998,7 +1004,7 @@ a:hover {
   height: 105px;
   border-radius: 6px;
   overflow: hidden;
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1126,7 +1132,7 @@ a:hover {
   height: 140px;
   border-radius: 3px;
   overflow: hidden;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.5);
   transition: transform 0.15s ease;
 }
 .sk-stack:hover .sk-card {
@@ -1321,7 +1327,7 @@ a:hover {
   font-weight: 700;
   font-size: 12px;
   border: 1px solid rgba(0, 0, 0, 0.25);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.4) inset,
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.4) inset,
     0 -6px 10px rgba(0, 0, 0, 0.15) inset;
   cursor: default;
   transition: transform 0.08s ease;
@@ -1391,7 +1397,7 @@ a:hover {
   background: var(--panel-body-bg);
   border: 1px solid #aaaaaa;
   border-radius: 6px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
   max-height: 240px;
   overflow-y: auto;
 }
@@ -1506,14 +1512,16 @@ a:hover {
   font-size: 11px;
 }
 
-/* ---- Panels (shared brushed-metal container) ---- */
+/* ---- Panels (shared brushed-metal container) ----
+   The shadow lives on --panel-shadow, set once in :root and applied by
+   the token rule further down. It used to be restated here too, with the
+   old heavy value, so the two disagreed and only cascade order decided
+   which was real. */
 .panel {
   border: 1px solid var(--panel-border);
   border-radius: 9px;
   overflow: hidden;
   margin-bottom: 18px;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.25) inset;
 }
 .panel-head {
   position: relative;
@@ -1526,7 +1534,11 @@ a:hover {
   font-size: 12px;
   font-weight: 700;
   border-bottom: 1px solid var(--panel-head-border);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 -4px 6px rgba(0, 0, 0, 0.08) inset;
+  /* Was two stacked insets - a highlight AND a 6px inner shade. The
+     second one darkened the bottom of every title bar on the page for no
+     reason a person could name; it just made each bar look slightly
+     dirty. One highlight is the whole effect. */
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset;
 }
 .panel-head .see-all {
   position: relative;
@@ -1558,7 +1570,6 @@ a:hover {
   background: var(--panel-head-bg);
   border: 1px solid var(--panel-head-border);
   border-bottom: none;
-  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.18);
   font-size: 12px;
   font-weight: 700;
 }
@@ -3430,7 +3441,7 @@ a:hover {
   overflow: hidden;
   background: var(--panel-body-bg);
   margin-bottom: 14px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 /* ---- Winamp-style review row, ported from skeuomorphic-components.html's
    .track-row/.track-thumb/.track-title/.track-actions ---- */
@@ -4063,7 +4074,7 @@ select:focus {
   background: var(--btn-bg);
   border: 1px solid var(--btn-border);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
     0 -4px 8px rgba(0, 0, 0, 0.3) inset;
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
@@ -4478,7 +4489,7 @@ footer .copy {
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
   flex-shrink: 0;
 }
 .profile-info {
@@ -4675,7 +4686,7 @@ footer .copy {
   height: 90px;
   flex-shrink: 0;
   border-radius: 3px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 
 /* ---- Legal pages ---- */
@@ -4865,7 +4876,7 @@ footer .copy {
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
 .theme-swatch-preview {
   height: 46px;
@@ -5666,7 +5677,7 @@ footer .copy {
 }
 [data-theme="ios-light"][data-mode="dark"] .wrap {
   background: linear-gradient(160deg, #151011, #000000);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
 }
 [data-theme="ios-light"][data-mode="dark"] .feedtv-upnext-strip {
   background: #1a1a1c;
@@ -5917,8 +5928,7 @@ footer .copy {
   border-radius: 9px;
   overflow: hidden;
   border: 1px solid var(--panel-border);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28), 0 2px 0 rgba(255, 255, 255, 0.6) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.25) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.09), 0 1px 0 rgba(255, 255, 255, 0.55) inset;
   background: var(--panel-body-bg);
   color: inherit;
   text-decoration: none;
@@ -5975,7 +5985,7 @@ footer .copy {
   border-radius: 9px;
   overflow: hidden;
   border: 1px solid var(--panel-border);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.09), 0 1px 0 rgba(255, 255, 255, 0.55) inset;
   background: var(--panel-body-bg);
   color: inherit;
   text-decoration: none;
@@ -6018,7 +6028,7 @@ footer .copy {
   border-radius: 9px;
   overflow: hidden;
   border: 1px solid var(--panel-border);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10), 0 1px 0 rgba(255, 255, 255, 0.55) inset;
   background: var(--panel-body-bg);
   color: inherit;
   text-decoration: none;
@@ -6123,7 +6133,7 @@ footer .copy {
   border-radius: 9px;
   background: linear-gradient(180deg, #fafafa, #ececec);
   border: 1px solid #dcdcdc;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
   font-size: 12px;
   color: #1a1a1a;
 }
@@ -6254,7 +6264,7 @@ footer .copy {
   border-radius: 12px;
   background: linear-gradient(160deg, #fafafa, #e4e4e4);
   border: 1px solid #d0d0d0;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
   text-align: center;
 }
 .spotlight-tag {
@@ -6353,11 +6363,11 @@ footer .copy {
    so switching between them never moves or reshapes anything.
    ================================================================ */
 [data-theme="ios-light"] .panel {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 2px 0 rgba(255, 255, 255, 0.5) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 }
 [data-theme="ios-light"] .btn,
 [data-theme="ios-light"] .acct-btn {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.5) inset,
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.5) inset,
     0 -2px 4px rgba(0, 0, 0, 0.2) inset;
 }
 [data-theme="ios-light"] .brand-logo {
@@ -6447,7 +6457,7 @@ footer .copy {
   margin-bottom: 18px;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28), 0 2px 0 rgba(255, 255, 255, 0.4) inset;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.09), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
 }
 .right-now-tab {
   padding: 8px 14px;
@@ -6546,7 +6556,7 @@ footer .copy {
   border: 1px solid #1e4b85;
   background-color: #2f7fdb;
   background-image: linear-gradient(180deg, #8ecaff 0%, #4a97ec 22%, #2f7fdb 48%, #1f5fc0 52%, #123c85 100%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 0 rgba(10, 40, 90, 0.35), 0 6px 12px rgba(0, 0, 0, 0.35),
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 0 rgba(10, 40, 90, 0.35), 0 1px 2px rgba(0, 0, 0, 0.14),
     inset 0 0 0 1px rgba(255, 255, 255, 0.15);
   cursor: pointer;
   transition: transform 0.05s;
@@ -6569,20 +6579,20 @@ footer .copy {
   border: 1px solid #7d7d82;
   background-color: #d2d2d6;
   background-image: linear-gradient(180deg, #ffffff 0%, #e8e8ea 22%, #d2d2d6 48%, #bcbcc0 52%, #9a9a9f 100%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9), 0 4px 0 rgba(90, 90, 95, 0.3), 0 6px 12px rgba(0, 0, 0, 0.28);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.9), 0 4px 0 rgba(90, 90, 95, 0.3), 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 [data-theme="ios-light"] .sk-btn-green {
   border: 1px solid #1f5f1c;
   background-color: #4fb62f;
   background-image: linear-gradient(180deg, #a8ec82 0%, #6fce4a 22%, #4fb62f 48%, #3a9a1f 52%, #245613 100%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 0 rgba(20, 60, 10, 0.35), 0 6px 12px rgba(0, 0, 0, 0.35);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 0 rgba(20, 60, 10, 0.35), 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 @media (max-width: 760px) {
   .sk-app-shell {
     max-width: 480px;
     margin: 0 auto;
     min-height: 100vh;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
     display: flex;
     flex-direction: column;
     position: relative;
@@ -7383,8 +7393,7 @@ button.btn-ghost {
 }
 [data-mode="dark"] .panel {
   border-color: #17181a;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 16px 34px rgba(0, 0, 0, 0.7), 0 3px 8px rgba(0, 0, 0, 0.5);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 0 0 1px rgba(255, 255, 255, 0.05), 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 [data-mode="dark"] .panel-body,
 [data-mode="dark"] .side-list,
@@ -8616,7 +8625,7 @@ body {
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
   background: linear-gradient(180deg, #7ad0ff 0%, #2f9fe6 48%, #1d7fc4 52%, #175f9c 100%);
   border: 1px solid #14568c;
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.7) inset,
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 0 rgba(255, 255, 255, 0.7) inset,
     0 -4px 8px rgba(0, 0, 0, 0.28) inset;
   transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.12s ease;
 }
@@ -8899,11 +8908,9 @@ body {
    a div with a border and something lying on a surface. */
 [data-theme="ios-light"] .post-card {
   border-color: #a9a9b0;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 -1px 0 rgba(0, 0, 0, 0.09) inset,
-    0 1px 1px rgba(0, 0, 0, 0.18),
-    0 6px 16px rgba(0, 0, 0, 0.17);
+    0 1px 1px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.17);
 }
 /* Hairline sheen down the top of the card, stopping well short of the
    text so it never washes the content out. */
@@ -8934,10 +8941,8 @@ body {
 [data-theme="ios-light"] .preview-player {
   border: 1px solid #6e6e75;
   background: linear-gradient(180deg, #d6d6db, #b6b6bd);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.75) inset,
-    0 2px 5px rgba(0, 0, 0, 0.28),
-    0 8px 18px rgba(0, 0, 0, 0.2);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 2px 5px rgba(0, 0, 0, 0.28), 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 /* Control strip. Painted from the same tokens as the section header
    bars, so it comes out milled aluminium on the default theme and in
@@ -9252,10 +9257,8 @@ body {
 [data-theme="ios-light"] .orby-panel {
   border: 1px solid #26272b;
   background: linear-gradient(180deg, #3a3c41, #212226);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.3) inset,
-    0 -10px 18px rgba(0, 0, 0, 0.35) inset,
-    0 8px 20px rgba(0, 0, 0, 0.4);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 -10px 18px rgba(0, 0, 0, 0.35) inset, 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 [data-theme="ios-light"] .orby-panel .orby-head {
   border-bottom: 1px solid #101114;
@@ -9417,9 +9420,7 @@ body {
 /* The profile header avatar is the biggest one on the site, so it
    carries a slightly heavier frame. */
 [data-theme="ios-light"] .profile-avatar {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9),
-    0 4px 12px rgba(0, 0, 0, 0.45),
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(0, 0, 0, 0.14),
     0 -4px 8px rgba(0, 0, 0, 0.22) inset;
 }
 
@@ -9591,11 +9592,9 @@ body {
 [data-theme="ios-light"] .yt-shell {
   border: 1px solid #17181a;
   background: linear-gradient(180deg, #7c7e84 0%, #55575c 6%, #3a3c40 55%, #26282b 100%);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.5) inset,
     0 -8px 14px rgba(0, 0, 0, 0.35) inset,
-    0 3px 6px rgba(0, 0, 0, 0.4),
-    0 16px 34px rgba(0, 0, 0, 0.45);
+    0 3px 6px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 
 /* ---- Section headers as raised tabs ----
@@ -9623,11 +9622,9 @@ body {
 /* Panels themselves get a contact shadow so they sit on the brushed
    background instead of floating over it. */
 [data-theme="ios-light"] .panel {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 -1px 0 rgba(0, 0, 0, 0.16) inset,
-    0 1px 2px rgba(0, 0, 0, 0.2),
-    0 12px 26px rgba(0, 0, 0, 0.26);
+    0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 
 /* The tabbed variant carries its own box-shadow at higher specificity
@@ -9693,7 +9690,7 @@ body {
 [data-theme="ios-light"] .fun-fact-banner,
 [data-theme="ios-light"] .wrapped-promo-banner {
   border: 1px solid #3f444d;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 4px 10px rgba(0, 0, 0, 0.3);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 
 /* .tagline sets its own colour, which beat the inherited one on
@@ -9741,12 +9738,10 @@ body {
 /* A milled rim around the whole panel: bright top lip, dark undercut,
    then the contact shadow onto the deck. */
 [data-theme="ios-light"] .panel {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.95) inset,
     0 0 0 1px rgba(255, 255, 255, 0.28) inset,
     0 -1px 0 rgba(0, 0, 0, 0.3) inset,
-    0 2px 3px rgba(0, 0, 0, 0.3),
-    0 14px 30px rgba(0, 0, 0, 0.34);
+    0 2px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 [data-theme="ios-light"] .panel-head.tabbed,
 [data-theme="ios-light"] .panel-head {
@@ -9787,12 +9782,10 @@ body {
 [data-theme="ios-light"] .btn,
 [data-theme="ios-light"] .nav-post-btn,
 [data-theme="ios-light"] .acct-btn.primary {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.75) inset,
     0 0 0 1px rgba(255, 255, 255, 0.22) inset,
     0 -6px 10px rgba(0, 0, 0, 0.26) inset,
-    0 2px 3px rgba(0, 0, 0, 0.32),
-    0 8px 18px rgba(0, 0, 0, 0.3);
+    0 2px 3px rgba(0, 0, 0, 0.32), 0 1px 2px rgba(0, 0, 0, 0.14);
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.42);
 }
 /* Taller, brighter dome with a hard cut, replacing the soft 32% fade
@@ -9834,10 +9827,8 @@ body {
   border-radius: 4px;
   background: linear-gradient(180deg, #ffffff, #f0f0f2);
   border: 1px solid #8f8f96;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 2px 4px rgba(0, 0, 0, 0.28),
-    0 10px 22px rgba(0, 0, 0, 0.22);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 2px 4px rgba(0, 0, 0, 0.28), 0 1px 2px rgba(0, 0, 0, 0.22);
 }
 .post-photo img {
   display: block;
@@ -10614,11 +10605,8 @@ body {
   );
 }
 .sk-card {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.85) inset,
-    0 -10px 18px rgba(0, 0, 0, 0.22) inset,
-    0 4px 10px rgba(0, 0, 0, 0.45),
-    0 12px 24px rgba(0, 0, 0, 0.3);
+  box-shadow:0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 -10px 18px rgba(0, 0, 0, 0.22) inset, 0 1px 2px rgba(0, 0, 0, 0.14), 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 
 /* ================================================================
@@ -10686,4 +10674,118 @@ body {
 .pattern-chip:focus-visible {
   outline: 2px solid var(--link, #2f6fce);
   outline-offset: 2px;
+}
+
+/* ============================================================
+   Motion
+   ------------------------------------------------------------
+   The site had almost no transitions, so every state change was
+   instant: panels snapped, buttons flicked, menus appeared. Nothing
+   was broken about it, but instant is what cheap software feels
+   like - the polish people read as "expensive" is mostly just
+   things easing instead of jumping.
+
+   Two rules kept throughout:
+   - Nothing here moves layout. Only colour, shadow and transform,
+     so no transition can cause a reflow or shift what you were
+     about to tap.
+   - Everything is 120-220ms. Long enough to read as motion, short
+     enough that it never sits between you and what you clicked.
+   ============================================================ */
+
+:root {
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --t-fast: 120ms;
+  --t-base: 180ms;
+}
+
+/* Panels lift very slightly on hover. Pointer-only: on a touchscreen
+   :hover sticks after a tap and would leave a panel raised until you
+   touched something else. */
+@media (hover: hover) and (pointer: fine) {
+  .panel {
+    transition: box-shadow var(--t-base) var(--ease), transform var(--t-base) var(--ease);
+  }
+  .panel:hover {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.13), 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+  }
+}
+
+a,
+.btn,
+.comment-action,
+.see-all,
+.track-actions button,
+.track-actions a {
+  transition: color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease),
+    filter var(--t-fast) var(--ease);
+}
+
+/* Rows that are really list items: the whole row responds, rather than
+   just the link text inside it changing colour. */
+.post-card,
+.dm-inbox-row,
+.issue-link,
+.side-list .row,
+.leaderboard-row,
+.profile-card,
+.hot-pages-item {
+  transition: background-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
+}
+
+/* Press states. iOS gives you a physical acknowledgement the instant
+   your finger lands, before anything has loaded - which is most of why
+   it feels responsive rather than fast. */
+.btn:active,
+.comment-action:active,
+.avatar-preset-btn:active,
+.nav-post-btn:active {
+  transform: scale(0.97);
+  transition-duration: 60ms;
+}
+
+/* Content settles in on load instead of appearing mid-scroll. Opacity
+   only - a translate would shift the page under a tap. */
+@keyframes surface-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.content-grid,
+.feedtv-row,
+.paired-hero {
+  animation: surface-in var(--t-base) var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .post-card,
+  .dm-inbox-row,
+  .issue-link,
+  .side-list .row,
+  .leaderboard-row,
+  .profile-card,
+  .hot-pages-item,
+  a,
+  .btn,
+  .comment-action,
+  .see-all {
+    transition: none;
+  }
+  .content-grid,
+  .feedtv-row,
+  .paired-hero {
+    animation: none;
+  }
+  .btn:active,
+  .comment-action:active,
+  .avatar-preset-btn:active,
+  .nav-post-btn:active {
+    transform: none;
+  }
 }
