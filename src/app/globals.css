@@ -11098,12 +11098,35 @@ a,
   text-shadow: none;
 }
 
+/* ---- The phone ----------------------------------------------------
+   The rail used to be display:none here, which meant the single biggest
+   change to this site - navigating from a list instead of hunting
+   through a stacked page - existed only on desktop. On a phone the
+   layout was exactly what it had always been. That is not a
+   compromise, it is the change not happening for most of the people
+   using the site.
+
+   So the rail is not hidden. It moves: the feed comes first, and the
+   same grouped list follows it. Identical markup, identical styling,
+   reordered - which is what the reference does too. The iPhone shot is
+   a bar, a list, and a toolbar; no sidebar, but the list is the
+   navigation either way. */
 @media (max-width: 900px) {
   .split {
     grid-template-columns: minmax(0, 1fr);
-    gap: 0;
+    gap: 22px;
+  }
+  .split-detail {
+    order: 1;
   }
   .rail {
+    order: 2;
+    position: static;
+    padding-bottom: 8px;
+  }
+  /* Eight secondary modules between the reviews and the end of the page.
+     Every one of them is reachable from the tab bar or the list above. */
+  .home-extras {
     display: none;
   }
 }
