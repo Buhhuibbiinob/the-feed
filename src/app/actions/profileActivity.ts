@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { isPickReaction } from "@/lib/reactions";
 import { refreshTasteTwin, twinIsStale } from "@/lib/tasteTwin";
 
 // Profile-activity writes: the things that happen *to* a profile while its
@@ -92,56 +91,4 @@ export async function acknowledgeTasteTwin() {
     .eq("id", user.id);
 
   if (profile.username) revalidatePath(`/profile/${profile.username}`);
-}
-
-/**
- * Adds, changes or clears the caller's reaction to one of someone's
- * top-list picks. Tapping the reaction you already left removes it, which
- * is what every reaction row anyone has used already does.
- */
-export async function reactToPick(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const favoriteId = String(formData.get("favorite_id") ?? "");
-  const emoji = formData.get("emoji");
-  if (!favoriteId || !isPickReaction(emoji)) return;
-
-  // The pick's owner is read from the row rather than trusted from the
-  // form: the client says which pick, the server decides whose it is.
-  const { data: favorite } = await supabase
-    .from("profile_favorites")
-    .select("user_id")
-    .eq("id", favoriteId)
-    .maybeSingle();
-  if (!favorite || favorite.user_id === user.id) return;
-
-  const { data: existing } = await supabase
-    .from("favorite_reactions")
-    .select("emoji")
-    .eq("favorite_id", favoriteId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (existing?.emoji === emoji) {
-    await supabase
-      .from("favorite_reactions")
-      .delete()
-      .eq("favorite_id", favoriteId)
-      .eq("user_id", user.id);
-  } else {
-    await supabase
-      .from("favorite_reactions")
-      .upsert({ favorite_id: favoriteId, user_id: user.id, emoji }, { onConflict: "favorite_id,user_id" });
-  }
-
-  const { data: owner } = await supabase
-    .from("profiles")
-    .select("username")
-    .eq("id", favorite.user_id)
-    .maybeSingle();
-  if (owner?.username) revalidatePath(`/profile/${owner.username}`);
 }

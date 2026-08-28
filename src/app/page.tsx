@@ -594,7 +594,7 @@ export default async function FeedPage({
   // null when its flag is off, which orderBlocks drops.
   const leftWideAd = !siteFlags.homepage_ad_wide ? null : wideAd ? (
     <BannerLink href={wideAd.link_url} className="banner-slot-wide">
-      <span className="banner-slot-tag">Discover</span>
+      <span className="banner-slot-tag">Ad</span>
       {wideAd.image_url ? (
         <img src={wideAd.image_url} alt={wideAd.artist_name} />
       ) : (
@@ -606,7 +606,7 @@ export default async function FeedPage({
     </BannerLink>
   ) : (
     <Link href="/advertise" className="banner-slot-wide">
-      <span className="banner-slot-tag">Discover</span>
+      <span className="banner-slot-tag">Ad</span>
       <div className="banner-slot-wide-fallback">
         <b>Advertise on Feedback</b>
         <span>Get your music or film in front of the community - free for now.</span>
@@ -688,7 +688,7 @@ export default async function FeedPage({
     (sidebarAds.length > 0 ? (
       sidebarAds.map((ad) => (
         <BannerLink href={ad.link_url} className="banner-slot" key={ad.id}>
-          <span className="banner-slot-tag">Discover</span>
+          <span className="banner-slot-tag">Ad</span>
           {ad.image_url ? (
             <img src={ad.image_url} alt={ad.artist_name} />
           ) : (
@@ -701,7 +701,7 @@ export default async function FeedPage({
       ))
     ) : (
       <Link href="/advertise" className="banner-slot">
-        <span className="banner-slot-tag">Discover</span>
+        <span className="banner-slot-tag">Ad</span>
         <div className="banner-slot-fallback">
           <b>Advertise on Feedback</b>
           <span>Get your music or film in front of the community - free for now.</span>
@@ -986,7 +986,7 @@ export default async function FeedPage({
       {siteFlags.homepage_ad_hero &&
         (heroAd ? (
           <BannerLink href={heroAd.link_url} className="banner-slot-hero">
-            <span className="banner-slot-tag">Discover</span>
+            <span className="banner-slot-tag">Ad</span>
             {heroAd.image_url ? (
               <img src={heroAd.image_url} alt={heroAd.artist_name} />
             ) : (
@@ -998,7 +998,7 @@ export default async function FeedPage({
           </BannerLink>
         ) : (
           <Link href="/advertise" className="banner-slot-hero">
-            <span className="banner-slot-tag">Discover</span>
+            <span className="banner-slot-tag">Ad</span>
             <div className="banner-slot-hero-fallback">
               <b>Advertise on Feedback</b>
               <span>Get your music or film in front of the community - free for now.</span>

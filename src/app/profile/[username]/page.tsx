@@ -41,8 +41,6 @@ import { OBSESSED_LABELS, isObsessedKind } from "@/lib/obsessed";
 import { CollectionFollowButton } from "@/components/CollectionFollowButton";
 import { Stars } from "@/components/Stars";
 import { ProfilePing } from "@/components/ProfilePing";
-import { PickReactions, type PickReactionState } from "@/components/PickReactions";
-import { tallyReactions } from "@/lib/reactions";
 import { computeWeekInTaste, type WeekPost } from "@/lib/weekInTaste";
 import {
   computeLongestStreak,
@@ -113,7 +111,6 @@ const CUSTOMIZATION_COLUMNS =
   "profile_song_artist, profile_song_thumbnail_url, profile_song_autoplay, mood_emoji, " +
   "mood_color, mood_text, blurb_next, blurb_free, last_seen_at";
 
-type ReactionRow = { favorite_id: string; user_id: string; emoji: string };
 
 type CollectionRow = { id: string; name: string; description: string | null };
 
@@ -390,17 +387,8 @@ export default async function ProfilePage({
     tasteMatch = computeMatch(mine, theirs);
   }
 
-  const favoriteIds = FAVORITE_KINDS.flatMap((kind) => favorites[kind].map((f) => f.id));
-
-  const [{ data: reactionRows }, { data: twinRow }, { count: viewerCount }, { count: commentsWritten }] =
+  const [{ data: twinRow }, { count: viewerCount }, { count: commentsWritten }] =
     await Promise.all([
-      favoriteIds.length === 0
-        ? Promise.resolve({ data: [] as ReactionRow[] })
-        : supabase
-            .from("favorite_reactions")
-            .select("favorite_id, user_id, emoji")
-            .in("favorite_id", favoriteIds)
-            .returns<ReactionRow[]>(),
       supabase
         .from("profiles")
         .select("taste_twin_id, taste_twin_score, taste_twin_at")
@@ -417,21 +405,6 @@ export default async function ProfilePage({
         .select("id", { count: "exact", head: true })
         .eq("user_id", profile.id),
     ]);
-
-  const reactionsByFavorite = new Map<string, ReactionRow[]>();
-  for (const row of reactionRows ?? []) {
-    const list = reactionsByFavorite.get(row.favorite_id) ?? [];
-    list.push(row);
-    reactionsByFavorite.set(row.favorite_id, list);
-  }
-  function reactionState(favoriteId: string): PickReactionState {
-    const rows = reactionsByFavorite.get(favoriteId) ?? [];
-    return {
-      favoriteId,
-      counts: tallyReactions(rows.map((r) => r.emoji)),
-      mine: user ? rows.find((r) => r.user_id === user.id)?.emoji ?? null : null,
-    };
-  }
 
   // The twin is only ever shown to the profile's owner. It's built from who
   // they overlap with, which is theirs to know and nobody else's business.
@@ -1008,10 +981,6 @@ export default async function ProfilePage({
                             <span className="favorite-body">
                               <b>{item.title}</b>
                               {item.subtitle && <span className="sub">{item.subtitle}</span>}
-                              <PickReactions
-                                state={reactionState(item.id)}
-                                canReact={!!user && !isOwnProfile}
-                              />
                             </span>
                           </li>
                         ))}
