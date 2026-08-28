@@ -73,7 +73,7 @@ export const SITE_CONTENT_FIELDS = [
     key: "collections_tagline",
     label: "Collections page tagline",
     path: "/collections",
-    default: "Curated lists of reviews, made by the community.",
+    default: "Lists people made by hand. Reviews they wanted kept together.",
   },
   {
     key: "collections_empty",

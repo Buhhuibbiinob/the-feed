@@ -2055,43 +2055,8 @@ a:hover {
   cursor: help;
 }
 
-/* ---- Reactions on top-list picks ---- */
 .favorite-body {
   min-width: 0;
-}
-.pick-reactions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  margin-top: 3px;
-}
-.pick-reaction {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 11px;
-  line-height: 1;
-  padding: 3px 6px;
-  border-radius: 100px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  opacity: 0.55;
-}
-.pick-reaction:hover,
-.pick-reaction.mine {
-  opacity: 1;
-  border-color: var(--panel-border);
-  background: var(--panel-head-bg);
-}
-.pick-reaction-count {
-  font-size: 10px;
-  font-weight: 700;
-}
-.pick-reaction-tally {
-  font-size: 10.5px;
-  color: var(--muted);
 }
 
 .welcome-modal-free {
