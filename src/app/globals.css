@@ -3653,61 +3653,108 @@ a:hover {
 }
 
 /* ---- iOS-style Alert confirmation dialog ---- */
+/* The iOS 6 alert, from the New Album reference: a dark translucent
+   slab with a bright rim, not a light card. The dark ground is what
+   makes it read as sitting over the app rather than in it - a white
+   dialog on a white page needs a heavy shadow to separate, which is why
+   this one used a 50px drop before.
+
+   This is one of the few things on the site that genuinely floats, so
+   it keeps a real shadow; the shadow guard has "modal" in its allowlist
+   for exactly this. */
 .alert-modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.32);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  animation: alert-in 160ms var(--ease) both;
+}
+@keyframes alert-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .alert-modal {
   width: 100%;
-  max-width: 270px;
-  background: linear-gradient(180deg, #fbfbfd, #e9e9ec);
-  border: 1px solid #8d8d92;
-  border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  max-width: 272px;
+  background: linear-gradient(180deg, rgba(58, 62, 70, 0.96) 0%, rgba(36, 39, 45, 0.96) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.65);
+  border-radius: 13px;
+  /* Bright inner rim, then the glass edge, then the drop. */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28) inset,
+    0 1px 0 rgba(255, 255, 255, 0.42) inset, 0 18px 44px rgba(0, 0, 0, 0.55);
   overflow: hidden;
   text-align: center;
+  animation: alert-pop 180ms var(--ease) both;
+}
+/* Alerts in iOS come in slightly over-size and settle. It is the one
+   place a scale is right: the dialog is interrupting you, so it should
+   arrive rather than appear. */
+@keyframes alert-pop {
+  from {
+    transform: scale(1.14);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 .alert-modal-title {
-  padding: 18px 16px 4px;
+  padding: 17px 16px 5px;
   font-size: 15px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
 }
 .alert-modal-message {
-  padding: 0 16px 16px;
+  padding: 0 16px 15px;
   font-size: 12.5px;
-  color: #4a4a4d;
+  color: rgba(255, 255, 255, 0.82);
   line-height: 1.4;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
 }
+/* Buttons are separate glass keys sitting in the tray, split evenly,
+   with a gutter between - not two halves of one bar. */
 .alert-modal-actions {
   display: flex;
-  border-top: 1px solid #a8a8ac;
+  gap: 8px;
+  padding: 0 8px 9px;
 }
 .alert-modal-actions button {
   flex: 1;
-  padding: 11px 8px;
-  font-size: 14px;
+  padding: 9px 8px;
+  font-size: 13.5px;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  background: none;
-  border: none;
-  color: var(--link-blue, #2f6fce);
-}
-.alert-modal-actions button + button {
-  border-left: 1px solid #a8a8ac;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, #7a7e88 0%, #5a5e68 47%, #4a4e58 53%, #383c45 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.26) inset, 0 1px 1px rgba(0, 0, 0, 0.45);
 }
 .alert-modal-actions button.destructive {
-  color: #d6392f;
-  font-weight: 700;
+  background: linear-gradient(180deg, #f2554b 0%, #e0342a 47%, #d62c22 53%, #b81f16 100%);
+  border-color: #8f1810;
 }
 .alert-modal-actions button:active {
-  background: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55) inset;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-modal-backdrop,
+  .alert-modal {
+    animation: none;
+  }
 }
 
 /* ---- Native <select> dropdowns, gel-chrome to match the rest of the
@@ -11833,4 +11880,180 @@ a.issue-link::after {
 }
 [data-mode="dark"] .tool-btn svg {
   filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.6));
+}
+
+/* ============================================================
+   Activity timeline
+   ------------------------------------------------------------
+   Alerts as a timeline: a column of exact times, a rail of icon
+   nodes, and a speech-bubble card pointing back at its node.
+
+   Why a rail rather than a list: alerts arrive in bursts, and a
+   flat list of "amaiya liked your review" eight times over gives
+   you no way to see shape - what happened, when, or which things
+   happened together. The node tells you the kind at a glance and
+   the rail groups them in time without a single word of chrome.
+
+   The tail on each card is what ties it to its node. Without it
+   the icons read as a separate column of decoration rather than
+   as the thing each card belongs to.
+   ============================================================ */
+
+.timeline {
+  position: relative;
+  padding: 14px 12px 14px 0;
+}
+/* The rail, drawn once behind every node rather than as a border on
+   each - a per-row border leaves a gap at each join. */
+.timeline::before {
+  content: "";
+  position: absolute;
+  top: 22px;
+  bottom: 22px;
+  left: 92px;
+  width: 2px;
+  background: rgba(60, 60, 67, 0.18);
+}
+[data-mode="dark"] .timeline::before {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.tl-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px 36px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 7px 0;
+}
+.tl-time {
+  padding-top: 9px;
+  text-align: right;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-style: italic;
+}
+.tl-node {
+  position: relative;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(60, 60, 67, 0.22);
+  background: linear-gradient(180deg, #fdfdfe 0%, #edeef1 47%, #dfe0e4 53%, #cbcdd2 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 1px rgba(0, 0, 0, 0.14);
+}
+.tl-node svg {
+  width: 17px;
+  height: 17px;
+  fill: rgba(60, 60, 67, 0.62);
+}
+/* The one kind worth colouring: someone liking your work is the alert
+   people actually come back for. */
+.tl-node.kind-like svg,
+.tl-node.kind-reaction svg {
+  fill: var(--like-color);
+}
+[data-mode="dark"] .tl-node {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, #55575c 0%, #3d3f44 47%, #2c2e32 53%, #202226 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+[data-mode="dark"] .tl-node svg {
+  fill: rgba(255, 255, 255, 0.7);
+}
+
+.tl-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 8px 10px 8px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: linear-gradient(180deg, #ffffff 0%, #f3f3f5 100%);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+.tl-card::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 15px;
+  width: 9px;
+  height: 9px;
+  background: inherit;
+  border-left: 1px solid var(--panel-border);
+  border-bottom: 1px solid var(--panel-border);
+  transform: rotate(45deg);
+}
+.tl-card:hover {
+  text-decoration: none;
+  filter: brightness(0.985);
+}
+.tl-card-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.tl-card-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  font-size: 12.5px;
+}
+.tl-card-body b {
+  font-weight: 700;
+}
+.tl-card-body span {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.tl-card-chevron {
+  font-size: 15px;
+  line-height: 1;
+  color: rgba(60, 60, 67, 0.3);
+  flex-shrink: 0;
+}
+[data-mode="dark"] .tl-card {
+  background: linear-gradient(180deg, #2c2e32 0%, #232529 100%);
+}
+[data-mode="dark"] .tl-card-chevron {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* Narrow phones: the time column costs more than it gives, so it moves
+   above the card and the rail closes up. */
+@media (max-width: 420px) {
+  .timeline::before {
+    left: 48px;
+  }
+  .tl-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .tl-time {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 0 0 2px;
+    text-align: left;
+  }
+  .tl-node {
+    grid-row: 1 / span 2;
+  }
+  .tl-card {
+    grid-column: 2;
+  }
+  .tl-card::before {
+    top: 15px;
+  }
 }
