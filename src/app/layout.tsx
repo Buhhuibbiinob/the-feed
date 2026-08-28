@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { PageTransition } from "@/components/PageTransition";
 import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { PostFab } from "@/components/PostFab";
 import { createClient } from "@/lib/supabase/server";
@@ -153,7 +154,9 @@ export default async function RootLayout({
             customPages={customPages.map((p) => ({ href: p.path, label: p.label }))}
           />
           <div className="sk-app-content">
-            <div className="wrap">{children}</div>
+            <div className="wrap">
+              <PageTransition>{children}</PageTransition>
+            </div>
             <SiteFooter />
           </div>
         </div>
