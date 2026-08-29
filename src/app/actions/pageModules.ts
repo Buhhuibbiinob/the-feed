@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checkBioSafety } from "@/lib/contentSafety";
 
 // Writes for the profile modules that carry their own content: the
-// guestbook, the Top 8, and pinned reviews.
+// signatures, regulars, and pinned reviews.
 
 const MAX_CONNECTIONS = 8;
 const MAX_PINNED = 3;
@@ -122,7 +122,7 @@ export async function addTopConnection(
   });
   if (error) {
     // The primary key makes a duplicate an error; say so in words.
-    return { error: error.code === "23505" ? `${username} is already in your Top 8.` : error.message };
+    return { error: error.code === "23505" ? `${username} is already one of your Regulars.` : error.message };
   }
 
   await revalidateProfileById(supabase, user.id);

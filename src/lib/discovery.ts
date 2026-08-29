@@ -38,7 +38,7 @@ type ConfigRow = { owner_id: string; config: unknown };
 /**
  * Counts the deliberate choices someone has made. Each is worth one
  * point, so a page with a picture and a colour scores below one with a
- * theme, stickers, an anthem and a filled-in Top 8 - which is the
+ * theme, stickers, a song and a filled-in shortlist - which is the
  * ordering the carousel wants.
  */
 function effortScore(profile: ProfileRow, config: unknown, stickerCount: number): number {
