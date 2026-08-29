@@ -40,15 +40,26 @@ export async function createPost(
   if (!MEDIA_TYPES.includes(mediaType as (typeof MEDIA_TYPES)[number])) {
     return { error: "Choose a valid category." };
   }
-  if (!title || !body) {
-    return { error: "Title and review text are required." };
+  if (!title) {
+    return { error: "What are you logging? Give it a title." };
   }
   if (rating !== null && (rating < 1 || rating > 5)) {
     return { error: "Rating must be between 1 and 5." };
   }
-  const bodySafety = checkReviewSafety(body);
-  if (!bodySafety.allowed) {
-    return { error: bodySafety.reason };
+  // Writing is optional; saying something is not. A post has to carry
+  // either a rating or some words, or it is a title and nothing else -
+  // which tells a reader you watched something and not one thing more.
+  if (!body && rating === null) {
+    return { error: "Give it a rating, or write something. Either is enough." };
+  }
+  // Only checked when there is text to check. An empty body is not a
+  // safety question, and running it through the checker meant a
+  // rating-only post could be rejected for the content of nothing.
+  if (body) {
+    const bodySafety = checkReviewSafety(body);
+    if (!bodySafety.allowed) {
+      return { error: bodySafety.reason };
+    }
   }
 
   // Every category has clubs now, photography included - the constraint
@@ -132,12 +143,15 @@ export async function createClubPost(
 
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
-  if (!title || !body) return { error: "Title and text are required." };
+  if (!title) return { error: "Title is required." };
 
   const ratingRaw = String(formData.get("rating") ?? "");
   const rating = ratingRaw ? Number(ratingRaw) : null;
   if (rating !== null && (rating < 1 || rating > 5)) {
     return { error: "Rating must be between 1 and 5." };
+  }
+  if (!body && rating === null) {
+    return { error: "Give it a rating, or write something. Either is enough." };
   }
 
   const youtubeUrl = String(formData.get("youtube_url") ?? "").trim();
@@ -182,8 +196,14 @@ export async function updatePost(
   const ratingRaw = String(formData.get("rating") ?? "");
   const rating = ratingRaw ? Number(ratingRaw) : null;
 
-  if (!postId || !title || !body) {
-    return { error: "Title and review text are required." };
+  if (!postId || !title) {
+    return { error: "Title is required." };
+  }
+  // The same rule as posting. Without it a rating-only post could be
+  // opened for editing and then refused on save, with nothing wrong
+  // with it.
+  if (!body && rating === null) {
+    return { error: "Give it a rating, or write something. Either is enough." };
   }
   if (rating !== null && (rating < 1 || rating > 5)) {
     return { error: "Rating must be between 1 and 5." };
