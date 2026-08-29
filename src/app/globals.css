@@ -12733,3 +12733,57 @@ a.issue-link::after {
   border-radius: 8px;
   background-position: center;
 }
+
+/* ---- Sticker pack + Surprise me ---------------------------------------
+   The pack is a grid of things to tap. Big enough to recognise at a
+   glance, because picking a sticker is browsing, not reading a list. */
+.sticker-groups {
+  margin: 6px 0;
+}
+.sticker-pack {
+  display: grid;
+  /* Six across, so a group of six is one tidy row rather than five and
+     a lonely sixth. auto-fill was picking five at the panel's width. */
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+  margin: 6px 0;
+}
+.pack-chip {
+  aspect-ratio: 1;
+  padding: 5px;
+  border: 1px solid var(--panel-border);
+  border-radius: 9px;
+  background: var(--panel-body-bg);
+  cursor: pointer;
+  transition: transform 120ms var(--ease);
+}
+.pack-chip:hover {
+  /* The one place a lift is right: it is a thing you are about to pick
+     up and put somewhere. */
+  transform: translateY(-2px) scale(1.06);
+}
+.pack-chip:active {
+  transform: scale(0.94);
+}
+.pack-chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pack-chip {
+    transition: none;
+  }
+  .pack-chip:hover,
+  .pack-chip:active {
+    transform: none;
+  }
+}
+
+.surprise-btn {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+  font-size: 13px;
+}

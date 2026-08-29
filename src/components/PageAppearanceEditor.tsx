@@ -11,6 +11,7 @@ import {
 import {
   moduleHint,
   moduleLabel,
+  randomLook,
   type ModuleState,
   type PageConfig,
   type SurfaceKind,
@@ -23,6 +24,7 @@ import {
 } from "@/lib/pageTheme";
 import { PageDecorControls } from "@/components/PageDecorControls";
 import { PageBackgroundPicker } from "@/components/PageBackgroundPicker";
+import { useLookPreview } from "@/components/useLookPreview";
 
 const initialState: PageConfigState = {};
 
@@ -57,6 +59,9 @@ export function PageAppearanceEditor({
   const [draft, setDraft] = useState<PageConfig>(config);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [state, formAction, pending] = useActionState(savePageAppearance, initialState);
+  // The whole draft is applied to the real page while the editor is
+  // open, so every control here previews rather than only the sliders.
+  useLookPreview(draft, open);
   const [presetState, presetAction, presetPending] = useActionState(saveThemePreset, initialState);
 
   const [lastOk, setLastOk] = useState(state.ok);
@@ -103,7 +108,15 @@ export function PageAppearanceEditor({
         <div className="form-error">{state.error ?? presetState.error}</div>
       )}
 
-      <div className="field-hint" style={{ marginTop: 0 }}>Pick a look.</div>
+      {/* The button that makes this a toy instead of a form. Nobody
+          arrives at a good page by reasoning about seven sliders; they
+          arrive at it by pressing this until something lands. */}
+      <button type="button" className="btn surprise-btn" onClick={() => setDraft(randomLook(draft))}>
+        <span aria-hidden="true">🎲</span> Surprise me
+      </button>
+      <div className="field-hint" style={{ marginTop: 0 }}>
+        Or pick a look. Nothing is saved until you press Save page.
+      </div>
 
       {(
         <>

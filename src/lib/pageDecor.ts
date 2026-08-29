@@ -150,3 +150,63 @@ export function decorStyle(decor: Decor): CSSProperties | undefined {
   const vars = decorVars(decor);
   return Object.keys(vars).length === 0 ? undefined : (vars as CSSProperties);
 }
+
+/**
+ * A whole look, at random.
+ *
+ * The single thing that makes decorating feel like play rather than
+ * settings is being able to press a button and get somewhere you would
+ * not have typed. Seven sliders and four colour wells is a form; one
+ * button that throws a page at you and lets you keep pressing is a toy.
+ *
+ * Deliberately not uniform noise. Every roll picks a shape - the values
+ * that go together - and then jitters inside it, because uniform random
+ * across seven sliders lands on "slightly wrong" almost every time. A
+ * page should come out looking like someone meant it.
+ */
+const DECOR_SHAPES: { label: string; decor: Partial<Decor> }[] = [
+  { label: "Soft", decor: { corner: 22, outline: 1, gap: 22, opacity: 92, tilt: 0, glow: 0 } },
+  { label: "Scrapbook", decor: { corner: 4, outline: 3, gap: 24, opacity: 100, tilt: 2.5, glow: 0 } },
+  { label: "Neon", decor: { corner: 14, outline: 2, gap: 20, opacity: 88, tilt: 0, glow: 26 } },
+  { label: "Sharp", decor: { corner: 0, outline: 2, gap: 12, opacity: 100, tilt: 0, glow: 0 } },
+  { label: "Floating", decor: { corner: 18, outline: 0, gap: 30, opacity: 70, tilt: 1, glow: 12 } },
+  { label: "Chunky", decor: { corner: 10, outline: 5, gap: 16, opacity: 100, tilt: 0, glow: 0 } },
+];
+
+function jitter(value: number, by: number, min: number, max: number, step: number): number {
+  const moved = value + (Math.random() * 2 - 1) * by;
+  return Math.min(max, Math.max(min, Math.round(moved / step) * step));
+}
+
+/** One random look. Never returns the decor it was given. */
+export function randomDecor(previous?: Decor): Decor {
+  const shape = DECOR_SHAPES[Math.floor(Math.random() * DECOR_SHAPES.length)];
+  const out = { ...DEFAULT_DECOR, ...shape.decor };
+
+  for (const control of DECOR_CONTROLS) {
+    // Text size is left alone: it is the one slider that changes how
+    // readable the page is rather than how it looks, and having it move
+    // under you on every roll is unpleasant rather than fun.
+    if (control.key === "textSize") continue;
+    // A zero in a shape means off, not "near zero". Jittering it was
+    // giving Sharp a 4px glow and Soft a half-degree lean on every roll,
+    // so all six shapes came out as the same faintly-wonky page - which
+    // is exactly the mush that picking shapes was meant to avoid.
+    if (out[control.key] === 0) continue;
+    out[control.key] = jitter(
+      out[control.key],
+      (control.max - control.min) * 0.12,
+      // Never jittered below 1: crossing to 0 turns the property off
+      // entirely, which is a different look rather than a smaller one.
+      Math.max(control.min, control.step),
+      control.max,
+      control.step
+    );
+  }
+
+  // A roll that changes nothing reads as a broken button, so try again.
+  if (previous && DECOR_CONTROLS.every((c) => out[c.key] === previous[c.key])) {
+    return randomDecor(previous);
+  }
+  return out;
+}
