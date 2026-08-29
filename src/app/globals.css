@@ -12508,3 +12508,66 @@ a.issue-link::after {
     display: none;
   }
 }
+
+/* ---- Custom CSS editor -------------------------------------------------
+   Only appears while decorating. Sits above the Decorate bar so the two
+   read as one set of controls rather than two things that happen to be
+   at the bottom of the screen. */
+.css-editor-launch {
+  position: fixed;
+  right: 14px;
+  bottom: 18px;
+  z-index: 70;
+}
+.css-editor {
+  position: fixed;
+  left: 50%;
+  bottom: 66px;
+  transform: translateX(-50%);
+  z-index: 71;
+  width: min(560px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--nav-border);
+  background: var(--panel-body-bg);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  animation: sheet-up 240ms var(--ease-ios) both;
+}
+.css-editor-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.css-editor textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 190px;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: #fbfbfc;
+  color: #1a1a1c;
+  /* Monospace, because this is code and proportional type hides the
+     difference between a brace and a bracket at 12px. */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.css-editor-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+@media (max-width: 760px) {
+  .css-editor-launch {
+    bottom: 74px;
+  }
+  .css-editor {
+    bottom: 122px;
+  }
+}
