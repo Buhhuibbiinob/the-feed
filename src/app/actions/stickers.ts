@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { guessContentType, isImageFile, megabytes } from "@/lib/uploads";
 import { MAX_STICKERS, MAX_STICKER_BYTES, normalizeSticker } from "@/lib/stickers";
+import { packStickerUrl } from "@/lib/stickerPack";
 import { logEvent } from "@/lib/events";
 
 export type StickerState = { error?: string; ok?: boolean };
@@ -67,6 +68,56 @@ export async function uploadSticker(
   if (error) return { error: error.message };
 
   await logEvent(supabase, user.id, "profile_edit", "sticker_add");
+  await revalidateOwn(supabase, user.id);
+  return { ok: true };
+}
+
+/**
+ * Drops one of the site's own stickers onto the page.
+ *
+ * Takes an id, never a URL: the id is looked up in the pack and the path
+ * is built here, so nothing a client posts can end up in image_url.
+ *
+ * No upload, no file picker, no going and finding a PNG first - which is
+ * what "Choose File / no file selected" was actually asking people to do
+ * before they could decorate anything.
+ */
+export async function addPackSticker(
+  _prev: StickerState,
+  formData: FormData
+): Promise<StickerState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+
+  const imageUrl = packStickerUrl(formData.get("pack_id"));
+  if (!imageUrl) return { error: "Unknown sticker." };
+
+  const { count } = await supabase
+    .from("profile_stickers")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+  if ((count ?? 0) >= MAX_STICKERS) {
+    return { error: `That's ${MAX_STICKERS} stickers. Remove one first.` };
+  }
+
+  // Same scatter as an upload: stacked slightly off each other and
+  // crooked, so tapping the heart four times gives you four hearts you
+  // can see rather than one heart with three hidden underneath.
+  const nth = count ?? 0;
+  const { error } = await supabase.from("profile_stickers").insert({
+    user_id: user.id,
+    image_url: imageUrl,
+    x: 50 + (nth % 3) * 8 - 8,
+    y: 50 + (nth % 4) * 6 - 9,
+    rotation: Math.round((Math.random() * 24 - 12) * 10) / 10,
+    z: nth + 1,
+  });
+  if (error) return { error: error.message };
+
+  await logEvent(supabase, user.id, "profile_edit", "sticker_pack_add");
   await revalidateOwn(supabase, user.id);
   return { ok: true };
 }

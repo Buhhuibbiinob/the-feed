@@ -1,14 +1,16 @@
 import {
+  BACKGROUND_PATTERNS,
   EMPTY_PALETTE,
   normalizeColor,
   presetById,
+  PRESET_THEMES,
   fontPair,
   patternById,
   type BackgroundKind,
   type Palette,
 } from "@/lib/pageTheme";
 import { MAX_PROFILE_CSS } from "@/lib/profileCss";
-import { readDecor, type Decor } from "@/lib/pageDecor";
+import { randomDecor, readDecor, type Decor } from "@/lib/pageDecor";
 
 // The customizable-page config: one shape, used by both profiles and club
 // pages. Everything that decides how a page looks and what it contains
@@ -278,6 +280,40 @@ export function applyPreset(config: PageConfig, themeId: string): PageConfig {
     palette: preset.id === "none" ? EMPTY_PALETTE : { ...preset.palette },
     fontPairId: preset.fontPairId,
     background: { ...preset.background },
+  };
+}
+
+/**
+ * A whole page look, at random: colours, font, background and shape.
+ *
+ * Built from the curated preset themes rather than from random hex,
+ * because six random colours is mud roughly every time - and a shuffle
+ * that mostly produces something unusable stops being fun on the third
+ * press. Picking a preset and then rolling the shape gives a page that
+ * looks like somebody meant it, while still being somewhere you would
+ * not have arrived by dragging sliders.
+ *
+ * The arrangement is left alone. Losing the order you put your panels in
+ * because you pressed a button called Surprise me is not a surprise, it
+ * is a mistake you have to undo.
+ */
+export function randomLook(config: PageConfig): PageConfig {
+  const themes = PRESET_THEMES.filter((t) => t.id !== "none" && t.id !== config.themeId);
+  const theme = themes[Math.floor(Math.random() * themes.length)];
+  const pattern = BACKGROUND_PATTERNS[Math.floor(Math.random() * BACKGROUND_PATTERNS.length)];
+
+  return {
+    ...config,
+    themeId: theme.id,
+    palette: { ...theme.palette },
+    fontPairId: theme.fontPairId,
+    // An uploaded photo is something you chose and went and found. A
+    // shuffle rolls the pattern instead of throwing it away.
+    background:
+      config.background.kind === "image"
+        ? config.background
+        : { kind: "pattern" as BackgroundKind, value: pattern.id },
+    decor: randomDecor(config.decor),
   };
 }
 

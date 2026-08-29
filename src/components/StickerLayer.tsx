@@ -8,11 +8,13 @@ import {
   subscribeDecorate,
 } from "@/lib/decorate";
 import {
+  addPackSticker,
   deleteSticker,
   placeSticker,
   uploadSticker,
   type StickerState,
 } from "@/app/actions/stickers";
+import { STICKER_GROUPS, packStickersByGroup } from "@/lib/stickerPack";
 import { MAX_STICKERS, stickerTransform, Z_BEHIND, Z_FRONT, type Sticker } from "@/lib/stickers";
 
 const initialState: StickerState = {};
@@ -133,6 +135,9 @@ export function StickerLayer({
   const [local, setLocal] = useState<Sticker[]>(stickers);
   const [selected, setSelected] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(uploadSticker, initialState);
+  const [packState, packAction] = useActionState(addPackSticker, initialState);
+  const [group, setGroup] = useState<string>(STICKER_GROUPS[0]);
+  const [showUpload, setShowUpload] = useState(false);
 
   const [lastStickers, setLastStickers] = useState(stickers);
   if (lastStickers !== stickers) {
@@ -216,26 +221,71 @@ export function StickerLayer({
         <Portal>
           <div className="sticker-tools floating">
             <div className="sticker-tools-head">Stickers</div>
-            {state.error && <div className="form-error">{state.error}</div>}
-            <form action={formAction} className="sticker-upload">
-              <label className="sr-only" htmlFor="sticker-file">
-                Sticker image
-              </label>
-              <input
-                key={uploadKey}
-                id="sticker-file"
-                type="file"
-                name="sticker_file"
-                accept="image/*"
-                required
-              />
-              <button className="btn" type="submit" disabled={pending}>
-                {pending ? "Adding…" : "Add"}
-              </button>
-            </form>
-            <div className="field-hint">
-              Drag them anywhere. Transparent PNGs work best. {MAX_STICKERS} max.
+            {(state.error || packState.error) && (
+              <div className="form-error">{state.error ?? packState.error}</div>
+            )}
+
+            {/* Tap one and it lands on the page. This is the whole point:
+                decorating starts with a heart, not with going to find a
+                transparent PNG somewhere else first. */}
+            <div className="seg sticker-groups">
+              {STICKER_GROUPS.map((name) => (
+                <button
+                  type="button"
+                  key={name}
+                  className={`seg-item${group === name ? " active" : ""}`}
+                  onClick={() => setGroup(name)}
+                >
+                  {name}
+                </button>
+              ))}
             </div>
+
+            <form action={packAction} className="sticker-pack">
+              {packStickersByGroup(group).map((sticker) => (
+                <button
+                  type="submit"
+                  key={sticker.id}
+                  name="pack_id"
+                  value={sticker.id}
+                  className="pack-chip"
+                  title={sticker.label}
+                  aria-label={`Add ${sticker.label}`}
+                >
+                  <img src={`/stickers/${sticker.id}.svg`} alt="" />
+                </button>
+              ))}
+            </form>
+
+            <div className="field-hint">
+              Tap to drop one on. Drag it anywhere. {MAX_STICKERS} max.
+            </div>
+
+            <button
+              type="button"
+              className="comment-action"
+              onClick={() => setShowUpload((v) => !v)}
+            >
+              {showUpload ? "Hide upload" : "Or upload your own"}
+            </button>
+            {showUpload && (
+              <form action={formAction} className="sticker-upload">
+                <label className="sr-only" htmlFor="sticker-file">
+                  Sticker image
+                </label>
+                <input
+                  key={uploadKey}
+                  id="sticker-file"
+                  type="file"
+                  name="sticker_file"
+                  accept="image/*"
+                  required
+                />
+                <button className="btn" type="submit" disabled={pending}>
+                  {pending ? "Adding…" : "Add"}
+                </button>
+              </form>
+            )}
 
             {local.length > 0 && (
               <div className="sticker-picker">
