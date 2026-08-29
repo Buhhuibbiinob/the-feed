@@ -28,6 +28,7 @@ import { ClassicEmoji } from "@/components/ClassicEmoji";
 import { DecorateBar } from "@/components/DecorateBar";
 import { sanitizeProfileCss } from "@/lib/profileCss";
 import { decorStyle } from "@/lib/pageDecor";
+import { canEditProfile } from "@/lib/botEditing";
 import { ProfileReviews } from "@/components/ProfileReviews";
 import { ProfileCssEditor } from "@/components/ProfileCssEditor";
 import { BlurbsEditor } from "@/components/BlurbsEditor";
@@ -234,7 +235,7 @@ export default async function ProfilePage({
 
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("id, username, avatar_url, bio, banner_url, created_at, is_verified, bonus_followers, bonus_likes, name_color")
+    .select("id, username, avatar_url, bio, banner_url, created_at, is_verified, bonus_followers, bonus_likes, name_color, is_bot")
     .eq("username", username)
     .maybeSingle();
 
@@ -340,6 +341,26 @@ export default async function ProfilePage({
   const totalFollowerCount = (followerCount ?? 0) + (profile.bonus_followers ?? 0);
 
   const isOwnProfile = user?.id === profile.id;
+
+  // Decorating a page is not the same question as "is this me". An admin
+  // can decorate a BOT's page - the site's own accounts - so the people
+  // running the place are not stuck with the four fields the bot admin
+  // panel exposes. Never a real member's page: authorizeProfileEdit
+  // enforces that server-side, and this only decides what to render.
+  //
+  // Kept as its own flag rather than widening isOwnProfile, which is
+  // used thirty-odd times on this page for things that really do mean
+  // "this is you" - your own stats, the prompts to fill in empty
+  // sections, the private bits.
+  const { data: viewerRow } = user
+    ? await supabase.from("profiles").select("is_admin").eq("id", user.id).maybeSingle<{ is_admin: boolean }>()
+    : { data: null };
+  const canDecorate = canEditProfile(
+    user?.id ?? null,
+    viewerRow?.is_admin ?? false,
+    profile.id,
+    (profile as { is_bot?: boolean }).is_bot ?? false
+  );
   const badges = earnedBadges(posts.length);
   const nextBadge = BADGES.find((b) => b.threshold > posts.length) ?? null;
   const streak = computeStreak(posts.map((p) => p.created_at));
@@ -1117,9 +1138,9 @@ export default async function ProfilePage({
           to whatever is typed next. */}
       {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
-      <DecorateBar isOwner={isOwnProfile} />
-      {isOwnProfile && <ProfileCssEditor ownerId={profile.id} config={config} />}
-      <StickerLayer stickers={stickers} isOwner={isOwnProfile} />
+      <DecorateBar isOwner={canDecorate} />
+      {canDecorate && <ProfileCssEditor ownerId={profile.id} config={config} />}
+      <StickerLayer stickers={stickers} isOwner={canDecorate} ownerId={profile.id} />
 
       {/* The columns belong to the arranger now: it places each panel and
           lets the owner drag them between the two. The panels themselves
@@ -1129,7 +1150,7 @@ export default async function ProfilePage({
         ownerId={profile.id}
         config={config}
         order={shownModules}
-        isOwner={isOwnProfile}
+        isOwner={canDecorate}
         panels={Object.fromEntries(shownModules.map((id) => [id, renderSection(id)]))}
         sideHeader={
           <>

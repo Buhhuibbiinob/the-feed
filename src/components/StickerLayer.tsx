@@ -124,9 +124,13 @@ function StickerImage({
 export function StickerLayer({
   stickers,
   isOwner,
+  ownerId,
 }: {
   stickers: Sticker[];
   isOwner: boolean;
+  /** Whose page this is. Posted with every sticker write so an admin
+   *  decorating a bot lands the sticker on the bot, not on themselves. */
+  ownerId: string;
 }) {
   // Was local state with its own button. The whole page enters
   // decorating mode together now, so stickers and panels are not two
@@ -166,6 +170,7 @@ export function StickerLayer({
     data.set("rotation", String(sticker.rotation));
     data.set("skew", String(sticker.skew));
     data.set("z", String(sticker.z));
+    data.set("owner_id", ownerId);
     await placeSticker(data);
   }
 
@@ -242,6 +247,7 @@ export function StickerLayer({
             </div>
 
             <form action={packAction} className="sticker-pack">
+              <input type="hidden" name="owner_id" value={ownerId} />
               {packStickersByGroup(group).map((sticker) => (
                 <button
                   type="submit"
@@ -270,6 +276,7 @@ export function StickerLayer({
             </button>
             {showUpload && (
               <form action={formAction} className="sticker-upload">
+                <input type="hidden" name="owner_id" value={ownerId} />
                 <label className="sr-only" htmlFor="sticker-file">
                   Sticker image
                 </label>
@@ -384,6 +391,7 @@ export function StickerLayer({
                     {active.z < 0 ? "Bring in front" : "Send behind panels"}
                   </button>
                   <form action={deleteSticker}>
+                    <input type="hidden" name="owner_id" value={ownerId} />
                     <input type="hidden" name="id" value={active.id} />
                     <button type="submit" className="comment-action danger">
                       Remove
