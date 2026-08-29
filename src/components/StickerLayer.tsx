@@ -1,10 +1,10 @@
 "use client";
 
 import { useSyncExternalStore, useActionState, useRef, useState } from "react";
+import { Portal } from "@/components/Portal";
 import {
   decorateServerSnapshot,
   isDecorating,
-  setDecorating,
   subscribeDecorate,
 } from "@/lib/decorate";
 import {
@@ -31,6 +31,17 @@ const initialState: StickerState = {};
  * Two layers, split by the sign of z: one painted under the panels and
  * one over them. A single layer can't do both, because giving it a
  * z-index makes it a stacking context its children can't escape.
+ *
+ * The tools panel is portaled to <body> for the same reason the
+ * Decorate bar is: the page-transition wrapper keeps a transform, and a
+ * transformed element becomes the containing block for its `position:
+ * fixed` descendants. Authored in place, the panel anchored to the foot
+ * of the profile instead of the screen, so it scrolled away from the
+ * Decorate button it belongs next to.
+ *
+ * It has no toggle of its own any more. Decorating is one mode with one
+ * switch - a second button that did exactly what Decorate does was just
+ * something else to read.
  */
 function StickerImage({
   sticker,
@@ -201,143 +212,138 @@ export function StickerLayer({
       {renderLayer(true)}
       {renderLayer(false)}
 
-      {isOwner && (
-        <div className={`sticker-tools${editing ? " floating" : ""}`}>
-          <button type="button" className="comment-action" onClick={() => setDecorating(!editing)}>
-            {editing ? "Done stickering" : "Stickers"}
-          </button>
+      {isOwner && editing && (
+        <Portal>
+          <div className="sticker-tools floating">
+            <div className="sticker-tools-head">Stickers</div>
+            {state.error && <div className="form-error">{state.error}</div>}
+            <form action={formAction} className="sticker-upload">
+              <label className="sr-only" htmlFor="sticker-file">
+                Sticker image
+              </label>
+              <input
+                key={uploadKey}
+                id="sticker-file"
+                type="file"
+                name="sticker_file"
+                accept="image/*"
+                required
+              />
+              <button className="btn" type="submit" disabled={pending}>
+                {pending ? "Adding…" : "Add"}
+              </button>
+            </form>
+            <div className="field-hint">
+              Drag them anywhere. Transparent PNGs work best. {MAX_STICKERS} max.
+            </div>
 
-          {editing && (
-            <>
-              {state.error && <div className="form-error">{state.error}</div>}
-              <form action={formAction} className="sticker-upload">
-                <label className="sr-only" htmlFor="sticker-file">
-                  Sticker image
-                </label>
-                <input
-                  key={uploadKey}
-                  id="sticker-file"
-                  type="file"
-                  name="sticker_file"
-                  accept="image/*"
-                  required
-                />
-                <button className="btn" type="submit" disabled={pending}>
-                  {pending ? "Adding…" : "Add"}
-                </button>
-              </form>
-              <div className="field-hint">
-                Drag them anywhere. Transparent PNGs work best. {MAX_STICKERS} max.
+            {local.length > 0 && (
+              <div className="sticker-picker">
+                {local.map((sticker) => (
+                  <button
+                    type="button"
+                    key={sticker.id}
+                    className={`sticker-chip${selected === sticker.id ? " active" : ""}`}
+                    onClick={() => setSelected(sticker.id)}
+                    aria-pressed={selected === sticker.id}
+                    aria-label={`Select sticker${sticker.z < 0 ? ", behind panels" : ""}`}
+                  >
+                    <img src={sticker.imageUrl} alt="" />
+                  </button>
+                ))}
               </div>
+            )}
 
-              {local.length > 0 && (
-                <div className="sticker-picker">
-                  {local.map((sticker) => (
-                    <button
-                      type="button"
-                      key={sticker.id}
-                      className={`sticker-chip${selected === sticker.id ? " active" : ""}`}
-                      onClick={() => setSelected(sticker.id)}
-                      aria-pressed={selected === sticker.id}
-                      aria-label={`Select sticker${sticker.z < 0 ? ", behind panels" : ""}`}
-                    >
-                      <img src={sticker.imageUrl} alt="" />
-                    </button>
-                  ))}
+            {active && (
+              <div className="sticker-controls">
+                <label>
+                  Width
+                  <input
+                    type="range"
+                    min={0.05}
+                    max={12}
+                    step={0.05}
+                    value={active.scale}
+                    onChange={(e) => patch(active.id, { scale: Number(e.target.value) })}
+                    onPointerUp={() => commit(active.id)}
+                    onKeyUp={() => commit(active.id)}
+                  />
+                </label>
+                <label>
+                  Height
+                  <input
+                    type="range"
+                    min={0.05}
+                    max={12}
+                    step={0.05}
+                    value={active.scaleY}
+                    onChange={(e) => patch(active.id, { scaleY: Number(e.target.value) })}
+                    onPointerUp={() => commit(active.id)}
+                    onKeyUp={() => commit(active.id)}
+                  />
+                </label>
+                <label>
+                  Turn
+                  <input
+                    type="range"
+                    min={-180}
+                    max={180}
+                    step={1}
+                    value={active.rotation}
+                    onChange={(e) => patch(active.id, { rotation: Number(e.target.value) })}
+                    onPointerUp={() => commit(active.id)}
+                    onKeyUp={() => commit(active.id)}
+                  />
+                </label>
+                <label>
+                  Warp
+                  <input
+                    type="range"
+                    min={-60}
+                    max={60}
+                    step={1}
+                    value={active.skew}
+                    onChange={(e) => patch(active.id, { skew: Number(e.target.value) })}
+                    onPointerUp={() => commit(active.id)}
+                    onKeyUp={() => commit(active.id)}
+                  />
+                </label>
+
+                <div className="sticker-nudge">
+                  <span>Nudge</span>
+                  <button type="button" className="comment-action" onClick={() => nudge(0, -1)} aria-label="Move up">
+                    ↑
+                  </button>
+                  <button type="button" className="comment-action" onClick={() => nudge(0, 1)} aria-label="Move down">
+                    ↓
+                  </button>
+                  <button type="button" className="comment-action" onClick={() => nudge(-1, 0)} aria-label="Move left">
+                    ←
+                  </button>
+                  <button type="button" className="comment-action" onClick={() => nudge(1, 0)} aria-label="Move right">
+                    →
+                  </button>
                 </div>
-              )}
 
-              {active && (
-                <div className="sticker-controls">
-                  <label>
-                    Width
-                    <input
-                      type="range"
-                      min={0.05}
-                      max={12}
-                      step={0.05}
-                      value={active.scale}
-                      onChange={(e) => patch(active.id, { scale: Number(e.target.value) })}
-                      onPointerUp={() => commit(active.id)}
-                      onKeyUp={() => commit(active.id)}
-                    />
-                  </label>
-                  <label>
-                    Height
-                    <input
-                      type="range"
-                      min={0.05}
-                      max={12}
-                      step={0.05}
-                      value={active.scaleY}
-                      onChange={(e) => patch(active.id, { scaleY: Number(e.target.value) })}
-                      onPointerUp={() => commit(active.id)}
-                      onKeyUp={() => commit(active.id)}
-                    />
-                  </label>
-                  <label>
-                    Turn
-                    <input
-                      type="range"
-                      min={-180}
-                      max={180}
-                      step={1}
-                      value={active.rotation}
-                      onChange={(e) => patch(active.id, { rotation: Number(e.target.value) })}
-                      onPointerUp={() => commit(active.id)}
-                      onKeyUp={() => commit(active.id)}
-                    />
-                  </label>
-                  <label>
-                    Warp
-                    <input
-                      type="range"
-                      min={-60}
-                      max={60}
-                      step={1}
-                      value={active.skew}
-                      onChange={(e) => patch(active.id, { skew: Number(e.target.value) })}
-                      onPointerUp={() => commit(active.id)}
-                      onKeyUp={() => commit(active.id)}
-                    />
-                  </label>
-
-                  <div className="sticker-nudge">
-                    <span>Nudge</span>
-                    <button type="button" className="comment-action" onClick={() => nudge(0, -1)} aria-label="Move up">
-                      ↑
+                <div className="sticker-actions">
+                  <button
+                    type="button"
+                    className="comment-action"
+                    onClick={() => adjust(active.id, { z: active.z < 0 ? Z_FRONT : Z_BEHIND })}
+                  >
+                    {active.z < 0 ? "Bring in front" : "Send behind panels"}
+                  </button>
+                  <form action={deleteSticker}>
+                    <input type="hidden" name="id" value={active.id} />
+                    <button type="submit" className="comment-action danger">
+                      Remove
                     </button>
-                    <button type="button" className="comment-action" onClick={() => nudge(0, 1)} aria-label="Move down">
-                      ↓
-                    </button>
-                    <button type="button" className="comment-action" onClick={() => nudge(-1, 0)} aria-label="Move left">
-                      ←
-                    </button>
-                    <button type="button" className="comment-action" onClick={() => nudge(1, 0)} aria-label="Move right">
-                      →
-                    </button>
-                  </div>
-
-                  <div className="sticker-actions">
-                    <button
-                      type="button"
-                      className="comment-action"
-                      onClick={() => adjust(active.id, { z: active.z < 0 ? Z_FRONT : Z_BEHIND })}
-                    >
-                      {active.z < 0 ? "Bring in front" : "Send behind panels"}
-                    </button>
-                    <form action={deleteSticker}>
-                      <input type="hidden" name="id" value={active.id} />
-                      <button type="submit" className="comment-action danger">
-                        Remove
-                      </button>
-                    </form>
-                  </div>
+                  </form>
                 </div>
-              )}
-            </>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        </Portal>
       )}
     </>
   );
