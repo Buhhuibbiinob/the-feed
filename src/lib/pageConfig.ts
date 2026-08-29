@@ -7,6 +7,7 @@ import {
   type BackgroundKind,
   type Palette,
 } from "@/lib/pageTheme";
+import { MAX_PROFILE_CSS } from "@/lib/profileCss";
 
 // The customizable-page config: one shape, used by both profiles and club
 // pages. Everything that decides how a page looks and what it contains
@@ -121,6 +122,9 @@ export type PageConfig = {
   modules: ModuleState[];
   /** Named looks the owner can switch between without rebuilding one. */
   presets: SavedPreset[];
+  /** Raw CSS the owner wrote. Stored as typed; sanitised and scoped at
+   *  render time by sanitizeProfileCss, never trusted from here. */
+  css: string;
 };
 
 export function modulesForSurface(surface: SurfaceKind): ModuleDef[] {
@@ -215,6 +219,7 @@ export function resolvePageConfig(raw: unknown, surface: SurfaceKind): PageConfi
     background: readBackground(source.background),
     modules: readModules(source.modules, surface),
     presets: readPresets(source.presets),
+    css: typeof source.css === "string" ? source.css.slice(0, MAX_PROFILE_CSS) : "",
   };
 }
 

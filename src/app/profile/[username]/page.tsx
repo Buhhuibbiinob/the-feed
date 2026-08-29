@@ -26,6 +26,8 @@ import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
 import { MoodRingEditor } from "@/components/MoodRing";
 import { ClassicEmoji } from "@/components/ClassicEmoji";
 import { DecorateBar } from "@/components/DecorateBar";
+import { sanitizeProfileCss } from "@/lib/profileCss";
+import { ProfileCssEditor } from "@/components/ProfileCssEditor";
 import { BlurbsEditor } from "@/components/BlurbsEditor";
 import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
 import { TopConnections, type Connection } from "@/components/TopConnections";
@@ -1092,10 +1094,24 @@ export default async function ProfilePage({
     (id) => isOwnProfile || sectionHasContent[id]
   );
 
+  // Scoped to this profile's own id, so one member's CSS cannot match
+  // another's page even if both are somehow rendered together.
+  const customCss = sanitizeProfileCss(config.css, `.profile-skin[data-owner="${profile.id}"]`);
+
   return (
-    <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
+    <div
+      className="profile-skin"
+      data-owner={profile.id}
+      style={pageStyle(config.palette, config.fontPairId, config.background)}
+    >
+      {/* The member's own CSS, rewritten so every rule is scoped to this
+          profile. Scoped at render rather than on save, so a change to
+          the rules applies to what people already wrote instead of only
+          to whatever is typed next. */}
+      {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
       <DecorateBar isOwner={isOwnProfile} />
+      {isOwnProfile && <ProfileCssEditor ownerId={profile.id} config={config} />}
       <StickerLayer stickers={stickers} isOwner={isOwnProfile} />
 
       {/* The columns belong to the arranger now: it places each panel and
