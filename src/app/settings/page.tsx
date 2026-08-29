@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
 import { ThemeForm } from "@/components/ThemeForm";
+import { SoundToggle } from "@/components/SoundToggle";
 import { BackgroundPicker } from "@/components/BackgroundPicker";
 import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { disconnectYoutube } from "@/app/actions/youtube";
@@ -65,6 +66,17 @@ export default async function SettingsPage() {
             currentFit={currentFit}
             currentFlipped={profile?.background_flipped === true}
           />
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Sound</div>
+        <div className="panel-body">
+          <SoundToggle />
+          <p className="field-hint" style={{ marginTop: 8 }}>
+            A short click when you press something, the way a phone keyboard does. Saved on this
+            device, so turning it off here does not silence it on your other ones.
+          </p>
         </div>
       </div>
 

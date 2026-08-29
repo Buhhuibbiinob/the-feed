@@ -6,6 +6,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { SideRail } from "@/components/SideRail";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { ComposeSheet } from "@/components/ComposeSheet";
+import { ClickSound } from "@/components/ClickSound";
 import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { PostFab } from "@/components/PostFab";
 import { createClient } from "@/lib/supabase/server";
@@ -146,6 +147,7 @@ export default async function RootLayout({
         />
       </head>
       <body>
+        <ClickSound />
         <PullToRefresh />
         <div className="sk-app-shell">
           <SiteHeader
