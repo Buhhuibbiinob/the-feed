@@ -64,6 +64,11 @@ function contrast(a, b) {
 const pairs = [
   ["--nav-text", "--nav-bg", "nav"],
   ["--text", "--panel-body-bg", "panel body"],
+  // Links were never checked, and they are the text most likely to be
+  // wrong: a theme picks an accent for its personality, and the accent
+  // then has to survive being read as small type on a panel. Every
+  // action on a review - Save, Share, the comment link - is this pair.
+  ["--link", "--panel-body-bg", "link"],
 ];
 
 const VERBOSE = process.argv.includes("--verbose");

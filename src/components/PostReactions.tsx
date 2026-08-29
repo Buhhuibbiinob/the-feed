@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ClassicEmoji, EMOJI_GROUPS, emojiLabel } from "@/components/ClassicEmoji";
 import { reactToPost } from "@/app/actions/reactions";
+import { Portal } from "@/components/Portal";
 
 /**
  * Reactions on a review.
@@ -35,6 +36,14 @@ export function PostReactions({
   signedIn: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const [at, setAt] = useState<{ left: number; top: number; bottom: number } | null>(null);
+
+  function toggle() {
+    const box = moreRef.current?.getBoundingClientRect();
+    if (box) setAt({ left: box.left, top: box.top, bottom: box.bottom });
+    setOpen((v) => !v);
+  }
 
   function send(emoji: string) {
     const data = new FormData();
@@ -81,8 +90,9 @@ export function PostReactions({
           ))}
           <button
             type="button"
+            ref={moreRef}
             className="reaction-chip more"
-            onClick={() => setOpen((v) => !v)}
+            onClick={toggle}
             aria-expanded={open}
             aria-label="More reactions"
           >
@@ -91,12 +101,38 @@ export function PostReactions({
         </>
       )}
 
-      {open && (
-        <div className="reaction-pop">
-          {/* The site's whole set, so a reaction can be as specific as the
-              thing being reviewed deserves. */}
-          <ReactionPicker onPick={send} />
-        </div>
+      {open && at && (
+        /* Portaled and fixed, not absolute inside the card.
+           .panel-body is `overflow: hidden` - it has to be, that is what
+           rounds the card's corners - so an absolutely positioned picker
+           was being CLIPPED at the bottom edge of the review. It looked
+           like the next post was drawn on top of it; it was actually
+           never painted below the card at all. */
+        <Portal>
+          <button
+            type="button"
+            className="reaction-scrim"
+            aria-label="Close"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            className="reaction-pop"
+            style={
+              // Below the button when there is room, above it when the
+              // review is near the bottom of the window.
+              at.bottom + 300 < window.innerHeight
+                ? { left: Math.max(8, Math.min(at.left, window.innerWidth - 324)), top: at.bottom + 6 }
+                : {
+                    left: Math.max(8, Math.min(at.left, window.innerWidth - 324)),
+                    bottom: window.innerHeight - at.top + 6,
+                  }
+            }
+          >
+            {/* The site's whole set, so a reaction can be as specific as
+                the thing being reviewed deserves. */}
+            <ReactionPicker onPick={send} />
+          </div>
+        </Portal>
       )}
     </div>
   );
