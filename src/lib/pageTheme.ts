@@ -233,7 +233,7 @@ export function normalizeColor(value: unknown): string | null {
 export function pageStyle(
   palette: Palette,
   fontPairId: string | null,
-  background: { kind: BackgroundKind; value: string | null }
+  background: { kind: BackgroundKind; value: string | null; fit?: string }
 ): CSSProperties | undefined {
   const vars: Record<string, string> = {};
 
@@ -297,7 +297,16 @@ export function pageStyle(
     // Quoted so a URL containing a paren or space can't break out of the
     // url() and into the rest of the declaration.
     layers.push(`url("${background.value.replace(/["\\]/g, "")}")`);
-    vars["--page-bg-size"] = "cover";
+    // Tile repeats at natural size: the seams are the point of a
+    // wallpaper, and scaling them away just makes it a blurry photo.
+    if (background.fit === "tile") {
+      vars["--page-bg-size"] = "auto";
+      vars["--page-bg-repeat"] = "repeat";
+    } else {
+      vars["--page-bg-size"] = background.fit === "contain" ? "contain" : "cover";
+      vars["--page-bg-repeat"] = "no-repeat";
+      vars["--page-bg-attachment"] = "fixed";
+    }
   }
   if (palette.bg) layers.push(`linear-gradient(${palette.bg}, ${palette.bg})`);
   if (layers.length > 0) vars["--page-bg"] = layers.join(", ");

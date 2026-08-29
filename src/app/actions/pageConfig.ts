@@ -5,6 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 import { loadPageConfig, savePageConfig } from "@/lib/pageConfigStore";
 import { applyPreset, resolvePageConfig, type SurfaceKind } from "@/lib/pageConfig";
 import { normalizeColor } from "@/lib/pageTheme";
+import {
+  guessContentType,
+  isImageFile,
+  megabytes,
+  MAX_BACKGROUND_BYTES,
+} from "@/lib/uploads";
 import { logEvent } from "@/lib/events";
 import { checkBioSafety } from "@/lib/contentSafety";
 
@@ -94,6 +100,75 @@ export async function savePageAppearance(
   if (error) return { error };
 
   await logEvent(supabase, user.id, "profile_edit", `page_${target.surface}_appearance`);
+  await revalidateSurface(supabase, target.surface, target.ownerId);
+  return { ok: true };
+}
+
+/**
+ * Uploads a photo to sit behind a page.
+ *
+ * The config format has supported `background.kind = "image"` since it
+ * was written, but nothing ever offered a file picker for it - so the
+ * only way to get a photo behind your profile was to write a CSS rule
+ * with a URL in it. That is the single most-wanted thing a page can do
+ * and it was the one thing that required code.
+ *
+ * Saved straight into the config on success rather than handed back for
+ * the editor to post again: an upload that succeeded but left the page
+ * unchanged because you forgot to press Save is indistinguishable from
+ * an upload that failed.
+ */
+export async function uploadPageBackground(
+  _prev: PageConfigState,
+  formData: FormData
+): Promise<PageConfigState> {
+  const target = readSurface(formData);
+  if (!target) return { error: "Unknown page." };
+
+  const owned = await requireOwnership(target.surface, target.ownerId);
+  if ("error" in owned) return { error: owned.error };
+  const { supabase, user } = owned;
+
+  const file = formData.get("background_file");
+  if (!(file instanceof File) || file.size === 0) return { error: "Choose an image." };
+  if (!isImageFile(file)) return { error: "That file isn't an image." };
+  if (file.size > MAX_BACKGROUND_BYTES) {
+    return { error: `Image must be under ${megabytes(MAX_BACKGROUND_BYTES)}MB.` };
+  }
+
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const path = `${user.id}/page-bg/${crypto.randomUUID()}.${ext}`;
+  const { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { upsert: false, contentType: guessContentType(file) });
+  if (uploadError) return { error: uploadError.message };
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("avatars").getPublicUrl(path);
+
+  const current = resolvePageConfig(
+    await loadPageConfig(supabase, target.surface, target.ownerId),
+    target.surface
+  );
+  const fit = String(formData.get("fit") ?? "");
+  const next = {
+    ...current,
+    // Picking a photo is a deliberate departure from a preset theme, so
+    // the theme stops claiming to be applied. Leaving themeId set made
+    // the preset row keep a tick next to a look the page no longer had.
+    themeId: "none",
+    background: {
+      kind: "image" as const,
+      value: publicUrl,
+      fit: fit === "tile" || fit === "contain" ? (fit as "tile" | "contain") : ("cover" as const),
+    },
+  };
+
+  const { error } = await savePageConfig(supabase, target.surface, target.ownerId, next);
+  if (error) return { error };
+
+  await logEvent(supabase, user.id, "profile_edit", `page_${target.surface}_background`);
   await revalidateSurface(supabase, target.surface, target.ownerId);
   return { ok: true };
 }
