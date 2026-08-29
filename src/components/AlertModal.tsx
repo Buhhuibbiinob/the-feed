@@ -1,5 +1,7 @@
 "use client";
 
+import { Portal } from "@/components/Portal";
+
 export function AlertModal({
   title,
   message,
@@ -15,8 +17,13 @@ export function AlertModal({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  // Through a portal: this is rendered from inside a post card, and a
+  // backdrop that is meant to cover the window would otherwise be
+  // trapped by the page wrapper's transform and cover only the article -
+  // so a delete confirmation could appear well off screen.
   return (
-    <div className="alert-modal-backdrop" onClick={onCancel}>
+    <Portal>
+      <div className="alert-modal-backdrop" onClick={onCancel}>
       <div className="alert-modal" onClick={(e) => e.stopPropagation()}>
         <div className="alert-modal-title">{title}</div>
         <div className="alert-modal-message">{message}</div>
@@ -28,7 +35,8 @@ export function AlertModal({
             {confirmLabel}
           </button>
         </div>
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 }
