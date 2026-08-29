@@ -13118,19 +13118,3 @@ a.issue-link::after {
     animation: none;
   }
 }
-
-/* The glossy square on each rail row.
-   flex-shrink so a long label never squeezes it out of round, and the
-   label takes the remaining space so the badge and chevron stay pinned
-   to the right where they were. */
-.rail-icon {
-  flex: 0 0 auto;
-  display: block;
-}
-.rail-row .rail-label {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-/* The tile keeps its colour on the selected row, which is what iOS
-   itself does - Settings does not grey out the icon when you tap a row.
-   Desaturating it read as the row being disabled. */
