@@ -1,6 +1,6 @@
 // Curated top lists on the profile: the member picks these by hand rather
 // than having them derived from their reviews, which is the point - it's
-// the Top 8, not an activity report.
+// a curated shortlist, not an activity report.
 
 export const FAVORITE_KINDS = ["artist", "movie", "show"] as const;
 export type FavoriteKind = (typeof FAVORITE_KINDS)[number];
@@ -17,7 +17,7 @@ export const FAVORITE_SINGULAR: Record<FavoriteKind, string> = {
   show: "show",
 };
 
-// Eight each, because the whole reference is the Top 8.
+// Eight each: enough to show a taste, few enough to force a choice.
 export const MAX_FAVORITES_PER_KIND = 8;
 
 export function isFavoriteKind(value: unknown): value is FavoriteKind {

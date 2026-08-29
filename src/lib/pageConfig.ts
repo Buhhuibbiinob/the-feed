@@ -34,7 +34,7 @@ export type ModuleDef = {
   /**
    * Which column it sits in on a wide screen.
    *
-   * "side" is for the small identity pieces - mood, blurbs, the Top 8 -
+   * "side" is for the small identity pieces - the status, the liner notes,
    * and "main" is for the things you actually read. A single stack of
    * eighteen panels is a scroll; two columns is a page you can take in at
    * a glance, which is the whole point of the reference.
@@ -55,15 +55,23 @@ export type ModuleDef = {
   defaultOn?: boolean;
 };
 
+// The labels are this site's own vocabulary, not the 2005 social network
+// everyone recognises. "Top 8", "Blurbs", "About Me" and "My Anthem" are
+// that site's words specifically, and a page carrying all four reads as a
+// copy of it however different the code underneath is.
+//
+// The ids are deliberately unchanged. A stored page config references
+// modules by id, so renaming one would silently reset the arrangement of
+// every member who has already ordered their page.
 export const PAGE_MODULES: ModuleDef[] = [
   // Side column: who you are, at a glance.
-  { id: "mood", label: "Mood", surfaces: ["profile"], column: "side" },
-  { id: "anthem", label: "My Anthem", surfaces: ["profile", "club"], column: "side", defaultOn: true },
-  { id: "about", label: "About Me", surfaces: ["profile", "club"], column: "side", defaultOn: true },
-  { id: "blurbs", label: "Blurbs", surfaces: ["profile"], column: "side" },
-  { id: "connections", label: "Top 8", surfaces: ["profile"], column: "side" },
+  { id: "mood", label: "Right Now", surfaces: ["profile"], column: "side" },
+  { id: "anthem", label: "On Repeat", surfaces: ["profile", "club"], column: "side", defaultOn: true },
+  { id: "about", label: "Bio", surfaces: ["profile", "club"], column: "side", defaultOn: true },
+  { id: "blurbs", label: "Liner Notes", surfaces: ["profile"], column: "side" },
+  { id: "connections", label: "Regulars", surfaces: ["profile"], column: "side" },
   { id: "favorites", label: "Favorites", surfaces: ["profile"], column: "side", defaultOn: true },
-  { id: "stats", label: "Details", surfaces: ["profile", "club"], column: "side", defaultOn: true },
+  { id: "stats", label: "By the Numbers", surfaces: ["profile", "club"], column: "side", defaultOn: true },
   { id: "achievements", label: "Trophies", surfaces: ["profile"], column: "side" },
   { id: "clubs", label: "Clubs", surfaces: ["profile"], column: "side" },
   { id: "presence", label: "Online", surfaces: ["profile"], column: "side" },
@@ -76,7 +84,7 @@ export const PAGE_MODULES: ModuleDef[] = [
   { id: "pinned", label: "Pinned", surfaces: ["profile", "club"], column: "main" },
   { id: "highlights", label: "Greatest Hits", surfaces: ["profile"], column: "main" },
   { id: "collections", label: "Collections", surfaces: ["profile"], column: "main" },
-  { id: "guestbook", label: "Guestbook", surfaces: ["profile", "club"], column: "main", defaultOn: true },
+  { id: "guestbook", label: "Signatures", surfaces: ["profile", "club"], column: "main", defaultOn: true },
   { id: "reviews", label: "Reviews", surfaces: ["profile", "club"], column: "main", defaultOn: true },
 ];
 

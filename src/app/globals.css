@@ -2679,10 +2679,29 @@ a:hover {
   gap: 0;
   align-items: start;
 }
+/* Identity on the RIGHT, the reading column on the left.
+   A narrow identity strip down the left with the content beside it is
+   the silhouette everyone recognises from one particular 2005 social
+   network - you can tell what a page is from across the room without
+   reading a word of it. Same two columns, mirrored, and it reads as
+   something else entirely.
+
+   Placed explicitly rather than with row-reverse or direction: the
+   source order is side-then-main, which is the order the phone should
+   stack in - your picture and name before a wall of reviews. Reversing
+   the flow would flip the phone too and bury the identity. */
 @media (min-width: 761px) {
   .profile-columns {
-    grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 280px);
     gap: 0 18px;
+  }
+  .profile-col-side {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .profile-col-main {
+    grid-column: 1;
+    grid-row: 1;
   }
 }
 .profile-col-side .panel,

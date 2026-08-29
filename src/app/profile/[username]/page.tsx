@@ -630,7 +630,7 @@ export default async function ProfilePage({
       case "anthem":
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">My Anthem</div>
+            <div className="panel-head">On Repeat</div>
             <div className="panel-body">
               {hasSong ? (
                 <ProfileAnthem
@@ -774,7 +774,7 @@ export default async function ProfilePage({
 
       case "about":
         return (
-          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="About Me">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Bio">
             {profile.bio ? (
               <div className="profile-bio" style={bioStyle}>
                 {renderRichBio(profile.bio)}
@@ -806,7 +806,7 @@ export default async function ProfilePage({
 
       case "connections":
         return (
-          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Top 8">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Regulars">
             <TopConnections connections={connections} isOwner={isOwnProfile} />
           </Panel>
         );
@@ -1172,7 +1172,7 @@ export default async function ProfilePage({
                         following={isFollowing}
                       />
                       <Link href={`/messages/${profile.username}`}>Send Message</Link>
-                      <Link href={`/profile/${profile.username}#guestbook`}>Sign Guestbook</Link>
+                      <Link href={`/profile/${profile.username}#guestbook`}>Leave a note</Link>
                     </>
                   ) : (
                     <Link href="/sign-in">Sign in to follow</Link>
@@ -1197,7 +1197,7 @@ export default async function ProfilePage({
               <div className="pf-viewmy">
                 <b>View:</b> <Link href={`/profile/${profile.username}#reviews`}>Reviews</Link>
                 {" | "}
-                <Link href={`/profile/${profile.username}#guestbook`}>Guestbook</Link>
+                <Link href={`/profile/${profile.username}#guestbook`}>Signatures</Link>
                 {clubs.length > 0 && (
                   <>
                     {" | "}
