@@ -286,6 +286,84 @@ const FACES: Record<string, Face> = {
   },
 };
 
+
+/**
+ * Emoji drawn as artwork files rather than inline SVG.
+ *
+ * The faces above are spheres with two gradients, which is small enough
+ * to inline. These are objects - a camera, a CD, a hand - and they are
+ * already drawn, because they are the same files the sticker pack uses.
+ * One set of artwork does both jobs: every one of these is a sticker you
+ * can drop on your page and an emoji you can type into a review.
+ *
+ * Twenty-four yellow faces was the whole keyboard before this. There was
+ * nothing for the three things this site is actually about, no way to
+ * pick a heart that matched your page, and no person of any kind.
+ */
+const SPRITES: Record<string, string> = {
+  // --- People. Hands do most of the work here: they say as much as a
+  // face and none of them is a particular kind of person.
+  "\u{1F9D1}": "person",
+  "\u{1F465}": "people",
+  "\u{1F44B}": "hand-wave",
+  "\u{1F44D}": "hand-up",
+  "\u{1F918}": "hand-rock",
+  "\u{270C}": "hand-peace",
+  "\u{1F44F}": "hand-clap",
+  "\u{1FAF6}": "hand-heart",
+
+  // --- Music, film and photography.
+  "\u{1F3A7}": "headphones",
+  "\u{1F4BF}": "cd",
+  "\u{1F4FC}": "vhs",
+  "\u{1F3AC}": "clapper",
+  "\u{1F4F7}": "camera",
+  "\u{1F39E}": "film",
+  "\u{1F3A4}": "mic",
+  "\u{1F4FA}": "tv",
+  "\u{1F3B5}": "note",
+
+  // --- Hearts in every colour, which is the cheapest way to let someone
+  // match the emoji they use to the page they built.
+  "\u{2764}": "heart",
+  "\u{1F5A4}": "heart-black",
+  "\u{1F90D}": "heart-white",
+  "\u{1F49C}": "heart-purple",
+  "\u{1F499}": "heart-blue",
+  "\u{1F49A}": "heart-green",
+  "\u{1F9E1}": "heart-orange",
+
+  // --- The rest of the pack.
+  "\u{2B50}": "star",
+  "\u{2728}": "sparkle",
+  "\u{1F319}": "moon",
+  "\u{1F308}": "rainbow",
+  "\u{1F98B}": "butterfly",
+  "\u{1F48E}": "gem",
+  "\u{2601}": "cloud",
+  "\u{26A1}": "bolt",
+  "\u{1F451}": "crown",
+  "\u{1F352}": "cherry",
+  "\u{1F338}": "flower",
+  "\u{1F380}": "bow",
+  "\u{1F43E}": "paw",
+  "\u{1F4AC}": "bubble",
+};
+
+/**
+ * Emoji arrive with and without a trailing variation selector depending
+ * on where they were typed - U+2764 and U+2764 U+FE0F are the same heart
+ * to a reader and different strings to a Record. Stored without it,
+ * looked up without it.
+ */
+function baseChar(char: string): string {
+  return char.replace(/\uFE0F/g, "");
+}
+
+export function spriteFor(char: string): string | null {
+  return SPRITES[baseChar(char)] ?? null;
+}
+
 export const CLASSIC_EMOJI = Object.keys(FACES);
 
 /**
@@ -321,27 +399,128 @@ export const EMOJI_NAMES: Record<string, string[]> = {
   "\u{1F624}": ["steam", "annoyed", "frustrated", "huff"],
   "\u{1F615}": ["confused", "unsure", "hmm"],
   "\u{1F621}": ["angry", "rage", "mad", "furious"],
+
+  // --- People and hands.
+  "\u{1F9D1}": ["person", "someone", "me"],
+  "\u{1F465}": ["people", "friends", "everyone", "us"],
+  "\u{1F44B}": ["wave", "hi", "hello", "bye"],
+  "\u{1F44D}": ["thumbs up", "yes", "good", "agree"],
+  "\u{1F918}": ["rock on", "horns", "metal", "yeah"],
+  "\u{270C}": ["peace", "two", "victory"],
+  "\u{1F44F}": ["clap", "applause", "bravo"],
+  "\u{1FAF6}": ["heart hands", "love", "adore"],
+
+  // --- Music, film, photography.
+  "\u{1F3A7}": ["headphones", "listening", "music"],
+  "\u{1F4BF}": ["cd", "disc", "album", "record"],
+  "\u{1F4FC}": ["vhs", "tape", "video"],
+  "\u{1F3AC}": ["clapper", "film", "movie", "action"],
+  "\u{1F4F7}": ["camera", "photo", "photography", "shot"],
+  "\u{1F39E}": ["film strip", "frames", "cinema"],
+  "\u{1F3A4}": ["mic", "microphone", "singing", "vocals"],
+  "\u{1F4FA}": ["tv", "telly", "show", "series"],
+  "\u{1F3B5}": ["music note", "song", "track", "tune"],
+
+  // --- Hearts, one for every page.
+  "\u{2764}": ["red heart", "love", "heart"],
+  "\u{1F5A4}": ["black heart", "goth", "heart"],
+  "\u{1F90D}": ["white heart", "heart"],
+  "\u{1F49C}": ["purple heart", "heart"],
+  "\u{1F499}": ["blue heart", "heart"],
+  "\u{1F49A}": ["green heart", "heart"],
+  "\u{1F9E1}": ["orange heart", "heart"],
+
+  // --- Vibes.
+  "\u{2B50}": ["star", "favourite", "five"],
+  "\u{2728}": ["sparkles", "shiny", "magic", "glitter"],
+  "\u{1F319}": ["moon", "night", "late"],
+  "\u{1F308}": ["rainbow", "pride", "colours"],
+  "\u{1F98B}": ["butterfly", "pretty"],
+  "\u{1F48E}": ["gem", "diamond", "gorgeous"],
+  "\u{2601}": ["cloud", "dreamy", "soft"],
+  "\u{26A1}": ["lightning", "energy", "fast"],
+  "\u{1F451}": ["crown", "queen", "king", "best"],
+  "\u{1F352}": ["cherries", "cute", "fruit"],
+  "\u{1F338}": ["flower", "blossom", "spring"],
+  "\u{1F380}": ["bow", "ribbon", "coquette"],
+  "\u{1F43E}": ["paws", "pet", "cat", "dog"],
+  "\u{1F4AC}": ["speech", "talk", "comment", "say"],
 };
 
+/**
+ * The keyboard's tabs.
+ *
+ * Sixty-one in one grid is a wall. Grouped, it is four short rows you can
+ * take in - and the groups say what the site is: people, the three things
+ * it reviews, and the decorative half people use to set a tone.
+ */
+export const EMOJI_GROUPS: { name: string; chars: string[] }[] = [
+  { name: "Faces", chars: Object.keys(FACES) },
+  {
+    name: "People",
+    chars: [
+      "\u{1F9D1}", "\u{1F465}", "\u{1F44B}", "\u{1F44D}",
+      "\u{1F918}", "\u{270C}", "\u{1F44F}", "\u{1FAF6}",
+    ],
+  },
+  {
+    name: "Music & film",
+    chars: [
+      "\u{1F3A7}", "\u{1F4BF}", "\u{1F3B5}", "\u{1F3A4}",
+      "\u{1F3AC}", "\u{1F4FC}", "\u{1F39E}", "\u{1F4FA}",
+      "\u{1F4F7}",
+    ],
+  },
+  {
+    name: "Vibes",
+    chars: [
+      "\u{2764}", "\u{1F5A4}", "\u{1F90D}", "\u{1F49C}",
+      "\u{1F499}", "\u{1F49A}", "\u{1F9E1}", "\u{2728}",
+      "\u{2B50}", "\u{1F319}", "\u{1F308}", "\u{1F98B}",
+      "\u{1F48E}", "\u{2601}", "\u{26A1}", "\u{1F451}",
+      "\u{1F352}", "\u{1F338}", "\u{1F380}", "\u{1F43E}",
+      "\u{1F4AC}",
+    ],
+  },
+];
+
+/** Every emoji the keyboard offers, faces and sprites together. */
+export const ALL_EMOJI = EMOJI_GROUPS.flatMap((g) => g.chars);
+
 export function emojiLabel(char: string): string {
-  return EMOJI_NAMES[char]?.[0] ?? "emoji";
+  return EMOJI_NAMES[baseChar(char)]?.[0] ?? "emoji";
 }
 
 /** Faces whose name or any of its aliases start with the typed text. */
 export function searchEmoji(query: string): string[] {
   const q = query.trim().toLowerCase();
-  if (!q) return CLASSIC_EMOJI;
+  if (!q) return ALL_EMOJI;
   // Prefix rather than substring: typing `:s` should offer smile and
   // scream, not every name with an s buried in it.
-  return CLASSIC_EMOJI.filter((char) =>
-    (EMOJI_NAMES[char] ?? []).some((name) =>
+  return ALL_EMOJI.filter((char) =>
+    (EMOJI_NAMES[baseChar(char)] ?? []).some((name) =>
       name.split(" ").some((word) => word.startsWith(q))
     )
   );
 }
 
 export function ClassicEmoji({ char, size = 22 }: { char: string; size?: number }) {
-  const face = FACES[char];
+  const sprite = spriteFor(char);
+  if (sprite) {
+    return (
+      <img
+        src={`/stickers/${sprite}.svg`}
+        alt=""
+        width={size}
+        height={size}
+        style={{ display: "block" }}
+        role="img"
+        aria-label={emojiLabel(char)}
+      />
+    );
+  }
+
+  const face = FACES[baseChar(char)];
   // Anything we have not drawn falls through to the character itself, so
   // a member who typed their own still gets what they typed.
   if (!face) {

@@ -26,6 +26,7 @@ const MORE_LINKS = MORE_PAGES.filter((p) => !RETIRED_FROM_NAV.has(p.slug)).map((
 
 const TITLES: { match: (p: string) => boolean; title: string }[] = [
   { match: (p) => p === "/", title: "Feed" },
+  { match: (p) => p.startsWith("/weekly"), title: "This Week" },
   { match: (p) => p.startsWith("/chat"), title: "Chat" },
   { match: (p) => p.startsWith("/leaderboard"), title: "Leaderboard" },
   { match: (p) => p.startsWith("/search"), title: "Search" },

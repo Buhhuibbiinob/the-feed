@@ -12834,13 +12834,26 @@ a.issue-link::after {
 .emoji-kb {
   position: fixed;
   z-index: 81;
-  width: min(288px, calc(100vw - 24px));
+  width: min(316px, calc(100vw - 24px));
+  max-height: 60vh;
+  overflow-y: auto;
   padding: 8px;
   border: 1px solid var(--nav-border);
   border-radius: 12px;
   background: var(--panel-body-bg);
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
   animation: sheet-up 160ms var(--ease-ios) both;
+}
+.emoji-kb-tabs {
+  margin-bottom: 7px;
+  font-size: 10px;
+}
+.emoji-kb-tabs .seg-item {
+  /* "Music & film" wrapped to two lines and made that one tab taller
+     than the other three. */
+  white-space: nowrap;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 .emoji-kb-head {
   font-size: 11px;
@@ -12877,5 +12890,90 @@ a.issue-link::after {
   .emoji-launch,
   .emoji-key {
     transition: none;
+  }
+}
+
+/* ---- This Week --------------------------------------------------------
+   The question is the biggest thing on the page. Everything else here is
+   an answer to it, so nothing else competes for the eye. */
+.weekly-kicker {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.weekly-question {
+  margin: 4px 0 14px;
+  font-size: 21px;
+  line-height: 1.25;
+  font-weight: 700;
+  font-family: var(--page-heading-font, inherit);
+}
+.weekly-form {
+  gap: 8px;
+}
+.weekly-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.weekly-field input,
+.weekly-field textarea {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.weekly-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.weekly-answer {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "who pick" ". note";
+  gap: 3px 10px;
+  align-items: start;
+}
+.weekly-answer-who {
+  grid-area: who;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  min-width: 96px;
+}
+.weekly-answer-who img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.weekly-answer-pick {
+  grid-area: pick;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.weekly-answer-pick .sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+.weekly-answer-note {
+  grid-area: note;
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text);
+}
+@media (max-width: 520px) {
+  /* The name moves above the pick rather than beside it: two columns at
+     this width leaves the answer about nine characters wide. */
+  .weekly-answer {
+    grid-template-columns: 1fr;
+    grid-template-areas: "who" "pick" "note";
   }
 }

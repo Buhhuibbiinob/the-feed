@@ -7,6 +7,7 @@
 // When these two drifted apart, the admin screen offered Archive/Unarchive
 // toggles for pages the nav had already dropped, so the toggle looked broken.
 export const BUILTIN_PAGES: { slug: string; label: string; path: string }[] = [
+  { slug: "weekly", label: "This Week", path: "/weekly" },
   { slug: "chat", label: "Chat", path: "/chat" },
   { slug: "leaderboard", label: "Leaderboard", path: "/leaderboard" },
   { slug: "new-releases", label: "New Releases", path: "/new-releases" },

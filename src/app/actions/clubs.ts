@@ -1,5 +1,7 @@
 "use server";
 
+import { isMediaType } from "@/lib/media";
+
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
@@ -27,8 +29,8 @@ export async function createClub(
   } = await supabase.auth.getUser();
   if (!user) return { error: "You must be signed in." };
 
-  const mediaType = String(formData.get("media_type") ?? "");
-  if (mediaType !== "music" && mediaType !== "movie_tv") {
+  const mediaType = formData.get("media_type");
+  if (!isMediaType(mediaType)) {
     return { error: "Choose a category." };
   }
 

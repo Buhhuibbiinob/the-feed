@@ -51,14 +51,11 @@ export async function createPost(
     return { error: bodySafety.reason };
   }
 
-  // Clubs only exist for music and film - the table's own constraint says
-  // so. Photography posts were still being run through here on their
-  // title, which meant a club insert that could only ever fail, silently,
-  // on every photo posted.
-  const clubbable = mediaType === "music" || mediaType === "movie_tv";
+  // Every category has clubs now, photography included - the constraint
+  // that made a photo post's club insert fail silently has been widened.
+  // Music groups by artist; the other two group by the thing itself.
   const clubName = mediaType === "music" ? artist : title;
-  const clubId =
-    clubbable && clubName ? await findOrCreateClub(supabase, mediaType as MediaType, clubName) : null;
+  const clubId = clubName ? await findOrCreateClub(supabase, mediaType as MediaType, clubName) : null;
 
   const { error } = await supabase.from("posts").insert({
     user_id: user.id,

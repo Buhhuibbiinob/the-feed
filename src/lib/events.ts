@@ -19,6 +19,11 @@ export const EVENT_KINDS = [
   // block/failure rates before anyone redesigns messaging, and there is
   // no way to know them without recording the failures.
   "dm_failed",
+  // Answering the week's question. The point of the weekly prompt is
+  // that it gets people who would not otherwise post to post, so how
+  // many people answer each week is the number that says whether it
+  // works.
+  "weekly_answer",
 ] as const;
 
 export type EventKind = (typeof EVENT_KINDS)[number];

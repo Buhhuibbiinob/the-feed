@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Portal } from "@/components/Portal";
-import { ClassicEmoji, emojiLabel, searchEmoji } from "@/components/ClassicEmoji";
+import { ClassicEmoji, EMOJI_GROUPS, emojiLabel, searchEmoji } from "@/components/ClassicEmoji";
 
 type Field = HTMLTextAreaElement | HTMLInputElement;
 
@@ -73,6 +73,7 @@ export function EmojiKeyboard() {
   const [field, setField] = useState<Field | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState<string | null>(null);
+  const [group, setGroup] = useState(0);
   const [anchor, setAnchor] = useState<{
     left: number;
     right: number;
@@ -180,7 +181,8 @@ export function EmojiKeyboard() {
 
   if (!field || !anchor) return null;
 
-  const faces = searchEmoji(query ?? "");
+  // Typing `:` searches across every group; the tabs are for browsing.
+  const faces = query !== null ? searchEmoji(query) : EMOJI_GROUPS[group].chars;
   // Above the field when there is room, below when there isn't - the
   // panel should never be the thing covering what you are writing.
   const above = anchor.top > 260;
@@ -218,7 +220,22 @@ export function EmojiKeyboard() {
           role="listbox"
           aria-label="Emoji"
         >
-          {query !== null && <div className="emoji-kb-head">:{query}</div>}
+          {query !== null ? (
+            <div className="emoji-kb-head">:{query}</div>
+          ) : (
+            <div className="seg emoji-kb-tabs">
+              {EMOJI_GROUPS.map((g, i) => (
+                <button
+                  type="button"
+                  key={g.name}
+                  className={`seg-item${group === i ? " active" : ""}`}
+                  onClick={() => setGroup(i)}
+                >
+                  {g.name}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="emoji-kb-grid">
             {faces.map((char) => (
               <button

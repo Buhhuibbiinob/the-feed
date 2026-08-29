@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { createClub, type CreateClubFormState } from "@/app/actions/clubs";
-import { MEDIA_LABELS } from "@/lib/media";
+import { MEDIA_LABELS, MEDIA_TYPES } from "@/lib/media";
 
 const initialState: CreateClubFormState = {};
 
@@ -32,10 +32,19 @@ export function CreateClubForm() {
     <div className="avatar-picker">
       {state.error && <div className="form-error">{state.error}</div>}
       <form action={formAction} className="comment-form">
-        <input type="text" name="name" placeholder="Club name (artist, movie, or show)" maxLength={120} required />
+        <input
+          type="text"
+          name="name"
+          placeholder="Club name (artist, film, show, or subject)"
+          maxLength={120}
+          required
+        />
         <select name="media_type" defaultValue="music" className="theme-select">
-          <option value="music">{MEDIA_LABELS.music}</option>
-          <option value="movie_tv">{MEDIA_LABELS.movie_tv}</option>
+          {MEDIA_TYPES.map((type) => (
+            <option value={type} key={type}>
+              {MEDIA_LABELS[type]}
+            </option>
+          ))}
         </select>
         <div className="field-hint">
           New clubs are reviewed by an admin before they&apos;re listed publicly. Once approved,
