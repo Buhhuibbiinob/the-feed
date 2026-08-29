@@ -7,7 +7,8 @@ export type NotificationType =
   | "view"
   | "reaction"
   | "twin"
-  | "reply";
+  | "reply"
+  | "duet";
 
 export type NotificationItem = {
   id: string;
@@ -42,6 +43,14 @@ type ViewRow = {
 
 type ReplyRow = {
   post_id: string;
+  created_at: string;
+  profiles: ProfileRef;
+};
+
+type DuetRow = {
+  id: string;
+  title: string;
+  responds_to_post_id: string;
   created_at: string;
   profiles: ProfileRef;
 };
@@ -140,7 +149,7 @@ export async function getNotifications(
   const favoriteIds = (favoriteRows ?? []).map((row) => row.id as string);
   const ownCommentIds = (ownCommentRows ?? []).map((row) => row.id as string);
 
-  const [likesRes, commentsRes, followsRes, viewsRes, reactionsRes, repliesRes] =
+  const [likesRes, commentsRes, followsRes, viewsRes, reactionsRes, repliesRes, duetsRes] =
     await Promise.all([
     postIds.length === 0
       ? Promise.resolve({ data: [] as RelatedRow[] })
@@ -202,6 +211,20 @@ export async function getNotifications(
           .order("created_at", { ascending: false })
           .limit(20)
           .returns<ReplyRow[]>(),
+    // Duets: posts that point at one of yours. Derived like everything
+    // else here rather than written when the post is made, so there is
+    // one source of truth for "someone answered you".
+    postIds.length === 0
+      ? Promise.resolve({ data: [] as DuetRow[] })
+      : supabase
+          .from("posts")
+          .select("id, title, responds_to_post_id, created_at, profiles(username, avatar_url)")
+          .in("responds_to_post_id", postIds)
+          .neq("user_id", userId)
+          .gte("created_at", sinceIso)
+          .order("created_at", { ascending: false })
+          .limit(20)
+          .returns<DuetRow[]>(),
   ]);
 
   const likes: NotificationItem[] = (likesRes.data ?? []).map((row) => {
@@ -297,6 +320,23 @@ export async function getNotifications(
     };
   });
 
+  const duets: NotificationItem[] = (duetsRes.data ?? []).map((row) => {
+    const profile = firstProfile(row.profiles);
+    return {
+      id: `duet-${row.id}`,
+      type: "duet" as const,
+      actorUsername: profile?.username ?? "someone",
+      actorAvatarUrl: profile?.avatar_url ?? null,
+      // Links to THEIR answer, not to your original. You already know
+      // what you wrote; the new thing is what they said back.
+      postId: row.id,
+      postTitle: titleById.get(row.responds_to_post_id) ?? null,
+      subject: null,
+      emoji: null,
+      createdAt: row.created_at,
+    };
+  });
+
   return [
     ...likes,
     ...comments,
@@ -304,6 +344,7 @@ export async function getNotifications(
     ...views,
     ...reactions,
     ...replies,
+    ...duets,
     ...twin,
   ]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())

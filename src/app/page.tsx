@@ -6,6 +6,7 @@ import { logEventDaily } from "@/lib/events";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { loadReactions } from "@/lib/reactions";
+import { loadAnswered } from "@/lib/duets";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
 import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
@@ -38,6 +39,7 @@ type PostRow = {
   cover_url: string | null;
   spotify_track_id: string | null;
   youtube_video_id: string | null;
+  responds_to_post_id: string | null;
   profiles: {
     username: string;
     avatar_url: string | null;
@@ -131,7 +133,7 @@ function orderBlocks(blocks: LayoutBlock[], shuffle: boolean): LayoutBlock[] {
 }
 
 const POST_COLUMNS =
-  "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id";
+  "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, responds_to_post_id";
 
 // A failed select here comes back as null data, which silently renders as an
 // empty feed - exactly how a missing column once emptied the whole homepage.
@@ -448,6 +450,7 @@ export default async function FeedPage({
   const pagePosts = feedPosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   // One query for the page's reactions rather than one per card.
+  const answered = await loadAnswered(supabase, pagePosts);
   const reactions = await loadReactions(
     supabase,
     pagePosts.map((p) => p.id),
@@ -921,6 +924,7 @@ export default async function FeedPage({
                 commentCount={commentCounts.get(post.id) ?? 0}
                 reactions={reactions.countsFor(post.id)}
                 myReaction={reactions.mineFor(post.id)}
+                answering={answered.get(post.id) ?? null}
                 sticker={
                   post.id === newFavePost?.id
                     ? "new"

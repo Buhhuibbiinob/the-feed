@@ -108,6 +108,7 @@ export function PostCard({
   previewId,
   reactions,
   myReaction = null,
+  answering = null,
 }: {
   post: PostCardData;
   currentUserId: string | null;
@@ -125,6 +126,8 @@ export function PostCard({
    *  failing to render. */
   reactions?: ReactionCount[];
   myReaction?: string | null;
+  /** Set when this post answers another one. */
+  answering?: { id: string; title: string; username: string } | null;
 }) {
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -171,6 +174,12 @@ export function PostCard({
                 </Link>
               ),
               currentUserId ? <AddToCollectionButton key="save" postId={post.id} asLink /> : null,
+              // Answering your own review is a loop with nobody in it.
+              currentUserId && !isOwner ? (
+                <Link key="duet" href={`/post/new?responds_to=${post.id}`}>
+                  Answer with yours
+                </Link>
+              ) : null,
               <ShareButton
                 key="share"
                 postId={post.id}
@@ -215,6 +224,13 @@ export function PostCard({
         />
       )}
       <div className="post-card-body">
+        {answering && (
+          /* Above the badge, because "this is an answer" changes how you
+             read everything under it. */
+          <Link href={`/post/${answering.id}`} className="duet-ref">
+            ↩ answering <b>{answering.username}</b> on {answering.title}
+          </Link>
+        )}
         <span className={`badge ${post.mediaType}`}>{MEDIA_LABELS[post.mediaType]}</span>
         {(post.spotifyTrackId || post.youtubeVideoId) && (
           <div id={previewId}>

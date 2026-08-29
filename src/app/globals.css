@@ -13327,3 +13327,38 @@ a.issue-link::after {
     transition: none;
   }
 }
+
+/* ---- Duets ------------------------------------------------------------
+   A review that answers another review. The reference sits above the
+   category badge, because knowing it is an answer changes how you read
+   everything under it. */
+.duet-ref {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.duet-ref:hover {
+  color: var(--link);
+  text-decoration: none;
+}
+.duet-ref b {
+  color: var(--link);
+}
+.duet-answering {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--link) 7%, transparent);
+  font-size: 12px;
+}
+.duet-answering .sub {
+  font-size: 11px;
+  color: var(--muted);
+}

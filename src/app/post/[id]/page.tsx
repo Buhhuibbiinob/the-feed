@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { loadReactions } from "@/lib/reactions";
+import { loadAnswered } from "@/lib/duets";
 import { isAdmin } from "@/lib/admin";
 import { PostCard } from "@/components/PostCard";
 import { NowPlayingHero } from "@/components/NowPlayingHero";
@@ -22,6 +23,7 @@ type PostRow = {
   cover_url: string | null;
   spotify_track_id: string | null;
   youtube_video_id: string | null;
+  responds_to_post_id: string | null;
   profiles: { username: string } | null;
 };
 
@@ -112,7 +114,7 @@ export default async function PostPage({
   const { data: postData } = await supabase
     .from("posts")
     .select(
-      "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username)"
+      "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, responds_to_post_id, profiles!posts_user_id_fkey(username)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -131,6 +133,10 @@ export default async function PostPage({
       .returns<CommentRow[]>(),
     supabase.from("likes").select("post_id", { count: "exact", head: true }).eq("post_id", id),
     loadReactions(supabase, [id], user?.id ?? null),
+  ]);
+
+  const answered = await loadAnswered(supabase, [
+    { id: post.id, responds_to_post_id: post.responds_to_post_id },
   ]);
 
   let liked = false;
@@ -199,6 +205,7 @@ export default async function PostPage({
         likeCount={likeCount ?? 0}
         reactions={reactions.countsFor(id)}
         myReaction={reactions.mineFor(id)}
+        answering={answered.get(id) ?? null}
         commentCount={comments.reduce((n, c) => n + 1 + c.replies.length, 0)}
         hideCommentLink
         previewId="real-player"

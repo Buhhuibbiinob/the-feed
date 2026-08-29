@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { createPost, type PostFormState } from "@/app/actions/posts";
 import type { YoutubeVideo } from "@/lib/youtube";
@@ -7,7 +8,12 @@ import { MEDIA_LABELS } from "@/lib/media";
 
 const initialState: PostFormState = {};
 
-export function PostForm() {
+export function PostForm({
+  answering = null,
+}: {
+  /** The review this one answers, when it is a duet. */
+  answering?: { id: string; title: string; username: string } | null;
+}) {
   const [state, formAction, pending] = useActionState(createPost, initialState);
   const [formKey, setFormKey] = useState(0);
   const [lastOk, setLastOk] = useState(state.ok);
@@ -66,10 +72,18 @@ export function PostForm() {
 
   return (
     <div className="panel">
-      <div className="panel-head">Post a Review</div>
+      <div className="panel-head">{answering ? "Your answer" : "Post a Review"}</div>
       <div className="panel-body">
         {state.error && <div className="form-error">{state.error}</div>}
+        {answering && (
+          <div className="duet-answering">
+            Answering <b>{answering.username}</b> on{" "}
+            <Link href={`/post/${answering.id}`}>{answering.title}</Link>
+            <span className="sub">Pick your own thing. It posts as a normal review, linked to theirs.</span>
+          </div>
+        )}
         <form action={formAction} key={formKey}>
+          {answering && <input type="hidden" name="responds_to" value={answering.id} />}
           <div className="field">
             <label htmlFor="media_type">Category</label>
             <select
