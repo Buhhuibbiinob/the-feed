@@ -12787,3 +12787,95 @@ a.issue-link::after {
   margin-bottom: 8px;
   font-size: 13px;
 }
+
+/* A profile shows four reviews and offers the rest. Full-width and quiet
+   - it is the end of a list, not a call to action. */
+.reviews-more {
+  display: block;
+  width: 100%;
+  padding: 11px;
+  border: 0;
+  border-top: 1px solid var(--panel-border);
+  background: none;
+  color: var(--link);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.reviews-more:hover {
+  background: color-mix(in srgb, var(--link) 8%, transparent);
+}
+
+/* ---- Emoji keyboard ----------------------------------------------------
+   Sits in the bottom-left corner of whatever field has focus, and opens a
+   panel above it - or below, when the field is near the top of the
+   screen. Portaled to <body>, because `fixed` inside a page anchors to
+   the page rather than the viewport once the transition wrapper has a
+   transform on it. */
+.emoji-launch {
+  position: fixed;
+  z-index: 80;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 120ms var(--ease);
+}
+.emoji-launch:hover {
+  opacity: 1;
+}
+
+.emoji-kb {
+  position: fixed;
+  z-index: 81;
+  width: min(288px, calc(100vw - 24px));
+  padding: 8px;
+  border: 1px solid var(--nav-border);
+  border-radius: 12px;
+  background: var(--panel-body-bg);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
+  animation: sheet-up 160ms var(--ease-ios) both;
+}
+.emoji-kb-head {
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--muted);
+  padding: 0 2px 6px;
+}
+.emoji-kb-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+}
+.emoji-key {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+  transition: background 100ms var(--ease);
+}
+.emoji-key:hover {
+  background: color-mix(in srgb, var(--link) 16%, transparent);
+}
+.emoji-key:active {
+  background: color-mix(in srgb, var(--link) 28%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .emoji-kb {
+    animation: none;
+  }
+  .emoji-launch,
+  .emoji-key {
+    transition: none;
+  }
+}

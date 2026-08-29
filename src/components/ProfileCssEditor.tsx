@@ -74,6 +74,8 @@ export function ProfileCssEditor({ ownerId, config }: { ownerId: string; config:
               setSaved(false);
             }}
             spellCheck={false}
+            // Code, not prose. The emoji keyboard would open on `:hover`.
+            data-no-emoji=""
             placeholder={".panel { border-radius: 20px }\n.pf-photo { transform: rotate(-3deg) }"}
           />
           <div className="css-editor-foot">

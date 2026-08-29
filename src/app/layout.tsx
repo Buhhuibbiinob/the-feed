@@ -7,6 +7,7 @@ import { SideRail } from "@/components/SideRail";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { ComposeSheet } from "@/components/ComposeSheet";
 import { ClickSound } from "@/components/ClickSound";
+import { EmojiKeyboard } from "@/components/EmojiKeyboard";
 import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { PostFab } from "@/components/PostFab";
 import { createClient } from "@/lib/supabase/server";
@@ -148,6 +149,7 @@ export default async function RootLayout({
       </head>
       <body>
         <ClickSound />
+        <EmojiKeyboard />
         <PullToRefresh />
         <div className="sk-app-shell">
           <SiteHeader
