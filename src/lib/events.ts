@@ -24,6 +24,11 @@ export const EVENT_KINDS = [
   // many people answer each week is the number that says whether it
   // works.
   "weekly_answer",
+  // Polls are the cheapest thing anyone can do here, so the ratio of
+  // votes to polls created is the number that says whether "low effort"
+  // actually landed.
+  "poll_created",
+  "poll_vote",
 ] as const;
 
 export type EventKind = (typeof EVENT_KINDS)[number];
