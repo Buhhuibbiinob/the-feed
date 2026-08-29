@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { authorizeProfileEdit } from "@/lib/botEditing";
 import { loadPageConfig, savePageConfig } from "@/lib/pageConfigStore";
 import { applyPreset, resolvePageConfig, type SurfaceKind } from "@/lib/pageConfig";
 import { normalizeColor } from "@/lib/pageTheme";
@@ -22,6 +23,12 @@ export type PageConfigState = { error?: string; ok?: boolean };
  * RLS is the real boundary, but failing here means a wrong owner comes
  * back as a readable message rather than a policy violation the UI has to
  * translate.
+ *
+ * For profiles this now also allows an admin editing a BOT - see
+ * lib/botEditing. That returns the service-role client for a bot edit,
+ * because every policy on this schema is auth.uid() = owner and an admin
+ * is not that; writing with the ordinary client would be refused by RLS
+ * and look exactly like the save silently not happening.
  */
 async function requireOwnership(surface: SurfaceKind, ownerId: string) {
   const supabase = await createClient();
@@ -31,8 +38,11 @@ async function requireOwnership(surface: SurfaceKind, ownerId: string) {
   if (!user) return { error: "You must be signed in." as const };
 
   if (surface === "profile") {
-    if (ownerId !== user.id) return { error: "That isn't your page." as const };
-    return { supabase, user };
+    const auth = await authorizeProfileEdit(ownerId);
+    if (!auth.ok) return { error: auth.error };
+    // `user` stays the real caller so events are logged against the
+    // person who did it, not the bot it was done to.
+    return { supabase: auth.client, user };
   }
 
   const { data: club } = await supabase

@@ -6,8 +6,32 @@ import { guessContentType, isImageFile, megabytes } from "@/lib/uploads";
 import { MAX_STICKERS, MAX_STICKER_BYTES, normalizeSticker } from "@/lib/stickers";
 import { packStickerUrl } from "@/lib/stickerPack";
 import { logEvent } from "@/lib/events";
+import { authorizeProfileEdit } from "@/lib/botEditing";
 
 export type StickerState = { error?: string; ok?: boolean };
+
+/**
+ * Whose page is being stickered, and with which client.
+ *
+ * Stickers used to be implicitly "yours" - every query filtered on the
+ * signed-in user. They now take an explicit owner so an admin can
+ * decorate a bot's page, which authorizeProfileEdit permits only for
+ * actual bot accounts. With no owner posted it resolves to the caller,
+ * so every existing call site keeps its old meaning.
+ */
+async function resolveTarget(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." as const };
+
+  const posted = String(formData.get("owner_id") ?? "").trim();
+  const targetId = posted || user.id;
+  const auth = await authorizeProfileEdit(targetId);
+  if (!auth.ok) return { error: auth.error };
+  return { client: auth.client, targetId, actorId: user.id };
+}
 
 async function revalidateOwn(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
   const { data } = await supabase.from("profiles").select("username").eq("id", userId).maybeSingle();
@@ -18,11 +42,9 @@ export async function uploadSticker(
   _prev: StickerState,
   formData: FormData
 ): Promise<StickerState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const file = formData.get("sticker_file");
   if (!(file instanceof File) || file.size === 0) return { error: "Choose an image." };
@@ -34,7 +56,7 @@ export async function uploadSticker(
   const { count } = await supabase
     .from("profile_stickers")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+    .eq("user_id", targetId);
   if ((count ?? 0) >= MAX_STICKERS) {
     return { error: `That's ${MAX_STICKERS} stickers. Remove one first.` };
   }
@@ -42,7 +64,9 @@ export async function uploadSticker(
   // Named by a fresh id rather than the file name, so uploading two
   // things both called "sticker.png" doesn't overwrite the first.
   const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-  const path = `${user.id}/stickers/${crypto.randomUUID()}.${ext}`;
+  // Filed under the page it belongs to, not the person who uploaded it,
+  // so deleting a bot later takes its sticker files with it.
+  const path = `${targetId}/stickers/${crypto.randomUUID()}.${ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from("avatars")
@@ -58,7 +82,7 @@ export async function uploadSticker(
   // exactly 0 degrees is the thing that stops it looking like a scrapbook.
   const nth = count ?? 0;
   const { error } = await supabase.from("profile_stickers").insert({
-    user_id: user.id,
+    user_id: targetId,
     image_url: publicUrl,
     x: 50 + (nth % 3) * 8 - 8,
     y: 50 + (nth % 4) * 6 - 9,
@@ -67,8 +91,8 @@ export async function uploadSticker(
   });
   if (error) return { error: error.message };
 
-  await logEvent(supabase, user.id, "profile_edit", "sticker_add");
-  await revalidateOwn(supabase, user.id);
+  await logEvent(supabase, actorId, "profile_edit", "sticker_add");
+  await revalidateOwn(supabase, targetId);
   return { ok: true };
 }
 
@@ -86,11 +110,9 @@ export async function addPackSticker(
   _prev: StickerState,
   formData: FormData
 ): Promise<StickerState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const imageUrl = packStickerUrl(formData.get("pack_id"));
   if (!imageUrl) return { error: "Unknown sticker." };
@@ -98,7 +120,7 @@ export async function addPackSticker(
   const { count } = await supabase
     .from("profile_stickers")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+    .eq("user_id", targetId);
   if ((count ?? 0) >= MAX_STICKERS) {
     return { error: `That's ${MAX_STICKERS} stickers. Remove one first.` };
   }
@@ -108,7 +130,7 @@ export async function addPackSticker(
   // can see rather than one heart with three hidden underneath.
   const nth = count ?? 0;
   const { error } = await supabase.from("profile_stickers").insert({
-    user_id: user.id,
+    user_id: targetId,
     image_url: imageUrl,
     x: 50 + (nth % 3) * 8 - 8,
     y: 50 + (nth % 4) * 6 - 9,
@@ -117,8 +139,8 @@ export async function addPackSticker(
   });
   if (error) return { error: error.message };
 
-  await logEvent(supabase, user.id, "profile_edit", "sticker_pack_add");
-  await revalidateOwn(supabase, user.id);
+  await logEvent(supabase, actorId, "profile_edit", "sticker_pack_add");
+  await revalidateOwn(supabase, targetId);
   return { ok: true };
 }
 
@@ -128,11 +150,9 @@ export async function addPackSticker(
  * of requests to place one sticker.
  */
 export async function placeSticker(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+  const target = await resolveTarget(formData);
+  if ("error" in target) return;
+  const { client: supabase, targetId } = target;
 
   const id = String(formData.get("id") ?? "");
   if (!id) return;
@@ -155,17 +175,15 @@ export async function placeSticker(formData: FormData) {
     .from("profile_stickers")
     .update(z === null ? placement : { ...placement, z })
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", targetId);
 
-  await revalidateOwn(supabase, user.id);
+  await revalidateOwn(supabase, targetId);
 }
 
 export async function deleteSticker(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+  const target = await resolveTarget(formData);
+  if ("error" in target) return;
+  const { client: supabase, targetId } = target;
 
   const id = String(formData.get("id") ?? "");
   if (!id) return;
@@ -174,10 +192,10 @@ export async function deleteSticker(formData: FormData) {
     .from("profile_stickers")
     .select("image_url")
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("user_id", targetId)
     .maybeSingle();
 
-  await supabase.from("profile_stickers").delete().eq("id", id).eq("user_id", user.id);
+  await supabase.from("profile_stickers").delete().eq("id", id).eq("user_id", targetId);
 
   // Take the file with it, so removing a sticker doesn't quietly leave the
   // image in storage forever.
@@ -190,5 +208,5 @@ export async function deleteSticker(formData: FormData) {
     }
   }
 
-  await revalidateOwn(supabase, user.id);
+  await revalidateOwn(supabase, targetId);
 }
