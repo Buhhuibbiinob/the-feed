@@ -5,6 +5,7 @@ import { layoutVariantFor, LAYOUT_EXPERIMENT } from "@/lib/experiments";
 import { logEventDaily } from "@/lib/events";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { loadReactions } from "@/lib/reactions";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
 import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
@@ -445,6 +446,13 @@ export default async function FeedPage({
     totalPages
   );
   const pagePosts = feedPosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // One query for the page's reactions rather than one per card.
+  const reactions = await loadReactions(
+    supabase,
+    pagePosts.map((p) => p.id),
+    user?.id ?? null
+  );
 
   const likeCounts = new Map<string, number>();
   const likedByMe = new Set<string>();
@@ -911,6 +919,8 @@ export default async function FeedPage({
                 liked={likedByMe.has(post.id)}
                 likeCount={likeCounts.get(post.id) ?? 0}
                 commentCount={commentCounts.get(post.id) ?? 0}
+                reactions={reactions.countsFor(post.id)}
+                myReaction={reactions.mineFor(post.id)}
                 sticker={
                   post.id === newFavePost?.id
                     ? "new"

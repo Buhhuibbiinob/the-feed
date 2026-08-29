@@ -12977,3 +12977,100 @@ a.issue-link::after {
     grid-template-areas: "who" "pick" "note";
   }
 }
+
+/* An emoji drawn by the site, sitting inside a run of text.
+   inline-block with a nudge down, because these are square artwork on a
+   line of type: baseline-aligned they sit too high and the line looks
+   like it has a bump in it. */
+.emoji-inline {
+  display: inline-block;
+  vertical-align: -0.18em;
+  margin: 0 0.02em;
+}
+.emoji-inline svg,
+.emoji-inline img {
+  display: block;
+}
+
+/* ---- Reactions on a review --------------------------------------------
+   A quiet row under the body. Reactions are a response, not a scoreboard,
+   so the chips are small and the ones nobody has picked are fainter than
+   the ones people have. */
+.post-reactions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 9px;
+}
+.reaction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel-body-bg);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 110ms var(--ease);
+}
+.reaction-chip:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.reaction-chip:active:not(:disabled) {
+  transform: scale(0.94);
+}
+.reaction-chip:disabled {
+  cursor: default;
+}
+.reaction-chip.mine {
+  border-color: var(--link);
+  background: color-mix(in srgb, var(--link) 14%, var(--panel-body-bg));
+}
+.reaction-chip.add {
+  opacity: 0.45;
+  padding: 3px 6px;
+}
+.reaction-chip.add:hover {
+  opacity: 1;
+}
+.reaction-chip.more {
+  opacity: 0.45;
+  padding: 2px 8px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.reaction-chip.more:hover {
+  opacity: 1;
+}
+.reaction-pop {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(316px, calc(100vw - 40px));
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--nav-border);
+  border-radius: 12px;
+  background: var(--panel-body-bg);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
+  animation: sheet-up 160ms var(--ease-ios) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reaction-chip {
+    transition: none;
+  }
+  .reaction-chip:hover:not(:disabled),
+  .reaction-chip:active:not(:disabled) {
+    transform: none;
+  }
+  .reaction-pop {
+    animation: none;
+  }
+}

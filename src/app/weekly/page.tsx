@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { EmojiText } from "@/lib/emojiText";
 import { WeeklyAnswerForm, type ExistingAnswer } from "@/components/WeeklyAnswerForm";
 import {
   currentPrompt,
@@ -40,10 +41,20 @@ function AnswerCard({
         <b>{profile?.username ?? "someone"}</b>
       </Link>
       <div className="weekly-answer-pick">
-        <b>{answer.title}</b>
-        {answer.subtitle && <span className="sub">{answer.subtitle}</span>}
+        <b>
+          <EmojiText>{answer.title}</EmojiText>
+        </b>
+        {answer.subtitle && (
+          <span className="sub">
+            <EmojiText>{answer.subtitle}</EmojiText>
+          </span>
+        )}
       </div>
-      {answer.note && <p className="weekly-answer-note">{answer.note}</p>}
+      {answer.note && (
+        <p className="weekly-answer-note">
+          <EmojiText>{answer.note}</EmojiText>
+        </p>
+      )}
     </div>
   );
 }

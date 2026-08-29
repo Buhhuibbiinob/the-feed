@@ -1,5 +1,7 @@
 "use client";
 
+import { EmojiText } from "@/lib/emojiText";
+
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { signGuestbook, deleteGuestbookEntry, type ModuleFormState } from "@/app/actions/pageModules";
@@ -85,7 +87,9 @@ export function Guestbook({
                   <Link href={`/profile/${entry.authorUsername}`}>{entry.authorUsername}</Link>
                   <span className="ts">{when(entry.createdAt)}</span>
                 </div>
-                <div className="guestbook-text">{entry.body}</div>
+                <div className="guestbook-text">
+                  <EmojiText>{entry.body}</EmojiText>
+                </div>
               </div>
               {(isOwner || currentUserId === entry.authorId) && (
                 <form action={deleteGuestbookEntry}>

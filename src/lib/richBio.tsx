@@ -1,9 +1,16 @@
 import type { ReactNode } from "react";
+import { renderEmojiText } from "@/lib/emojiText";
 
 // Bio formatting. Markdown-flavoured on purpose - people already know the
 // asterisk convention from every chat app - but parsed into React elements
 // rather than HTML, so there is no path from a bio to injected markup no
-// matter what someone types. Emoji need no handling; they are just text.
+// matter what someone types.
+//
+// Emoji used to need no handling here, because they were just text and
+// the reader's own font drew them. They are drawn by the site now, so
+// every run of plain text goes through renderEmojiText on its way out -
+// which is what stops a classic smiley picked from the keyboard from
+// arriving on somebody else's phone as the flat modern one.
 //
 // Supported: **bold**, *italic*, __underline__, ~~strike~~, `code`,
 // and newlines. Unmatched markers stay as literal characters.
@@ -26,7 +33,7 @@ function parseInline(text: string, keyPrefix: string): ReactNode[] {
 
   const flush = () => {
     if (buffer) {
-      out.push(buffer);
+      out.push(...renderEmojiText(buffer, 18, `${keyPrefix}-${out.length}`));
       buffer = "";
     }
   };

@@ -1,5 +1,7 @@
 "use client";
 
+import { EmojiText } from "@/lib/emojiText";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -148,7 +150,7 @@ export function ChatRoom({
             const isOwn = userId === m.userId;
             return (
               <div className="chat-row" key={m.id}>
-                <b>{m.username}:</b> {m.body}
+                <b>{m.username}:</b> <EmojiText>{m.body}</EmojiText>
                 {userId && (
                   <span className="chat-msg-actions">
                     {isOwn ? (

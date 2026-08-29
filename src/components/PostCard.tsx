@@ -1,9 +1,12 @@
 "use client";
 
+import { EmojiText } from "@/lib/emojiText";
+
 import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
 import { updatePost, deletePost, type PostFormState } from "@/app/actions/posts";
 import { LikeButton } from "@/components/LikeButton";
+import { PostReactions, type ReactionCount } from "@/components/PostReactions";
 import { AddToCollectionButton } from "@/components/AddToCollectionButton";
 import { ShareButton } from "@/components/ShareButton";
 import { PreviewPlayer } from "@/components/PreviewPlayer";
@@ -99,6 +102,8 @@ export function PostCard({
   hideCommentLink = false,
   sticker,
   previewId,
+  reactions,
+  myReaction = null,
 }: {
   post: PostCardData;
   currentUserId: string | null;
@@ -111,6 +116,11 @@ export function PostCard({
   hideCommentLink?: boolean;
   sticker?: "hot" | "new";
   previewId?: string;
+  /** Left out on the surfaces that have not been wired for reactions
+   *  yet, where the row simply does not appear rather than the card
+   *  failing to render. */
+  reactions?: ReactionCount[];
+  myReaction?: string | null;
 }) {
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -138,7 +148,7 @@ export function PostCard({
         />
         <div className="track-body">
           <Link href={`/post/${post.id}`} className="track-title">
-            {post.title}
+            <EmojiText>{post.title}</EmojiText>
             {post.artist && <> - {post.artist}</>}
           </Link>
           <div className="track-actions">
@@ -220,6 +230,14 @@ export function PostCard({
           </div>
         )}
         <SpoilerText text={post.body} />
+        {reactions && (
+          <PostReactions
+            postId={post.id}
+            counts={reactions}
+            mine={myReaction}
+            signedIn={currentUserId !== null}
+          />
+        )}
         <div className="post-meta">
           <Link
             href={`/profile/${post.username}`}

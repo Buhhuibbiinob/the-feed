@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { EmojiText } from "@/lib/emojiText";
 import { getThread, markThreadRead } from "@/lib/messages";
 import { MessageComposer } from "@/components/MessageComposer";
 import { blockUser, unblockUser, reportDirectMessage } from "@/app/actions/moderation";
@@ -68,7 +69,9 @@ export default async function MessageThreadPage({
           messages.map((m) => (
             <div key={m.id} className={`dm-bubble-row ${m.senderId === user.id ? "mine" : ""}`}>
               <div className="dm-bubble">
-                <div>{m.body}</div>
+                <div>
+                  <EmojiText>{m.body}</EmojiText>
+                </div>
                 <div className="dm-bubble-foot">
                   <span className="dm-bubble-time">{timeAgo(m.createdAt)}</span>
                   {m.senderId !== user.id && (
