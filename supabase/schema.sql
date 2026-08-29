@@ -1249,7 +1249,15 @@ alter table public.profiles add column if not exists profile_song_spotify_id tex
 alter table public.profiles add column if not exists profile_song_title text;
 alter table public.profiles add column if not exists profile_song_artist text;
 alter table public.profiles add column if not exists profile_song_thumbnail_url text;
-alter table public.profiles add column if not exists profile_song_autoplay boolean not null default false;
+-- Autoplay is the point of a profile song, so it defaults on. It shipped
+-- defaulting to false, which meant nobody's song ever started unless they
+-- found the checkbox - indistinguishable from the feature not working.
+-- Existing rows are all `false` and there is no way to tell "never chose"
+-- from "chose no", so the migration below flips them; anyone who wants
+-- silence unticks it once.
+alter table public.profiles add column if not exists profile_song_autoplay boolean not null default true;
+alter table public.profiles alter column profile_song_autoplay set default true;
+update public.profiles set profile_song_autoplay = true where profile_song_autoplay = false;
 
 -- Banner shape. The banner is cropped client-side to whichever of these
 -- the member picked, so the profile head can render at the same ratio

@@ -75,7 +75,10 @@ export function ProfileSongPicker({ current }: { current: ProfileSongDraft }) {
           <input type="checkbox" name="autoplay" defaultChecked={current.autoplay} />
           Start playing when someone opens my profile
         </label>
-        <div className="field-hint">Starts muted and loops. Browsers insist.</div>
+        <div className="field-hint">
+          Starts muted, then turns itself up the moment the visitor taps anything - browsers will
+          not let a page make noise before that, on any of them. Loops until they leave.
+        </div>
 
         <div className="form-actions">
           <button className="btn" type="submit" disabled={pending || !picked}>

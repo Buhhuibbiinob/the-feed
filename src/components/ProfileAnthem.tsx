@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+// If a visitor has turned the sound off once, later profiles in the same
+// visit stay quiet. Autoplay is the point, but overriding somebody who
+// has explicitly said no is a different thing from starting by default.
+const OPTED_OUT = "feedback-anthem-muted";
 
 /**
  * The profile song, autoplaying on every browser.
@@ -33,24 +38,56 @@ export function ProfileAnthem({
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(autoplay);
 
-  // Once the visitor has interacted anywhere on the page, the browser will
-  // usually allow sound - so the first click is used to lift the mute
-  // without needing them to find the button.
+  const command = useCallback(
+    (func: "unMute" | "mute" | "playVideo" | "pauseVideo") => {
+      frameRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: "command", func, args: [] }),
+        "*"
+      );
+    },
+    []
+  );
+
+  // Lift the mute on the first interaction anywhere on the page.
+  //
+  // This effect existed and did nothing: the handler removed its own
+  // listener and returned. So the song did autoplay - silently - and
+  // stayed silent until you found the Sound button, which is
+  // indistinguishable from "the music does not play".
+  //
+  // Browsers block audible autoplay outright; that is a platform rule,
+  // not a setting. Muted autoplay is allowed everywhere, and after a
+  // gesture the same page may unmute. So: start muted, and take the
+  // first tap - any tap, anywhere - as the permission to turn it up.
   useEffect(() => {
     if (!autoplay) return;
-    function onFirstGesture() {
-      document.removeEventListener("pointerdown", onFirstGesture);
+    try {
+      if (sessionStorage.getItem(OPTED_OUT) === "1") return;
+    } catch {
+      // Storage blocked; treat it as no opt-out on record.
     }
-    document.addEventListener("pointerdown", onFirstGesture, { once: true });
-    return () => document.removeEventListener("pointerdown", onFirstGesture);
-  }, [autoplay]);
 
-  function command(func: "unMute" | "mute" | "playVideo" | "pauseVideo") {
-    frameRef.current?.contentWindow?.postMessage(
-      JSON.stringify({ event: "command", func, args: [] }),
-      "*"
-    );
-  }
+    function onFirstGesture() {
+      // The iframe may still be handshaking, so the command is sent now
+      // and again shortly after. Both are cheap and a duplicate unMute
+      // is a no-op.
+      command("unMute");
+      command("playVideo");
+      window.setTimeout(() => {
+        command("unMute");
+        command("playVideo");
+      }, 350);
+      setMuted(false);
+      setPlaying(true);
+    }
+
+    document.addEventListener("pointerdown", onFirstGesture, { once: true });
+    document.addEventListener("keydown", onFirstGesture, { once: true });
+    return () => {
+      document.removeEventListener("pointerdown", onFirstGesture);
+      document.removeEventListener("keydown", onFirstGesture);
+    };
+  }, [autoplay, command]);
 
   function toggleSound() {
     if (muted) {
@@ -58,9 +95,21 @@ export function ProfileAnthem({
       command("playVideo");
       setMuted(false);
       setPlaying(true);
+      try {
+        sessionStorage.removeItem(OPTED_OUT);
+      } catch {
+        // Nothing to do.
+      }
     } else {
       command("mute");
       setMuted(true);
+      // Remembered for the rest of the visit, so every profile after
+      // this one does not turn itself back up.
+      try {
+        sessionStorage.setItem(OPTED_OUT, "1");
+      } catch {
+        // Nothing to do.
+      }
     }
   }
 
