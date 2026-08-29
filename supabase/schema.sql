@@ -20,6 +20,13 @@ alter table public.profiles add column if not exists banned boolean not null def
 
 -- "Currently listening / watching" status, manually set by the user.
 alter table public.profiles add column if not exists status_media_type text check (status_media_type in ('music', 'movie_tv'));
+-- Photography is a first-class category everywhere else, so a photographer
+-- can say what they are shooting the same way a listener says what they are
+-- playing. Widened rather than replaced, because the original constraint has
+-- already been applied on the live database.
+alter table public.profiles drop constraint if exists profiles_status_media_type_check;
+alter table public.profiles add constraint profiles_status_media_type_check
+  check (status_media_type in ('music', 'movie_tv', 'photography'));
 alter table public.profiles add column if not exists status_title text;
 alter table public.profiles add column if not exists status_artist text;
 alter table public.profiles add column if not exists status_cover_url text;
@@ -421,11 +428,17 @@ create policy "Signed-in users can delete avatars"
 -- ---------- clubs (fan clubs for artists, bands, movies, shows) ----------
 create table if not exists public.clubs (
   id uuid primary key default gen_random_uuid(),
-  media_type text not null check (media_type in ('music', 'movie_tv')),
+  media_type text not null check (media_type in ('music', 'movie_tv', 'photography')),
   name text not null,
   slug text not null,
   created_at timestamptz not null default now()
 );
+
+-- Widened for photography clubs. The create table above only runs on a fresh
+-- database; this runs every time, so an existing install picks it up too.
+alter table public.clubs drop constraint if exists clubs_media_type_check;
+alter table public.clubs add constraint clubs_media_type_check
+  check (media_type in ('music', 'movie_tv', 'photography'));
 
 create unique index if not exists clubs_media_type_slug_idx on public.clubs (media_type, slug);
 
@@ -1211,10 +1224,11 @@ create policy "Admins can change site settings"
 -- narrower rule than the data satisfies.
 --
 -- Clubs (clubs.media_type) and the currently-listening status
--- (profiles.status_media_type) keep their two-value constraints on
--- purpose - a photography club and a "currently viewing" status weren't
--- part of this, and widening them would let the UI offer options the
--- rest of the app doesn't handle.
+-- (profiles.status_media_type) were held to two values for a while,
+-- because a photography club and a "currently shooting" status weren't
+-- part of the original change. Both are widened now, next to their own
+-- definitions above, so photography is a first-class category
+-- everywhere rather than only in posts.
 
 -- ---------- Custom background: fill mode + mirror ----------
 -- How the member's uploaded background sits on the page. Nullable with a
@@ -1739,3 +1753,57 @@ create policy "Members manage their own stickers"
 -- of what makes a sticker look stuck on rather than placed.
 alter table public.profile_stickers add column if not exists scale_y real not null default 1;
 alter table public.profile_stickers add column if not exists skew real not null default 0;
+
+-- ---------- weekly_answers ----------
+-- One question a week, the same for everybody, with all the answers on one
+-- page.
+--
+-- The question itself is NOT stored here: lib/weeklyPrompt.ts derives it
+-- from the week arithmetically, so the rotation runs for ever with no
+-- scheduled job and no admin filling a table in. What is stored is what
+-- people said. prompt_id is kept anyway so an answer still makes sense if
+-- the prompt list is ever reordered.
+create table if not exists public.weekly_answers (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  -- The Monday of the week, in UTC. Text rather than date so it matches
+  -- the YYYY-MM-DD the app computes, with no timezone conversion in
+  -- between to move an answer into the wrong week.
+  week_start text not null,
+  prompt_id text not null,
+  title text not null,
+  subtitle text,
+  note text,
+  created_at timestamptz not null default now(),
+  -- One answer each per week. Changing your mind edits it rather than
+  -- adding a second.
+  unique (user_id, week_start)
+);
+
+create index if not exists weekly_answers_week_idx
+  on public.weekly_answers (week_start, created_at desc);
+
+alter table public.weekly_answers enable row level security;
+
+drop policy if exists "Weekly answers are viewable by everyone" on public.weekly_answers;
+create policy "Weekly answers are viewable by everyone"
+  on public.weekly_answers for select
+  using (true);
+
+drop policy if exists "Members can answer for themselves" on public.weekly_answers;
+create policy "Members can answer for themselves"
+  on public.weekly_answers for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can edit their own answer" on public.weekly_answers;
+create policy "Members can edit their own answer"
+  on public.weekly_answers for update
+  using (auth.uid() = user_id);
+
+drop policy if exists "Members and admins can delete an answer" on public.weekly_answers;
+create policy "Members and admins can delete an answer"
+  on public.weekly_answers for delete
+  using (
+    auth.uid() = user_id
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );

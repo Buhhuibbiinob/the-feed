@@ -33,9 +33,27 @@ export const STICKER_PACK: PackSticker[] = [
   { id: "bubble", label: "Speech bubble", group: "Bits" },
   { id: "arrow", label: "Arrow", group: "Bits" },
   { id: "tape", label: "Tape", group: "Bits" },
+
+  // Drawn for the emoji keyboard, and they are stickers for free: the
+  // keyboard and the pack render the same files.
+  { id: "headphones", label: "Headphones", group: "Media" },
+  { id: "cd", label: "CD", group: "Media" },
+  { id: "vhs", label: "VHS", group: "Media" },
+  { id: "clapper", label: "Clapperboard", group: "Media" },
+  { id: "camera", label: "Camera", group: "Media" },
+  { id: "film", label: "Film strip", group: "Media" },
+  { id: "mic", label: "Microphone", group: "Media" },
+  { id: "tv", label: "TV", group: "Media" },
+
+  { id: "heart-black", label: "Black heart", group: "Hearts" },
+  { id: "heart-white", label: "White heart", group: "Hearts" },
+  { id: "heart-purple", label: "Purple heart", group: "Hearts" },
+  { id: "heart-blue", label: "Blue heart", group: "Hearts" },
+  { id: "heart-green", label: "Green heart", group: "Hearts" },
+  { id: "heart-orange", label: "Orange heart", group: "Hearts" },
 ];
 
-export const STICKER_GROUPS = ["Cute", "Shiny", "Bits"] as const;
+export const STICKER_GROUPS = ["Cute", "Shiny", "Bits", "Media", "Hearts"] as const;
 
 /**
  * The image path for a pack id, or null.

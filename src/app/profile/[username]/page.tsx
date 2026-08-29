@@ -10,7 +10,7 @@ import { ObsessedPicker } from "@/components/ObsessedPicker";
 import { ProfileSongPicker } from "@/components/ProfileSongPicker";
 import { FavoritesEditor } from "@/components/FavoritesEditor";
 import { StatusPicker } from "@/components/StatusPicker";
-import { MEDIA_LABELS, MEDIA_TYPES, type MediaType } from "@/lib/media";
+import { MEDIA_LABELS, MEDIA_TYPES, MEDIA_VERBS, type MediaType } from "@/lib/media";
 import { buildTasteProfile, tasteMatch as computeMatch, workKey } from "@/lib/taste";
 import { earnedBadges, BADGES } from "@/lib/badges";
 import { computeStreak } from "@/lib/streak";
@@ -1182,7 +1182,7 @@ export default async function ProfilePage({
 
               {status?.status_media_type && (
                 <div className="pf-status">
-                  {status.status_media_type === "music" ? "Listening to " : "Watching "}
+                  {MEDIA_VERBS[status.status_media_type as MediaType] ?? "Listening to"}{" "}
                   <b>{status.status_title}</b>
                   {status.status_artist && <> - {status.status_artist}</>}
                 </div>

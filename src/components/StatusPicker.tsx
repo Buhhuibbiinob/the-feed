@@ -3,13 +3,14 @@
 import { useActionState, useEffect, useState } from "react";
 import { setStatus, clearStatus, type ProfileFormState } from "@/app/actions/profile";
 import type { YoutubeVideo } from "@/lib/youtube";
+import { MEDIA_TYPES, MEDIA_VERB_PROMPTS, type MediaType } from "@/lib/media";
 
 const initialState: ProfileFormState = {};
 
 export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(setStatus, initialState);
-  const [mediaType, setMediaType] = useState<"music" | "movie_tv">("music");
+  const [mediaType, setMediaType] = useState<MediaType>("music");
   const [title, setTitle] = useState("");
   const [videoQuery, setVideoQuery] = useState("");
   const [videoResults, setVideoResults] = useState<YoutubeVideo[]>([]);
@@ -56,15 +57,18 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
         <select
           value={mediaType}
           onChange={(e) => {
-            setMediaType(e.target.value as "music" | "movie_tv");
+            setMediaType(e.target.value as MediaType);
             setSelectedVideo(null);
             setTitle("");
             setVideoQuery("");
             setVideoResults([]);
           }}
         >
-          <option value="music">Listening to…</option>
-          <option value="movie_tv">Watching…</option>
+          {MEDIA_TYPES.map((type) => (
+            <option value={type} key={type}>
+              {MEDIA_VERB_PROMPTS[type]}
+            </option>
+          ))}
         </select>
 
         {selectedVideo ? (

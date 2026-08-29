@@ -1,5 +1,7 @@
 "use server";
 
+import { isMediaType } from "@/lib/media";
+
 import { revalidatePath } from "next/cache";
 import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { createClient } from "@/lib/supabase/server";
@@ -304,8 +306,8 @@ export async function setStatus(
   } = await supabase.auth.getUser();
   if (!user) return { error: "You must be signed in." };
 
-  const mediaType = String(formData.get("media_type") ?? "");
-  if (mediaType !== "music" && mediaType !== "movie_tv") {
+  const mediaType = formData.get("media_type");
+  if (!isMediaType(mediaType)) {
     return { error: "Invalid media type." };
   }
   const title = String(formData.get("title") ?? "").trim();
