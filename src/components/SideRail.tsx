@@ -50,6 +50,7 @@ export function SideRail({
         // First in the group on purpose: it is the only thing here that
         // changes on its own every week, so it is the one worth checking.
         { href: "/weekly", label: "This Week" },
+        { href: "/polls", label: "Matchups" },
         { href: "/leaderboard", label: "Leaderboard" },
         { href: "/chat", label: "Chat" },
         { href: "/newsletter", label: "Newsletter" },
