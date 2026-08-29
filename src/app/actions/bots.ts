@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { getSiteFlags } from "@/lib/siteFlags";
-import { askGeminiText } from "@/lib/gemini";
+import { askGeminiText, askGeminiJson } from "@/lib/gemini";
+import { currentPrompt } from "@/lib/weeklyPrompt";
 import { getTrendingTracks, getTrackFromAnyEra, getDeepCut, getSceneTrack } from "@/lib/lastfm";
 import { discoverMovies, discoverTv } from "@/lib/tmdb";
 import { searchVideos } from "@/lib/youtube";
@@ -369,10 +370,46 @@ function stripBotPunctuation(text: string): string {
 // Universal rules only. Anything describing HOW someone types now lives in
 // a per-bot register (see REGISTERS in botVoices), because holding it here
 // meant every account typed identically no matter what its persona said.
+// The only emoji a bot may use: the site's own drawn ones. Anything else
+// renders as whatever the reader's phone draws, which is exactly the
+// mismatch the drawn set exists to remove - and a bot is the last account
+// that should be the one breaking it.
+//
+// A short, plain subset on purpose. The full set includes a mind-blown
+// face and seven coloured hearts, and a bot reaching for those is the
+// tell, not the ban.
+const BOT_EMOJI = ["\u{1F602}", "\u{1F622}", "\u{1F60D}", "\u{2764}", "\u{1F3A7}", "\u{1F62E}"];
+const BOT_EMOJI_ALLOWED = BOT_EMOJI.join(" ");
+
+/**
+ * Strips every emoji that is not on the list above.
+ *
+ * The prompt asks; this enforces. A model told "only these six" will
+ * still occasionally produce a seventh, and one sparkle emoji in a bot's
+ * post is the thing a member notices.
+ */
+function stripForeignEmoji(text: string): string {
+  const allowed = new Set(BOT_EMOJI);
+  return text.replace(/\p{Extended_Pictographic}\uFE0F?/gu, (match) =>
+    allowed.has(match.replace(/\uFE0F/g, "")) ? match : ""
+  ).replace(/[ \t]{2,}/g, " ").trim();
+}
+
+const MATCHUP_PROMPT = `You are a member of Feedback starting a two-option matchup for people to vote on. Pick two REAL things of the same kind that people genuinely argue about - two albums, two films, two shows. They must be real and well known enough that others have an opinion. Never pick a thing against itself.
+
+The question is short and casual, the way you would ask a friend. Not "which is superior".
+
+Reply with ONLY JSON: {"question": "short question", "a": "first thing", "a_sub": "artist or director", "b": "second thing", "b_sub": "artist or director"}`;
+
+const WEEKLY_PROMPT = `You are a member of Feedback answering this week's question. Pick ONE real thing you would actually name, and add one short line about why - or no line at all, which is also fine. Never explain at length.
+
+Reply with ONLY JSON: {"title": "the pick", "subtitle": "artist or director, or empty", "note": "one short line, or empty"}`;
+
 const HUMAN_RULES = `Universal rules:
 - Never use a dash of any kind. No em dashes, no en dashes, no hyphens joining clauses. Start a new sentence instead.
 - Never use a semicolon. Nobody types one into a phone.
-- No emojis, no hashtags.
+- No hashtags.
+- Emojis: almost never. Most posts should have none at all. If one genuinely fits, use exactly one, and only from this list: ${BOT_EMOJI_ALLOWED}. Never two. Never at the start.
 - Never use the words "proper" or "fr". They are overused here and they stand out.
 - Vary your opener. Do not begin the way a post like this usually begins.
 
@@ -423,9 +460,9 @@ const REVIEW_PROMPT = `You are a member of Feedback posting a quick reaction. Th
 
 Reply with ONLY the post text, no title, no quotes.`;
 
-const CHAT_PROMPT = `You are a member of Feedback dropping one message into a busy live chat. One or two lines, mid-conversation, like you've been in the room a while. ${HUMAN_RULES}
-
-Reply with ONLY the message.`;
+// CHAT_PROMPT deleted along with the chat step. Leaving an unused prompt
+// around is how the behaviour comes back six months later because someone
+// finds it and wires it up again.
 
 type ReviewSubject = {
   mediaType: "music" | "movie_tv";
@@ -614,7 +651,7 @@ export async function runBotRound(requestedId = ""): Promise<BotState> {
           media_type: subject.mediaType,
           title: subject.title,
           artist: subject.artist,
-          body: stripBannedTics(stripBotPunctuation(body)),
+          body: stripForeignEmoji(stripBannedTics(stripBotPunctuation(body))),
           rating: 3 + Math.floor(Math.random() * 3), // 3-5, never a fake pan
           cover_url: cover,
           youtube_video_id: video?.id ?? null,
@@ -625,22 +662,13 @@ export async function runBotRound(requestedId = ""): Promise<BotState> {
     }
   }
 
-  // 2. A live-chat message, but only sometimes. Each Gemini call competes
-  //    for the same free-tier quota, so when it's tight the review - the
-  //    thing the feed is actually for - should win it rather than losing
-  //    the toss to a chat line.
-  const chat = Math.random() < 0.5 ? null : await askGeminiText(
-    `${CHAT_PROMPT}\n\nYour voice: ${persona}\n\nHow you type: ${voice.rules}`,
-    "Say something about what you're listening to or watching lately."
-  );
-  if (chat && !chat.ok) skipped.push(`couldn't write a chat message: ${chat.error}`);
-  if (chat?.ok) {
-    const { error } = await adminClient
-      .from("chat_messages")
-      .insert({ user_id: bot.id, body: stripBannedTics(stripBotPunctuation(chat.text)) });
-    if (error) console.error(`[bots] chat insert failed: ${error.message}`);
-    else done.push("posted in chat");
-  }
+  // 2. Chat: deliberately nothing.
+  //
+  //    Bots no longer post in the live chat at all. A feed post is a thing
+  //    you scroll past; a chat message is addressed to whoever is in the
+  //    room, and answering one gets you nothing back. That is the moment
+  //    somebody works out which accounts are not people, and it poisons
+  //    every other thing a bot does. The room is for members.
 
   // 3. Like a recent post from a real member (never another bot's, which
   //    would just be bots inflating each other).
@@ -670,10 +698,129 @@ export async function runBotRound(requestedId = ""): Promise<BotState> {
       .from("likes")
       .upsert({ post_id: target.id, user_id: bot.id }, { onConflict: "post_id,user_id" });
     if (!error) done.push("liked a post");
+
+    // 4. And sometimes a reaction rather than a like. A reaction says
+    //    which yes it was, and a member seeing one on their review gets
+    //    something a like does not give them. Only sometimes, because a
+    //    bot that reacts to everything is a bot.
+    if (Math.random() < 0.45) {
+      const other = likeable[Math.floor(Math.random() * likeable.length)];
+      const emoji = BOT_EMOJI[Math.floor(Math.random() * BOT_EMOJI.length)];
+      const { error: reactionError } = await adminClient
+        .from("post_reactions")
+        .upsert(
+          { post_id: other.id, user_id: bot.id, emoji },
+          { onConflict: "post_id,user_id" }
+        );
+      if (!reactionError) done.push("reacted to a post");
+    }
+  }
+
+  // 5. Answer this week's question, if this bot has not already. One
+  //    answer each per week is the same rule members get, and the page is
+  //    the emptiest thing on the site when nobody has answered yet.
+  if (Math.random() < 0.4) {
+    const { prompt, week } = currentPrompt();
+    const { data: existing } = await adminClient
+      .from("weekly_answers")
+      .select("user_id")
+      .eq("user_id", bot.id)
+      .eq("week_start", week)
+      .maybeSingle();
+
+    if (!existing) {
+      const answer = await askGeminiJson<{ title?: string; subtitle?: string; note?: string }>(
+        `${WEEKLY_PROMPT}\n\nYour voice: ${persona}\n\nHow you type: ${voice.rules}`,
+        `The question is: "${prompt.question}". Answer it with one real ${prompt.placeholder.toLowerCase()}.`
+      );
+      if (answer.ok && answer.data && answer.data.title) {
+        const fields = answer.data;
+        const { error } = await adminClient.from("weekly_answers").insert({
+          user_id: bot.id,
+          week_start: week,
+          prompt_id: prompt.id,
+          title: String(fields.title).slice(0, 160),
+          subtitle: fields.subtitle ? String(fields.subtitle).slice(0, 160) : null,
+          note: fields.note
+            ? stripForeignEmoji(stripBannedTics(stripBotPunctuation(String(fields.note)))).slice(0, 280)
+            : null,
+        });
+        if (!error) done.push("answered this week's question");
+      } else if (!answer.ok) {
+        skipped.push(`couldn't answer the weekly question: ${answer.error}`);
+      }
+    }
+  }
+
+  // 6. Start a matchup, rarely. Two options and a question is the
+  //    cheapest thing on the site for a member to join in with, and an
+  //    empty /polls is the deadest page there is - but a page of bot
+  //    matchups is worse than an empty one, so this is the lowest odds
+  //    of anything in this round.
+  if (Math.random() < 0.18) {
+    const made = await askGeminiJson<{
+      question?: string;
+      a?: string;
+      a_sub?: string;
+      b?: string;
+      b_sub?: string;
+    }>(
+      `${MATCHUP_PROMPT}\n\nYour voice: ${persona}`,
+      "Start one matchup about something you actually care about."
+    );
+    if (!made.ok) {
+      skipped.push(`couldn't write a matchup: ${made.error}`);
+    } else {
+    const fields = made.data ?? {};
+    const a = String(fields.a ?? "").trim();
+    const b = String(fields.b ?? "").trim();
+    // Same rule the human form enforces: two of the same thing is not a
+    // choice. A model asked for two options will occasionally give one.
+    if (a && b && a.toLowerCase() !== b.toLowerCase()) {
+      const { error } = await adminClient.from("polls").insert({
+        created_by: bot.id,
+        media_type: subject?.mediaType ?? "music",
+        question: fields.question
+          ? stripForeignEmoji(stripBotPunctuation(String(fields.question))).slice(0, 120)
+          : null,
+        option_a: a.slice(0, 90),
+        option_b: b.slice(0, 90),
+        subtitle_a: fields.a_sub ? String(fields.a_sub).slice(0, 90) : null,
+        subtitle_b: fields.b_sub ? String(fields.b_sub).slice(0, 90) : null,
+      });
+      if (!error) done.push("started a matchup");
+    }
+    }
+  }
+
+  // 7. Vote on somebody else's matchup. Voting costs nothing and is the
+  //    thing that makes a poll worth opening, so this is far likelier
+  //    than starting one.
+  if (Math.random() < 0.6) {
+    const { data: openPolls } = await adminClient
+      .from("polls")
+      .select("id, created_by")
+      .neq("created_by", bot.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    const choices = openPolls ?? [];
+    if (choices.length > 0) {
+      const poll = choices[Math.floor(Math.random() * choices.length)];
+      const { error } = await adminClient.from("poll_votes").upsert(
+        {
+          poll_id: poll.id,
+          user_id: bot.id,
+          choice: Math.random() < 0.5 ? "a" : "b",
+        },
+        { onConflict: "poll_id,user_id" }
+      );
+      if (!error) done.push("voted on a matchup");
+    }
   }
 
   revalidatePath("/");
-  revalidatePath("/chat");
+  revalidatePath("/weekly");
+  revalidatePath("/polls");
   revalidatePath("/leaderboard");
 
   if (done.length === 0) {
