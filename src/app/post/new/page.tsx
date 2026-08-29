@@ -4,7 +4,11 @@ import { PostForm } from "@/components/PostForm";
 
 export const metadata = { title: "New Post - Feedback" };
 
-export default async function NewPostPage() {
+export default async function NewPostPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ responds_to?: string }>;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -24,5 +28,21 @@ export default async function NewPostPage() {
     );
   }
 
-  return <PostForm />;
+  // Answering someone: show what you are answering, so the form is not
+  // just a blank review that happens to be linked to something.
+  const { responds_to: respondsTo } = await searchParams;
+  let answering: { id: string; title: string; username: string } | null = null;
+  if (respondsTo) {
+    const { data } = await supabase
+      .from("posts")
+      .select("id, title, profiles(username)")
+      .eq("id", respondsTo)
+      .maybeSingle<{ id: string; title: string; profiles: { username: string } | { username: string }[] | null }>();
+    if (data) {
+      const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
+      answering = { id: data.id, title: data.title, username: profile?.username ?? "someone" };
+    }
+  }
+
+  return <PostForm answering={answering} />;
 }

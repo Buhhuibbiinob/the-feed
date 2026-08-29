@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { logEvent } from "@/lib/events";
+import { friendlyDbError } from "@/lib/dbError";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { findOrCreateClub } from "@/lib/clubs";
@@ -36,6 +37,7 @@ export async function createPost(
   const coverUrl = String(formData.get("cover_url") ?? "").trim();
   const spotifyTrackId = String(formData.get("spotify_track_id") ?? "").trim();
   const youtubeVideoId = String(formData.get("youtube_video_id") ?? "").trim();
+  const respondsTo = String(formData.get("responds_to") ?? "").trim() || null;
 
   if (!MEDIA_TYPES.includes(mediaType as (typeof MEDIA_TYPES)[number])) {
     return { error: "Choose a valid category." };
@@ -68,24 +70,46 @@ export async function createPost(
   const clubName = mediaType === "music" ? artist : title;
   const clubId = clubName ? await findOrCreateClub(supabase, mediaType as MediaType, clubName) : null;
 
-  const { error } = await supabase.from("posts").insert({
-    user_id: user.id,
-    media_type: mediaType,
-    title,
-    body,
-    rating,
-    artist: artist || null,
-    cover_url: coverUrl || null,
-    spotify_track_id: spotifyTrackId || null,
-    youtube_video_id: youtubeVideoId || null,
-    club_id: clubId,
-  });
-
-  if (error) {
-    return { error: error.message };
+  // The post being answered is looked up rather than trusted: a client
+  // could post any uuid, and a duet pointing at something that is not a
+  // review would render an "answering" line with nothing behind it.
+  let answering: { id: string; user_id: string } | null = null;
+  if (respondsTo) {
+    const { data } = await supabase
+      .from("posts")
+      .select("id, user_id")
+      .eq("id", respondsTo)
+      .maybeSingle<{ id: string; user_id: string }>();
+    answering = data ?? null;
   }
 
-  await logEvent(supabase, user.id, "review_posted", "feed");
+  const { error } = await supabase
+    .from("posts")
+    .insert({
+      user_id: user.id,
+      media_type: mediaType,
+      title,
+      body,
+      rating,
+      artist: artist || null,
+      cover_url: coverUrl || null,
+      spotify_track_id: spotifyTrackId || null,
+      youtube_video_id: youtubeVideoId || null,
+      club_id: clubId,
+      responds_to_post_id: answering?.id ?? null,
+    });
+
+  if (error) {
+    return { error: friendlyDbError(error.message) };
+  }
+
+  // No notification is written here: alerts on this site are DERIVED by
+  // querying, not stored, so a duet is picked up by getNotifications
+  // reading posts that point at yours. Inserting one would have been a
+  // second source of truth for the same event.
+
+  await logEvent(supabase, user.id, "review_posted", answering ? "duet" : "feed");
+  if (answering) revalidatePath(`/post/${answering.id}`);
   revalidatePath("/");
   revalidatePath("/clubs");
   return { ok: true };
