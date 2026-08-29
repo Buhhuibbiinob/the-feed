@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { markNotificationsSeen } from "@/app/actions/notifications";
 import { IconButton } from "@/components/IconButton";
 import { describeAlert, type AlertItem as NotificationItem } from "@/lib/alertText";
+import { EmojiText } from "@/lib/emojiText";
 import { createClient } from "@/lib/supabase/client";
 
 export function NotificationBell({ initialCount }: { initialCount: number }) {
@@ -134,7 +135,7 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
                   className="nav-bell-avatar"
                 />
                 <span>
-                  <b>{item.actorUsername}</b> {describeAlert(item)}
+                  <b>{item.actorUsername}</b> <EmojiText>{describeAlert(item)}</EmojiText>
                 </span>
               </Link>
             ))

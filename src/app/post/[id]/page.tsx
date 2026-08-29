@@ -3,6 +3,7 @@ import { PinReviewButton } from "@/components/PinReviewButton";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { loadReactions } from "@/lib/reactions";
 import { isAdmin } from "@/lib/admin";
 import { PostCard } from "@/components/PostCard";
 import { NowPlayingHero } from "@/components/NowPlayingHero";
@@ -119,7 +120,7 @@ export default async function PostPage({
   const post = postData as PostRow | null;
   if (!post) notFound();
 
-  const [{ data: commentRows }, { count: likeCount }] = await Promise.all([
+  const [{ data: commentRows }, { count: likeCount }, reactions] = await Promise.all([
     supabase
       .from("comments")
       .select(
@@ -129,6 +130,7 @@ export default async function PostPage({
       .order("created_at", { ascending: true })
       .returns<CommentRow[]>(),
     supabase.from("likes").select("post_id", { count: "exact", head: true }).eq("post_id", id),
+    loadReactions(supabase, [id], user?.id ?? null),
   ]);
 
   let liked = false;
@@ -195,6 +197,8 @@ export default async function PostPage({
         viewerIsAdmin={viewerIsAdmin}
         liked={liked}
         likeCount={likeCount ?? 0}
+        reactions={reactions.countsFor(id)}
+        myReaction={reactions.mineFor(id)}
         commentCount={comments.reduce((n, c) => n + 1 + c.replies.length, 0)}
         hideCommentLink
         previewId="real-player"

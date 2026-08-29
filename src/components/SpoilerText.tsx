@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import { renderEmojiText } from "@/lib/emojiText";
 
 export function SpoilerText({ text }: { text: string }) {
   // Built fresh per render. A shared /g regex carries lastIndex between
@@ -14,13 +15,15 @@ export function SpoilerText({ text }: { text: string }) {
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(<Fragment key={key++}>{text.slice(lastIndex, match.index)}</Fragment>);
+      parts.push(
+        <Fragment key={key++}>{renderEmojiText(text.slice(lastIndex, match.index))}</Fragment>
+      );
     }
     parts.push(<Spoiler key={key++}>{match[1]}</Spoiler>);
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < text.length) {
-    parts.push(<Fragment key={key++}>{text.slice(lastIndex)}</Fragment>);
+    parts.push(<Fragment key={key++}>{renderEmojiText(text.slice(lastIndex))}</Fragment>);
   }
   return <>{parts}</>;
 }
@@ -37,7 +40,7 @@ function Spoiler({ children }: { children: string }) {
         if (e.key === "Enter" || e.key === " ") setRevealed(true);
       }}
     >
-      {children}
+      {renderEmojiText(children)}
     </span>
   );
 }

@@ -1807,3 +1807,51 @@ create policy "Members and admins can delete an answer"
     auth.uid() = user_id
     or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
   );
+
+-- ---------- post_reactions ----------
+-- Emoji reactions on a review, alongside the like.
+--
+-- A like says "yes"; a reaction says which yes it was - the difference
+-- between agreeing with a review and having been wrecked by the thing it
+-- is about. On a site whose whole subject is how something made you feel,
+-- one undifferentiated counter was leaving most of that on the floor.
+--
+-- One reaction per person per review, changeable, same as favourites:
+-- this is a response, not a vote count to be farmed.
+create table if not exists public.post_reactions (
+  post_id uuid not null references public.posts (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  -- The emoji character itself. Validated against the site's own set in
+  -- the action before it ever gets here, so a row can only hold something
+  -- the site knows how to draw.
+  emoji text not null,
+  created_at timestamptz not null default now(),
+  primary key (post_id, user_id)
+);
+
+create index if not exists post_reactions_post_idx on public.post_reactions (post_id);
+
+alter table public.post_reactions enable row level security;
+
+drop policy if exists "Post reactions are viewable by everyone" on public.post_reactions;
+create policy "Post reactions are viewable by everyone"
+  on public.post_reactions for select
+  using (true);
+
+drop policy if exists "Members can react as themselves" on public.post_reactions;
+create policy "Members can react as themselves"
+  on public.post_reactions for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Members can change their own reaction" on public.post_reactions;
+create policy "Members can change their own reaction"
+  on public.post_reactions for update
+  using (auth.uid() = user_id);
+
+drop policy if exists "Members and admins can remove a reaction" on public.post_reactions;
+create policy "Members and admins can remove a reaction"
+  on public.post_reactions for delete
+  using (
+    auth.uid() = user_id
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );

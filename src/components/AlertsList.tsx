@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { describeAlert, type AlertItem } from "@/lib/alertText";
+import { EmojiText } from "@/lib/emojiText";
 
 // Alerts arrive by realtime subscription rather than polling.
 //
@@ -74,7 +75,9 @@ export function AlertsList({ initial }: { initial: AlertItem[] }) {
             />
             <span className="tl-card-body">
               <b>{item.actorUsername}</b>
-              <span>{describeAlert(item)}</span>
+              <span>
+                <EmojiText>{describeAlert(item)}</EmojiText>
+              </span>
             </span>
             <span className="tl-card-chevron" aria-hidden="true">
               &rsaquo;
