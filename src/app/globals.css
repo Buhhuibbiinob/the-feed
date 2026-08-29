@@ -12469,3 +12469,42 @@ a.issue-link::after {
 [data-theme="ios-light"] .nav-search input::placeholder {
   color: rgba(255, 255, 255, 0.62);
 }
+
+/* ---- Decorate bar -----------------------------------------------------
+   Fixed at the foot of your own profile. Decorating is something people
+   do in one long sitting, looking at the whole page - a control at the
+   top means scrolling back up every time you want to change something,
+   which is most of why the old scattered links felt like work.
+
+   Sits above the mobile tab bar rather than under it. */
+.decorate-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 24px);
+  padding: 7px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--nav-border);
+  background: var(--nav-texture), var(--nav-bg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.decorate-hint {
+  font-size: 11px;
+  color: var(--nav-text);
+  text-shadow: var(--letterpress);
+  max-width: 44ch;
+}
+@media (max-width: 760px) {
+  .decorate-bar {
+    /* Clear of the tab bar. */
+    bottom: 74px;
+  }
+  .decorate-hint {
+    display: none;
+  }
+}

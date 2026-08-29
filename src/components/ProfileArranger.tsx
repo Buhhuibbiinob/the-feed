@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore, useState } from "react";
+import { decorateServerSnapshot, isDecorating, subscribeDecorate } from "@/lib/decorate";
 import { savePageAppearance } from "@/app/actions/pageConfig";
 import {
   moduleLabel,
@@ -39,7 +40,9 @@ export function ProfileArranger({
   mainHeader?: React.ReactNode;
   isOwner: boolean;
 }) {
-  const [arranging, setArranging] = useState(false);
+  // Follows the shared decorating flag rather than its own toggle, so
+  // panels and stickers are one mode instead of two.
+  const arranging = useSyncExternalStore(subscribeDecorate, isDecorating, decorateServerSnapshot);
   const [modules, setModules] = useState<ModuleState[]>(config.modules);
   const [dragId, setDragId] = useState<ModuleId | null>(null);
   const [saving, setSaving] = useState(false);
@@ -84,7 +87,10 @@ export function ProfileArranger({
       data.set("config", JSON.stringify({ ...config, modules }));
       await savePageAppearance({}, data);
       setDirty(false);
-      setArranging(false);
+      // Deliberately stays in decorating mode. Saving the layout used to
+      // kick you out, which is wrong for something people do in one long
+      // sitting - you are almost always about to move the next thing.
+      // Leaving is what the Done button is for.
     } finally {
       setSaving(false);
     }
@@ -146,31 +152,14 @@ export function ProfileArranger({
 
   return (
     <>
-      {isOwner && (
+      {/* Only the Save button lives here now; entering and leaving the
+          mode is the one Decorate control at the foot of the page. */}
+      {isOwner && arranging && (
         <div className="arrange-toolbar">
-          <button
-            type="button"
-            className="comment-action"
-            onClick={() => {
-              if (arranging && dirty) {
-                setModules(config.modules);
-                setDirty(false);
-              }
-              setArranging((v) => !v);
-            }}
-          >
-            {arranging ? "Cancel" : "Rearrange panels"}
+          <span className="field-hint">Drag a panel, or send it to the other column.</span>
+          <button type="button" className="btn" onClick={save} disabled={saving || !dirty}>
+            {saving ? "Saving…" : "Save layout"}
           </button>
-          {arranging && (
-            <>
-              <span className="field-hint">
-                Drag a panel, or send it to the other column.
-              </span>
-              <button type="button" className="btn" onClick={save} disabled={saving || !dirty}>
-                {saving ? "Saving…" : "Save layout"}
-              </button>
-            </>
-          )}
         </div>
       )}
 

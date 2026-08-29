@@ -2,10 +2,14 @@
 
 import { useActionState, useState } from "react";
 import { setMood, type PageConfigState } from "@/app/actions/pageConfig";
+import { ClassicEmoji, CLASSIC_EMOJI } from "@/components/ClassicEmoji";
 
 const initialState: PageConfigState = {};
 
-const QUICK_MOODS = ["🔥", "🫠", "🥀", "🪩", "😌", "👻", "🧊", "💿", "🌙", "⚡"];
+// The drawn set, rather than whatever the device's emoji font happens
+// to be. Members can still type any character into the field; it just
+// renders as itself if we have not drawn it.
+const QUICK_MOODS = CLASSIC_EMOJI;
 
 export function MoodRingEditor({
   emoji,
@@ -17,7 +21,7 @@ export function MoodRingEditor({
   text: string | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [draftEmoji, setDraftEmoji] = useState(emoji ?? "🔥");
+  const [draftEmoji, setDraftEmoji] = useState(emoji ?? CLASSIC_EMOJI[0]);
   const [draftColor, setDraftColor] = useState(color ?? "#ff2f8e");
   const [state, formAction, pending] = useActionState(setMood, initialState);
 
@@ -47,7 +51,7 @@ export function MoodRingEditor({
               className={`mood-quick-btn${draftEmoji === option ? " active" : ""}`}
               onClick={() => setDraftEmoji(option)}
             >
-              {option}
+              <ClassicEmoji char={option} size={24} />
             </button>
           ))}
         </div>
