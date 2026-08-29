@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { RailIcon } from "@/components/RailIcon";
 
 /**
  * The persistent list on the left, as in the iPad Messages reference:
@@ -18,7 +17,7 @@ import { RailIcon } from "@/components/RailIcon";
  * navigation and this would just be a wall of links above the content.
  */
 
-type Row = { href: string; label: string; icon: string; badge?: number };
+type Row = { href: string; label: string; badge?: number };
 
 export function SideRail({
   username,
@@ -37,12 +36,12 @@ export function SideRail({
     {
       heading: "Browse",
       rows: [
-        { href: "/", label: "Feed", icon: "feed" },
-        { href: "/recs", label: "Discover", icon: "discover" },
-        { href: "/clubs", label: "Clubs", icon: "clubs" },
-        { href: "/collections", label: "Collections", icon: "collections" },
-        { href: "/artists", label: "Creators", icon: "creators" },
-        { href: "/profiles", label: "Profiles", icon: "profiles" },
+        { href: "/", label: "Feed" },
+        { href: "/recs", label: "Discover" },
+        { href: "/clubs", label: "Clubs" },
+        { href: "/collections", label: "Collections" },
+        { href: "/artists", label: "Creators" },
+        { href: "/profiles", label: "Profiles" },
       ],
     },
     {
@@ -50,10 +49,10 @@ export function SideRail({
       rows: [
         // First in the group on purpose: it is the only thing here that
         // changes on its own every week, so it is the one worth checking.
-        { href: "/weekly", label: "This Week", icon: "weekly" },
-        { href: "/leaderboard", label: "Leaderboard", icon: "leaderboard" },
-        { href: "/chat", label: "Chat", icon: "chat" },
-        { href: "/newsletter", label: "Newsletter", icon: "newsletter" },
+        { href: "/weekly", label: "This Week" },
+        { href: "/leaderboard", label: "Leaderboard" },
+        { href: "/chat", label: "Chat" },
+        { href: "/newsletter", label: "Newsletter" },
       ],
     },
   ];
@@ -62,12 +61,12 @@ export function SideRail({
     groups.push({
       heading: "You",
       rows: [
-        { href: `/profile/${username}`, label: "My Profile", icon: "profile" },
-        { href: "/messages", label: "Messages", icon: "messages", badge: unreadDmCount },
-        { href: "/alerts", label: "Alerts", icon: "alerts", badge: notificationCount },
-        { href: "/wrapped", label: "Wrapped", icon: "wrapped" },
-        { href: "/settings", label: "Settings", icon: "settings" },
-        ...(isAdmin ? [{ href: "/admin", label: "Admin", icon: "admin" }] : []),
+        { href: `/profile/${username}`, label: "My Profile" },
+        { href: "/messages", label: "Messages", badge: unreadDmCount },
+        { href: "/alerts", label: "Alerts", badge: notificationCount },
+        { href: "/wrapped", label: "Wrapped" },
+        { href: "/settings", label: "Settings" },
+        ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
       ],
     });
   }
@@ -91,7 +90,6 @@ export function SideRail({
                   className={`rail-row${current ? " current" : ""}`}
                   aria-current={current ? "page" : undefined}
                 >
-                  <RailIcon name={row.icon} />
                   <span className="rail-label">{row.label}</span>
                   {!!row.badge && row.badge > 0 && <span className="rail-badge">{row.badge}</span>}
                   <span className="rail-chevron" aria-hidden="true">›</span>
