@@ -24,6 +24,8 @@ import { ProfileArranger } from "@/components/ProfileArranger";
 import { pageStyle } from "@/lib/pageTheme";
 import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
 import { MoodRingEditor } from "@/components/MoodRing";
+import { ClassicEmoji } from "@/components/ClassicEmoji";
+import { DecorateBar } from "@/components/DecorateBar";
 import { BlurbsEditor } from "@/components/BlurbsEditor";
 import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
 import { TopConnections, type Connection } from "@/components/TopConnections";
@@ -758,7 +760,7 @@ export default async function ProfilePage({
                   className="mood-ring"
                   style={{ borderColor: custom?.mood_color ?? "var(--link)" }}
                 >
-                  {moodEmoji ?? "•"}
+                  {moodEmoji ? <ClassicEmoji char={moodEmoji} size={26} /> : "•"}
                 </span>
                 {custom?.mood_text && <span className="mood-text">{custom.mood_text}</span>}
               </div>
@@ -1093,6 +1095,7 @@ export default async function ProfilePage({
   return (
     <div className="profile-skin" style={pageStyle(config.palette, config.fontPairId, config.background)}>
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
+      <DecorateBar isOwner={isOwnProfile} />
       <StickerLayer stickers={stickers} isOwner={isOwnProfile} />
 
       {/* The columns belong to the arranger now: it places each panel and

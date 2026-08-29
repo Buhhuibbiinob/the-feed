@@ -1,6 +1,12 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useSyncExternalStore, useActionState, useRef, useState } from "react";
+import {
+  decorateServerSnapshot,
+  isDecorating,
+  setDecorating,
+  subscribeDecorate,
+} from "@/lib/decorate";
 import {
   deleteSticker,
   placeSticker,
@@ -109,7 +115,10 @@ export function StickerLayer({
   stickers: Sticker[];
   isOwner: boolean;
 }) {
-  const [editing, setEditing] = useState(false);
+  // Was local state with its own button. The whole page enters
+  // decorating mode together now, so stickers and panels are not two
+  // separate things you have to switch on one at a time.
+  const editing = useSyncExternalStore(subscribeDecorate, isDecorating, decorateServerSnapshot);
   const [local, setLocal] = useState<Sticker[]>(stickers);
   const [selected, setSelected] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(uploadSticker, initialState);
@@ -194,7 +203,7 @@ export function StickerLayer({
 
       {isOwner && (
         <div className={`sticker-tools${editing ? " floating" : ""}`}>
-          <button type="button" className="comment-action" onClick={() => setEditing((v) => !v)}>
+          <button type="button" className="comment-action" onClick={() => setDecorating(!editing)}>
             {editing ? "Done stickering" : "Stickers"}
           </button>
 
