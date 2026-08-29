@@ -28,6 +28,7 @@ import { ClassicEmoji } from "@/components/ClassicEmoji";
 import { DecorateBar } from "@/components/DecorateBar";
 import { sanitizeProfileCss } from "@/lib/profileCss";
 import { decorStyle } from "@/lib/pageDecor";
+import { ProfileReviews } from "@/components/ProfileReviews";
 import { ProfileCssEditor } from "@/components/ProfileCssEditor";
 import { BlurbsEditor } from "@/components/BlurbsEditor";
 import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
@@ -1059,7 +1060,8 @@ export default async function ProfilePage({
               {posts.length === 0 ? (
                 <EmptySlot>No reviews yet.</EmptySlot>
               ) : (
-                posts.map((post) => (
+                <ProfileReviews total={posts.length}>
+                {posts.map((post) => (
                   <PostCard
                     key={post.id}
                     post={{
@@ -1081,7 +1083,8 @@ export default async function ProfilePage({
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}
                   />
-                ))
+                ))}
+                </ProfileReviews>
               )}
             </div>
           </div>

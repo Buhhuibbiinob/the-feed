@@ -25,6 +25,8 @@ const MAX_INLINE_BLUR = 6;
 const FLOATERS = [
   "menu", "modal", "backdrop", "popover", "dropdown", "tooltip", "toast",
   "fab", "dialog", "overlay", "sticker", "drag", "lightbox", "picker-pop",
+  // The emoji keyboard hovers over whatever field has focus.
+  "emoji-kb",
   // Chrome that genuinely floats above the scrolling page. "sheet"
   // covers the compose sheet and the mobile more-sheet: a modal sheet
   // is lifted off the page by definition, which is the one case this

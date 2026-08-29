@@ -111,6 +111,167 @@ const FACES: Record<string, Face> = {
       </>
     ),
   },
+  "\u{1F601}": {
+    features: (
+      <>
+        <path d="M14 24c4-4 10-4 14 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M36 24c4-4 10-4 14 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M16 36h32c0 9-7 13-16 13s-16-4-16-13z" fill={BLACK} />
+        <path d="M19 37h26v4H19z" fill="#fff" />
+      </>
+    ),
+  },
+  "\u{1F609}": {
+    features: (
+      <>
+        <path d="M15 27c4-4 9-4 13 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <circle cx="43" cy="27" r="4" fill={BLACK} />
+        <path d="M19 39c5 7 21 7 26 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+      </>
+    ),
+  },
+  "\u{1F602}": {
+    features: (
+      <>
+        <path d="M14 26c4-5 10-5 14 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M36 26c4-5 10-5 14 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M16 36h32c0 9-7 13-16 13s-16-4-16-13z" fill={BLACK} />
+        <path d="M19 37h26v3H19z" fill="#fff" />
+        {/* Tears, thrown outward rather than running down - the old sets
+            drew them mid-air. */}
+        <path d="M10 30c-4 5-5 8-2 10s6-1 5-5z" fill="#5fb9f0" />
+        <path d="M54 30c4 5 5 8 2 10s-6-1-5-5z" fill="#5fb9f0" />
+      </>
+    ),
+  },
+  "\u{1F60A}": {
+    ball: ["#ffe98a", "#e8a400"],
+    features: (
+      <>
+        <path d="M15 28c4-4 9-4 13 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M36 28c4-4 9-4 13 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M20 39c5 7 19 7 24 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <ellipse cx="12" cy="36" rx="6" ry="4" fill="#ff8fa8" opacity=".75" />
+        <ellipse cx="52" cy="36" rx="6" ry="4" fill="#ff8fa8" opacity=".75" />
+      </>
+    ),
+  },
+  "\u{1F618}": {
+    features: (
+      <>
+        <path d="M15 26c4-4 9-4 13 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <circle cx="43" cy="27" r="4" fill={BLACK} />
+        <ellipse cx="26" cy="42" rx="7" ry="5" fill={BLACK} />
+        <path d="M44 34c4-4 9 0 7 4s-7 5-7 5-5-1-7-5 3-8 7-4z" fill="#e0344a" />
+      </>
+    ),
+  },
+  "\u{1F914}": {
+    features: (
+      <>
+        <circle cx="22" cy="26" r="4" fill={BLACK} />
+        <path d="M38 24c4-3 9-3 12 1" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M20 42c6-3 12-3 17 1" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        {/* The hand at the chin, which is the whole joke of this one.
+            Drawn low and to the right with the knuckles showing - as one
+            rounded blob under the mouth it read as a tongue, which is a
+            different emoji entirely. */}
+        <path d="M34 48c2-4 9-6 14-3 5 3 5 9 1 12-5 3-17 1-15-4z" fill="#f2bd77" stroke="#a86a24" strokeWidth="2.5" />
+        <path d="M39 47c1 4 1 7 0 10M45 47c1 4 1 7 0 9" stroke="#a86a24" strokeWidth="2" fill="none" strokeLinecap="round" />
+      </>
+    ),
+  },
+  "\u{1F60F}": {
+    features: (
+      <>
+        <path d="M15 26c4-3 9-3 13 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <circle cx="43" cy="27" r="4" fill={BLACK} />
+        <path d="M20 42c6 4 16 2 22-4" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+      </>
+    ),
+  },
+  "\u{1F631}": {
+    ball: ["#fff3c4", "#dcb400"],
+    features: (
+      <>
+        <ellipse cx="21" cy="25" rx="6" ry="7" fill="#fff" stroke={BLACK} strokeWidth="3" />
+        <ellipse cx="43" cy="25" rx="6" ry="7" fill="#fff" stroke={BLACK} strokeWidth="3" />
+        <circle cx="21" cy="26" r="3" fill={BLACK} />
+        <circle cx="43" cy="26" r="3" fill={BLACK} />
+        <ellipse cx="32" cy="44" rx="7" ry="9" fill={BLACK} />
+      </>
+    ),
+  },
+  "\u{1F633}": {
+    ball: ["#ffd6a8", "#e07a2e"],
+    features: (
+      <>
+        <path d="M15 27c4-4 9-4 13 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M36 27c4-4 9-4 13 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <ellipse cx="32" cy="43" rx="6" ry="5" fill={BLACK} />
+        <ellipse cx="12" cy="34" rx="7" ry="5" fill="#ff6f8f" opacity=".8" />
+        <ellipse cx="52" cy="34" rx="7" ry="5" fill="#ff6f8f" opacity=".8" />
+      </>
+    ),
+  },
+  "\u{1F644}": {
+    features: (
+      <>
+        <ellipse cx="21" cy="26" rx="6" ry="7" fill="#fff" stroke={BLACK} strokeWidth="3" />
+        <ellipse cx="43" cy="26" rx="6" ry="7" fill="#fff" stroke={BLACK} strokeWidth="3" />
+        <circle cx="21" cy="21" r="3" fill={BLACK} />
+        <circle cx="43" cy="21" r="3" fill={BLACK} />
+        <path d="M22 43h20" stroke={BLACK} strokeWidth="4" strokeLinecap="round" />
+      </>
+    ),
+  },
+  "\u{1F92F}": {
+    ball: ["#ffe98a", "#e8a400"],
+    features: (
+      <>
+        {/* The burst has to be a different hue from the ball or it is
+            invisible - drawn yellow-on-yellow it just looked surprised. */}
+        <path d="M32 0l6 13 13-5-5 13 14 5-14 6 5 13-13-5-6 13-6-13-13 5 5-13-14-6 14-5-5-13 13 5z" fill="#ff7a2e" stroke="#c04a00" strokeWidth="2" strokeLinejoin="round" />
+        <circle cx="22" cy="32" r="4" fill={BLACK} />
+        <circle cx="42" cy="32" r="4" fill={BLACK} />
+        <ellipse cx="32" cy="46" rx="6" ry="6" fill={BLACK} />
+      </>
+    ),
+  },
+  "\u{1F60B}": {
+    features: (
+      <>
+        <path d="M15 26c4-4 9-4 13 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M36 26c4-4 9-4 13 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M18 38c5 7 23 7 28 0" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M36 42c0 8 10 10 11 2 0-4-2-5-5-5z" fill="#e0566a" />
+      </>
+    ),
+  },
+  "\u{1F624}": {
+    ball: ["#ffd98a", "#e08a00"],
+    features: (
+      <>
+        <path d="M13 21l14 6" stroke={BLACK} strokeWidth="4" strokeLinecap="round" />
+        <path d="M51 21l-14 6" stroke={BLACK} strokeWidth="4" strokeLinecap="round" />
+        <circle cx="22" cy="32" r="4" fill={BLACK} />
+        <circle cx="42" cy="32" r="4" fill={BLACK} />
+        <path d="M22 45h20" stroke={BLACK} strokeWidth="4" strokeLinecap="round" />
+        {/* Steam out of both nostrils. */}
+        <path d="M8 40c-5 2-7 6-4 8" stroke="#bcd3e8" strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M56 40c5 2 7 6 4 8" stroke="#bcd3e8" strokeWidth="4" fill="none" strokeLinecap="round" />
+      </>
+    ),
+  },
+  "\u{1F615}": {
+    features: (
+      <>
+        <circle cx="21" cy="27" r="4" fill={BLACK} />
+        <circle cx="43" cy="27" r="4" fill={BLACK} />
+        <path d="M20 44c5-6 13-3 24-5" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
+      </>
+    ),
+  },
   "\u{1F621}": {
     ball: ["#ff8a6b", "#d63a1e"],
     features: (
@@ -126,6 +287,58 @@ const FACES: Record<string, Face> = {
 };
 
 export const CLASSIC_EMOJI = Object.keys(FACES);
+
+/**
+ * What each face is called, for the `:` search in the keyboard.
+ *
+ * First word is the display name; the rest are things people actually
+ * type. `:cry` should find the crying one even though nobody calls it
+ * "loudly sobbing", and `:lol` should find the laughing one, which is
+ * the name it has had since long before it had a codepoint.
+ */
+export const EMOJI_NAMES: Record<string, string[]> = {
+  "\u{1F600}": ["grin", "happy", "smile"],
+  "\u{1F642}": ["slight smile", "smile", "ok"],
+  "\u{1F60E}": ["cool", "sunglasses", "shades"],
+  "\u{1F622}": ["cry", "sad", "tear"],
+  "\u{1F60D}": ["heart eyes", "love", "in love"],
+  "\u{1F634}": ["sleeping", "sleep", "tired", "zzz"],
+  "\u{1F610}": ["neutral", "blank", "meh", "straight face"],
+  "\u{1F61C}": ["tongue", "wink tongue", "silly", "cheeky"],
+  "\u{1F62E}": ["surprised", "wow", "shocked", "open mouth"],
+  "\u{1F601}": ["beam", "grinning", "teeth", "cheese"],
+  "\u{1F609}": ["wink", "winking"],
+  "\u{1F602}": ["laughing", "lol", "crying laughing", "funny"],
+  "\u{1F60A}": ["blush", "smiling", "shy", "sweet"],
+  "\u{1F618}": ["kiss", "blowing a kiss", "mwah"],
+  "\u{1F914}": ["thinking", "hmm", "think"],
+  "\u{1F60F}": ["smirk", "smug", "sly"],
+  "\u{1F631}": ["scream", "screaming", "shock", "horror"],
+  "\u{1F633}": ["flushed", "embarrassed", "blushing"],
+  "\u{1F644}": ["eye roll", "rolling eyes", "ugh", "whatever"],
+  "\u{1F92F}": ["mind blown", "exploding head", "whoa"],
+  "\u{1F60B}": ["yum", "delicious", "tasty"],
+  "\u{1F624}": ["steam", "annoyed", "frustrated", "huff"],
+  "\u{1F615}": ["confused", "unsure", "hmm"],
+  "\u{1F621}": ["angry", "rage", "mad", "furious"],
+};
+
+export function emojiLabel(char: string): string {
+  return EMOJI_NAMES[char]?.[0] ?? "emoji";
+}
+
+/** Faces whose name or any of its aliases start with the typed text. */
+export function searchEmoji(query: string): string[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return CLASSIC_EMOJI;
+  // Prefix rather than substring: typing `:s` should offer smile and
+  // scream, not every name with an s buried in it.
+  return CLASSIC_EMOJI.filter((char) =>
+    (EMOJI_NAMES[char] ?? []).some((name) =>
+      name.split(" ").some((word) => word.startsWith(q))
+    )
+  );
+}
 
 export function ClassicEmoji({ char, size = 22 }: { char: string; size?: number }) {
   const face = FACES[char];
