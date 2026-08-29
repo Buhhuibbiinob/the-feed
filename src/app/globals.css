@@ -520,11 +520,25 @@ a:hover {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
   overflow: hidden;
 }
+/* A dropdown is a PANEL that happens to hang off the nav, not a piece of
+   nav chrome. `.apple-nav a` sets colour, a right border, a box shadow, a
+   34px height and a letterpress shadow on every anchor inside the bar -
+   all correct for a tab sitting on brushed metal, all wrong for a row in
+   a white menu. It is (0,1,1); these are (0,2,0), so they win.
+
+   The colour was the visible half: --nav-text is white in every theme
+   with a dark nav bar, and these menus are light, so the items were
+   white on white and the menu looked empty apart from Sign out. */
+.apple-nav .nav-more-menu a,
 .nav-more-menu a {
   padding: 9px 16px;
   font-size: 12px;
-  color: var(--nav-text);
+  color: var(--text);
+  border-right: none;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: none;
+  text-shadow: none;
+  height: auto;
 }
 .nav-more-menu a:last-child {
   border-bottom: none;
@@ -608,6 +622,7 @@ a:hover {
 .nav-account-menu {
   width: 210px;
 }
+.apple-nav .nav-bell-row.danger,
 .nav-bell-row.danger {
   color: #b3261e;
   font-weight: 700;
@@ -680,6 +695,11 @@ a:hover {
   background: var(--panel-head-bg);
   border-bottom: 1px solid var(--panel-head-border);
 }
+/* Same story as .nav-more-menu a above: these rows live inside
+   .apple-nav, so `.apple-nav a` was overriding the colour set here with
+   the nav bar's own --nav-text and adding the tab's border, height and
+   letterpress. Prefixed so it outweighs that rule. */
+.apple-nav .nav-bell-row,
 .nav-bell-row {
   display: flex;
   align-items: center;
@@ -687,7 +707,11 @@ a:hover {
   padding: 9px 14px;
   font-size: 12px;
   color: #1a1a1a;
+  border-right: none;
   border-bottom: 1px solid #ececec;
+  box-shadow: none;
+  text-shadow: none;
+  height: auto;
   text-decoration: none;
 }
 .nav-bell-row:last-child {
@@ -8497,6 +8521,11 @@ button.btn,
   --text: #f2f2f4;
   --muted: #b9b9c2;
   --like-color: #ff1f8f;
+  /* Neither dark theme declared a link, so both fell back to :root's
+     #0a5fd6 - a blue chosen to sit on a white panel - and rendered it on
+     near-black at 3.2:1. The theme's own cyan is already in --btn-image
+     and reads at 12:1 here. */
+  --link: #00e5ff;
 }
 
 /* ---- Frutiger Aero: sky over grass, sun flare, water beads ---- */
@@ -8561,6 +8590,10 @@ button.btn,
   --text: #ddd6d8;
   --muted: #8d8288;
   --like-color: #c9264a;
+  /* Same fallback problem as scene. The theme's crimson is only 3.6:1 on
+     its own panel, so the link is a lighter tint of it - 7.1:1, and still
+     unmistakably the same colour. */
+  --link: #ff6b8a;
 }
 
 /* ---- 2018 Swag: red/black/white streetwear, box-logo blocks ---- */
@@ -13047,11 +13080,22 @@ a.issue-link::after {
 .reaction-chip.more:hover {
   opacity: 1;
 }
+/* Fixed and portaled to <body>. Absolute inside the card meant
+   .panel-body's `overflow: hidden` clipped it at the review's bottom
+   edge, so the picker was cut in half and the next post appeared to sit
+   on top of it. */
+.reaction-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: default;
+}
 .reaction-pop {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 6px);
-  left: 0;
+  position: fixed;
+  z-index: 80;
   width: min(316px, calc(100vw - 40px));
   max-height: 50vh;
   overflow-y: auto;
