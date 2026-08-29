@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/events";
 import { currentPrompt, MAX_ANSWER_NOTE, weekStart } from "@/lib/weeklyPrompt";
+import { friendlyDbError } from "@/lib/dbError";
 
 export type WeeklyState = { error?: string; ok?: boolean };
 
@@ -41,7 +42,7 @@ export async function answerWeekly(
       { user_id: user.id, week_start: week, prompt_id: prompt.id, title, subtitle, note },
       { onConflict: "user_id,week_start" }
     );
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyDbError(error.message) };
 
   await logEvent(supabase, user.id, "weekly_answer", prompt.id);
   revalidatePath("/weekly");
