@@ -202,9 +202,12 @@ export function PostForm() {
             </select>
           </div>
           <div className="field">
-            <label htmlFor="body">Your review</label>
-            <textarea id="body" name="body" required />
-            <div className="field-hint">Tip: wrap text in ||double pipes|| to mark it as a spoiler.</div>
+            <label htmlFor="body">Say something (optional)</label>
+            <textarea id="body" name="body" />
+            <div className="field-hint">
+              A rating on its own is a post. Add words if you have them. Wrap text in ||double
+              pipes|| to mark it as a spoiler.
+            </div>
           </div>
           <div className="form-actions">
             <button className="btn" type="submit" disabled={pending}>

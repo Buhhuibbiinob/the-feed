@@ -38,7 +38,7 @@ export function ClubPostForm({ clubId }: { clubId: string }) {
           name="youtube_url"
           placeholder="YouTube link (optional - music video, clip, etc.)"
         />
-        <textarea name="body" placeholder="Say something about it…" maxLength={2000} rows={3} required />
+        <textarea name="body" placeholder="Say something about it… (optional)" maxLength={2000} rows={3} />
         <select name="rating" defaultValue="" className="theme-select">
           <option value="">No rating</option>
           <option value="5">★★★★★</option>

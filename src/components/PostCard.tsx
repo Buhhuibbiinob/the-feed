@@ -71,7 +71,11 @@ function EditForm({ post, onDone }: { post: PostCardData; onDone: () => void }) 
       <input type="hidden" name="post_id" value={post.id} />
       {state.error && <div className="form-error">{state.error}</div>}
       <input name="title" defaultValue={post.title} required />
-      <textarea name="body" defaultValue={post.body} required />
+      {/* Not required: a rating on its own is a valid post, so demanding
+          text here would let someone open a rating-only post for editing
+          and then refuse to save it, with nothing wrong with it. The
+          server enforces the real rule - words or a rating, either. */}
+      <textarea name="body" defaultValue={post.body} placeholder="Say something (optional)" />
       <select name="rating" defaultValue={post.rating ?? ""}>
         <option value="">No rating</option>
         {[1, 2, 3, 4, 5].map((n) => (
@@ -229,7 +233,10 @@ export function PostCard({
             <img src={post.coverUrl} alt={post.title} loading="lazy" />
           </div>
         )}
-        <SpoilerText text={post.body} />
+        {/* A rating on its own is a whole post now, so the body is only
+            rendered when there is one - otherwise every logged rating
+            left an empty gap where the words would have been. */}
+        {post.body.trim() && <SpoilerText text={post.body} />}
         {reactions && (
           <PostReactions
             postId={post.id}
