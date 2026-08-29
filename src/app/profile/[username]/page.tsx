@@ -27,6 +27,7 @@ import { MoodRingEditor } from "@/components/MoodRing";
 import { ClassicEmoji } from "@/components/ClassicEmoji";
 import { DecorateBar } from "@/components/DecorateBar";
 import { sanitizeProfileCss } from "@/lib/profileCss";
+import { decorStyle } from "@/lib/pageDecor";
 import { ProfileCssEditor } from "@/components/ProfileCssEditor";
 import { BlurbsEditor } from "@/components/BlurbsEditor";
 import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
@@ -1102,7 +1103,10 @@ export default async function ProfilePage({
     <div
       className="profile-skin"
       data-owner={profile.id}
-      style={pageStyle(config.palette, config.fontPairId, config.background)}
+      style={{
+        ...pageStyle(config.palette, config.fontPairId, config.background),
+        ...decorStyle(config.decor),
+      }}
     >
       {/* The member's own CSS, rewritten so every rule is scoped to this
           profile. Scoped at render rather than on save, so a change to

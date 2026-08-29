@@ -8,11 +8,18 @@ import type { PageConfig } from "@/lib/pageConfig";
 import { Portal } from "@/components/Portal";
 
 /**
- * The unlimited lever: write your own CSS for your page.
+ * The escape hatch, for the few people who want one.
  *
- * Everything else on the profile is a control someone had to think of
- * in advance. This is the one that does not run out - which is what
- * made decorating a page somewhere you could sit for an hour.
+ * This used to be presented as the way to customize a page properly,
+ * and its own placeholder told you to write `border-radius: 20px` and
+ * `rotate(-3deg)` - the two most obvious things anyone wants, reachable
+ * only by learning a language. Both are sliders now, along with glow,
+ * spacing, transparency, text size and a photo behind the page, in
+ * Customize > Shape & photo. Nothing here is needed for any of it.
+ *
+ * What is left is genuinely open-ended: one person's idea nobody
+ * building the sliders thought of. So it stays, labelled as the extra
+ * it is rather than as the main event.
  *
  * It is only shown while decorating, and only to the owner. What gets
  * typed here is never trusted: it is rewritten at render time so every
@@ -49,13 +56,13 @@ export function ProfileCssEditor({ ownerId, config }: { ownerId: string; config:
     <Portal>
       <div className="css-editor-launch">
         <button type="button" className="acct-btn" onClick={() => setOpen((v) => !v)}>
-          {open ? "Close CSS" : "Custom CSS"}
+          {open ? "Close CSS" : "CSS (optional)"}
         </button>
       </div>
       {open && (
         <div className="css-editor">
           <div className="css-editor-head">
-            <b>Your CSS</b>
+            <b>Your own CSS</b>
             <span className="field-hint">
               {css.length}/{MAX_PROFILE_CSS}
             </span>
@@ -71,8 +78,9 @@ export function ProfileCssEditor({ ownerId, config }: { ownerId: string; config:
           />
           <div className="css-editor-foot">
             <span className="field-hint">
-              Rules only apply to your page. Background images from anywhere are fine; anything that
-              would cover the whole screen is dropped.
+              You don&apos;t need this. Corners, glow, tilt, spacing, transparency and a background
+              photo are all sliders under Customize. This is here for the thing they don&apos;t
+              cover. Rules only apply to your page.
             </span>
             <button type="button" className="btn" onClick={save} disabled={saving}>
               {saving ? "Saving…" : saved ? "Saved" : "Save CSS"}

@@ -8,6 +8,7 @@ import {
   type Palette,
 } from "@/lib/pageTheme";
 import { MAX_PROFILE_CSS } from "@/lib/profileCss";
+import { readDecor, type Decor } from "@/lib/pageDecor";
 
 // The customizable-page config: one shape, used by both profiles and club
 // pages. Everything that decides how a page looks and what it contains
@@ -104,6 +105,18 @@ export type ModuleState = {
 export type PageBackground = {
   kind: BackgroundKind;
   value: string | null;
+  /** How an uploaded photo is laid down. Ignored by the other kinds, so
+   *  the preset themes - which are all patterns - omit it. */
+  fit?: PageBackgroundFit;
+};
+
+export const PAGE_BACKGROUND_FITS = ["cover", "tile", "contain"] as const;
+export type PageBackgroundFit = (typeof PAGE_BACKGROUND_FITS)[number];
+
+export const PAGE_BACKGROUND_FIT_LABELS: Record<PageBackgroundFit, string> = {
+  cover: "Fill",
+  tile: "Tile",
+  contain: "Fit",
 };
 
 export type SavedPreset = {
@@ -122,6 +135,9 @@ export type PageConfig = {
   modules: ModuleState[];
   /** Named looks the owner can switch between without rebuilding one. */
   presets: SavedPreset[];
+  /** Corners, spacing, tilt, glow - the things people used to open the
+   *  CSS box for. All numbers with hard ranges; see lib/pageDecor. */
+  decor: Decor;
   /** Raw CSS the owner wrote. Stored as typed; sanitised and scoped at
    *  render time by sanitizeProfileCss, never trusted from here. */
   css: string;
@@ -147,15 +163,20 @@ function readBackground(raw: unknown): PageBackground {
     ? (source.kind as BackgroundKind)
     : "none";
   const value = typeof source.value === "string" ? source.value : null;
+  const fit = (PAGE_BACKGROUND_FITS as readonly string[]).includes(source.fit as string)
+    ? (source.fit as PageBackgroundFit)
+    : "cover";
 
   // A pattern id that no longer exists resolves to no background rather
   // than to a broken one.
-  if (kind === "pattern" && !patternById(value)) return { kind: "none", value: null };
+  if (kind === "pattern" && !patternById(value)) return { kind: "none", value: null, fit };
   // Only our own storage host, so a config can't point the page at an
   // arbitrary third-party URL.
-  if (kind === "image" && (!value || !/^https?:\/\//i.test(value))) return { kind: "none", value: null };
+  if (kind === "image" && (!value || !/^https?:\/\//i.test(value))) {
+    return { kind: "none", value: null, fit };
+  }
 
-  return { kind, value };
+  return { kind, value, fit };
 }
 
 function readPalette(raw: unknown): Palette {
@@ -219,6 +240,7 @@ export function resolvePageConfig(raw: unknown, surface: SurfaceKind): PageConfi
     background: readBackground(source.background),
     modules: readModules(source.modules, surface),
     presets: readPresets(source.presets),
+    decor: readDecor(source.decor),
     css: typeof source.css === "string" ? source.css.slice(0, MAX_PROFILE_CSS) : "",
   };
 }

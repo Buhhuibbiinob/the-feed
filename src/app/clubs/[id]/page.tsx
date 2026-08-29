@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { loadPageConfig } from "@/lib/pageConfigStore";
 import { pageStyle } from "@/lib/pageTheme";
+import { decorStyle } from "@/lib/pageDecor";
 import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
 import { ClubInfoEditor } from "@/components/ClubInfoEditor";
 import { PostCard, type PostCardData } from "@/components/PostCard";
@@ -227,7 +228,10 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
   return (
     <div
       className="profile-skin club-skin"
-      style={pageStyle(config.palette, config.fontPairId, config.background)}
+      style={{
+        ...pageStyle(config.palette, config.fontPairId, config.background),
+        ...decorStyle(config.decor),
+      }}
     >
       <div
         className="page-header"

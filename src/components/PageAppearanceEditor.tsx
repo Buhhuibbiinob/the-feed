@@ -21,6 +21,8 @@ import {
   PRESET_THEMES,
   type BackgroundKind,
 } from "@/lib/pageTheme";
+import { PageDecorControls } from "@/components/PageDecorControls";
+import { PageBackgroundPicker } from "@/components/PageBackgroundPicker";
 
 const initialState: PageConfigState = {};
 
@@ -51,7 +53,7 @@ export function PageAppearanceEditor({
   // Themes are the whole feature for most people: pick one, done. The
   // pickers and the module list are still there, one click away, rather
   // than presented as three equally necessary steps.
-  const [advanced, setAdvanced] = useState<"colors" | "modules" | null>(null);
+  const [advanced, setAdvanced] = useState<"colors" | "look" | "modules" | null>(null);
   const [draft, setDraft] = useState<PageConfig>(config);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [state, formAction, pending] = useActionState(savePageAppearance, initialState);
@@ -180,6 +182,13 @@ export function PageAppearanceEditor({
         </button>
         <button
           type="button"
+          className={`page-editor-tab${advanced === "look" ? " active" : ""}`}
+          onClick={() => setAdvanced(advanced === "look" ? null : "look")}
+        >
+          Shape &amp; photo
+        </button>
+        <button
+          type="button"
           className={`page-editor-tab${advanced === "modules" ? " active" : ""}`}
           onClick={() => setAdvanced(advanced === "modules" ? null : "modules")}
         >
@@ -265,6 +274,30 @@ export function PageAppearanceEditor({
             ))}
           </div>
 
+        </>
+      )}
+
+      {advanced === "look" && (
+        <>
+          <div className="favorites-kind-head">Photo behind the page</div>
+          <PageBackgroundPicker
+            surface={surface}
+            ownerId={ownerId}
+            background={draft.background}
+          />
+          {draft.background.kind === "image" && (
+            <button
+              type="button"
+              className="comment-action"
+              onClick={() => update({ background: { kind: "none", value: null } })}
+            >
+              Remove photo
+            </button>
+          )}
+
+          <div className="favorites-kind-head">Shape</div>
+          <div className="field-hint">Drag one and watch the page change behind this.</div>
+          <PageDecorControls decor={draft.decor} onChange={(decor) => update({ decor })} />
         </>
       )}
 
