@@ -81,21 +81,26 @@ export function ProfileCustomize({
         />
         <div className="field-hint">{BIO_FORMATTING_HINT}</div>
 
-        <div className="bio-style-row">
-          <label>
-            Font
-            <select
-              name="bio_font"
-              value={font}
-              onChange={(e) => setFont(e.target.value as ProfileFontId)}
+        {/* Drawn in their own faces, the same as the page font picker.
+            A list of names all set in one face is a list nobody reads. */}
+        <div className="field-hint">Font</div>
+        <div className="font-grid">
+          {PROFILE_FONTS.map((f) => (
+            <button
+              type="button"
+              key={f.id}
+              className={`font-swatch${font === f.id ? " active" : ""}`}
+              aria-pressed={font === f.id}
+              onClick={() => setFont(f.id as ProfileFontId)}
+              style={f.stack ? { fontFamily: f.stack } : undefined}
             >
-              {PROFILE_FONTS.map((f) => (
-                <option value={f.id} key={f.id}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-          </label>
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <input type="hidden" name="bio_font" value={font} />
+
+        <div className="bio-style-row">
           <label>
             Colour
             <input

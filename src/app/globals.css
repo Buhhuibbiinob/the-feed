@@ -13690,3 +13690,32 @@ a.issue-link::after {
   background: color-mix(in srgb, var(--text) 8%, transparent);
   border: 1px solid var(--panel-border);
 }
+
+/* Font picker: every option drawn in its own typeface. A list of names
+   all set in the same face asks somebody to imagine the answer, which is
+   why nobody scrolls one - they take the first and leave. */
+.font-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.font-swatch {
+  padding: 9px 6px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  color: var(--text);
+  /* Big enough that a typeface is actually legible as itself. */
+  font-size: 15px;
+  line-height: 1.2;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.font-swatch.active {
+  border-color: var(--link);
+  border-width: 2px;
+  padding: 8px 5px;
+  background: color-mix(in srgb, var(--link) 12%, transparent);
+}

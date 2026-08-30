@@ -71,6 +71,58 @@ export const FONT_PAIRS: FontPair[] = [
     heading: '"Comic Sans MS", "Bradley Hand", cursive',
     body: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif',
   },
+  // --- Real typefaces, downloaded at build and served from our own
+  // domain (see lib/webFonts.ts). Each falls back to a system stack, so a
+  // font that fails to load degrades to something in the same spirit
+  // rather than to the default.
+  {
+    id: "arcade",
+    label: "Arcade",
+    heading: 'var(--f-pixelify), "Trebuchet MS", sans-serif',
+    body: 'var(--f-pixelify), "Trebuchet MS", sans-serif',
+  },
+  {
+    id: "crt",
+    label: "CRT",
+    heading: 'var(--f-vt323), "Courier New", monospace',
+    body: 'var(--f-vt323), "Courier New", monospace',
+  },
+  {
+    id: "marquee",
+    label: "Marquee",
+    heading: 'var(--f-bebas), Impact, sans-serif',
+    body: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif',
+  },
+  {
+    id: "diner",
+    label: "Diner",
+    heading: 'var(--f-lobster), Georgia, cursive',
+    body: 'Georgia, "Times New Roman", serif',
+  },
+  {
+    id: "notebook",
+    label: "Notebook",
+    heading: 'var(--f-caveat), "Comic Sans MS", cursive',
+    body: 'var(--f-caveat), "Comic Sans MS", cursive',
+  },
+  {
+    id: "magazine",
+    label: "Magazine",
+    heading: 'var(--f-dmserif), Georgia, serif',
+    body: 'Georgia, "Times New Roman", serif',
+  },
+  {
+    id: "bubble",
+    label: "Bubble",
+    heading: 'var(--f-quicksand), "Trebuchet MS", sans-serif',
+    body: 'var(--f-quicksand), "Trebuchet MS", sans-serif',
+  },
+  {
+    id: "console",
+    label: "Console",
+    heading: 'var(--f-spacemono), ui-monospace, monospace',
+    body: 'var(--f-spacemono), ui-monospace, monospace',
+  },
   {
     id: "rounded",
     label: "Rounded",

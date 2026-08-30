@@ -24,6 +24,7 @@ import {
   type BackgroundFit,
 } from "@/lib/background";
 import { getSiteTheme, resolveTheme } from "@/lib/siteSettings";
+import { WEB_FONT_VARIABLES } from "@/lib/webFonts";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const title = "Feedback";
@@ -147,7 +148,11 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body>
+      {/* The web-font variables are declared once here, so every page can
+          reference whichever one its owner picked. Declaring a family
+          costs an @font-face rule; the browser only fetches the file for
+          a family that text on the page actually uses. */}
+      <body className={WEB_FONT_VARIABLES}>
         <ClickSound />
         <EmojiKeyboard />
         <PullToRefresh />
