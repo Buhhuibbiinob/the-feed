@@ -13679,3 +13679,14 @@ a.issue-link::after {
     height: 72px;
   }
 }
+
+/* Search results that aren't people. Same row, but a thing is a rounded
+   square and a person is a circle - the shape does the work of a label. */
+.search-person-avatar.square {
+  border-radius: 6px;
+}
+.search-person-avatar.blank {
+  display: block;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  border: 1px solid var(--panel-border);
+}
