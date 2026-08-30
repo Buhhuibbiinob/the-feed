@@ -3,6 +3,16 @@
 // entirely (see signUp in app/actions/auth.ts) - it only generates the
 // confirmation token, we do the sending.
 
+/** Member-supplied text going into HTML. The username is the only one
+ *  here, and it now goes into an href as well as the greeting. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function shell(bodyRows: string): string {
   return (
     `<div style="margin:0; padding:30px 12px; background-color:#f1f1f1; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;">` +
@@ -73,12 +83,18 @@ export function renderReturningSignInEmail(loginUrl: string, siteUrl: string): s
 }
 
 export function renderWelcomeEmail(username: string, siteUrl: string): string {
+  const name = escapeHtml(username);
+  const profileUrl = `${siteUrl}/profile/${encodeURIComponent(username)}#customize`;
   return shell(
     `<tr><td style="padding:32px 28px;">` +
-      `<h1 style="margin:0 0 12px; font-size:22px; font-weight:600; color:#0f0f0f; text-align:center;">Welcome, ${username}</h1>` +
+      `<h1 style="margin:0 0 12px; font-size:22px; font-weight:600; color:#0f0f0f; text-align:center;">Welcome, ${name}</h1>` +
       `<p style="margin:0 0 20px; font-size:14px; line-height:1.5; color:#606060; text-align:center;">You're subscribed to The Feedback Weekly. Every week we round up new releases, underground artists and filmmakers worth hearing about, and the best reviews the community posted.</p>` +
       `<p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:#606060;">While you wait for the first issue:</p>` +
       `<ul style="margin:0 0 26px; padding-left:20px; font-size:14px; line-height:1.7; color:#606060;">` +
+      // First, and a link rather than an instruction. It is the cheapest
+      // thing on the list and the one that predicts whether somebody is
+      // still here next week.
+      `<li><a href="${profileUrl}" style="color:#c8102e;">Put a picture and a banner on your page</a> so your name isn't a blank circle</li>` +
       `<li>Post a review of something you've been listening to or watching</li>` +
       `<li>Start a fan club for an artist, movie, or show you love</li>` +
       `<li>If you make music or films yourself, share your own work</li>` +

@@ -1,8 +1,17 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
+// Two keys, not one. The modal is nearly always first seen by somebody
+// who is signed out and just looking, and it is dismissed forever - so
+// the member version, the one that mentions their page, would never
+// reach the people it is for. Signing in earns one more showing.
+//
+// It is also the only thing resembling a first run: confirming your
+// email lands you on the ordinary feed with no acknowledgement that
+// anything happened.
 const STORAGE_KEY = "feedback_welcome_seen";
+const MEMBER_STORAGE_KEY = "feedback_welcome_seen_member";
 
 // Whether the welcome has been dismissed lives in localStorage, which is
 // outside React. Reading it in an effect and calling setState meant a
@@ -12,8 +21,9 @@ const listeners = new Set<() => void>();
 
 // Belt and braces for the case where reading localStorage works but
 // writing it doesn't (quota, some private modes): without this the modal
-// would refuse to close.
-let dismissedThisSession = false;
+// would refuse to close. Per key, so dismissing the visitor version does
+// not also swallow the member one.
+const dismissedThisSession = new Set<string>();
 
 function subscribe(onChange: () => void) {
   listeners.add(onChange);
@@ -22,10 +32,10 @@ function subscribe(onChange: () => void) {
   };
 }
 
-function hasSeenWelcome() {
-  if (dismissedThisSession) return true;
+function hasSeenWelcome(key: string) {
+  if (dismissedThisSession.has(key)) return true;
   try {
-    return localStorage.getItem(STORAGE_KEY) !== null;
+    return localStorage.getItem(key) !== null;
   } catch {
     // localStorage unavailable - treat it as seen rather than showing the
     // modal on every single page load.
@@ -34,14 +44,16 @@ function hasSeenWelcome() {
 }
 
 export function WelcomeExplainer({ signedIn = false }: { signedIn?: boolean }) {
+  const key = signedIn ? MEMBER_STORAGE_KEY : STORAGE_KEY;
   // The server has no localStorage, so it renders nothing and the first
   // client snapshot decides.
-  const seen = useSyncExternalStore(subscribe, hasSeenWelcome, () => true);
+  const snapshot = useCallback(() => hasSeenWelcome(key), [key]);
+  const seen = useSyncExternalStore(subscribe, snapshot, () => true);
 
   function dismiss() {
-    dismissedThisSession = true;
+    dismissedThisSession.add(key);
     try {
-      localStorage.setItem(STORAGE_KEY, "1");
+      localStorage.setItem(key, "1");
     } catch {
       // ignore
     }
@@ -74,6 +86,17 @@ export function WelcomeExplainer({ signedIn = false }: { signedIn?: boolean }) {
             </p>
           )}
           <ul className="welcome-modal-list">
+            {/* First, and only once they have an account to hang it on.
+                This modal introduced Clubs, the Leaderboard and Wrapped
+                and never mentioned the profile at all - the one thing
+                that actually separates the people who stay from the
+                people who post once and go. */}
+            {signedIn && (
+              <li>
+                <b>Your page</b>
+                {" - a picture, a banner, colours, stickers. It's the difference between a name and a person."}
+              </li>
+            )}
             <li>
               <b>Clubs</b>
               {" - fan clubs for specific artists, movies, and shows. One gets proposed automatically the first time someone reviews something new."}
