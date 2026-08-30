@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { isGenreFor } from "@/lib/genres";
 import { findOrCreateClub } from "@/lib/clubs";
+import { findOrCreateWork } from "@/lib/works";
 import { chooseNextStep, type NextStep } from "@/lib/afterPost";
 import { checkReviewSafety } from "@/lib/contentSafety";
 import { isAdmin } from "@/lib/admin";
@@ -88,6 +89,20 @@ export async function createPost(
     : { id: null, founded: false };
   const clubId = club.id;
 
+  // The thing being reviewed, as opposed to the club around it. A club is
+  // a place people join; a work is the object itself, so two reviews of
+  // the same film can be counted, averaged and put on one page.
+  //
+  // Best-effort: if the works table isn't there yet the review still
+  // posts, and the backfill picks it up later.
+  const workId = await findOrCreateWork(
+    supabase,
+    mediaType as MediaType,
+    title,
+    artist || null,
+    coverUrl || null
+  ).catch(() => null);
+
   // The post being answered is looked up rather than trusted: a client
   // could post any uuid, and a duet pointing at something that is not a
   // review would render an "answering" line with nothing behind it.
@@ -112,6 +127,7 @@ export async function createPost(
     spotify_track_id: spotifyTrackId || null,
     youtube_video_id: youtubeVideoId || null,
     club_id: clubId,
+    work_id: workId,
     genre: isGenreFor(mediaType as MediaType, rawGenre) ? rawGenre : null,
     responds_to_post_id: answering?.id ?? null,
   };

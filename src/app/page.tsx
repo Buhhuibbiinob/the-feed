@@ -34,6 +34,7 @@ type PostRow = {
   user_id: string;
   media_type: MediaType;
   genre?: string | null;
+  work_id?: string | null;
   title: string;
   body: string;
   rating: number | null;
@@ -136,7 +137,7 @@ function orderBlocks(blocks: LayoutBlock[], shuffle: boolean): LayoutBlock[] {
 }
 
 const POST_COLUMNS =
-  "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, responds_to_post_id, genre";
+  "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, responds_to_post_id, genre, work_id";
 
 // A failed select here comes back as null data, which silently renders as
 // an empty feed - which is how a column that shipped ahead of its
@@ -528,19 +529,24 @@ export default async function FeedPage({
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 7);
 
-  // How many people have reviewed the same thing. Keyed on a normalised
-  // title so "The Odyssey" and "the odyssey " count as one. This is what
-  // turns an inert "Comment (0)" into "2 others reviewed this" - the
-  // conversation already exists, it just was not visible from the feed.
-  const titleReviewers = new Map<string, Set<string>>();
+  // How many people have reviewed the same thing. Keyed on the work now,
+  // not on `title.trim().toLowerCase()` - which counted a film called Blue
+  // and a song called Blue as one thing, counted every song called Alright
+  // as one song, and existed only inside this render.
+  //
+  // Falls back to the old title key for reviews the backfill has not
+  // reached, so the count doesn't drop to zero on the day this ships.
+  const workReviewers = new Map<string, Set<string>>();
+  const keyFor = (post: { work_id?: string | null; title: string }) =>
+    post.work_id ?? `title:${post.title.trim().toLowerCase()}`;
   for (const post of posts) {
-    const key = post.title.trim().toLowerCase();
-    const set = titleReviewers.get(key) ?? new Set<string>();
+    const key = keyFor(post);
+    const set = workReviewers.get(key) ?? new Set<string>();
     set.add(post.user_id);
-    titleReviewers.set(key, set);
+    workReviewers.set(key, set);
   }
-  const alsoReviewedFor = (post: { title: string; user_id: string }) => {
-    const set = titleReviewers.get(post.title.trim().toLowerCase());
+  const alsoReviewedFor = (post: { work_id?: string | null; title: string; user_id: string }) => {
+    const set = workReviewers.get(keyFor(post));
     if (!set) return 0;
     // Everyone except the author of this card.
     return set.has(post.user_id) ? set.size - 1 : set.size;
@@ -935,6 +941,7 @@ export default async function FeedPage({
                   authorBannerUrl: post.profiles?.banner_url ?? null,
                   authorAvatarUrl: post.profiles?.avatar_url ?? null,
                   alsoReviewedCount: alsoReviewedFor(post),
+                  workId: post.work_id ?? null,
                   authorRank: highestBadge(authorPostCounts.get(post.user_id) ?? 0)?.label ?? null,
                 }}
                 currentUserId={user?.id ?? null}

@@ -79,8 +79,14 @@ export async function selectPosts<T>(
   return fallback.data ?? [];
 }
 
-/** Columns whose migration may not have been applied yet. */
-export const OPTIONAL_POST_COLUMNS = ["genre"];
+/**
+ * Columns whose migration may not have been applied yet.
+ *
+ * A column goes in here the moment it is added to a post select, not
+ * after it has emptied the site. Taking one out is safe only once the
+ * migration has definitely been applied everywhere the code runs.
+ */
+export const OPTIONAL_POST_COLUMNS = ["genre", "work_id"];
 
 /**
  * Strips those columns from a row being written, for the same reason.

@@ -18,13 +18,15 @@ const initialState: QueueState = {};
  * came from later, when "why is this on here?" is a real question.
  */
 export function AddToQueueButton({
-  postId,
+  postId = null,
   mediaType,
   title,
   artist,
   coverUrl,
 }: {
-  postId: string;
+  /** The review that sent them, when there is one. The work page has no
+   *  single review to credit, so it passes nothing. */
+  postId?: string | null;
   mediaType: MediaType;
   title: string;
   artist: string | null;
@@ -38,7 +40,7 @@ export function AddToQueueButton({
       <input type="hidden" name="title" value={title} />
       <input type="hidden" name="subtitle" value={artist ?? ""} />
       <input type="hidden" name="image_url" value={coverUrl ?? ""} />
-      <input type="hidden" name="from_post_id" value={postId} />
+      <input type="hidden" name="from_post_id" value={postId ?? ""} />
       <button type="submit" disabled={pending || state.ok}>
         {state.ok ? "On your list" : pending ? "Adding…" : "Up next"}
       </button>
