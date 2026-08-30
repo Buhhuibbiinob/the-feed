@@ -139,6 +139,8 @@ type StickerRow = {
   image_url: string;
   x: number;
   y: number;
+  mobile_x: number | null;
+  mobile_y: number | null;
   scale: number;
   scale_y: number | null;
   rotation: number;
@@ -513,7 +515,7 @@ export default async function ProfilePage({
       .returns<PinnedRow[]>(),
     supabase
       .from("profile_stickers")
-      .select("id, image_url, x, y, scale, scale_y, rotation, skew, z")
+      .select("id, image_url, x, y, mobile_x, mobile_y, scale, scale_y, rotation, skew, z")
       .eq("user_id", profile.id)
       .order("z", { ascending: true })
       .returns<StickerRow[]>(),
@@ -541,6 +543,11 @@ export default async function ProfilePage({
     imageUrl: row.image_url,
     x: row.x,
     y: row.y,
+    // Null for stickers placed before these columns existed, which is
+    // every sticker on the site today - so they all keep their current
+    // position on every screen.
+    mobileX: row.mobile_x ?? null,
+    mobileY: row.mobile_y ?? null,
     scale: row.scale,
     // Null for stickers placed before these columns existed.
     scaleY: row.scale_y ?? 1,

@@ -71,23 +71,32 @@ function StickerImage({
       src={sticker.imageUrl}
       alt=""
       className={`sticker${selected && editing ? " selected" : ""}`}
-      style={{
-        left: `${sticker.x}%`,
-        // Both axes are a share of the profile's WIDTH. Horizontal is a
-        // plain percentage; vertical uses cqw - one percent of the
-        // container's inline size - because a percentage top would be a
-        // share of HEIGHT, and the page's height changes every time
-        // someone posts a review or opens the tools.
-        //
-        // This used to read off a fixed 880px design width, which forced
-        // the whole profile to render at 880 and zoom down. Against the
-        // container instead, the same number lands in the same place at
-        // any width, so the profile can be a normal responsive page and
-        // an arrangement still travels between devices intact.
-        top: `calc(${sticker.y} * 1cqw)`,
-        width: `${14 * sticker.scale}%`,
-        transform: stickerTransform(sticker),
-      }}
+      style={
+        {
+          // Both axes are a share of the profile's WIDTH. Horizontal is a
+          // plain percentage; vertical uses cqw - one percent of the
+          // container's inline size - because a percentage top would be a
+          // share of HEIGHT, and the page's height changes every time
+          // someone posts a review or opens the tools.
+          //
+          // Position is handed to CSS as custom properties rather than
+          // resolved here, so a media query can pick the phone pair when
+          // one exists. Doing it in CSS rather than in JS means the
+          // server-rendered HTML is already correct and nothing jumps
+          // after hydration.
+          //
+          // --sx/--sy is the position everybody already has. --mx/--my is
+          // set only when somebody has actually dragged this sticker on a
+          // phone; when it is absent the media query falls back to the
+          // first pair, so no existing sticker moves.
+          "--sx": `${sticker.x}%`,
+          "--sy": `${sticker.y}`,
+          ...(sticker.mobileX != null ? { "--mx": `${sticker.mobileX}%` } : {}),
+          ...(sticker.mobileY != null ? { "--my": `${sticker.mobileY}` } : {}),
+          width: `${14 * sticker.scale}%`,
+          transform: stickerTransform(sticker),
+        } as React.CSSProperties
+      }
       draggable={false}
       onPointerDown={(e) => {
         if (!editing) return;
@@ -156,6 +165,17 @@ export function StickerLayer({
     if (state.ok) setUploadKey((n) => n + 1);
   }
 
+  /**
+   * Which pair a drag writes to.
+   *
+   * Matches the media query in the stylesheet exactly. If these two ever
+   * disagree, you would drag a sticker on a phone and watch it snap back,
+   * because the write and the read would be looking at different fields.
+   */
+  function onNarrowScreen(): boolean {
+    return typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches;
+  }
+
   function patch(id: string, changes: Partial<Sticker>) {
     setLocal((current) => current.map((s) => (s.id === id ? { ...s, ...changes } : s)));
   }
@@ -165,6 +185,10 @@ export function StickerLayer({
     data.set("id", sticker.id);
     data.set("x", String(sticker.x));
     data.set("y", String(sticker.y));
+    // Only sent once a phone position exists, so a sticker that has never
+    // been dragged on a phone keeps a null there and goes on falling back.
+    if (sticker.mobileX != null) data.set("mobile_x", String(sticker.mobileX));
+    if (sticker.mobileY != null) data.set("mobile_y", String(sticker.mobileY));
     data.set("scale", String(sticker.scale));
     data.set("scale_y", String(sticker.scaleY));
     data.set("rotation", String(sticker.rotation));
@@ -203,7 +227,9 @@ export function StickerLayer({
             editing={editing}
             selected={selected === sticker.id}
             onSelect={setSelected}
-            onMove={(id, x, y) => patch(id, { x, y })}
+            onMove={(id, x, y) =>
+              patch(id, onNarrowScreen() ? { mobileX: x, mobileY: y } : { x, y })
+            }
             onCommit={commit}
           />
         ))}
@@ -214,7 +240,15 @@ export function StickerLayer({
   // mouse. Same step as a slow drag.
   function nudge(dx: number, dy: number) {
     if (!active) return;
-    adjust(active.id, { x: active.x + dx, y: active.y + dy });
+    if (onNarrowScreen()) {
+      // Nudging on a phone starts from the desktop position when no phone
+      // one exists yet, so the first nudge does not fling it to the corner.
+      const baseX = active.mobileX ?? active.x;
+      const baseY = active.mobileY ?? active.y;
+      adjust(active.id, { mobileX: baseX + dx, mobileY: baseY + dy });
+    } else {
+      adjust(active.id, { x: active.x + dx, y: active.y + dy });
+    }
   }
 
   return (

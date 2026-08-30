@@ -3024,6 +3024,21 @@ a:hover {
    inside them are. An interactive layer covers the entire page including
    the controls underneath, which is what made Remove and the sliders look
    dead. */
+/* A sticker's position comes from custom properties so a media query can
+   choose between the desktop pair and a phone pair. --mx/--my only exist
+   when somebody has dragged this sticker on a phone, and var()'s fallback
+   handles every sticker that has not been. */
+.sticker {
+  left: var(--sx);
+  top: calc(var(--sy) * 1cqw);
+}
+@media (max-width: 760px) {
+  .sticker {
+    left: var(--mx, var(--sx));
+    top: calc(var(--my, var(--sy)) * 1cqw);
+  }
+}
+
 .sticker-layer {
   position: absolute;
   inset: 0;

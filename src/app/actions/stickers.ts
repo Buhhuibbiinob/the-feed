@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { guessContentType, isImageFile, megabytes } from "@/lib/uploads";
-import { MAX_STICKERS, MAX_STICKER_BYTES, normalizeSticker } from "@/lib/stickers";
+import { MAX_STICKERS, MAX_STICKER_BYTES, clampPlacement, normalizeSticker } from "@/lib/stickers";
 import { packStickerUrl } from "@/lib/stickerPack";
 import { logEvent } from "@/lib/events";
 import { authorizeProfileEdit } from "@/lib/botEditing";
@@ -157,6 +157,18 @@ export async function placeSticker(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 
+  // Sent only when a phone position exists; absent leaves the column null
+  // and the page keeps falling back to the desktop pair.
+  const rawMobileX = formData.get("mobile_x");
+  const rawMobileY = formData.get("mobile_y");
+  const mobile =
+    rawMobileX != null && rawMobileY != null
+      ? {
+          mobile_x: clampPlacement(Number(rawMobileX), -20, 120, 50),
+          mobile_y: clampPlacement(Number(rawMobileY), -20, 900, 50),
+        }
+      : {};
+
   const placement = normalizeSticker({
     x: formData.get("x"),
     y: formData.get("y"),
@@ -173,7 +185,7 @@ export async function placeSticker(formData: FormData) {
 
   await supabase
     .from("profile_stickers")
-    .update(z === null ? placement : { ...placement, z })
+    .update(z === null ? { ...placement, ...mobile } : { ...placement, ...mobile, z })
     .eq("id", id)
     .eq("user_id", targetId);
 
