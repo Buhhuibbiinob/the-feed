@@ -50,3 +50,16 @@ export function resolveEmailPrefs(stored: unknown): EmailPrefs {
 export function wantsDigest(prefs: EmailPrefs): boolean {
   return EMAIL_EVENTS.some((e) => prefs[e.key] === "digest");
 }
+
+// The win-back nudge, stored alongside the three event prefs in the same
+// blob. Deliberately not one of EMAIL_EVENTS: those are three-way (off /
+// digest / straight away) because they describe a stream of events, and a
+// nudge that only fires when nothing is happening has no such thing to
+// batch. On or off is the only meaningful question.
+export const NUDGE_PREF_KEY = "nudge";
+
+/** Whether to nudge this member if they go quiet. On unless turned off. */
+export function resolveNudgePref(stored: unknown): boolean {
+  const source = (stored ?? {}) as Record<string, unknown>;
+  return source[NUDGE_PREF_KEY] !== "off";
+}

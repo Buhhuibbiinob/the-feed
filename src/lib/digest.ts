@@ -59,7 +59,7 @@ type MemberRow = {
  * service-role client - the same route the newsletter already uses. A
  * missing service key means no digests rather than a crash.
  */
-async function emailsByUserId(): Promise<Map<string, string>> {
+export async function emailsByUserId(): Promise<Map<string, string>> {
   const byId = new Map<string, string>();
   try {
     const admin = createAdminClient();
