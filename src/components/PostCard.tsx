@@ -38,6 +38,8 @@ export type PostCardData = {
       "others reviewed this" nudge, which is the cheapest way to turn a
       dead Comment (0) into a reason to open the post. */
   alsoReviewedCount?: number;
+  /** The thing this review is about, when it has been resolved to one. */
+  workId?: string | null;
   /** The author's earned rank (Regular, Critic, Tastemaker...). Already
       computed for profiles; surfacing it in the feed is what makes the
       ladder worth climbing. */
@@ -307,8 +309,16 @@ export function PostCard({
           {post.isVerified && <VerifiedBadge />}
           {post.authorRank && <span className="author-rank">{post.authorRank}</span>} ·{" "}
           {timeAgo(post.createdAt)}
+          {/* Points at the thing itself now, where all of those reviews
+              and their average are, rather than at this one review's
+              comments - which was the best available answer before works
+              existed. Falls back to the post when the review has not been
+              linked to a work yet. */}
           {(post.alsoReviewedCount ?? 0) > 0 && (
-            <Link href={`/post/${post.id}`} className="also-reviewed">
+            <Link
+              href={post.workId ? `/work/${post.workId}` : `/post/${post.id}`}
+              className="also-reviewed"
+            >
               {post.alsoReviewedCount} other{post.alsoReviewedCount === 1 ? "" : "s"} reviewed this
             </Link>
           )}
