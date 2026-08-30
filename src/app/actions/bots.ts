@@ -27,7 +27,8 @@ export type BotProfile = {
   avatar_url: string | null;
   banner_url: string | null;
   bio: string | null;
-  status_media_type: "music" | "movie_tv" | null;
+  status_media_type: "music" | "movie_tv" | "photography" | null;
+  last_seen_at: string | null;
   status_title: string | null;
   status_artist: string | null;
   bot_persona: string | null;
@@ -35,7 +36,7 @@ export type BotProfile = {
 };
 
 const BOT_PROFILE_COLUMNS =
-  "id, username, avatar_url, banner_url, bio, status_media_type, status_title, status_artist, bot_persona, bot_active";
+  "id, username, avatar_url, banner_url, bio, status_media_type, status_title, status_artist, bot_persona, bot_active, last_seen_at";
 
 // Bots get @bots.invalid addresses: .invalid is RFC2606-reserved so it can
 // never receive mail, which keeps them out of every newsletter and
@@ -456,7 +457,43 @@ export async function adminDeleteAllBots(_prev: BotState, _formData: FormData): 
   };
 }
 
-const REVIEW_PROMPT = `You are a member of Feedback posting a quick reaction. This is a text to a friend, not a review. 1-3 lines. React to the vibe and how it hit you, nothing technical. Do not invent facts about it. ${HUMAN_RULES}
+/**
+ * How long this particular post is.
+ *
+ * Every bot review was "1-3 lines", and a feed where every post is the
+ * same length is a tell on its own - it does not matter how good any
+ * single one is. Real people write two words on a Tuesday and five
+ * paragraphs when something got to them.
+ *
+ * Long is the rarest, not the default. A long post that is still hollow
+ * is more obviously generated than a short one, because there is more
+ * surface for the seams to show - which is why the long mode is told to
+ * ramble and contradict itself rather than to say more about the thing.
+ */
+const LENGTHS = [
+  { weight: 3, rules: `ONE line. A fragment is fine. Under twelve words.` },
+  { weight: 4, rules: `Two or three short lines. Stop before you have said everything.` },
+  { weight: 2, rules: `A proper paragraph, four to six lines.` },
+  {
+    weight: 1,
+    rules: `Long - three short paragraphs. You got carried away. Go off on ONE tangent that is
+only half about the thing itself: where you were, who put you onto it, something it reminded
+you of. Contradict yourself once and do not tidy it up. Do NOT use the extra room to describe
+the work in more detail - that is the thing that reads as written by a machine.`,
+  },
+];
+
+function pickLength(): string {
+  const total = LENGTHS.reduce((n, l) => n + l.weight, 0);
+  let roll = Math.random() * total;
+  for (const l of LENGTHS) {
+    roll -= l.weight;
+    if (roll <= 0) return l.rules;
+  }
+  return LENGTHS[0].rules;
+}
+
+const REVIEW_PROMPT = `You are a member of Feedback posting about something you just heard or watched. This is a text to a friend, not a review. React to the vibe and how it hit you, nothing technical. Do not invent facts about it. ${HUMAN_RULES}
 
 Reply with ONLY the post text, no title, no quotes.`;
 
@@ -626,7 +663,7 @@ export async function runBotRound(requestedId = ""): Promise<BotState> {
       skipped.push(`@${bot.username} has already reviewed "${subject.title}"`);
     } else {
       const written = await askGeminiText(
-        `${REVIEW_PROMPT}\n\nYour voice: ${persona}\n\nHow you type: ${voice.rules}`,
+        `${REVIEW_PROMPT}\n\nYour voice: ${persona}\n\nHow you type: ${voice.rules}\n\nLength for THIS post: ${pickLength()}`,
         subject.mediaType === "music"
           ? `Write your review of the song "${subject.title}" by ${subject.artist}.`
           : `Write your review of the ${subject.kind} "${subject.title}". What it is, so you don't ` +
