@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { selectPosts } from "@/lib/postQuery";
 import { loadPageConfig } from "@/lib/pageConfigStore";
 import { pageStyle } from "@/lib/pageTheme";
 import { decorStyle } from "@/lib/pageDecor";
@@ -117,16 +118,18 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
   const isOwner = user?.id === club.created_by;
   if (club.status === "banned" && !admin) notFound();
 
-  const [{ data: postRows }, { count: memberCount }, { data: likeRows }, { data: commentRows }] =
+  const [postRows, { count: memberCount }, { data: likeRows }, { data: commentRows }] =
     await Promise.all([
-      supabase
-        .from("posts")
-        .select(
-          "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre, profiles!posts_user_id_fkey(username)"
-        )
-        .eq("club_id", id)
-        .order("created_at", { ascending: false })
-        .returns<PostRow[]>(),
+      selectPosts<PostRow>(
+        (columns) =>
+          supabase
+            .from("posts")
+            .select(`${columns}, profiles!posts_user_id_fkey(username)`)
+            .eq("club_id", id)
+            .order("created_at", { ascending: false })
+            .returns<PostRow[]>(),
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre"
+      ),
       supabase.from("club_members").select("user_id", { count: "exact", head: true }).eq("club_id", id),
       supabase.from("likes").select("post_id, user_id"),
       supabase.from("comments").select("post_id"),

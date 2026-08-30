@@ -20,6 +20,7 @@ import { searchVideos } from "@/lib/youtube";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { MEDIA_TYPES, MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
 import { isGenreFor, genreLabel } from "@/lib/genres";
+import { selectPosts } from "@/lib/postQuery";
 import { highestBadge } from "@/lib/badges";
 import { getPublishedIssues } from "@/lib/newsletter";
 import { getSiteFlags } from "@/lib/siteFlags";
@@ -137,27 +138,26 @@ function orderBlocks(blocks: LayoutBlock[], shuffle: boolean): LayoutBlock[] {
 const POST_COLUMNS =
   "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, responds_to_post_id, genre";
 
-// A failed select here comes back as null data, which silently renders as an
-// empty feed - exactly how a missing column once emptied the whole homepage.
-// Say so in the log instead of swallowing it.
+// A failed select here comes back as null data, which silently renders as
+// an empty feed - which is how a column that shipped ahead of its
+// migration took every review off the homepage. selectPosts asks again
+// without the columns the database is missing, so being a migration
+// behind costs that column and not the entire feed.
 async function fetchFeedPosts(supabase: Awaited<ReturnType<typeof createClient>>): Promise<PostRow[]> {
-  const { data, error } = await supabase
-    .from("posts")
-    .select(
-      `${POST_COLUMNS}, profiles!posts_user_id_fkey(username, avatar_url, is_verified, banner_url)`
-    )
-    .order("created_at", { ascending: false })
-    // 62 posts exist and a cap of 50 was silently hiding the 12 oldest,
-    // which were the earliest real member reviews. Raised well clear of
-    // current volume; this wants real pagination before it grows much more.
-    .limit(300)
-    .returns<PostRow[]>();
-
-  if (error) {
-    console.error(`[feed] posts query failed: ${error.message}`);
-    return [];
-  }
-  return data ?? [];
+  return selectPosts<PostRow>(
+    (columns) =>
+      supabase
+        .from("posts")
+        .select(`${columns}, profiles!posts_user_id_fkey(username, avatar_url, is_verified, banner_url)`)
+        .order("created_at", { ascending: false })
+        // 62 posts exist and a cap of 50 was silently hiding the 12
+        // oldest, which were the earliest real member reviews. Raised
+        // well clear of current volume; this wants real pagination
+        // before it grows much more.
+        .limit(300)
+        .returns<PostRow[]>(),
+    POST_COLUMNS
+  );
 }
 
 // Feed TV is only worth showing with something on it. Members' own clips

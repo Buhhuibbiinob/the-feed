@@ -3,6 +3,7 @@ import { PinReviewButton } from "@/components/PinReviewButton";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { selectPosts } from "@/lib/postQuery";
 import { loadReactions } from "@/lib/reactions";
 import { loadAnswered } from "@/lib/duets";
 import { isAdmin } from "@/lib/admin";
@@ -112,15 +113,20 @@ export default async function PostPage({
   } = await supabase.auth.getUser();
   const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
 
-  const { data: postData } = await supabase
-    .from("posts")
-    .select(
-      "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre, responds_to_post_id, profiles!posts_user_id_fkey(username)"
-    )
-    .eq("id", id)
-    .maybeSingle();
+  // One row, but through the same helper as everything else: a review's
+  // own page going 404 because the database is a migration behind is the
+  // same failure as the feed emptying, with a worse-looking symptom.
+  const postRows = await selectPosts<PostRow>(
+    (columns) =>
+      supabase
+        .from("posts")
+        .select(`${columns}, responds_to_post_id, profiles!posts_user_id_fkey(username)`)
+        .eq("id", id)
+        .returns<PostRow[]>(),
+    "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre"
+  );
 
-  const post = postData as PostRow | null;
+  const post = postRows[0] ?? null;
   if (!post) notFound();
 
   const [{ data: commentRows }, { count: likeCount }, reactions] = await Promise.all([

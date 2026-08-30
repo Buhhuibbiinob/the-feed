@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { selectPosts } from "@/lib/postQuery";
 import { fetchStickers } from "@/lib/stickerQuery";
 import { PostCard } from "@/components/PostCard";
 import { ProfileAnthem } from "@/components/ProfileAnthem";
@@ -253,7 +254,7 @@ export default async function ProfilePage({
   const custom = (customData ?? null) as CustomizationRow | null;
 
   const [
-    { data: postRows },
+    postRows,
     { count: followerCount },
     { count: followingCount },
     { data: likeRows },
@@ -261,14 +262,16 @@ export default async function ProfilePage({
     { data: clubMembershipRows },
     { data: favoriteRows },
   ] = await Promise.all([
-    supabase
-      .from("posts")
-      .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre, club_id"
-      )
-      .eq("user_id", profile.id)
-      .order("created_at", { ascending: false })
-      .returns<PostRow[]>(),
+    selectPosts<PostRow>(
+      (columns) =>
+        supabase
+          .from("posts")
+          .select(`${columns}, club_id`)
+          .eq("user_id", profile.id)
+          .order("created_at", { ascending: false })
+          .returns<PostRow[]>(),
+      "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre"
+    ),
     supabase
       .from("follows")
       .select("follower_id", { count: "exact", head: true })

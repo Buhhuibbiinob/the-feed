@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { selectPosts } from "@/lib/postQuery";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import type { MediaType } from "@/lib/media";
 import { deleteCollection, removePostFromCollection } from "@/app/actions/collections";
@@ -68,16 +69,18 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
     .eq("collection_id", id);
   const postIds = (linkRows ?? []).map((r) => r.post_id);
 
-  const [{ data: postRows }, { data: likeRows }, { data: commentRows }] = await Promise.all([
+  const [postRows, { data: likeRows }, { data: commentRows }] = await Promise.all([
     postIds.length
-      ? supabase
-          .from("posts")
-          .select(
-            "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre, profiles!posts_user_id_fkey(username)"
-          )
-          .in("id", postIds)
-          .returns<PostRow[]>()
-      : Promise.resolve({ data: [] as PostRow[] }),
+      ? selectPosts<PostRow>(
+          (columns) =>
+            supabase
+              .from("posts")
+              .select(`${columns}, profiles!posts_user_id_fkey(username)`)
+              .in("id", postIds)
+              .returns<PostRow[]>(),
+          "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre"
+        )
+      : Promise.resolve([] as PostRow[]),
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
   ]);

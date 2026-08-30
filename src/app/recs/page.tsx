@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { selectPosts } from "@/lib/postQuery";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { OrbyBot } from "@/components/OrbyBot";
 import type { MediaType } from "@/lib/media";
@@ -48,15 +49,17 @@ export default async function RecsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: posts }, { data: likeRows }, { data: commentRows }] = await Promise.all([
-    supabase
-      .from("posts")
-      .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre, profiles!posts_user_id_fkey(username)"
-      )
-      .order("created_at", { ascending: false })
-      .limit(200)
-      .returns<PostRow[]>(),
+  const [posts, { data: likeRows }, { data: commentRows }] = await Promise.all([
+    selectPosts<PostRow>(
+      (columns) =>
+        supabase
+          .from("posts")
+          .select(`${columns}, profiles!posts_user_id_fkey(username)`)
+          .order("created_at", { ascending: false })
+          .limit(200)
+          .returns<PostRow[]>(),
+      "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre"
+    ),
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
   ]);

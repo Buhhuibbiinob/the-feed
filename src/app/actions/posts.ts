@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { logEvent } from "@/lib/events";
-import { friendlyDbError } from "@/lib/dbError";
+import { friendlyDbError, isMissingSchema } from "@/lib/dbError";
+import { withoutOptionalFields } from "@/lib/postQuery";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { isGenreFor } from "@/lib/genres";
@@ -100,27 +101,44 @@ export async function createPost(
     answering = data ?? null;
   }
 
+  const row = {
+    user_id: user.id,
+    media_type: mediaType,
+    title,
+    body,
+    rating,
+    artist: artist || null,
+    cover_url: coverUrl || null,
+    spotify_track_id: spotifyTrackId || null,
+    youtube_video_id: youtubeVideoId || null,
+    club_id: clubId,
+    genre: isGenreFor(mediaType as MediaType, rawGenre) ? rawGenre : null,
+    responds_to_post_id: answering?.id ?? null,
+  };
+
   // The id comes back because the review is linked to from the
   // confirmation - "your review is live" with nowhere to go is not a
   // confirmation of anything.
-  const { data: created, error } = await supabase
+  //
+  // And if the database is a migration behind, the review still goes up
+  // without the column it is missing. An insert naming a column that does
+  // not exist fails outright, which here means nobody can post at all -
+  // losing somebody's review because a field they didn't fill in has no
+  // column yet is not a trade worth making.
+  let { data: created, error } = await supabase
     .from("posts")
-    .insert({
-      user_id: user.id,
-      media_type: mediaType,
-      title,
-      body,
-      rating,
-      artist: artist || null,
-      cover_url: coverUrl || null,
-      spotify_track_id: spotifyTrackId || null,
-      youtube_video_id: youtubeVideoId || null,
-      club_id: clubId,
-      genre: isGenreFor(mediaType as MediaType, rawGenre) ? rawGenre : null,
-      responds_to_post_id: answering?.id ?? null,
-    })
+    .insert(row)
     .select("id")
     .single<{ id: string }>();
+
+  if (error && isMissingSchema(error.message)) {
+    console.error(`[posts] insert is ahead of the schema: ${error.message}`);
+    ({ data: created, error } = await supabase
+      .from("posts")
+      .insert(withoutOptionalFields(row))
+      .select("id")
+      .single<{ id: string }>());
+  }
 
   if (error) {
     return { error: friendlyDbError(error.message) };
@@ -336,9 +354,19 @@ export async function updatePost(
   // `using (auth.uid() = user_id)`, so the admin path needs the
   // service-role client or Postgres quietly matches no rows.
   const fields = { title, body, rating, genre };
-  const { error } = (await isAdmin(supabase, user.id))
-    ? await createAdminClient().from("posts").update(fields).eq("id", postId)
-    : await supabase.from("posts").update(fields).eq("id", postId).eq("user_id", user.id);
+  const admin = await isAdmin(supabase, user.id);
+  const save = (values: Record<string, unknown>) =>
+    admin
+      ? createAdminClient().from("posts").update(values).eq("id", postId)
+      : supabase.from("posts").update(values).eq("id", postId).eq("user_id", user.id);
+
+  let { error } = await save(fields);
+  // Same reason as posting: an edit that fails because one column has no
+  // migration yet loses the whole edit, including the words.
+  if (error && isMissingSchema(error.message)) {
+    console.error(`[posts] update is ahead of the schema: ${error.message}`);
+    ({ error } = await save(withoutOptionalFields(fields)));
+  }
 
   if (error) {
     return { error: error.message };
