@@ -15,6 +15,21 @@ import {
   type BotState,
 } from "@/app/actions/bots";
 
+/** Presence reads the same way it does for a member: inside the hour. */
+function botOnline(lastSeen: string | null): boolean {
+  if (!lastSeen) return false;
+  return Date.now() - new Date(lastSeen).getTime() < 60 * 60 * 1000;
+}
+
+function lastSeenLabel(lastSeen: string | null): string {
+  if (!lastSeen) return "never online";
+  const mins = Math.floor((Date.now() - new Date(lastSeen).getTime()) / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 const initialState: BotState = {};
 
 export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: boolean }) {
@@ -73,8 +88,19 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
           bots.map((bot) => (
             <details className="chat-row" key={bot.id}>
               <summary>
-                <b>@{bot.username}</b> <span className="badge-bot">BOT</span>
-                {!bot.bot_active && <span className="field-hint"> (paused)</span>}
+                <b>@{bot.username}</b> <span className="badge-bot">BOT</span>{" "}
+                {/* Two different things, shown separately because they
+                    answer different questions. Active is whether it is
+                    allowed to post at all; online is whether it currently
+                    reads as around to anyone browsing. A paused bot can
+                    still be online for the next hour, which is confusing
+                    until you can see both. */}
+                <span className={`bot-state${botOnline(bot.last_seen_at) ? " online" : ""}`}>
+                  {botOnline(bot.last_seen_at) ? "online" : lastSeenLabel(bot.last_seen_at)}
+                </span>
+                <span className={`bot-state${bot.bot_active ? " active" : " paused"}`}>
+                  {bot.bot_active ? "active" : "paused"}
+                </span>
               </summary>
 
               <form action={runAction} style={{ marginTop: 8 }}>

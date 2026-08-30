@@ -2830,12 +2830,41 @@ a:hover {
 }
 
 /* ---- Rearranging panels on the page ---- */
+/* Both of these used to sit IN the layout, and that is what moved
+   everybody's stickers.
+   
+   Entering decorate mode inserted a toolbar above the columns and one bar
+   above every single panel. With eight panels that is nine new boxes of
+   real height, so the whole page slid down - while the stickers, which
+   are positioned against the page's own width, did not move with it. You
+   dropped a sticker beside a panel, pressed Done, and the panel had
+   walked out from under it.
+   
+   Neither takes any layout space now. The toolbar floats and the bars
+   overlay the top of the panel they belong to, so entering and leaving
+   the mode changes nothing about where anything sits. */
 .arrange-toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 78px;
+  transform: translateX(-50%);
+  z-index: 68;
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  max-width: calc(100vw - 24px);
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--nav-border);
+  background: var(--nav-texture), var(--nav-bg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+@media (max-width: 760px) {
+  /* Above the Decorate bar, which is itself above the tab bar. */
+  .arrange-toolbar {
+    bottom: 134px;
+  }
 }
 .profile-col-side.arranging,
 .profile-col-main.arranging {
@@ -2844,17 +2873,25 @@ a:hover {
   border-radius: 8px;
   min-height: 80px;
 }
+.arrange-slot {
+  /* The bar overlays this, so it needs to be the positioning context. */
+  position: relative;
+}
 .arrange-slot.dragging {
   opacity: 0.45;
 }
 .arrange-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 11px;
   font-weight: 700;
   padding: 4px 8px;
-  margin-bottom: -6px;
   border-radius: 6px 6px 0 0;
   background: var(--link);
   color: #fff;
@@ -13380,4 +13417,32 @@ a.issue-link::after {
 .duet-answering .sub {
   font-size: 11px;
   color: var(--muted);
+}
+
+/* Bot state chips in the admin list. Online and active are separate
+   answers, so they are separate chips. */
+.bot-state {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  vertical-align: 1px;
+}
+.bot-state.online {
+  border-color: #35c46f;
+  color: #1e9257;
+}
+.bot-state.active {
+  border-color: var(--link);
+  color: var(--link);
+}
+.bot-state.paused {
+  border-color: #d0803a;
+  color: #a35a12;
 }

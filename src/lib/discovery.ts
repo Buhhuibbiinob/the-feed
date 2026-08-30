@@ -10,6 +10,8 @@ import { hasSkinChoices } from "@/lib/pageTheme";
 // a profile is that nobody ever sees it.
 
 export type DiscoverProfile = {
+  /** Not rendered anywhere. Used only to keep the directory balanced. */
+  isBot?: boolean;
   id: string;
   username: string;
   avatarUrl: string | null;
@@ -30,6 +32,7 @@ type ProfileRow = {
   bio: string | null;
   mood_emoji: string | null;
   last_seen_at: string | null;
+  is_bot?: boolean;
   created_at: string;
 };
 
@@ -67,14 +70,14 @@ export async function getDiscoverProfiles(
 ): Promise<DiscoverProfile[]> {
   const [{ data: profileRows }, { data: configRows }, { data: postRows }, { data: stickerRows }] =
     await Promise.all([
-      // Bots are excluded: a directory of decorated profiles is a
-      // directory of people, and bots would fill it without trying.
+      // Bots are in the directory now, unlabelled, the same as they are
+      // in the feed. They are capped further down rather than here: the
+      // query has to see them all before it can decide which to keep.
       supabase
         .from("profiles")
-        .select("id, username, avatar_url, banner_url, bio, mood_emoji, last_seen_at, created_at")
-        .eq("is_bot", false)
+        .select("id, username, avatar_url, banner_url, bio, mood_emoji, last_seen_at, created_at, is_bot")
         .eq("banned", false)
-        .limit(limit)
+        .limit(limit * 3)
         .returns<ProfileRow[]>(),
       supabase
         .from("page_configs")
@@ -97,7 +100,7 @@ export async function getDiscoverProfiles(
     stickerCounts.set(row.user_id, (stickerCounts.get(row.user_id) ?? 0) + 1);
   }
 
-  return (profileRows ?? []).map((profile) => ({
+  const all = (profileRows ?? []).map((profile) => ({
     id: profile.id,
     username: profile.username,
     avatarUrl: profile.avatar_url,
@@ -107,7 +110,23 @@ export async function getDiscoverProfiles(
     reviewCount: reviewCounts.get(profile.id) ?? 0,
     lastActive: profile.last_seen_at,
     effort: effortScore(profile, configByUser.get(profile.id), stickerCounts.get(profile.id) ?? 0),
+    isBot: profile.is_bot === true,
   }));
+
+  // Every real member, then at most as many bots as there are members.
+  //
+  // Uncapped, bots would own this page: they post constantly, so they win
+  // the Most reviews and Recently active sorts outright, and there are
+  // more of them than there are people. A directory where a member scrolls
+  // past thirty strangers before reaching anyone who will ever reply does
+  // the opposite of making the place feel worth posting in - which is the
+  // entire reason the bots exist.
+  //
+  // The cap is a ratio rather than a number, so it widens on its own as
+  // real membership grows.
+  const people = all.filter((p) => !p.isBot);
+  const bots = all.filter((p) => p.isBot).slice(0, Math.max(4, people.length));
+  return [...people, ...bots].slice(0, limit);
 }
 
 export type DirectorySort = "customized" | "active" | "reviews" | "new";
