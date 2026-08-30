@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { createPost, type PostFormState } from "@/app/actions/posts";
+import { closeComposeSheet } from "@/components/ComposeSheet";
 import type { YoutubeVideo } from "@/lib/youtube";
 import { MEDIA_LABELS } from "@/lib/media";
 
@@ -17,6 +18,7 @@ export function PostForm({
   const [state, formAction, pending] = useActionState(createPost, initialState);
   const [formKey, setFormKey] = useState(0);
   const [lastOk, setLastOk] = useState(state.ok);
+  const [dismissedPost, setDismissedPost] = useState<string | null>(null);
 
   const [mediaType, setMediaType] = useState("music");
   const [title, setTitle] = useState("");
@@ -26,6 +28,9 @@ export function PostForm({
   const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
   const [videoSearching, setVideoSearching] = useState(false);
 
+  // The fields are cleared on success as before, but the form is no
+  // longer what gets shown: `posted` swaps it for the confirmation, and
+  // "Post another" swaps it back to an already-empty form.
   if (state.ok !== lastOk) {
     setLastOk(state.ok);
     if (state.ok) {
@@ -36,8 +41,14 @@ export function PostForm({
       setVideoQuery("");
       setVideoResults([]);
       setSelectedVideo(null);
+      setDismissedPost(null);
     }
   }
+
+  // Which confirmation has been dismissed, rather than a boolean: the
+  // next post produces a new id, so a stale "dismissed" can't hide the
+  // confirmation for the post after it.
+  const posted = state.posted && state.posted.postId !== dismissedPost ? state.posted : null;
 
   useEffect(() => {
     if (!videoQuery.trim()) {
@@ -59,6 +70,13 @@ export function PostForm({
     };
   }, [videoQuery]);
 
+  // The form renders inside the compose sheet as well as on its own
+  // page, and a link followed from inside the sheet would otherwise
+  // navigate underneath it and leave the sheet sitting over the top.
+  function closeSheet() {
+    closeComposeSheet();
+  }
+
   function selectVideo(video: YoutubeVideo) {
     setSelectedVideo(video);
     setTitle(video.title);
@@ -68,6 +86,41 @@ export function PostForm({
 
   function clearSelectedVideo() {
     setSelectedVideo(null);
+  }
+
+  if (posted) {
+    return (
+      <div className="panel">
+        <div className="panel-head">{posted.first ? "That's your first review" : "Posted"}</div>
+        <div className="panel-body">
+          <div className="posted-card">
+            <p className="posted-live">
+              Your review is live.{" "}
+              <Link href={`/post/${posted.postId}`} onClick={closeSheet}>
+                Have a look at it
+              </Link>
+              .
+            </p>
+            {/* One thing to do next, picked from what this person has and
+                hasn't done. Not a checklist: five things to do next is a
+                chore, one is an invitation. */}
+            <div className="posted-next">
+              <p>{posted.next.text}</p>
+              <Link href={posted.next.href} className="btn" onClick={closeSheet}>
+                {posted.next.cta}
+              </Link>
+            </div>
+            <button
+              type="button"
+              className="acct-btn"
+              onClick={() => setDismissedPost(posted.postId)}
+            >
+              Post another
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -6,6 +6,7 @@ import { friendlyDbError } from "@/lib/dbError";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { findOrCreateClub } from "@/lib/clubs";
+import { chooseNextStep, type NextStep } from "@/lib/afterPost";
 import { checkReviewSafety } from "@/lib/contentSafety";
 import { isAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -13,6 +14,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export type PostFormState = {
   error?: string;
   ok?: boolean;
+  /** Set on success, so the form can show what happened instead of blanking. */
+  posted?: {
+    postId: string;
+    /** True only for somebody's very first review. */
+    first: boolean;
+    next: NextStep;
+  };
 };
 
 export async function createPost(
@@ -68,7 +76,10 @@ export async function createPost(
   // that made a photo post's club insert fail silently has been widened.
   // Music groups by artist; the other two group by the thing itself.
   const clubName = mediaType === "music" ? artist : title;
-  const clubId = clubName ? await findOrCreateClub(supabase, mediaType as MediaType, clubName) : null;
+  const club = clubName
+    ? await findOrCreateClub(supabase, mediaType as MediaType, clubName)
+    : { id: null, founded: false };
+  const clubId = club.id;
 
   // The post being answered is looked up rather than trusted: a client
   // could post any uuid, and a duet pointing at something that is not a
@@ -83,7 +94,10 @@ export async function createPost(
     answering = data ?? null;
   }
 
-  const { error } = await supabase
+  // The id comes back because the review is linked to from the
+  // confirmation - "your review is live" with nowhere to go is not a
+  // confirmation of anything.
+  const { data: created, error } = await supabase
     .from("posts")
     .insert({
       user_id: user.id,
@@ -97,7 +111,9 @@ export async function createPost(
       youtube_video_id: youtubeVideoId || null,
       club_id: clubId,
       responds_to_post_id: answering?.id ?? null,
-    });
+    })
+    .select("id")
+    .single<{ id: string }>();
 
   if (error) {
     return { error: friendlyDbError(error.message) };
@@ -112,7 +128,51 @@ export async function createPost(
   if (answering) revalidatePath(`/post/${answering.id}`);
   revalidatePath("/");
   revalidatePath("/clubs");
-  return { ok: true };
+
+  return { ok: true, posted: await describePosted(supabase, user.id, created?.id ?? null, club, clubName) };
+}
+
+/**
+ * The facts the confirmation needs: where the review went, whether it was
+ * their first, and the one thing worth doing next.
+ *
+ * Best-effort on purpose. This runs after the review is safely saved, so
+ * anything that fails here costs a nicer confirmation and nothing else -
+ * losing the post because the follow-up query fell over would be a
+ * grotesque trade.
+ */
+async function describePosted(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  postId: string | null,
+  club: { id: string | null; founded: boolean },
+  clubName: string
+): Promise<PostFormState["posted"]> {
+  if (!postId) return undefined;
+
+  const [{ data: profile }, { count }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("username, avatar_url, banner_url")
+      .eq("id", userId)
+      .maybeSingle<{ username: string; avatar_url: string | null; banner_url: string | null }>(),
+    supabase.from("posts").select("id", { count: "exact", head: true }).eq("user_id", userId),
+  ]);
+  if (!profile) return undefined;
+
+  const reviewCount = count ?? 1;
+  return {
+    postId,
+    first: reviewCount === 1,
+    next: chooseNextStep({
+      username: profile.username,
+      hasAvatar: !!profile.avatar_url,
+      hasBanner: !!profile.banner_url,
+      reviewCount,
+      club: club.id && clubName ? { id: club.id, name: clubName } : null,
+      foundedClub: club.founded,
+    }),
+  };
 }
 
 // Pulls the 11-char video id out of any common YouTube URL shape
