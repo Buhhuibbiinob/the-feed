@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
+import { backfillWorks, type BackfillResult } from "@/lib/worksBackfill";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -274,4 +275,22 @@ export async function adminDeleteBanner(formData: FormData) {
   await supabase.from("banner_ads").delete().eq("id", bannerId);
   revalidatePath("/admin");
   revalidatePath("/");
+}
+
+export type BackfillState = { error?: string; result?: BackfillResult };
+
+/**
+ * Links reviews posted before the works table existed to their work.
+ *
+ * The same job as /api/works/backfill, reachable from the admin page
+ * instead of from a terminal. The endpoint needs an Authorization header,
+ * which a browser cannot send by typing a URL - so the only way to run it
+ * was curl, which is a silly thing to require of the person who owns the
+ * site.
+ */
+export async function adminBackfillWorks(): Promise<BackfillState> {
+  await requireAdmin();
+  const result = await backfillWorks(createAdminClient());
+  revalidatePath("/");
+  return { result };
 }
