@@ -34,6 +34,7 @@ import { SiteContentForm } from "@/components/SiteContentForm";
 import { HouseAdForm } from "@/components/HouseAdForm";
 import { SendSignInLinksButton } from "@/components/SendSignInLinksButton";
 import { BotAdminPanel } from "@/components/BotAdminPanel";
+import { BackfillWorksButton } from "@/components/BackfillWorksButton";
 import { listBots } from "@/app/actions/bots";
 import { getSiteFlags } from "@/lib/siteFlags";
 
@@ -615,6 +616,13 @@ export default async function AdminPage() {
             panel shows which accounts are bots.
           </p>
           <BotAdminPanel bots={bots} enabled={siteFlags.bots_enabled} />
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">Link Reviews to Works</div>
+        <div className="panel-body">
+          <BackfillWorksButton />
         </div>
       </div>
 
