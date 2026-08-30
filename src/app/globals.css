@@ -13498,3 +13498,89 @@ a.issue-link::after {
 #customize {
   scroll-margin-top: 74px;
 }
+
+/* Up Next: the list of things somebody means to get to. Laid out as a
+   row per thing - artwork, what it is, and what you can do about it. */
+.queue-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.queue-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 9px;
+  border: 1px solid var(--panel-border);
+  border-radius: 9px;
+  background: var(--panel-bg);
+}
+.queue-item.done {
+  opacity: 0.62;
+}
+.queue-item.done .queue-body b {
+  text-decoration: line-through;
+}
+.queue-thumb {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--panel-border);
+}
+.queue-thumb.blank {
+  display: block;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+.queue-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.queue-body b {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.queue-body .sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+/* Wraps rather than squeezing: three actions and a long title on a phone
+   is more than one line's worth, and a squashed button is unpressable. */
+.queue-actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  font-size: 11px;
+}
+.queue-actions .btn {
+  font-size: 11px;
+  padding: 4px 10px;
+}
+.queue-actions .inline-form button {
+  color: var(--link);
+  text-decoration: underline;
+}
+.queue-actions .inline-form button.danger {
+  color: var(--muted);
+}
+@media (max-width: 560px) {
+  .queue-item {
+    flex-wrap: wrap;
+  }
+  .queue-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

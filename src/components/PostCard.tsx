@@ -8,6 +8,7 @@ import { updatePost, deletePost, type PostFormState } from "@/app/actions/posts"
 import { LikeButton } from "@/components/LikeButton";
 import { PostReactions, type ReactionCount } from "@/components/PostReactions";
 import { AddToCollectionButton } from "@/components/AddToCollectionButton";
+import { AddToQueueButton } from "@/components/AddToQueueButton";
 import { ShareButton } from "@/components/ShareButton";
 import { PreviewPlayer } from "@/components/PreviewPlayer";
 import { SpoilerText } from "@/components/SpoilerText";
@@ -174,6 +175,19 @@ export function PostCard({
                 </Link>
               ),
               currentUserId ? <AddToCollectionButton key="save" postId={post.id} asLink /> : null,
+              // Save keeps the review; this keeps the THING, on a list of
+              // what you mean to get to. Not offered on your own review,
+              // where queueing what you just reviewed is nonsense.
+              currentUserId && !isOwner ? (
+                <AddToQueueButton
+                  key="queue"
+                  postId={post.id}
+                  mediaType={post.mediaType}
+                  title={post.title}
+                  artist={post.artist}
+                  coverUrl={post.coverUrl}
+                />
+              ) : null,
               // Answering your own review is a loop with nobody in it.
               currentUserId && !isOwner ? (
                 <Link key="duet" href={`/post/new?responds_to=${post.id}`}>
