@@ -121,12 +121,13 @@ export default async function RecsPage() {
         <div className="panel-body flush">
           {!user ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              <Link href="/sign-in">Sign in</Link> to get recommendations based on your ratings and who you
-              follow.
+              <Link href="/sign-in">Sign in</Link> to get recommendations based on what you rate
+              highly and who you follow.
             </div>
           ) : forYou.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              Rate a few reviews or follow some reviewers and we&apos;ll start recommending things here.
+              Post a review with 4 or 5 stars, or follow some reviewers, and we&apos;ll start
+              recommending things here.
             </div>
           ) : (
             forYou.map((post) => (
