@@ -166,7 +166,7 @@ export function PostCard({
               currentUserId ? (
                 <LikeButton key="rate" postId={post.id} liked={liked} count={likeCount} asLink />
               ) : (
-                <span key="rate" className="track-actions-muted">Rate ({likeCount})</span>
+                <span key="rate" className="track-actions-muted">Like ({likeCount})</span>
               ),
               hideCommentLink ? null : (
                 <Link key="comment" href={`/post/${post.id}`} className={commentCount === 0 ? "comment-invite" : undefined}>
