@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { selectPosts } from "@/lib/postQuery";
 import { PostCard } from "@/components/PostCard";
 import type { MediaType } from "@/lib/media";
 
@@ -52,17 +53,19 @@ export default async function SearchPage({
   const escaped = query.replace(/[%_]/g, (c) => `\\${c}`);
   const pattern = `%${escaped}%`;
 
-  const [{ data: postRows }, { data: profileRows }, { data: likeRows }, { data: commentRows }] =
+  const [postRows, { data: profileRows }, { data: likeRows }, { data: commentRows }] =
     await Promise.all([
-      supabase
-        .from("posts")
-        .select(
-          "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre, profiles!posts_user_id_fkey(username)"
-        )
-        .or(`title.ilike.${pattern},artist.ilike.${pattern},body.ilike.${pattern}`)
-        .order("created_at", { ascending: false })
-        .limit(30)
-        .returns<PostRow[]>(),
+      selectPosts<PostRow>(
+        (columns) =>
+          supabase
+            .from("posts")
+            .select(`${columns}, profiles!posts_user_id_fkey(username)`)
+            .or(`title.ilike.${pattern},artist.ilike.${pattern},body.ilike.${pattern}`)
+            .order("created_at", { ascending: false })
+            .limit(30)
+            .returns<PostRow[]>(),
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre"
+      ),
       supabase
         .from("profiles")
         .select("id, username, avatar_url, bio")

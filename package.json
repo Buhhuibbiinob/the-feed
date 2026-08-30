@@ -12,6 +12,7 @@
     "check:afterpost": "npx tsx scripts/after-post-check.ts",
     "check:winback": "npx tsx scripts/winback-check.ts",
     "check:genres": "npx tsx scripts/genre-check.ts",
+    "check:postcolumns": "npx tsx scripts/post-column-check.ts",
     "check:themes": "node scripts/check-theme-purity.mjs",
     "check:contrast": "node scripts/check-theme-contrast.mjs --verbose",
     "check:shadows": "node scripts/check-shadow-weight.mjs"
