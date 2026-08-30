@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { fetchStickers } from "@/lib/stickerQuery";
 import { PostCard } from "@/components/PostCard";
 import { ProfileAnthem } from "@/components/ProfileAnthem";
 import { FollowButton } from "@/components/FollowButton";
@@ -134,19 +135,6 @@ type ConnectionRow = {
   profiles: ProfileRef | ProfileRef[] | null;
 };
 type PinnedRow = { post_id: string; position: number };
-type StickerRow = {
-  id: string;
-  image_url: string;
-  x: number;
-  y: number;
-  mobile_x: number | null;
-  mobile_y: number | null;
-  scale: number;
-  scale_y: number | null;
-  rotation: number;
-  skew: number | null;
-  z: number;
-};
 type CollectionFollowRow = { collection_id: string; user_id: string };
 
 type FavoriteRow = {
@@ -492,7 +480,7 @@ export default async function ProfilePage({
       : null,
   ].filter((h): h is { label: string; post: PostRow } => h !== null);
 
-  const [{ data: guestbookRows }, { data: connectionRows }, { data: pinnedRows }, { data: stickerRows }] =
+  const [{ data: guestbookRows }, { data: connectionRows }, { data: pinnedRows }, stickerRows] =
     await Promise.all([
     supabase
       .from("guestbook_entries")
@@ -513,12 +501,7 @@ export default async function ProfilePage({
       .eq("user_id", profile.id)
       .order("position", { ascending: true })
       .returns<PinnedRow[]>(),
-    supabase
-      .from("profile_stickers")
-      .select("id, image_url, x, y, mobile_x, mobile_y, scale, scale_y, rotation, skew, z")
-      .eq("user_id", profile.id)
-      .order("z", { ascending: true })
-      .returns<StickerRow[]>(),
+    fetchStickers(supabase, profile.id),
   ]);
 
   const guestbook: GuestbookEntry[] = (guestbookRows ?? []).map((row) => {

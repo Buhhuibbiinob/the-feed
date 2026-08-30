@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "node scripts/check-theme-purity.mjs && node scripts/check-theme-contrast.mjs && node scripts/check-shadow-weight.mjs && node scripts/check-owner-target.mjs && eslint",
     "check:owner": "node scripts/check-owner-target.mjs",
+    "check:stickers": "npx tsx scripts/sticker-fallback-check.ts",
     "check:themes": "node scripts/check-theme-purity.mjs",
     "check:contrast": "node scripts/check-theme-contrast.mjs --verbose",
     "check:shadows": "node scripts/check-shadow-weight.mjs"
