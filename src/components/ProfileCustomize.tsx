@@ -15,11 +15,13 @@ export function ProfileCustomize({
   bioFont,
   bioColor,
   bannerAspectId,
+  ownerId,
 }: {
   bio: string | null;
   bioFont: string | null;
   bioColor: string | null;
   bannerAspectId: string | null;
+  ownerId: string;
 }) {
   const [open, setOpen] = useState(false);
   const [bioState, bioAction, bioPending] = useActionState(updateBio, initialState);
@@ -65,6 +67,7 @@ export function ProfileCustomize({
       )}
 
       <form action={bioAction} className="comment-form">
+        <input type="hidden" name="owner_id" value={ownerId} />
         <textarea
           name="bio"
           value={draftBio}
@@ -130,6 +133,7 @@ export function ProfileCustomize({
       </form>
 
       <form action={bannerAction} onSubmit={handleBannerSubmit} className="comment-form avatar-upload-form">
+        <input type="hidden" name="owner_id" value={ownerId} />
         <div className="banner-shape-row">
           {BANNER_ASPECTS.map((option) => (
             <label key={option.id} className="banner-shape-option">

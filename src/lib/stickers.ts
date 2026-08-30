@@ -25,6 +25,10 @@ export type Sticker = {
   imageUrl: string;
   x: number;
   y: number;
+  /** A separate position for narrow screens. Null when none has been set,
+   *  in which case the page falls back to x and y. */
+  mobileX: number | null;
+  mobileY: number | null;
   /** Horizontal scale. */
   scale: number;
   /** Vertical scale - separate, so a sticker can be squashed or stretched. */

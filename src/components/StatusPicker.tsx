@@ -7,7 +7,7 @@ import { MEDIA_TYPES, MEDIA_VERB_PROMPTS, type MediaType } from "@/lib/media";
 
 const initialState: ProfileFormState = {};
 
-export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
+export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; ownerId: string }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(setStatus, initialState);
   const [mediaType, setMediaType] = useState<MediaType>("music");
@@ -54,6 +54,7 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
     <div className="avatar-picker">
       {state.error && <div className="form-error">{state.error}</div>}
       <form action={formAction} className="comment-form">
+        <input type="hidden" name="owner_id" value={ownerId} />
         <select
           value={mediaType}
           onChange={(e) => {
@@ -153,6 +154,7 @@ export function StatusPicker({ hasStatus }: { hasStatus: boolean }) {
       </form>
       {hasStatus && (
         <form action={clearStatus}>
+          <input type="hidden" name="owner_id" value={ownerId} />
           <button type="submit" className="comment-action danger">
             Clear status
           </button>

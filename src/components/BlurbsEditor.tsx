@@ -5,7 +5,15 @@ import { setBlurbs, type PageConfigState } from "@/app/actions/pageConfig";
 
 const initialState: PageConfigState = {};
 
-export function BlurbsEditor({ next, free }: { next: string | null; free: string | null }) {
+export function BlurbsEditor({
+  next,
+  free,
+  ownerId,
+}: {
+  next: string | null;
+  free: string | null;
+  ownerId: string;
+}) {
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(setBlurbs, initialState);
 
@@ -27,6 +35,7 @@ export function BlurbsEditor({ next, free }: { next: string | null; free: string
     <div className="avatar-picker">
       {state.error && <div className="form-error">{state.error}</div>}
       <form action={formAction} className="comment-form">
+        <input type="hidden" name="owner_id" value={ownerId} />
         <label className="field-hint">What I&apos;d like to review next</label>
         <textarea
           name="blurb_next"

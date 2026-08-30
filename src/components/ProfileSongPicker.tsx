@@ -15,7 +15,7 @@ export type ProfileSongDraft = {
   autoplay: boolean;
 };
 
-export function ProfileSongPicker({ current }: { current: ProfileSongDraft }) {
+export function ProfileSongPicker({ current, ownerId }: { current: ProfileSongDraft; ownerId: string }) {
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<YoutubeVideo | null>(
     current.youtubeId
@@ -51,6 +51,7 @@ export function ProfileSongPicker({ current }: { current: ProfileSongDraft }) {
       {state.error && <div className="form-error">{state.error}</div>}
 
       <form action={formAction} className="comment-form">
+        <input type="hidden" name="owner_id" value={ownerId} />
         {picked ? (
           <div className="track-selected">
             {picked.thumbnailUrl && <img src={picked.thumbnailUrl} alt="" />}
@@ -92,6 +93,7 @@ export function ProfileSongPicker({ current }: { current: ProfileSongDraft }) {
 
       {current.youtubeId && (
         <form action={clearProfileSong}>
+          <input type="hidden" name="owner_id" value={ownerId} />
           <button type="submit" className="comment-action danger">
             Remove profile song
           </button>

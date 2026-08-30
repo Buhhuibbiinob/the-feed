@@ -139,6 +139,8 @@ type StickerRow = {
   image_url: string;
   x: number;
   y: number;
+  mobile_x: number | null;
+  mobile_y: number | null;
   scale: number;
   scale_y: number | null;
   rotation: number;
@@ -513,7 +515,7 @@ export default async function ProfilePage({
       .returns<PinnedRow[]>(),
     supabase
       .from("profile_stickers")
-      .select("id, image_url, x, y, scale, scale_y, rotation, skew, z")
+      .select("id, image_url, x, y, mobile_x, mobile_y, scale, scale_y, rotation, skew, z")
       .eq("user_id", profile.id)
       .order("z", { ascending: true })
       .returns<StickerRow[]>(),
@@ -541,6 +543,11 @@ export default async function ProfilePage({
     imageUrl: row.image_url,
     x: row.x,
     y: row.y,
+    // Null for stickers placed before these columns existed, which is
+    // every sticker on the site today - so they all keep their current
+    // position on every screen.
+    mobileX: row.mobile_x ?? null,
+    mobileY: row.mobile_y ?? null,
     scale: row.scale,
     // Null for stickers placed before these columns existed.
     scaleY: row.scale_y ?? 1,
@@ -828,7 +835,7 @@ export default async function ProfilePage({
       case "connections":
         return (
           <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Regulars">
-            <TopConnections connections={connections} isOwner={isOwnProfile} />
+            <TopConnections connections={connections} isOwner={canDecorate} ownerId={profile.id} />
           </Panel>
         );
 
@@ -1114,9 +1121,12 @@ export default async function ProfilePage({
   }
 
   // Resolved once and split across the two columns below. Empty modules
-  // stay hidden from visitors and show the owner a prompt, as before.
+  // stay hidden from visitors and show a prompt to whoever can edit the
+  // page - canDecorate, not isOwnProfile, or an admin could never fill in
+  // a bot's empty module: the section holding the controls for it would
+  // be hidden precisely because it was still empty.
   const shownModules = visibleModules(config).filter(
-    (id) => isOwnProfile || sectionHasContent[id]
+    (id) => canDecorate || sectionHasContent[id]
   );
 
   // Scoped to this profile's own id, so one member's CSS cannot match
@@ -1305,21 +1315,31 @@ export default async function ProfilePage({
             </div>
           </div>
 
-          {/* The owner's controls, in the side column under the card -
-              the same place the reference keeps "Edit Profile". */}
-          {isOwnProfile && (
+          {/* The controls, in the side column under the card - the same
+              place the reference keeps "Edit Profile". Gated on canDecorate
+              rather than on it being your own page, so an admin on a bot's
+              page gets the whole card and not the four fields the bot
+              admin panel exposes. Every control inside posts the page's
+              id; the server decides whether that's allowed. */}
+          {canDecorate && (
             <div className="pf-card">
-              <div className="pf-card-head alt">Customize</div>
+              {/* Named on somebody else's page. These controls look
+                  identical to the ones on your own, and an admin who
+                  forgets which page they are on edits the wrong one. */}
+              <div className="pf-card-head alt">
+                {isOwnProfile ? "Customize" : `Customize ${profile.username}`}
+              </div>
               <div className="pf-card-body">
                 <div className="profile-editor-actions">
-              <AvatarPicker />
+              <AvatarPicker ownerId={profile.id} />
               <ProfileCustomize
                 bio={profile.bio}
                 bioFont={custom?.bio_font ?? null}
                 bioColor={custom?.bio_color ?? null}
                 bannerAspectId={custom?.banner_aspect ?? null}
+                ownerId={profile.id}
               />
-              <StatusPicker hasStatus={!!status?.status_media_type} />
+              <StatusPicker hasStatus={!!status?.status_media_type} ownerId={profile.id} />
               <ObsessedPicker
                 current={{
                   kind: obsessedKind,
@@ -1327,6 +1347,7 @@ export default async function ProfilePage({
                   note: custom?.obsessed_note ?? null,
                   imageUrl: custom?.obsessed_image_url ?? null,
                 }}
+                ownerId={profile.id}
               />
               <ProfileSongPicker
                 current={{
@@ -1336,14 +1357,20 @@ export default async function ProfilePage({
                   thumbnailUrl: custom?.profile_song_thumbnail_url ?? null,
                   autoplay: custom?.profile_song_autoplay === true,
                 }}
+                ownerId={profile.id}
               />
-              <FavoritesEditor favorites={favorites} />
+              <FavoritesEditor favorites={favorites} ownerId={profile.id} />
               <MoodRingEditor
                 emoji={moodEmoji}
                 color={custom?.mood_color ?? null}
                 text={custom?.mood_text ?? null}
+                ownerId={profile.id}
               />
-              <BlurbsEditor next={custom?.blurb_next ?? null} free={custom?.blurb_free ?? null} />
+              <BlurbsEditor
+                next={custom?.blurb_next ?? null}
+                free={custom?.blurb_free ?? null}
+                ownerId={profile.id}
+              />
               {/* Colours, fonts, background and module order all live in one
                   editor now, and the same one runs on club pages. */}
                   <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />

@@ -18,7 +18,7 @@ export type ObsessedDraft = {
 // title and some artwork, but every field stays editable afterwards - the
 // point of the slot is that it says whatever the member wants, including
 // something the catalogue has never heard of.
-export function ObsessedPicker({ current }: { current: ObsessedDraft }) {
+export function ObsessedPicker({ current, ownerId }: { current: ObsessedDraft; ownerId: string }) {
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<ObsessedKind>(current.kind ?? "artist");
   const [title, setTitle] = useState(current.title ?? "");
@@ -48,6 +48,7 @@ export function ObsessedPicker({ current }: { current: ObsessedDraft }) {
       {state.error && <div className="form-error">{state.error}</div>}
 
       <form action={formAction} className="comment-form">
+        <input type="hidden" name="owner_id" value={ownerId} />
         <select value={kind} onChange={(e) => setKind(e.target.value as ObsessedKind)} name="kind">
           {OBSESSED_KINDS.map((k) => (
             <option value={k} key={k}>
@@ -107,6 +108,7 @@ export function ObsessedPicker({ current }: { current: ObsessedDraft }) {
 
       {current.title && (
         <form action={clearObsessed}>
+          <input type="hidden" name="owner_id" value={ownerId} />
           <button type="submit" className="comment-action danger">
             Clear obsession
           </button>
