@@ -267,13 +267,32 @@ export async function deleteThemePreset(formData: FormData) {
   await revalidateSurface(supabase, target.surface, target.ownerId);
 }
 
-/** The mood ring: emoji, colour, a few words. */
-export async function setMood(_prev: PageConfigState, formData: FormData): Promise<PageConfigState> {
+/**
+ * The profile a mood or blurb edit is for.
+ *
+ * These two write straight to the profiles row rather than to a page
+ * config, so they don't go through requireOwnership's surface split -
+ * but they need the same check, for the same reason: an admin editing a
+ * bot's page has to write as service role or RLS refuses it silently.
+ */
+async function resolveProfileTarget(formData: FormData) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  if (!user) return { error: "You must be signed in." as const };
+
+  const posted = String(formData.get("owner_id") ?? "").trim();
+  const auth = await authorizeProfileEdit(posted || user.id);
+  if (!auth.ok) return { error: auth.error };
+  return { client: auth.client, targetId: auth.userId, actorId: user.id };
+}
+
+/** The mood ring: emoji, colour, a few words. */
+export async function setMood(_prev: PageConfigState, formData: FormData): Promise<PageConfigState> {
+  const target = await resolveProfileTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   // One grapheme, so the ring stays a ring rather than a sentence.
   const emoji = [...String(formData.get("emoji") ?? "").trim()].slice(0, 2).join("") || null;
@@ -291,22 +310,20 @@ export async function setMood(_prev: PageConfigState, formData: FormData): Promi
       mood_color: normalizeColor(formData.get("color")),
       mood_text: text,
     })
-    .eq("id", user.id);
+    .eq("id", targetId);
   if (error) return { error: error.message };
 
-  await logEvent(supabase, user.id, "profile_edit", "mood");
-  const { data } = await supabase.from("profiles").select("username").eq("id", user.id).maybeSingle();
+  await logEvent(supabase, actorId, "profile_edit", "mood");
+  const { data } = await supabase.from("profiles").select("username").eq("id", targetId).maybeSingle();
   if (data?.username) revalidatePath(`/profile/${data.username}`);
   return { ok: true };
 }
 
 /** "What I'd like to review next", plus a free blurb slot. */
 export async function setBlurbs(_prev: PageConfigState, formData: FormData): Promise<PageConfigState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveProfileTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const next = String(formData.get("blurb_next") ?? "").trim().slice(0, 300) || null;
   const free = String(formData.get("blurb_free") ?? "").trim().slice(0, 300) || null;
@@ -320,11 +337,11 @@ export async function setBlurbs(_prev: PageConfigState, formData: FormData): Pro
   const { error } = await supabase
     .from("profiles")
     .update({ blurb_next: next, blurb_free: free })
-    .eq("id", user.id);
+    .eq("id", targetId);
   if (error) return { error: error.message };
 
-  await logEvent(supabase, user.id, "profile_edit", "blurbs");
-  const { data } = await supabase.from("profiles").select("username").eq("id", user.id).maybeSingle();
+  await logEvent(supabase, actorId, "profile_edit", "blurbs");
+  const { data } = await supabase.from("profiles").select("username").eq("id", targetId).maybeSingle();
   if (data?.username) revalidatePath(`/profile/${data.username}`);
   return { ok: true };
 }

@@ -15,10 +15,12 @@ export function MoodRingEditor({
   emoji,
   color,
   text,
+  ownerId,
 }: {
   emoji: string | null;
   color: string | null;
   text: string | null;
+  ownerId: string;
 }) {
   const [open, setOpen] = useState(false);
   const [draftEmoji, setDraftEmoji] = useState(emoji ?? CLASSIC_EMOJI[0]);
@@ -43,6 +45,7 @@ export function MoodRingEditor({
     <div className="avatar-picker">
       {state.error && <div className="form-error">{state.error}</div>}
       <form action={formAction} className="comment-form">
+        <input type="hidden" name="owner_id" value={ownerId} />
         <div className="mood-quick">
           {QUICK_MOODS.map((option) => (
             <button

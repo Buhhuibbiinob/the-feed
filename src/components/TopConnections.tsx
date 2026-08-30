@@ -20,9 +20,11 @@ export type Connection = {
 export function TopConnections({
   connections,
   isOwner,
+  ownerId,
 }: {
   connections: Connection[];
   isOwner: boolean;
+  ownerId: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [username, setUsername] = useState("");
@@ -69,6 +71,7 @@ export function TopConnections({
               </span>
               <span className="layout-move">
                 <form action={moveTopConnection}>
+                  <input type="hidden" name="owner_id" value={ownerId} />
                   <input type="hidden" name="friend_id" value={person.id} />
                   <input type="hidden" name="direction" value="up" />
                   <button type="submit" className="comment-action" disabled={index === 0}>
@@ -76,6 +79,7 @@ export function TopConnections({
                   </button>
                 </form>
                 <form action={moveTopConnection}>
+                  <input type="hidden" name="owner_id" value={ownerId} />
                   <input type="hidden" name="friend_id" value={person.id} />
                   <input type="hidden" name="direction" value="down" />
                   <button
@@ -87,6 +91,7 @@ export function TopConnections({
                   </button>
                 </form>
                 <form action={removeTopConnection}>
+                  <input type="hidden" name="owner_id" value={ownerId} />
                   <input type="hidden" name="friend_id" value={person.id} />
                   <button type="submit" className="comment-action danger">
                     ✕
@@ -97,6 +102,7 @@ export function TopConnections({
           ))}
 
           <form action={formAction} className="comment-form">
+            <input type="hidden" name="owner_id" value={ownerId} />
             <input
               type="text"
               name="username"

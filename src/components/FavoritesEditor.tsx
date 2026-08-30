@@ -19,7 +19,15 @@ import {
 
 const initialState: ProfileFormState = {};
 
-function KindEditor({ kind, items }: { kind: FavoriteKind; items: Favorite[] }) {
+function KindEditor({
+  kind,
+  items,
+  ownerId,
+}: {
+  kind: FavoriteKind;
+  items: Favorite[];
+  ownerId: string;
+}) {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -62,6 +70,7 @@ function KindEditor({ kind, items }: { kind: FavoriteKind; items: Favorite[] }) 
               </span>
               <span className="layout-move">
                 <form action={moveFavorite}>
+                  <input type="hidden" name="owner_id" value={ownerId} />
                   <input type="hidden" name="id" value={item.id} />
                   <input type="hidden" name="direction" value="up" />
                   <button
@@ -74,6 +83,7 @@ function KindEditor({ kind, items }: { kind: FavoriteKind; items: Favorite[] }) 
                   </button>
                 </form>
                 <form action={moveFavorite}>
+                  <input type="hidden" name="owner_id" value={ownerId} />
                   <input type="hidden" name="id" value={item.id} />
                   <input type="hidden" name="direction" value="down" />
                   <button
@@ -86,6 +96,7 @@ function KindEditor({ kind, items }: { kind: FavoriteKind; items: Favorite[] }) 
                   </button>
                 </form>
                 <form action={removeFavorite}>
+                  <input type="hidden" name="owner_id" value={ownerId} />
                   <input type="hidden" name="id" value={item.id} />
                   <button type="submit" className="comment-action danger" aria-label={`Remove ${item.title}`}>
                     ✕
@@ -101,6 +112,7 @@ function KindEditor({ kind, items }: { kind: FavoriteKind; items: Favorite[] }) 
         <div className="field-hint">Full. Bump someone.</div>
       ) : (
         <form action={formAction} className="comment-form">
+          <input type="hidden" name="owner_id" value={ownerId} />
           <input type="hidden" name="kind" value={kind} />
           <MediaSearchField
             placeholder={`Search for ${FAVORITE_SINGULAR[kind] === "artist" ? "an" : "a"} ${FAVORITE_SINGULAR[kind]}…`}
@@ -142,7 +154,13 @@ function KindEditor({ kind, items }: { kind: FavoriteKind; items: Favorite[] }) 
 // One editor per list. They're separate forms on purpose: adding a movie
 // shouldn't make you re-save your artists, and each list has its own
 // eight-slot limit to report against.
-export function FavoritesEditor({ favorites }: { favorites: Record<FavoriteKind, Favorite[]> }) {
+export function FavoritesEditor({
+  favorites,
+  ownerId,
+}: {
+  favorites: Record<FavoriteKind, Favorite[]>;
+  ownerId: string;
+}) {
   const [open, setOpen] = useState(false);
 
   if (!open) {
@@ -156,7 +174,7 @@ export function FavoritesEditor({ favorites }: { favorites: Record<FavoriteKind,
   return (
     <div className="avatar-picker favorites-editor">
       {FAVORITE_KINDS.map((kind) => (
-        <KindEditor key={kind} kind={kind} items={favorites[kind]} />
+        <KindEditor key={kind} kind={kind} items={favorites[kind]} ownerId={ownerId} />
       ))}
       <div className="form-actions">
         <button type="button" className="comment-action" onClick={() => setOpen(false)}>

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { checkBioSafety } from "@/lib/contentSafety";
+import { authorizeProfileEdit } from "@/lib/botEditing";
 
 // Writes for the profile modules that carry their own content: the
 // signatures, regulars, and pinned reviews.
@@ -19,6 +20,27 @@ async function revalidateProfileById(
 }
 
 export type ModuleFormState = { error?: string; ok?: boolean };
+
+/**
+ * Which page a module edit is for, and which client may write it.
+ *
+ * Same shape as the one in actions/profile.ts, and same reasoning: the
+ * owner_id is only a request until authorizeProfileEdit has checked it
+ * against the database, and an edit to a bot's rows has to go through
+ * the service-role client to get past RLS.
+ */
+async function resolveTarget(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." as const };
+
+  const posted = String(formData.get("owner_id") ?? "").trim();
+  const auth = await authorizeProfileEdit(posted || user.id);
+  if (!auth.ok) return { error: auth.error };
+  return { client: auth.client, targetId: auth.userId };
+}
 
 export async function signGuestbook(
   _prev: ModuleFormState,
@@ -83,11 +105,9 @@ export async function addTopConnection(
   _prev: ModuleFormState,
   formData: FormData
 ): Promise<ModuleFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId } = target;
 
   const username = String(formData.get("username") ?? "").trim();
   if (!username) return { error: "Type a username." };
@@ -98,12 +118,12 @@ export async function addTopConnection(
     .eq("username", username)
     .maybeSingle();
   if (!friend) return { error: `No member called "${username}".` };
-  if (friend.id === user.id) return { error: "You're already on your own profile." };
+  if (friend.id === targetId) return { error: "That's this page's own account." };
 
   const { count } = await supabase
     .from("top_connections")
     .select("friend_id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+    .eq("user_id", targetId);
   if ((count ?? 0) >= MAX_CONNECTIONS) {
     return { error: `It's a Top ${MAX_CONNECTIONS}. Remove someone first.` };
   }
@@ -111,30 +131,28 @@ export async function addTopConnection(
   const { data: last } = await supabase
     .from("top_connections")
     .select("position")
-    .eq("user_id", user.id)
+    .eq("user_id", targetId)
     .order("position", { ascending: false })
     .limit(1);
 
   const { error } = await supabase.from("top_connections").insert({
-    user_id: user.id,
+    user_id: targetId,
     friend_id: friend.id,
     position: ((last?.[0]?.position as number | undefined) ?? -1) + 1,
   });
   if (error) {
     // The primary key makes a duplicate an error; say so in words.
-    return { error: error.code === "23505" ? `${username} is already one of your Regulars.` : error.message };
+    return { error: error.code === "23505" ? `${username} is already a Regular here.` : error.message };
   }
 
-  await revalidateProfileById(supabase, user.id);
+  await revalidateProfileById(supabase, targetId);
   return { ok: true };
 }
 
 export async function removeTopConnection(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+  const target = await resolveTarget(formData);
+  if ("error" in target) return;
+  const { client: supabase, targetId } = target;
 
   const friendId = String(formData.get("friend_id") ?? "");
   if (!friendId) return;
@@ -142,17 +160,15 @@ export async function removeTopConnection(formData: FormData) {
   await supabase
     .from("top_connections")
     .delete()
-    .eq("user_id", user.id)
+    .eq("user_id", targetId)
     .eq("friend_id", friendId);
-  await revalidateProfileById(supabase, user.id);
+  await revalidateProfileById(supabase, targetId);
 }
 
 export async function moveTopConnection(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+  const target = await resolveTarget(formData);
+  if ("error" in target) return;
+  const { client: supabase, targetId } = target;
 
   const friendId = String(formData.get("friend_id") ?? "");
   const direction = String(formData.get("direction") ?? "");
@@ -161,7 +177,7 @@ export async function moveTopConnection(formData: FormData) {
   const { data: row } = await supabase
     .from("top_connections")
     .select("friend_id, position")
-    .eq("user_id", user.id)
+    .eq("user_id", targetId)
     .eq("friend_id", friendId)
     .maybeSingle();
   if (!row) return;
@@ -171,7 +187,7 @@ export async function moveTopConnection(formData: FormData) {
   const { data: neighbours } = await supabase
     .from("top_connections")
     .select("friend_id, position")
-    .eq("user_id", user.id)
+    .eq("user_id", targetId)
     .order("position", { ascending: direction === "down" })
     [direction === "up" ? "lt" : "gt"]("position", row.position)
     .limit(1);
@@ -183,16 +199,16 @@ export async function moveTopConnection(formData: FormData) {
     supabase
       .from("top_connections")
       .update({ position: neighbour.position })
-      .eq("user_id", user.id)
+      .eq("user_id", targetId)
       .eq("friend_id", row.friend_id),
     supabase
       .from("top_connections")
       .update({ position: row.position })
-      .eq("user_id", user.id)
+      .eq("user_id", targetId)
       .eq("friend_id", neighbour.friend_id),
   ]);
 
-  await revalidateProfileById(supabase, user.id);
+  await revalidateProfileById(supabase, targetId);
 }
 
 export async function togglePinnedPost(formData: FormData) {

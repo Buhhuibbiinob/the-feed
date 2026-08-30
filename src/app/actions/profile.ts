@@ -21,6 +21,7 @@ import { sanitizeProfileLayout } from "@/lib/profileLayout";
 import { isObsessedKind } from "@/lib/obsessed";
 import { isBannerAspect, DEFAULT_BANNER_ASPECT } from "@/lib/bannerShape";
 import { isFavoriteKind, MAX_FAVORITES_PER_KIND } from "@/lib/favorites";
+import { authorizeProfileEdit } from "@/lib/botEditing";
 
 export type ProfileFormState = {
   error?: string;
@@ -47,7 +48,8 @@ const PRESET_AVATARS = [
 async function revalidateProfile(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-  editKind?: string
+  editKind?: string,
+  actorId?: string
 ) {
   const { data: profile } = await supabase
     .from("profiles")
@@ -56,18 +58,44 @@ async function revalidateProfile(
     .single();
   revalidatePath("/");
   if (profile) revalidatePath(`/profile/${profile.username}`);
-  if (editKind) await logEvent(supabase, userId, "profile_edit", editKind);
+  // Logged against whoever did the editing, not whose page it was. An
+  // admin tidying up a bot's page is not the bot deciding to change its
+  // own bio, and counting it that way would put activity in the numbers
+  // that nobody actually performed.
+  if (editKind) await logEvent(supabase, actorId ?? userId, "profile_edit", editKind);
+}
+
+/**
+ * Which page an edit is for, and which client may write it.
+ *
+ * Every control on the Customize card posts an owner_id. Left off, or
+ * posted as your own, this is exactly the old behaviour; posted as a
+ * bot's id by an admin, the edit lands on the bot's page instead.
+ * authorizeProfileEdit is the gate - it re-reads is_bot from the
+ * database rather than trusting the field, and hands back the
+ * service-role client, because writing another account's rows with the
+ * ordinary client fails silently under RLS.
+ */
+async function resolveTarget(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." as const };
+
+  const posted = String(formData.get("owner_id") ?? "").trim();
+  const auth = await authorizeProfileEdit(posted || user.id);
+  if (!auth.ok) return { error: auth.error };
+  return { client: auth.client, targetId: auth.userId, actorId: user.id };
 }
 
 export async function selectPresetAvatar(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const preset = String(formData.get("preset") ?? "");
   if (!PRESET_AVATARS.includes(preset)) return { error: "Invalid preset." };
@@ -75,11 +103,11 @@ export async function selectPresetAvatar(
   const { error } = await supabase
     .from("profiles")
     .update({ avatar_url: preset })
-    .eq("id", user.id);
+    .eq("id", targetId);
 
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id, "avatar_preset");
+  await revalidateProfile(supabase, targetId, "avatar_preset", actorId);
   return { ok: true };
 }
 
@@ -87,11 +115,9 @@ export async function uploadAvatar(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const file = formData.get("avatar_file");
   if (!(file instanceof File) || file.size === 0) {
@@ -106,7 +132,7 @@ export async function uploadAvatar(
   }
 
   const ext = file.name.split(".").pop() || "jpg";
-  const path = `${user.id}/avatar.${ext}`;
+  const path = `${targetId}/avatar.${ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from("avatars")
@@ -120,11 +146,11 @@ export async function uploadAvatar(
   const { error } = await supabase
     .from("profiles")
     .update({ avatar_url: `${publicUrl}?t=${Date.now()}` })
-    .eq("id", user.id);
+    .eq("id", targetId);
 
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id, "avatar_upload");
+  await revalidateProfile(supabase, targetId, "avatar_upload", actorId);
   return { ok: true };
 }
 
@@ -132,11 +158,9 @@ export async function updateBio(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const bio = String(formData.get("bio") ?? "").slice(0, 500);
 
@@ -154,10 +178,10 @@ export async function updateBio(
   const { error } = await supabase
     .from("profiles")
     .update({ bio, bio_font: bioFont, bio_color: bioColor })
-    .eq("id", user.id);
+    .eq("id", targetId);
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id, "bio");
+  await revalidateProfile(supabase, targetId, "bio", actorId);
   return { ok: true };
 }
 
@@ -165,11 +189,9 @@ export async function uploadBanner(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const file = formData.get("banner_file");
   if (!(file instanceof File) || file.size === 0) {
@@ -184,7 +206,7 @@ export async function uploadBanner(
   }
 
   const ext = file.name.split(".").pop() || "jpg";
-  const path = `${user.id}/banner.${ext}`;
+  const path = `${targetId}/banner.${ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from("avatars")
@@ -201,11 +223,11 @@ export async function uploadBanner(
   const { error } = await supabase
     .from("profiles")
     .update({ banner_url: `${publicUrl}?t=${Date.now()}`, banner_aspect: aspect })
-    .eq("id", user.id);
+    .eq("id", targetId);
 
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id, "banner");
+  await revalidateProfile(supabase, targetId, "banner", actorId);
   return { ok: true };
 }
 
@@ -300,11 +322,9 @@ export async function setStatus(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const mediaType = formData.get("media_type");
   if (!isMediaType(mediaType)) {
@@ -324,20 +344,18 @@ export async function setStatus(
       status_cover_url: coverUrl,
       status_updated_at: new Date().toISOString(),
     })
-    .eq("id", user.id);
+    .eq("id", targetId);
 
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id, "status");
+  await revalidateProfile(supabase, targetId, "status", actorId);
   return { ok: true };
 }
 
-export async function clearStatus(_formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+export async function clearStatus(formData: FormData) {
+  const target = await resolveTarget(formData);
+  if ("error" in target) return;
+  const { client: supabase, targetId, actorId } = target;
 
   await supabase
     .from("profiles")
@@ -348,9 +366,9 @@ export async function clearStatus(_formData: FormData) {
       status_cover_url: null,
       status_updated_at: null,
     })
-    .eq("id", user.id);
+    .eq("id", targetId);
 
-  await revalidateProfile(supabase, user.id, "status_clear");
+  await revalidateProfile(supabase, targetId, "status_clear", actorId);
 }
 
 export async function updateProfileLayout(
@@ -412,11 +430,9 @@ export async function setObsessed(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const kind = formData.get("kind");
   if (!isObsessedKind(kind)) return { error: "Pick what kind of thing it is." };
@@ -439,19 +455,17 @@ export async function setObsessed(
       obsessed_image_url: String(formData.get("image_url") ?? "").trim() || null,
       obsessed_updated_at: new Date().toISOString(),
     })
-    .eq("id", user.id);
+    .eq("id", targetId);
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id, "obsessed");
+  await revalidateProfile(supabase, targetId, "obsessed", actorId);
   return { ok: true };
 }
 
-export async function clearObsessed() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+export async function clearObsessed(formData: FormData) {
+  const target = await resolveTarget(formData);
+  if ("error" in target) return;
+  const { client: supabase, targetId, actorId } = target;
 
   await supabase
     .from("profiles")
@@ -462,20 +476,18 @@ export async function clearObsessed() {
       obsessed_image_url: null,
       obsessed_updated_at: null,
     })
-    .eq("id", user.id);
+    .eq("id", targetId);
 
-  await revalidateProfile(supabase, user.id, "obsessed_clear");
+  await revalidateProfile(supabase, targetId, "obsessed_clear", actorId);
 }
 
 export async function setProfileSong(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const youtubeId = String(formData.get("youtube_id") ?? "").trim() || null;
   const spotifyId = String(formData.get("spotify_id") ?? "").trim() || null;
@@ -497,19 +509,17 @@ export async function setProfileSong(
       // actually misses.
       profile_song_autoplay: formData.get("autoplay") === "on",
     })
-    .eq("id", user.id);
+    .eq("id", targetId);
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id, "song");
+  await revalidateProfile(supabase, targetId, "song", actorId);
   return { ok: true };
 }
 
-export async function clearProfileSong() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+export async function clearProfileSong(formData: FormData) {
+  const target = await resolveTarget(formData);
+  if ("error" in target) return;
+  const { client: supabase, targetId, actorId } = target;
 
   await supabase
     .from("profiles")
@@ -521,20 +531,18 @@ export async function clearProfileSong() {
       profile_song_thumbnail_url: null,
       profile_song_autoplay: false,
     })
-    .eq("id", user.id);
+    .eq("id", targetId);
 
-  await revalidateProfile(supabase, user.id, "song_clear");
+  await revalidateProfile(supabase, targetId, "song_clear", actorId);
 }
 
 export async function addFavorite(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
+  const target = await resolveTarget(formData);
+  if ("error" in target) return { error: target.error };
+  const { client: supabase, targetId, actorId } = target;
 
   const kind = formData.get("kind");
   if (!isFavoriteKind(kind)) return { error: "Unknown list." };
@@ -545,7 +553,7 @@ export async function addFavorite(
   const { data: existing } = await supabase
     .from("profile_favorites")
     .select("position")
-    .eq("user_id", user.id)
+    .eq("user_id", targetId)
     .eq("kind", kind)
     .order("position", { ascending: false })
     .limit(1);
@@ -553,7 +561,7 @@ export async function addFavorite(
   const { count } = await supabase
     .from("profile_favorites")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id)
+    .eq("user_id", targetId)
     .eq("kind", kind);
 
   if ((count ?? 0) >= MAX_FAVORITES_PER_KIND) {
@@ -563,7 +571,7 @@ export async function addFavorite(
   const nextPosition = ((existing?.[0]?.position as number | undefined) ?? -1) + 1;
 
   const { error } = await supabase.from("profile_favorites").insert({
-    user_id: user.id,
+    user_id: targetId,
     kind,
     title,
     subtitle: String(formData.get("subtitle") ?? "").trim().slice(0, 120) || null,
@@ -572,33 +580,31 @@ export async function addFavorite(
   });
   if (error) return { error: error.message };
 
-  await revalidateProfile(supabase, user.id, "favorite_add");
+  await revalidateProfile(supabase, targetId, "favorite_add", actorId);
   return { ok: true };
 }
 
 export async function removeFavorite(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+  const target = await resolveTarget(formData);
+  if ("error" in target) return;
+  const { client: supabase, targetId, actorId } = target;
 
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 
-  // Scoped to the caller as well as the id: RLS already enforces this, but
-  // the filter means a wrong id fails as a no-op rather than a policy error.
-  await supabase.from("profile_favorites").delete().eq("id", id).eq("user_id", user.id);
+  // Scoped to the page as well as the id. On your own page RLS enforces
+  // this too, but a bot edit runs as service role with RLS off, so this
+  // filter is the only thing standing between a wrong id and somebody
+  // else's row - it must stay.
+  await supabase.from("profile_favorites").delete().eq("id", id).eq("user_id", targetId);
 
-  await revalidateProfile(supabase, user.id, "favorite_remove");
+  await revalidateProfile(supabase, targetId, "favorite_remove", actorId);
 }
 
 export async function moveFavorite(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
+  const target = await resolveTarget(formData);
+  if ("error" in target) return;
+  const { client: supabase, targetId, actorId } = target;
 
   const id = String(formData.get("id") ?? "");
   const direction = String(formData.get("direction") ?? "");
@@ -608,7 +614,7 @@ export async function moveFavorite(formData: FormData) {
     .from("profile_favorites")
     .select("id, kind, position")
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("user_id", targetId)
     .maybeSingle();
   if (!row) return;
 
@@ -618,7 +624,7 @@ export async function moveFavorite(formData: FormData) {
   const { data: neighbours } = await supabase
     .from("profile_favorites")
     .select("id, position")
-    .eq("user_id", user.id)
+    .eq("user_id", targetId)
     .eq("kind", row.kind)
     .order("position", { ascending: direction === "down" })
     [direction === "up" ? "lt" : "gt"]("position", row.position)
@@ -628,9 +634,9 @@ export async function moveFavorite(formData: FormData) {
   if (!neighbour) return;
 
   await Promise.all([
-    supabase.from("profile_favorites").update({ position: neighbour.position }).eq("id", row.id).eq("user_id", user.id),
-    supabase.from("profile_favorites").update({ position: row.position }).eq("id", neighbour.id).eq("user_id", user.id),
+    supabase.from("profile_favorites").update({ position: neighbour.position }).eq("id", row.id).eq("user_id", targetId),
+    supabase.from("profile_favorites").update({ position: row.position }).eq("id", neighbour.id).eq("user_id", targetId),
   ]);
 
-  await revalidateProfile(supabase, user.id, "favorite_move");
+  await revalidateProfile(supabase, targetId, "favorite_move", actorId);
 }

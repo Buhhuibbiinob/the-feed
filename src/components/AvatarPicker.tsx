@@ -20,7 +20,7 @@ const PRESETS = [
 
 const initialState: ProfileFormState = {};
 
-export function AvatarPicker() {
+export function AvatarPicker({ ownerId }: { ownerId: string }) {
   const [open, setOpen] = useState(false);
   const [presetState, presetAction, presetPending] = useActionState(
     selectPresetAvatar,
@@ -60,6 +60,7 @@ export function AvatarPicker() {
       <div className="avatar-preset-grid">
         {PRESETS.map((preset) => (
           <form action={presetAction} key={preset}>
+            <input type="hidden" name="owner_id" value={ownerId} />
             <input type="hidden" name="preset" value={preset} />
             <button type="submit" className="avatar-preset-btn" disabled={presetPending}>
               <img src={preset} alt="" />
@@ -68,6 +69,7 @@ export function AvatarPicker() {
         ))}
       </div>
       <form action={uploadAction} onSubmit={handleUploadSubmit} className="comment-form avatar-upload-form">
+        <input type="hidden" name="owner_id" value={ownerId} />
         {/* Avatars used to be a bare file input: whatever you picked got
             dropped into a circle and centre-cropped. A photo that wasn't
             already square - most phone photos - lost its edges, and a
