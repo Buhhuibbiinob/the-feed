@@ -1965,3 +1965,12 @@ create index if not exists posts_responds_to_idx
 -- only written when somebody actually drags a sticker on a phone.
 alter table public.profile_stickers add column if not exists mobile_x numeric;
 alter table public.profile_stickers add column if not exists mobile_y numeric;
+
+-- ---------- Win-back nudges ----------
+-- The digest can only tell you what somebody else did to you, so a member
+-- nobody has responded to is unreachable by it - which is precisely the
+-- member who leaves. These two columns are what stops the separate
+-- absence-triggered nudge from becoming a nuisance: when the last one went
+-- out, and how many have ever gone out.
+alter table public.profiles add column if not exists nudge_sent_at timestamptz;
+alter table public.profiles add column if not exists nudge_count integer not null default 0;

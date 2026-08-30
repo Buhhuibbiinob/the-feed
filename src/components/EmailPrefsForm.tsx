@@ -6,12 +6,13 @@ import {
   EMAIL_EVENTS,
   EMAIL_MODES,
   EMAIL_MODE_LABELS,
+  NUDGE_PREF_KEY,
   type EmailPrefs,
 } from "@/lib/emailPrefs";
 
 const initialState: EmailPrefsState = {};
 
-export function EmailPrefsForm({ prefs }: { prefs: EmailPrefs }) {
+export function EmailPrefsForm({ prefs, nudge }: { prefs: EmailPrefs; nudge: boolean }) {
   const [state, formAction, pending] = useActionState(updateEmailPrefs, initialState);
   const [saved, setSaved] = useState(false);
 
@@ -40,6 +41,18 @@ export function EmailPrefsForm({ prefs }: { prefs: EmailPrefs }) {
           </select>
         </label>
       ))}
+
+      {/* On or off rather than a mode: a nudge only fires when nothing
+          is happening, so there is nothing to batch into a digest. */}
+      <label className="email-pref-row">
+        <span>Nudge me if I go quiet</span>
+        <input
+          type="checkbox"
+          name={NUDGE_PREF_KEY}
+          defaultChecked={nudge}
+          onChange={() => setSaved(false)}
+        />
+      </label>
 
       <div className="form-actions">
         <button className="btn" type="submit" disabled={pending}>

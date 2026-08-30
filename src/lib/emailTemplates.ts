@@ -144,3 +144,52 @@ export function renderDigestEmail(
       `</td></tr>`
   );
 }
+
+/**
+ * The win-back nudge, sent to somebody who posted once and went quiet.
+ *
+ * Written to be worth opening rather than to guilt anybody: one true
+ * number, one question they could answer in a sentence, and one button.
+ * The way to turn it off is in the mail itself, not three clicks into
+ * settings - an unwanted "we miss you" with no visible exit is how a
+ * sender ends up in spam.
+ */
+export function renderWinbackEmail(
+  username: string,
+  {
+    newReviews,
+    question,
+    next,
+    siteUrl,
+    settingsUrl,
+  }: {
+    newReviews: number;
+    question: string;
+    next: { text: string; cta: string; href: string };
+    siteUrl: string;
+    settingsUrl: string;
+  }
+): string {
+  const name = escapeHtml(username);
+  const headline =
+    newReviews > 0
+      ? `${newReviews} review${newReviews === 1 ? "" : "s"} have gone up since yours`
+      : "It's been quiet since your last review";
+
+  return shell(
+    `<tr><td style="padding:32px 28px;">` +
+      `<h1 style="margin:0 0 12px; font-size:22px; font-weight:600; color:#0f0f0f; text-align:center;">${escapeHtml(headline)}</h1>` +
+      `<p style="margin:0 0 20px; font-size:14px; line-height:1.6; color:#606060;">Hello ${name}. You posted a review and then we didn't see you again - here's what's worth coming back for.</p>` +
+      `<div style="margin:0 0 22px; padding:14px 16px; background-color:#f6f8fb; border:1px solid #e2e6ec; border-radius:8px;">` +
+      `<p style="margin:0 0 6px; font-size:12px; font-weight:600; color:#0f0f0f;">This week's question</p>` +
+      `<p style="margin:0; font-size:14px; line-height:1.5; color:#606060;">${escapeHtml(question)}</p>` +
+      `</div>` +
+      `<p style="margin:0 0 20px; font-size:14px; line-height:1.6; color:#606060;">${escapeHtml(next.text)}</p>` +
+      `<div style="text-align:center;"><a href="${siteUrl}${next.href}" style="${RED_BUTTON}">${escapeHtml(next.cta)}</a></div>` +
+      `<p style="margin:28px 0 0; font-size:11px; color:#909090; text-align:center;">` +
+      `You're getting this because you have a Feedback account and haven't posted in a while. ` +
+      `<a href="${settingsUrl}" style="color:#909090;">Turn these off</a>.` +
+      `</p>` +
+      `</td></tr>`
+  );
+}

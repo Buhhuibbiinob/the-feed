@@ -7,7 +7,7 @@ import { BackgroundPicker } from "@/components/BackgroundPicker";
 import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { disconnectYoutube } from "@/app/actions/youtube";
 import { EmailPrefsForm } from "@/components/EmailPrefsForm";
-import { resolveEmailPrefs } from "@/lib/emailPrefs";
+import { resolveEmailPrefs, resolveNudgePref } from "@/lib/emailPrefs";
 
 export const metadata = { title: "Settings - Feedback" };
 
@@ -47,6 +47,7 @@ export default async function SettingsPage() {
     .eq("id", user.id)
     .maybeSingle();
   const emailPrefs = resolveEmailPrefs(prefsRow?.email_prefs);
+  const nudgePref = resolveNudgePref(prefsRow?.email_prefs);
 
   const { data: youtubeAccount } = await supabase
     .from("youtube_accounts")
@@ -83,7 +84,7 @@ export default async function SettingsPage() {
       <div className="panel">
         <div className="panel-head">Email notifications</div>
         <div className="panel-body">
-          <EmailPrefsForm prefs={emailPrefs} />
+          <EmailPrefsForm prefs={emailPrefs} nudge={nudgePref} />
         </div>
       </div>
 
