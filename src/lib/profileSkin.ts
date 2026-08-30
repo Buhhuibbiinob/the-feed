@@ -22,6 +22,15 @@ export const PROFILE_FONTS = [
   { id: "rounded", label: "Rounded", stack: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif' },
   { id: "display", label: "Display", stack: 'Impact, "Haettenschweiler", "Arial Black", sans-serif' },
   { id: "handwriting", label: "Handwriting", stack: '"Comic Sans MS", "Bradley Hand", cursive' },
+  // The web fonts from lib/webFonts.ts, declared as variables on <body>.
+  // A system fallback on each, so a bio still reads as intended if the
+  // file hasn't arrived yet.
+  { id: "arcade", label: "Arcade", stack: 'var(--f-pixelify), "Trebuchet MS", sans-serif' },
+  { id: "crt", label: "CRT", stack: 'var(--f-vt323), "Courier New", monospace' },
+  { id: "script", label: "Script", stack: 'var(--f-lobster), Georgia, cursive' },
+  { id: "notebook", label: "Notebook", stack: 'var(--f-caveat), "Comic Sans MS", cursive' },
+  { id: "magazine", label: "Magazine", stack: 'var(--f-dmserif), Georgia, serif' },
+  { id: "bubble", label: "Bubble", stack: 'var(--f-quicksand), "Trebuchet MS", sans-serif' },
 ] as const;
 
 export type ProfileFontId = (typeof PROFILE_FONTS)[number]["id"];

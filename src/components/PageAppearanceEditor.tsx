@@ -211,16 +211,6 @@ export function PageAppearanceEditor({
 
       {advanced === "colors" && (
         <>
-          <form action={presetAction} className="comment-form saved-preset-form">
-            <input type="hidden" name="surface" value={surface} />
-            <input type="hidden" name="owner_id" value={ownerId} />
-            <input type="text" name="name" placeholder="Name this look" maxLength={40} required />
-            <button className="btn btn-ghost" type="submit" disabled={presetPending}>
-              {presetPending ? "Saving…" : "Save look"}
-            </button>
-          </form>
-          <div className="field-hint">Save the page first, then name the look.</div>
-
           <div className="skin-fields">
             {COLOR_FIELDS.map((field) => (
               <label className="skin-field" key={field.key}>
@@ -248,19 +238,38 @@ export function PageAppearanceEditor({
             ))}
           </div>
 
-          <label className="skin-field">
-            <span>Font</span>
-            <select
-              value={draft.fontPairId}
-              onChange={(e) => update({ fontPairId: e.target.value })}
-            >
-              {FONT_PAIRS.map((pair) => (
-                <option value={pair.id} key={pair.id}>
-                  {pair.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* Each name is drawn in its own typeface, which is the only
+              way to choose a font. A dropdown listing fifteen names in
+              one face asks people to imagine the answer - so nobody
+              browses it, they pick the first one and leave. */}
+          <div className="favorites-kind-head">Font</div>
+          <div className="font-grid">
+            {FONT_PAIRS.map((pair) => (
+              <button
+                type="button"
+                key={pair.id}
+                className={`font-swatch${draft.fontPairId === pair.id ? " active" : ""}`}
+                aria-pressed={draft.fontPairId === pair.id}
+                onClick={() => update({ fontPairId: pair.id })}
+                style={pair.heading ? { fontFamily: pair.heading } : undefined}
+              >
+                {pair.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="favorites-kind-head">Keep this look</div>
+          <div className="field-hint" style={{ marginTop: 0 }}>
+            Save the page first, then give the look a name to come back to.
+          </div>
+          <form action={presetAction} className="comment-form saved-preset-form">
+            <input type="hidden" name="surface" value={surface} />
+            <input type="hidden" name="owner_id" value={ownerId} />
+            <input type="text" name="name" placeholder="Name this look" maxLength={40} required />
+            <button className="btn btn-ghost" type="submit" disabled={presetPending}>
+              {presetPending ? "Saving…" : "Save look"}
+            </button>
+          </form>
 
           <div className="favorites-kind-head">Background</div>
           <div className="pattern-grid">
