@@ -5,6 +5,7 @@ import { logEvent } from "@/lib/events";
 import { friendlyDbError } from "@/lib/dbError";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
+import { isGenreFor } from "@/lib/genres";
 import { findOrCreateClub } from "@/lib/clubs";
 import { chooseNextStep, type NextStep } from "@/lib/afterPost";
 import { checkReviewSafety } from "@/lib/contentSafety";
@@ -46,6 +47,11 @@ export async function createPost(
   const spotifyTrackId = String(formData.get("spotify_track_id") ?? "").trim();
   const youtubeVideoId = String(formData.get("youtube_video_id") ?? "").trim();
   const respondsTo = String(formData.get("responds_to") ?? "").trim() || null;
+  // Validated as a pair with the category, never on its own: "documentary"
+  // is a genre of film and of photography but not of music, and a post
+  // claiming a genre its category doesn't have is a row no filter will
+  // ever match - invisible, and so never reported.
+  const rawGenre = formData.get("genre");
 
   if (!MEDIA_TYPES.includes(mediaType as (typeof MEDIA_TYPES)[number])) {
     return { error: "Choose a valid category." };
@@ -110,6 +116,7 @@ export async function createPost(
       spotify_track_id: spotifyTrackId || null,
       youtube_video_id: youtubeVideoId || null,
       club_id: clubId,
+      genre: isGenreFor(mediaType as MediaType, rawGenre) ? rawGenre : null,
       responds_to_post_id: answering?.id ?? null,
     })
     .select("id")
@@ -310,12 +317,25 @@ export async function updatePost(
     return { error: bodySafety.reason };
   }
 
-  // Admins can edit anyone's post - title, body and rating - which is what
-  // makes a bot's wording fixable without deleting and regenerating it.
-  // Same RLS reason as deletePost: the update policy is
+  // The genre comes from the edit form too, which is how the reviews
+  // posted before this field existed ever get one: their authors are the
+  // only people who know, and editing is the only place they're asked.
+  // Validated against the post's OWN category, read from the row rather
+  // than posted, so the form cannot assert a category it doesn't own.
+  const { data: existing } = await supabase
+    .from("posts")
+    .select("media_type")
+    .eq("id", postId)
+    .maybeSingle<{ media_type: MediaType }>();
+  const rawGenre = formData.get("genre");
+  const genre = existing && isGenreFor(existing.media_type, rawGenre) ? rawGenre : null;
+
+  // Admins can edit anyone's post - title, body, rating and genre - which
+  // is what makes a bot's wording fixable without deleting and
+  // regenerating it. Same RLS reason as deletePost: the update policy is
   // `using (auth.uid() = user_id)`, so the admin path needs the
   // service-role client or Postgres quietly matches no rows.
-  const fields = { title, body, rating };
+  const fields = { title, body, rating, genre };
   const { error } = (await isAdmin(supabase, user.id))
     ? await createAdminClient().from("posts").update(fields).eq("id", postId)
     : await supabase.from("posts").update(fields).eq("id", postId).eq("user_id", user.id);

@@ -163,6 +163,7 @@ type PostRow = {
   id: string;
   user_id: string;
   media_type: MediaType;
+  genre: string | null;
   title: string;
   body: string;
   rating: number | null;
@@ -263,7 +264,7 @@ export default async function ProfilePage({
     supabase
       .from("posts")
       .select(
-        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, club_id"
+        "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre, club_id"
       )
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
@@ -842,6 +843,7 @@ export default async function ProfilePage({
                       createdAt: post.created_at,
                       artist: post.artist,
                       coverUrl: post.cover_url,
+    genre: post.genre,
                       spotifyTrackId: post.spotify_track_id,
                       youtubeVideoId: post.youtube_video_id,
                       username: profile.username,

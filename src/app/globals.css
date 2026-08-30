@@ -13584,3 +13584,35 @@ a.issue-link::after {
     justify-content: flex-start;
   }
 }
+
+/* Genre chips in the composer. A row of taps rather than a dropdown:
+   the field is optional, so it has to earn every answer it gets, and a
+   select hides its own options behind a tap. */
+.genre-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.genre-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+.genre-chip.active {
+  border-color: var(--link);
+  background: color-mix(in srgb, var(--link) 16%, transparent);
+  font-weight: 600;
+}
+/* The badge on a card is a link to everything else in that genre. Sized
+   and shaped like the category badge beside it, so the pair reads as one
+   thing rather than as a badge and a button. */
+.badge.genre {
+  background: color-mix(in srgb, var(--link) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--link) 35%, transparent);
+  color: var(--link);
+  text-decoration: none;
+}
