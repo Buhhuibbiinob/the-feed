@@ -11,17 +11,25 @@ const initialState: PostFormState = {};
 
 export function PostForm({
   answering = null,
+  prefill = null,
 }: {
   /** The review this one answers, when it is a duet. */
   answering?: { id: string; title: string; username: string } | null;
+  /** Opened from something already chosen - a queue item. */
+  prefill?: {
+    mediaType: string | null;
+    title: string | null;
+    artist: string | null;
+    queueItemId: string | null;
+  } | null;
 }) {
   const [state, formAction, pending] = useActionState(createPost, initialState);
   const [formKey, setFormKey] = useState(0);
   const [lastOk, setLastOk] = useState(state.ok);
   const [dismissedPost, setDismissedPost] = useState<string | null>(null);
 
-  const [mediaType, setMediaType] = useState("music");
-  const [title, setTitle] = useState("");
+  const [mediaType, setMediaType] = useState(prefill?.mediaType ?? "music");
+  const [title, setTitle] = useState(prefill?.title ?? "");
   const [posterUrl, setPosterUrl] = useState("");
   const [videoQuery, setVideoQuery] = useState("");
   const [videoResults, setVideoResults] = useState<YoutubeVideo[]>([]);
@@ -35,8 +43,8 @@ export function PostForm({
     setLastOk(state.ok);
     if (state.ok) {
       setFormKey((k) => k + 1);
-      setMediaType("music");
-      setTitle("");
+      setMediaType(prefill?.mediaType ?? "music");
+      setTitle(prefill?.title ?? "");
       setPosterUrl("");
       setVideoQuery("");
       setVideoResults([]);
@@ -137,6 +145,13 @@ export function PostForm({
         )}
         <form action={formAction} key={formKey}>
           {answering && <input type="hidden" name="responds_to" value={answering.id} />}
+          {/* Posting this review is what ticks the thing off the list.
+              Asking somebody to write the review and then go back and
+              tick a box is asking for the same job twice, and it is the
+              second half that gets skipped. */}
+          {prefill?.queueItemId && (
+            <input type="hidden" name="queue_item_id" value={prefill.queueItemId} />
+          )}
           <div className="field">
             <label htmlFor="media_type">Category</label>
             <select
@@ -238,10 +253,16 @@ export function PostForm({
             </div>
           )}
 
+          {/* Falls back to the artist the queue item carried. Without
+              this, a prefilled music review posts with no artist - and
+              the artist is what a music post's club is keyed on, so it
+              would quietly land in no club at all. */}
           <input
             type="hidden"
             name="artist"
-            value={mediaType === "music" ? selectedVideo?.channelTitle ?? "" : ""}
+            value={
+              mediaType === "music" ? selectedVideo?.channelTitle ?? prefill?.artist ?? "" : ""
+            }
           />
           <input type="hidden" name="cover_url" value={selectedVideo?.thumbnailUrl ?? posterUrl} />
           <input type="hidden" name="youtube_video_id" value={selectedVideo?.id ?? ""} />

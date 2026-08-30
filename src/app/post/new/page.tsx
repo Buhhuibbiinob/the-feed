@@ -1,13 +1,20 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PostForm } from "@/components/PostForm";
+import { isMediaType } from "@/lib/media";
 
 export const metadata = { title: "New Post - Feedback" };
 
 export default async function NewPostPage({
   searchParams,
 }: {
-  searchParams: Promise<{ responds_to?: string }>;
+  searchParams: Promise<{
+    responds_to?: string;
+    type?: string;
+    title?: string;
+    artist?: string;
+    queue?: string;
+  }>;
 }) {
   const supabase = await createClient();
   const {
@@ -30,7 +37,7 @@ export default async function NewPostPage({
 
   // Answering someone: show what you are answering, so the form is not
   // just a blank review that happens to be linked to something.
-  const { responds_to: respondsTo } = await searchParams;
+  const { responds_to: respondsTo, type, title, artist, queue } = await searchParams;
   let answering: { id: string; title: string; username: string } | null = null;
   if (respondsTo) {
     const { data } = await supabase
@@ -44,5 +51,18 @@ export default async function NewPostPage({
     }
   }
 
-  return <PostForm answering={answering} />;
+  // Arriving from a queue item: the composer opens already filled in,
+  // and carries the item's id so posting ticks it off without anybody
+  // having to go back and do it by hand.
+  return (
+    <PostForm
+      answering={answering}
+      prefill={{
+        mediaType: isMediaType(type) ? type : null,
+        title: title ?? null,
+        artist: artist ?? null,
+        queueItemId: queue ?? null,
+      }}
+    />
+  );
 }

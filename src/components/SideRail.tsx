@@ -63,6 +63,7 @@ export function SideRail({
       heading: "You",
       rows: [
         { href: `/profile/${username}`, label: "My Profile" },
+        { href: "/queue", label: "Up Next" },
         { href: "/messages", label: "Messages", badge: unreadDmCount },
         { href: "/alerts", label: "Alerts", badge: notificationCount },
         { href: "/wrapped", label: "Wrapped" },

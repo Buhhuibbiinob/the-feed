@@ -124,6 +124,19 @@ export async function createPost(
   // reading posts that point at yours. Inserting one would have been a
   // second source of truth for the same event.
 
+  // Reviewing something off the list is what takes it off the list.
+  // Scoped to this member, so a posted uuid can only ever tick off one of
+  // their own rows; a wrong one is a no-op.
+  const queueItemId = String(formData.get("queue_item_id") ?? "").trim();
+  if (queueItemId) {
+    await supabase
+      .from("queue_items")
+      .update({ done_at: new Date().toISOString() })
+      .eq("id", queueItemId)
+      .eq("user_id", user.id);
+    revalidatePath("/queue");
+  }
+
   await logEvent(supabase, user.id, "review_posted", answering ? "duet" : "feed");
   if (answering) revalidatePath(`/post/${answering.id}`);
   revalidatePath("/");
