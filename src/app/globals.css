@@ -13461,3 +13461,40 @@ a.issue-link::after {
   border-color: #d0803a;
   color: #a35a12;
 }
+
+/* The confirmation that replaces the form after a review is posted.
+   Deliberately quiet: a card with one link out to the review and one
+   thing worth doing next. The old behaviour was the form blanking its
+   own fields, which read as "nothing happened, try again". */
+.posted-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.posted-live {
+  margin: 0;
+  font-size: 13px;
+}
+.posted-next {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--link) 7%, transparent);
+}
+.posted-next p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* The Customize card is linked to by anchor from that confirmation, so
+   it needs room under the fixed header when it is scrolled to. */
+#customize {
+  scroll-margin-top: 74px;
+}

@@ -1305,7 +1305,9 @@ export default async function ProfilePage({
               admin panel exposes. Every control inside posts the page's
               id; the server decides whether that's allowed. */}
           {canDecorate && (
-            <div className="pf-card">
+            /* Linked to by #customize from the post confirmation, which is
+               the only thing on the site that points anybody here. */
+            <div className="pf-card" id="customize">
               {/* Named on somebody else's page. These controls look
                   identical to the ones on your own, and an admin who
                   forgets which page they are on edits the wrong one. */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { PostForm } from "@/components/PostForm";
 
 /**
@@ -22,14 +23,37 @@ import { PostForm } from "@/components/PostForm";
  */
 export function ComposeSheet() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     function onOpen() {
       setOpen(true);
     }
+    function onClose() {
+      setOpen(false);
+    }
     window.addEventListener("compose:open", onOpen);
-    return () => window.removeEventListener("compose:open", onOpen);
+    window.addEventListener("compose:close", onClose);
+    return () => {
+      window.removeEventListener("compose:open", onOpen);
+      window.removeEventListener("compose:close", onClose);
+    };
   }, []);
+
+  // The sheet lives in the layout, so it survives navigation - which
+  // means a link followed from inside it used to load the new page
+  // underneath and leave the sheet sitting on top of it. Closing when the
+  // path changes covers every link in here, including ones added later
+  // that never think about the sheet.
+  //
+  // Compared during render rather than from an effect, the same way the
+  // pickers close themselves on success: an effect here would commit the
+  // open sheet over the new page first and close it on a second pass.
+  const [pathWhenOpened, setPathWhenOpened] = useState(pathname);
+  if (pathWhenOpened !== pathname) {
+    setPathWhenOpened(pathname);
+    if (open) setOpen(false);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -82,4 +106,10 @@ export function openComposeSheet(): boolean {
   if (typeof window === "undefined") return false;
   window.dispatchEvent(new CustomEvent("compose:open"));
   return true;
+}
+
+/** Closes it. A no-op on /post/new, where there is no sheet to close. */
+export function closeComposeSheet(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("compose:close"));
 }

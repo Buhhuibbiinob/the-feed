@@ -617,6 +617,45 @@ async function pickReviewSubject(adminClient: AdminClient): Promise<ReviewSubjec
  * lives in here rather than at each caller so switching bots off in the
  * admin screen switches off every path at once.
  */
+/**
+ * Which of these authors have posted exactly one review.
+ *
+ * One query for the lot rather than a count per author: thirty candidate
+ * posts is at most thirty authors, and their posts together are a small
+ * enough set to count in memory.
+ */
+async function firstReviewAuthors(
+  client: AdminClient,
+  authorIds: string[]
+): Promise<Set<string>> {
+  const unique = [...new Set(authorIds)];
+  if (unique.length === 0) return new Set();
+
+  const { data } = await client.from("posts").select("user_id").in("user_id", unique);
+  const counts = new Map<string, number>();
+  for (const row of (data ?? []) as { user_id: string }[]) {
+    counts.set(row.user_id, (counts.get(row.user_id) ?? 0) + 1);
+  }
+  return new Set([...counts].filter(([, count]) => count === 1).map(([id]) => id));
+}
+
+/**
+ * Which of these posts this bot has already liked.
+ *
+ * The like is an upsert, so a repeat is harmless - but it is also
+ * invisible, and a bot that keeps "liking" the same post is a bot doing
+ * nothing while reporting that it did something.
+ */
+async function likedByBot(
+  client: AdminClient,
+  botId: string,
+  postIds: string[]
+): Promise<Set<string>> {
+  if (postIds.length === 0) return new Set();
+  const { data } = await client.from("likes").select("post_id").eq("user_id", botId).in("post_id", postIds);
+  return new Set(((data ?? []) as { post_id: string }[]).map((row) => row.post_id));
+}
+
 export async function runBotRound(requestedId = ""): Promise<BotState> {
   const supabase = await createClient();
 
@@ -729,8 +768,30 @@ export async function runBotRound(requestedId = ""): Promise<BotState> {
     (p) => p.profiles && !isBotAuthor(p) && p.user_id !== bot.id
   );
 
+  // Somebody's first review gets the like, ahead of the random pick.
+  //
+  // This used to choose uniformly from the last thirty posts, which meant
+  // the person most likely to need an answer - one review, no followers,
+  // nobody watching - got one by lottery. It matters beyond the like
+  // itself: alerts on this site are all reactions to something you did,
+  // so a member nobody has responded to generates no alerts, and the
+  // digest has nothing to send them. Ever. One like is the difference
+  // between being contactable and not.
+  const firstTimers = await firstReviewAuthors(
+    adminClient,
+    likeable.map((p) => p.user_id)
+  );
+  const alreadyLiked = await likedByBot(
+    adminClient,
+    bot.id,
+    likeable.map((p) => p.id)
+  );
+  // Newest first, because `candidates` is ordered that way and the point
+  // is to answer someone who is plausibly still on the site.
+  const debuts = likeable.filter((p) => firstTimers.has(p.user_id) && !alreadyLiked.has(p.id));
+
   if (likeable.length > 0) {
-    const target = likeable[Math.floor(Math.random() * likeable.length)];
+    const target = debuts[0] ?? likeable[Math.floor(Math.random() * likeable.length)];
     const { error } = await adminClient
       .from("likes")
       .upsert({ post_id: target.id, user_id: bot.id }, { onConflict: "post_id,user_id" });
