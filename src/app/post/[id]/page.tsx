@@ -15,6 +15,7 @@ type PostRow = {
   id: string;
   user_id: string;
   media_type: MediaType;
+  genre: string | null;
   title: string;
   body: string;
   rating: number | null;
@@ -114,7 +115,7 @@ export default async function PostPage({
   const { data: postData } = await supabase
     .from("posts")
     .select(
-      "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, responds_to_post_id, profiles!posts_user_id_fkey(username)"
+      "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre, responds_to_post_id, profiles!posts_user_id_fkey(username)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -195,6 +196,7 @@ export default async function PostPage({
           createdAt: post.created_at,
           artist: post.artist,
           coverUrl: post.cover_url,
+    genre: post.genre,
           spotifyTrackId: post.spotify_track_id,
           youtubeVideoId: post.youtube_video_id,
           username: post.profiles?.username ?? "unknown",

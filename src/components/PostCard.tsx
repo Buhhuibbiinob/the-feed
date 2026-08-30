@@ -9,6 +9,8 @@ import { LikeButton } from "@/components/LikeButton";
 import { PostReactions, type ReactionCount } from "@/components/PostReactions";
 import { AddToCollectionButton } from "@/components/AddToCollectionButton";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
+import { StandaloneGenrePicker } from "@/components/GenrePicker";
+import { genreLabel } from "@/lib/genres";
 import { ShareButton } from "@/components/ShareButton";
 import { PreviewPlayer } from "@/components/PreviewPlayer";
 import { SpoilerText } from "@/components/SpoilerText";
@@ -26,6 +28,7 @@ export type PostCardData = {
   createdAt: string;
   artist: string | null;
   coverUrl: string | null;
+  genre?: string | null;
   spotifyTrackId: string | null;
   youtubeVideoId: string | null;
   username: string;
@@ -77,6 +80,9 @@ function EditForm({ post, onDone }: { post: PostCardData; onDone: () => void }) 
           and then refuse to save it, with nothing wrong with it. The
           server enforces the real rule - words or a rating, either. */}
       <textarea name="body" defaultValue={post.body} placeholder="Say something (optional)" />
+      {/* Where an older review gets a genre: its author is the only
+          person who knows, and this is the only place they're asked. */}
+      <StandaloneGenrePicker mediaType={post.mediaType} initial={post.genre ?? null} />
       <select name="rating" defaultValue={post.rating ?? ""}>
         <option value="">No rating</option>
         {[1, 2, 3, 4, 5].map((n) => (
@@ -246,6 +252,14 @@ export function PostCard({
           </Link>
         )}
         <span className={`badge ${post.mediaType}`}>{MEDIA_LABELS[post.mediaType]}</span>
+        {/* A link, not a label. A genre you can't click is a genre nobody
+            has a reason to set - this is the whole payoff for filling the
+            field in, and the only thing that will get it filled in. */}
+        {post.genre && (
+          <Link href={`/?type=${post.mediaType}&genre=${post.genre}#reviews`} className="badge genre">
+            {genreLabel(post.genre)}
+          </Link>
+        )}
         {(post.spotifyTrackId || post.youtubeVideoId) && (
           <div id={previewId}>
             <PreviewPlayer

@@ -17,6 +17,7 @@ type PostRow = {
   id: string;
   user_id: string;
   media_type: MediaType;
+  genre: string | null;
   title: string;
   body: string;
   rating: number | null;
@@ -39,6 +40,7 @@ function toCardData(post: PostRow): PostCardData {
     createdAt: post.created_at,
     artist: post.artist,
     coverUrl: post.cover_url,
+    genre: post.genre,
     spotifyTrackId: post.spotify_track_id,
     youtubeVideoId: post.youtube_video_id,
     username: post.profiles?.username ?? "unknown",
@@ -71,7 +73,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
       ? supabase
           .from("posts")
           .select(
-            "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, profiles!posts_user_id_fkey(username)"
+            "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, genre, profiles!posts_user_id_fkey(username)"
           )
           .in("id", postIds)
           .returns<PostRow[]>()

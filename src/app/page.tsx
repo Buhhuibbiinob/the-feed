@@ -19,6 +19,7 @@ import { getTrendingTracks } from "@/lib/lastfm";
 import { searchVideos } from "@/lib/youtube";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { MEDIA_TYPES, MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
+import { isGenreFor, genreLabel } from "@/lib/genres";
 import { highestBadge } from "@/lib/badges";
 import { getPublishedIssues } from "@/lib/newsletter";
 import { getSiteFlags } from "@/lib/siteFlags";
@@ -31,6 +32,7 @@ type PostRow = {
   id: string;
   user_id: string;
   media_type: MediaType;
+  genre?: string | null;
   title: string;
   body: string;
   rating: number | null;
@@ -133,7 +135,7 @@ function orderBlocks(blocks: LayoutBlock[], shuffle: boolean): LayoutBlock[] {
 }
 
 const POST_COLUMNS =
-  "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, responds_to_post_id";
+  "id, user_id, media_type, title, body, rating, created_at, artist, cover_url, spotify_track_id, youtube_video_id, responds_to_post_id, genre";
 
 // A failed select here comes back as null data, which silently renders as an
 // empty feed - exactly how a missing column once emptied the whole homepage.
@@ -201,9 +203,9 @@ async function fillFeedTvLineup(
 export default async function FeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string; type?: string; page?: string }>;
+  searchParams: Promise<{ filter?: string; type?: string; page?: string; genre?: string }>;
 }) {
-  const { filter, type, page } = await searchParams;
+  const { filter, type, page, genre } = await searchParams;
   const followingOnly = filter === "following";
   // "For You" ranks the same feed by taste rather than cutting it down, so
   // it can never show an emptier page than All - which is what killed the
@@ -213,6 +215,10 @@ export default async function FeedPage({
   // own hub. At this volume a separate destination would just look empty,
   // which costs more than the tidier navigation gains.
   const typeFilter = MEDIA_TYPES.includes(type as MediaType) ? (type as MediaType) : null;
+  // Only meaningful inside a category, and only ever set by clicking a
+  // badge - which always carries both. A genre without its category would
+  // match "documentary" across film and photography at once.
+  const genreFilter = typeFilter && isGenreFor(typeFilter, genre) ? genre : null;
 
   // One builder for every feed link so the following filter, the category
   // and the page number always travel together. Page 1 is left out of the
@@ -222,6 +228,8 @@ export default async function FeedPage({
     if (followingOnly) params.set("filter", "following");
     if (forYouOnly) params.set("filter", "foryou");
     if (nextType) params.set("type", nextType);
+    // Dropped when the category changes, since it belongs to the old one.
+    if (genreFilter && nextType === typeFilter) params.set("genre", genreFilter);
     if (nextPage > 1) params.set("page", String(nextPage));
     const qs = params.toString();
     return qs ? `/?${qs}#reviews` : "/#reviews";
@@ -393,7 +401,8 @@ export default async function FeedPage({
   // The category chips filter the list you're reading, not the whole page.
   // allPosts still feeds Top Reviewer, Trending, Now Watching, Feed TV and
   // the rest, so picking "Photography" must not empty the sidebar.
-  const typeFiltered = typeFilter ? allPosts.filter((p) => p.media_type === typeFilter) : allPosts;
+  const byType = typeFilter ? allPosts.filter((p) => p.media_type === typeFilter) : allPosts;
+  const typeFiltered = genreFilter ? byType.filter((p) => p.genre === genreFilter) : byType;
 
   // For You reorders rather than filters. The score leans on what the
   // member has actually rated highly - the works they liked, the people who
@@ -884,11 +893,22 @@ export default async function FeedPage({
               {MEDIA_FILTER_LABELS[mt]}
             </Link>
           ))}
+          {/* A genre filter is only ever arrived at by clicking a badge on
+              a card, so it needs to say what it is and how to leave. A
+              filter you can enter but not see is a page that looks like it
+              has lost half its posts. */}
+          {genreFilter && typeFilter && (
+            <Link href={feedHref(typeFilter, 1)} className="feed-chip active genre-active">
+              {genreLabel(genreFilter)} ×
+            </Link>
+          )}
         </div>
         <div className="panel-body flush">
           {feedPosts.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              {typeFilter
+              {genreFilter && typeFilter
+                ? `Nothing tagged ${genreLabel(genreFilter)} yet - be the first to post one.`
+                : typeFilter
                 ? `No ${MEDIA_FILTER_LABELS[typeFilter].toLowerCase()} reviews yet - be the first to post one.`
                 : followingOnly
                   ? "No reviews yet from people you follow."

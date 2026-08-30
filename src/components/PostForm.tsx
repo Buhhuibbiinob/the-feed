@@ -5,7 +5,8 @@ import { useActionState, useEffect, useState } from "react";
 import { createPost, type PostFormState } from "@/app/actions/posts";
 import { closeComposeSheet } from "@/components/ComposeSheet";
 import type { YoutubeVideo } from "@/lib/youtube";
-import { MEDIA_LABELS } from "@/lib/media";
+import { MEDIA_LABELS, type MediaType } from "@/lib/media";
+import { GenrePicker } from "@/components/GenrePicker";
 
 const initialState: PostFormState = {};
 
@@ -30,6 +31,7 @@ export function PostForm({
 
   const [mediaType, setMediaType] = useState(prefill?.mediaType ?? "music");
   const [title, setTitle] = useState(prefill?.title ?? "");
+  const [genre, setGenre] = useState<string | null>(null);
   const [posterUrl, setPosterUrl] = useState("");
   const [videoQuery, setVideoQuery] = useState("");
   const [videoResults, setVideoResults] = useState<YoutubeVideo[]>([]);
@@ -45,6 +47,7 @@ export function PostForm({
       setFormKey((k) => k + 1);
       setMediaType(prefill?.mediaType ?? "music");
       setTitle(prefill?.title ?? "");
+      setGenre(null);
       setPosterUrl("");
       setVideoQuery("");
       setVideoResults([]);
@@ -160,6 +163,10 @@ export function PostForm({
               value={mediaType}
               onChange={(e) => {
                 setMediaType(e.target.value);
+                // The genre lists are per category and barely overlap, so
+                // a leftover genre from the previous category would be a
+                // row no filter could ever match.
+                setGenre(null);
                 setVideoQuery("");
                 setVideoResults([]);
                 setSelectedVideo(null);
@@ -278,6 +285,12 @@ export function PostForm({
               required
             />
           </div>
+          <GenrePicker
+            mediaType={mediaType as MediaType}
+            value={genre}
+            onChange={setGenre}
+          />
+
           <div className="field">
             <label htmlFor="rating">Rating</label>
             <select id="rating" name="rating" defaultValue="">
