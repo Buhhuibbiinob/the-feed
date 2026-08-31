@@ -7101,10 +7101,16 @@ footer .copy {
   .apple-nav {
     display: none;
   }
-  /* The iOS 5 UINavigationBar, matched to the real artwork: a blue-grey
+  /* The iOS UINavigationBar, matched to the real artwork: a blue-grey
      gradient carrying fine vertical pinstripes, a bright hairline along
      the very top, a dark rule beneath, and a white title cut into it with
-     a shadow *below* the glyphs rather than above. */
+     a shadow *below* the glyphs rather than above.
+     
+     The stops are the desktop bar's, to the digit. They used to be four
+     shades lighter here, which meant the phone - the thing almost
+     everybody actually uses - had white type sitting on #b9c5d7 at about
+     1.9:1, and a bar a different colour from the one on the laptop. Both
+     of those were bugs; one of them was just also ugly. */
   .sk-ios-topbar {
     display: flex;
     align-items: center;
@@ -7119,9 +7125,17 @@ footer .copy {
         transparent 1px,
         transparent 2px
       ),
-      linear-gradient(180deg, #b9c5d7 0%, #9dabc3 48%, #8d9db7 52%, #7d8ea9 100%);
+      linear-gradient(
+        180deg,
+        #7b8eb0 0%,
+        #7285a8 8%,
+        #65799d 48%,
+        #576b8f 52%,
+        #5f7398 92%,
+        #4b5f83 100%
+      );
     color: #fff;
-    border-bottom: 1px solid #5c6b82;
+    border-bottom: 1px solid #3f4c66;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset,
       0 -1px 0 rgba(0, 0, 0, 0.18) inset;
     position: relative;
@@ -7150,7 +7164,7 @@ footer .copy {
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
     padding: 6px 12px;
     border-radius: 5px;
-    border: 1px solid #5c6b82;
+    border: 1px solid #3c4962;
     background: repeating-linear-gradient(
         90deg,
         rgba(255, 255, 255, 0.08) 0px,
@@ -7158,8 +7172,8 @@ footer .copy {
         transparent 1px,
         transparent 2px
       ),
-      linear-gradient(180deg, #a4b1c7 0%, #8695b0 48%, #7d8ca7 52%, #6b7c96 100%);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 1px 1px rgba(0, 0, 0, 0.25);
+      linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.32) inset, 0 1px 1px rgba(0, 0, 0, 0.3);
     cursor: pointer;
   }
 
@@ -7182,7 +7196,7 @@ footer .copy {
         transparent 1px,
         transparent 2px
       ),
-      linear-gradient(180deg, #a4b1c7 0%, #8695b0 48%, #7d8ca7 52%, #6b7c96 100%);
+      linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
     clip-path: polygon(9px 0, 100% 0, 100% 100%, 9px 100%, 0 50%);
     cursor: pointer;
   }
@@ -7346,15 +7360,34 @@ footer .copy {
     background: var(--divider, #d0d0d0);
     margin: 6px 16px;
   }
-  /* ios-light exemption: top bar is always dark brushed steel and the
-     bottom tab bar is always light gray/white with a blue active state,
-     regardless of light/dark mode - hard rule from STYLE_GUIDE.md. These
-     out-specify the shared var-driven base above for this theme only. */
+  /* ios-light's own top bar. These out-specify the shared var-driven
+     base above for this theme only, which is the whole reason they
+     exist - restyling the base alone does nothing here.
+     
+     The stops are the desktop bar's, to the digit, so the bar does not
+     change colour when you open the same site on a laptop. The
+     pinstripes are the bar's own; the hard step at the midpoint is what
+     makes it read as a lit surface rather than a coloured rectangle. */
   [data-theme="ios-light"] .sk-ios-topbar {
-    background-color: #5c6773;
-    background-image: linear-gradient(180deg, #8a95a0 0%, #5c6773 50%, #465059 100%);
+    background-color: #576b8f;
+    background-image: repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.07) 0px,
+        rgba(255, 255, 255, 0.07) 1px,
+        transparent 1px,
+        transparent 2px
+      ),
+      linear-gradient(
+        180deg,
+        #7b8eb0 0%,
+        #7285a8 8%,
+        #65799d 48%,
+        #576b8f 52%,
+        #5f7398 92%,
+        #4b5f83 100%
+      );
     color: #fff;
-    border-bottom-color: #333;
+    border-bottom-color: #3f4c66;
   }
   [data-theme="ios-light"] .sk-ios-back,
   [data-theme="ios-light"] .sk-ios-title,
@@ -9439,12 +9472,20 @@ body {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-/* Mobile chrome: same charcoal bar top and bottom, so the phone layout
-   reads as an app shell rather than a website with a strip on it. */
-[data-theme="ios-light"] .sk-ios-topbar,
-/* Pinstriped like the tab bar artwork rather than plain brushed steel.
+/* Mobile chrome. The tab bar keeps the charcoal - that is the reference
+   artwork for a tab bar, and it is what the site has always had at the
+   bottom of the phone.
+   
+   The TOP bar used to be listed here too, so the phone had a charcoal
+   strip at both ends. It is a blue UINavigationBar now, matched to the
+   desktop bar's stops (see the ios-light nav block), because that is
+   what the reference actually shows: a blue bar over a dark tab bar.
+   
+   Pinstriped like the tab bar artwork rather than plain brushed steel.
    These beat the base rules on specificity, so the iOS 5 pass never
-   reached the default theme until they were updated too. */
+   reached the default theme until they were updated too - which is
+   exactly why the top bar had to be taken OUT of this selector rather
+   than restyled at the base. */
 [data-theme="ios-light"] .sk-ios-tabbar {
   background: repeating-linear-gradient(
       90deg,
@@ -13735,4 +13776,241 @@ a.issue-link::after {
 }
 .btn.danger:disabled {
   opacity: 0.6;
+}
+
+/* ================================================================
+   Announcements
+   ================================================================
+   The one thing on this site written by the person who runs it and
+   shown to everybody at once. Two volumes:
+
+     .sk-announce         the modal. A UIAlertView, in the same slate as
+                          the bars, so it reads as the app talking rather
+                          than as a web page's cookie notice.
+     .sk-announce-banner  a strip under the nav for things that are worth
+                          saying but not worth stopping anybody for.
+
+   The alert is deliberately built from the same three ingredients as
+   every other panel here - hard midpoint step, letterpressed type,
+   bevelled keys - because an announcement that looked like a browser
+   dialog would be the one piece of chrome on the site that gave the
+   game away. */
+
+.sk-announce-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: alert-in 160ms var(--ease) both;
+}
+.sk-announce {
+  width: 100%;
+  max-width: 290px;
+  box-sizing: border-box;
+  /* The bar's own stops, one notch lighter at the top so the panel
+     reads as lit from above rather than as a cut-out of the nav. */
+  background: linear-gradient(
+    180deg,
+    #8598b8 0%,
+    #7285a8 8%,
+    #65799d 48%,
+    #576b8f 52%,
+    #5f7398 92%,
+    #45597d 100%
+  );
+  border: 1px solid #2f3a4f;
+  border-radius: 13px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.24) inset,
+    0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 18px 44px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  text-align: center;
+  animation: alert-pop 180ms var(--ease) both;
+}
+.sk-announce-title {
+  padding: 16px 16px 5px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+}
+.sk-announce-message {
+  padding: 0 16px 14px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.45;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+  /* An admin pasting a URL with no spaces in it must not push the panel
+     wider than the phone. */
+  overflow-wrap: anywhere;
+}
+.sk-announce-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 8px 9px;
+}
+.sk-announce-actions button,
+.sk-announce-actions .sk-announce-go {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid #2f3a4f;
+  color: #fff;
+  text-decoration: none;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+  background: linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+/* The button that goes somewhere is the brighter key of the two, the way
+   the default action on a real alert was. */
+.sk-announce-actions .sk-announce-go {
+  background: linear-gradient(180deg, #6ea2e8 0%, #4b83d8 47%, #3f76cd 53%, #2b5db0 100%);
+  border-color: #22488c;
+}
+.sk-announce-actions button:active,
+.sk-announce-actions .sk-announce-go:active {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
+}
+.sk-announce-actions button[disabled] {
+  cursor: default;
+  opacity: 0.9;
+}
+
+/* ---- The banner ---- */
+.sk-announce-banner {
+  position: relative;
+  z-index: 20;
+  background: linear-gradient(180deg, #7b8eb0 0%, #65799d 48%, #576b8f 52%, #4b5f83 100%);
+  border-bottom: 1px solid #3f4c66;
+  /* A hairline of contact, not a drop shadow: this is bolted under the
+     bar, in the same way the bar is bolted to the page. */
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 1px 0 rgba(0, 0, 0, 0.22);
+  color: #fff;
+}
+.sk-announce-banner-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+.sk-announce-banner-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  color: #3b4c6b;
+  background: linear-gradient(180deg, #ffffff 0%, #d6dced 100%);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
+}
+.sk-announce-banner-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.sk-announce-banner-btn {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid #22488c;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 11.5px;
+  background: linear-gradient(180deg, #6ea2e8 0%, #4b83d8 47%, #3f76cd 53%, #2b5db0 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+}
+.sk-announce-banner-close {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.18);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.sk-announce-banner-close:active {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ---- Admin: the preview, and the pair of date fields ---- */
+.sk-announce-preview {
+  margin-bottom: 14px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border, rgba(0, 0, 0, 0.2));
+  /* A shallow checkerboard, so a preview is never mistaken for the real
+     thing sitting in the admin page. */
+  background-color: #dfe3ea;
+  background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.045) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(0, 0, 0, 0.045) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(0, 0, 0, 0.045) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(0, 0, 0, 0.045) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.sk-announce-preview-label {
+  align-self: flex-start;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.sk-announce-preview .sk-announce-banner {
+  width: 100%;
+  border-radius: 6px;
+  border-bottom: 0;
+}
+/* The preview is a still. It must not re-run the arrival animation on
+   every keystroke - that would be a dialog flinching as you type. */
+.sk-announce-static {
+  animation: none;
+}
+.sk-announce-when {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sk-announce-when .field {
+  flex: 1;
+  min-width: 180px;
+}
+.sk-announce-list {
+  margin-top: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-announce-backdrop,
+  .sk-announce {
+    animation: none;
+  }
 }

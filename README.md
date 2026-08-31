@@ -69,6 +69,7 @@ npm run check:genres        # a genre is only valid for its own category
 npm run check:afterpost     # the right next step after posting a review
 npm run check:winback       # nobody gets an email who shouldn't
 npm run check:stickers      # stickers survive a database that's behind
+npm run check:announcements # the right announcement shows, once, and stays closed
 ```
 
 ---
@@ -81,7 +82,7 @@ Code that reads a column which doesn't exist yet used to take every review off
 the site; `src/lib/postQuery.ts` now degrades instead, but the rule stands: ship
 the migration and the code together, and run the migration.
 
-Migrations so far: `001`–`008`. They are safe to re-run.
+Migrations so far: `001`–`009`. They are safe to re-run.
 
 **2. Secrets live in two places.** `.env.local` on your machine, and Vercel →
 Settings → Environment Variables for the live site. Changing one does not change
@@ -122,6 +123,7 @@ first — the pages mostly just arrange what those two produce.
 |---|---|
 | change wording on a page | that page's `page.tsx` |
 | change wording you can edit without deploying | Admin → Site Text |
+| put a message in front of everybody at once | Admin → Announcements |
 | change how anything looks | `src/app/globals.css` |
 | change the genres offered | `src/lib/genres.ts` |
 | change what the bots post | `src/app/actions/bots.ts` |
