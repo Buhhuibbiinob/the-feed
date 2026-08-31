@@ -316,6 +316,35 @@ const SPRITES: Record<string, string> = {
   // with a highlight, which is exactly what this set draws.
   "\u{1F3C0}": "basketball",
 
+  // --- A long scroll of vibes, drawn to the same rules as everything
+  // else here. Asked for by name: California, 2016 Tumblr, underground,
+  // scene, McBling, grunge. Every one is a sprite rather than a
+  // passed-through character, because an undrawn emoji falls back to the
+  // system's own artwork - which is the exact thing this whole file
+  // exists to avoid.
+  "\u{1F334}": "palm",
+  "\u{2600}": "sun",
+  "\u{1F30A}": "wave",
+  "\u{1F34A}": "citrus",
+  "\u{1F335}": "cactus",
+  "\u{1F34D}": "pineapple",
+  "\u{1F9A9}": "flamingo",
+  "\u{1F339}": "rose",
+  "\u{1F4F8}": "flashcam",
+  "\u{1F964}": "shake",
+  "\u{1F4FB}": "boombox",
+  "\u{1F6F9}": "skateboard",
+  "\u{1F50A}": "speaker",
+  "\u{1F480}": "skull",
+  "\u{1F9F7}": "safetypin",
+  "\u{1F3B8}": "guitar",
+  "\u{1F97E}": "boot",
+  "\u{1F4F1}": "flipphone",
+  "\u{1F484}": "lipgloss",
+  "\u{1F485}": "nails",
+  "\u{1FAA9}": "discoball",
+  "\u{1F4B5}": "dollar",
+
   // --- Music, film and photography.
   "\u{1F3A7}": "headphones",
   "\u{1F4BF}": "cd",
@@ -416,6 +445,28 @@ export const EMOJI_NAMES: Record<string, string[]> = {
 
   // --- Music, film, photography.
   "\u{1F3C0}": ["basketball", "ball", "hoops", "sports", "nba"],
+  "\u{1F334}": ["palm", "tree", "beach", "cali", "summer"],
+  "\u{2600}": ["sun", "sunny", "summer", "hot"],
+  "\u{1F30A}": ["wave", "ocean", "surf", "sea", "beach"],
+  "\u{1F34A}": ["orange", "citrus", "fruit", "summer"],
+  "\u{1F335}": ["cactus", "desert", "plant"],
+  "\u{1F34D}": ["pineapple", "fruit", "tropical"],
+  "\u{1F9A9}": ["flamingo", "pink", "bird", "tropical"],
+  "\u{1F339}": ["rose", "flower", "romantic"],
+  "\u{1F4F8}": ["camera", "photo", "flash", "polaroid"],
+  "\u{1F964}": ["milkshake", "drink", "diner", "shake"],
+  "\u{1F4FB}": ["boombox", "radio", "stereo", "music"],
+  "\u{1F6F9}": ["skateboard", "skate", "board"],
+  "\u{1F50A}": ["speaker", "loud", "bass", "sound"],
+  "\u{1F480}": ["skull", "spooky", "goth", "grunge"],
+  "\u{1F9F7}": ["safety pin", "pin", "punk", "scene"],
+  "\u{1F3B8}": ["guitar", "band", "rock", "music"],
+  "\u{1F97E}": ["boot", "docs", "grunge", "shoe"],
+  "\u{1F4F1}": ["flip phone", "phone", "y2k", "razr"],
+  "\u{1F484}": ["lipstick", "lip gloss", "makeup", "glam"],
+  "\u{1F485}": ["nails", "manicure", "polish", "glam"],
+  "\u{1FAA9}": ["disco ball", "disco", "party", "shiny"],
+  "\u{1F4B5}": ["money", "cash", "dollar", "rich"],
   "\u{1F3A7}": ["headphones", "listening", "music"],
   "\u{1F4BF}": ["cd", "disc", "album", "record"],
   "\u{1F4FC}": ["vhs", "tape", "video"],
@@ -485,6 +536,12 @@ export const EMOJI_GROUPS: { name: string; chars: string[] }[] = [
       "\u{1F48E}", "\u{2601}", "\u{26A1}", "\u{1F451}",
       "\u{1F352}", "\u{1F338}", "\u{1F380}", "\u{1F43E}",
       "\u{1F4AC}", "\u{1F3C0}",
+      "\u{1F334}", "\u{2600}", "\u{1F30A}", "\u{1F34A}",
+      "\u{1F335}", "\u{1F34D}", "\u{1F9A9}", "\u{1F339}",
+      "\u{1F4F8}", "\u{1F964}", "\u{1F4FB}", "\u{1F6F9}",
+      "\u{1F50A}", "\u{1F480}", "\u{1F9F7}", "\u{1F3B8}",
+      "\u{1F97E}", "\u{1F4F1}", "\u{1F484}", "\u{1F485}",
+      "\u{1FAA9}", "\u{1F4B5}",
     ],
   },
 ];
