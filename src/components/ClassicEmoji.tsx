@@ -337,6 +337,23 @@ const SPRITES: Record<string, string> = {
   "\u{1F480}": "skull",
   "\u{1F3B8}": "guitar",
   "\u{1F97E}": "boot",
+  /* Sporty and swag. These ten had SVGs sitting in public/stickers from
+     the day the packs landed and no entry here, so they were placeable
+     as stickers and unreachable as reactions - which is not a thing
+     anybody could have guessed from looking at the site. The keyboard
+     and the sticker pack are meant to be two doors onto one set of
+     drawings; check:emoji now fails the build if they drift apart
+     again. */
+  "\u{1F9E2}": "snapback",
+  "\u{1F576}": "shades",
+  "\u{26D3}": "chain",
+  "\u{1F4AF}": "hundred",
+  "\u{1F525}": "fire",
+  "\u{1F45F}": "sneaker",
+  "\u{1F3BD}": "jersey",
+  "\u{1F3C6}": "trophy",
+  "\u{23F1}": "stopwatch",
+  "\u{1F3CB}": "dumbbell",
   "\u{1F4F1}": "flipphone",
   "\u{1F484}": "lipgloss",
   "\u{1F485}": "nails",
@@ -458,6 +475,16 @@ export const EMOJI_NAMES: Record<string, string[]> = {
   "\u{1F480}": ["skull", "spooky", "goth", "grunge"],
   "\u{1F3B8}": ["guitar", "band", "rock", "music"],
   "\u{1F97E}": ["boot", "docs", "grunge", "shoe"],
+  "\u{1F9E2}": ["snapback", "cap", "hat", "swag"],
+  "\u{1F576}": ["shades", "sunglasses", "glasses", "cool", "swag"],
+  "\u{26D3}": ["chain", "necklace", "ice", "swag"],
+  "\u{1F4AF}": ["100", "hundred", "keep it real", "swag"],
+  "\u{1F525}": ["fire", "flames", "hot", "lit"],
+  "\u{1F45F}": ["sneaker", "shoe", "kicks", "trainers", "sporty"],
+  "\u{1F3BD}": ["jersey", "shirt", "23", "sporty"],
+  "\u{1F3C6}": ["trophy", "cup", "win", "sporty"],
+  "\u{23F1}": ["stopwatch", "timer", "clock", "sporty"],
+  "\u{1F3CB}": ["dumbbell", "weights", "gym", "sporty"],
   "\u{1F4F1}": ["flip phone", "phone", "y2k", "razr"],
   "\u{1F484}": ["lipstick", "lip gloss", "makeup", "glam"],
   "\u{1F485}": ["nails", "manicure", "polish", "glam"],
@@ -531,12 +558,38 @@ export const EMOJI_GROUPS: { name: string; chars: string[] }[] = [
       "\u{2B50}", "\u{1F319}", "\u{1F308}", "\u{1F98B}",
       "\u{1F48E}", "\u{2601}", "\u{26A1}", "\u{1F451}",
       "\u{1F352}", "\u{1F338}", "\u{1F380}", "\u{1F43E}",
-      "\u{1F4AC}", "\u{1F3C0}",
+      "\u{1F4AC}",
+    ],
+  },
+  /* The aesthetics, on their own tab.
+     
+     They were the tail of Vibes: twenty-two hearts and sparkles, then
+     California, then everything else forty keys down a grid you scroll
+     with a thumb. The report was "I'm just seeing California", which is
+     precisely what that list looks like from the top - the swag was
+     there and unreachable, which is the same as not being there.
+     
+     Sporty and swag lead, because those are the ones that were missing
+     outright and they are the reason this tab exists. Cali, Tumblr and
+     underground follow in the order they were asked for. */
+  {
+    name: "Swag",
+    chars: [
+      // 2015 swag
+      "\u{1F9E2}", "\u{1F576}", "\u{26D3}", "\u{1F4AF}",
+      "\u{1F525}", "\u{1F4B5}", "\u{1FAA9}", "\u{1F4F1}",
+      "\u{1F484}", "\u{1F485}",
+      // sporty
+      "\u{1F3C0}", "\u{1F45F}", "\u{1F3BD}", "\u{1F3C6}",
+      "\u{23F1}", "\u{1F3CB}",
+      // California girl
       "\u{1F334}", "\u{2600}", "\u{1F30A}", "\u{1F34A}",
+      "\u{1F964}",
+      // 2016 Tumblr
       "\u{1F335}", "\u{1F34D}", "\u{1F339}", "\u{1F4F8}",
-      "\u{1F964}", "\u{1F4FB}", "\u{1F6F9}", "\u{1F50A}",
-      "\u{1F480}", "\u{1F3B8}", "\u{1F97E}", "\u{1F4F1}",
-      "\u{1F484}", "\u{1F485}", "\u{1FAA9}", "\u{1F4B5}",
+      // underground, scene, grunge
+      "\u{1F4FB}", "\u{1F50A}", "\u{1F3B8}", "\u{1F6F9}",
+      "\u{1F480}", "\u{1F97E}",
     ],
   },
 ];

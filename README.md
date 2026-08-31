@@ -59,6 +59,7 @@ here before:
 | `check:contrast` | text nobody can read on its background |
 | `check:shadows` | a list item wearing a modal's drop shadow |
 | `check:owner` | a Customize form that would edit the wrong person's page |
+| `check:emoji` | a sticker that exists but can't be used as a reaction |
 
 And these, run individually, cover the logic most likely to break quietly:
 
@@ -69,6 +70,7 @@ npm run check:genres        # a genre is only valid for its own category
 npm run check:afterpost     # the right next step after posting a review
 npm run check:winback       # nobody gets an email who shouldn't
 npm run check:stickers      # stickers survive a database that's behind
+npm run check:emoji         # (also in lint) every drawing is on the keyboard too
 npm run check:announcements # the right announcement shows, once, and stays closed
 ```
 
