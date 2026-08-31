@@ -312,6 +312,10 @@ const SPRITES: Record<string, string> = {
   "\u{1F44F}": "hand-clap",
   "\u{1FAF6}": "hand-heart",
 
+  // --- Asked for by a member, and it belongs: a basketball is a sphere
+  // with a highlight, which is exactly what this set draws.
+  "\u{1F3C0}": "basketball",
+
   // --- Music, film and photography.
   "\u{1F3A7}": "headphones",
   "\u{1F4BF}": "cd",
@@ -411,6 +415,7 @@ export const EMOJI_NAMES: Record<string, string[]> = {
   "\u{1FAF6}": ["heart hands", "love", "adore"],
 
   // --- Music, film, photography.
+  "\u{1F3C0}": ["basketball", "ball", "hoops", "sports", "nba"],
   "\u{1F3A7}": ["headphones", "listening", "music"],
   "\u{1F4BF}": ["cd", "disc", "album", "record"],
   "\u{1F4FC}": ["vhs", "tape", "video"],
@@ -479,7 +484,7 @@ export const EMOJI_GROUPS: { name: string; chars: string[] }[] = [
       "\u{2B50}", "\u{1F319}", "\u{1F308}", "\u{1F98B}",
       "\u{1F48E}", "\u{2601}", "\u{26A1}", "\u{1F451}",
       "\u{1F352}", "\u{1F338}", "\u{1F380}", "\u{1F43E}",
-      "\u{1F4AC}",
+      "\u{1F4AC}", "\u{1F3C0}",
     ],
   },
 ];

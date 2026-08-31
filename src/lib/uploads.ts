@@ -10,6 +10,13 @@ export const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 // what made "upload a GIF" fail for most real GIFs.
 export const MAX_GIF_BYTES = 6 * 1024 * 1024;
 export const MAX_BANNER_BYTES = 3 * 1024 * 1024;
+// A photography post IS the photograph, so it gets more room than a
+// banner. Not unlimited room: a server action's body is capped by Next
+// (6MB in next.config.ts) and by the host below that, so a bigger
+// ceiling here would only move the failure to after the upload. Photos
+// are shrunk in the browser first (lib/shrinkImage.ts), so a phone photo
+// arrives well under this rather than being refused.
+export const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
 export const MAX_BACKGROUND_BYTES = 3 * 1024 * 1024;
 export const MAX_CLUB_IMAGE_BYTES = 3 * 1024 * 1024;
 export const MAX_EVENT_FLYER_BYTES = 3 * 1024 * 1024;
