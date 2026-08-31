@@ -35,8 +35,10 @@ import { HouseAdForm } from "@/components/HouseAdForm";
 import { SendSignInLinksButton } from "@/components/SendSignInLinksButton";
 import { BotAdminPanel } from "@/components/BotAdminPanel";
 import { BackfillWorksButton } from "@/components/BackfillWorksButton";
+import { AnnouncementAdmin } from "@/components/AnnouncementAdmin";
 import { listBots } from "@/app/actions/bots";
 import { getSiteFlags } from "@/lib/siteFlags";
+import { fetchAllAnnouncements } from "@/lib/announcements";
 
 type ReportRow = {
   id: string;
@@ -191,7 +193,11 @@ export default async function AdminPage() {
   const pendingBanners = banners.filter((b) => b.status === "pending");
   const approvedBanners = banners.filter((b) => b.status === "approved");
 
-  const [bots, siteFlags] = await Promise.all([listBots(), getSiteFlags(supabase)]);
+  const [bots, siteFlags, announcements] = await Promise.all([
+    listBots(),
+    getSiteFlags(supabase),
+    fetchAllAnnouncements(supabase),
+  ]);
 
   return (
     <>
@@ -511,6 +517,8 @@ export default async function AdminPage() {
           )}
         </div>
       </div>
+
+      <AnnouncementAdmin announcements={announcements} />
 
       <div className="panel">
         <div className="panel-head">Site Text</div>

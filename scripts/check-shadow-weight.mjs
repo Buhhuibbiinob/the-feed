@@ -33,6 +33,11 @@ const FLOATERS = [
   // is lifted off the page by definition, which is the one case this
   // guard exists to permit rather than prevent.
   "tabbar", "sheet", "app-shell", "circle-icon-btn", "css-editor",
+  // The announcement alert is a UIAlertView: it sits over the whole
+  // window and has to be answered. Its BANNER sibling is not listed -
+  // that one is bolted under the nav and is held to the hairline, which
+  // is the distinction this guard is for.
+  "sk-announce ", "sk-announce-backdrop",
   // Drawn objects rather than UI surfaces. The record and its sleeves are
   // an illustration of a stack, so they really are meant to sit on top of
   // one another; cover art and the now-playing artwork are pictures of

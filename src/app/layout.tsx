@@ -10,6 +10,7 @@ import { ClickSound } from "@/components/ClickSound";
 import { EmojiKeyboard } from "@/components/EmojiKeyboard";
 import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { PostFab } from "@/components/PostFab";
+import { AnnouncementAlert } from "@/components/AnnouncementAlert";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME } from "@/lib/themes";
 import { isAdmin } from "@/lib/admin";
@@ -25,6 +26,7 @@ import {
 } from "@/lib/background";
 import { getSiteTheme, resolveTheme } from "@/lib/siteSettings";
 import { WEB_FONT_VARIABLES } from "@/lib/webFonts";
+import { fetchAnnouncementFor } from "@/lib/announcements";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const title = "Feedback";
@@ -109,10 +111,14 @@ export default async function RootLayout({
     unreadDmCount = await getUnreadDmCount(supabase, user.id);
   }
 
-  const [archivedSlugs, customPages, siteTheme] = await Promise.all([
+  const [archivedSlugs, customPages, siteTheme, announcement] = await Promise.all([
     getArchivedBuiltinSlugs(supabase),
     getActiveCustomPages(supabase),
     getSiteTheme(supabase),
+    // Signed-out visitors get this too. An announcement that only members
+    // can read is no use for the two things it will mostly be used for:
+    // "we're down for an hour" and "come and look at this".
+    fetchAnnouncementFor(supabase, user?.id ?? null),
   ]);
   const theme = resolveTheme(siteTheme, personalTheme, DEFAULT_THEME);
 
@@ -166,6 +172,7 @@ export default async function RootLayout({
             hiddenSlugs={[...archivedSlugs]}
             customPages={customPages.map((p) => ({ href: p.path, label: p.label }))}
           />
+          <AnnouncementAlert announcement={announcement} />
           <div className="sk-app-content">
             <div className="wrap">
               {/* Split view: the list stays, the detail changes. Both
