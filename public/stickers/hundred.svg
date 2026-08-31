@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+<text x="50" y="58" font-family="Impact, 'Arial Black', sans-serif" font-size="42" text-anchor="middle" fill="#e0223c" stroke="#8d0f22" stroke-width="2">100</text>
+<rect x="14" y="66" width="30" height="7" rx="3.5" fill="#e0223c"/>
+<rect x="56" y="66" width="30" height="7" rx="3.5" fill="#e0223c"/>
+<rect x="20" y="30" width="16" height="6" rx="3" fill="#fff" opacity=".35"/>
+</svg>
