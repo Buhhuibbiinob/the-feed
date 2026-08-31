@@ -11,6 +11,7 @@ import { findOrCreateClub } from "@/lib/clubs";
 import { findOrCreateWork } from "@/lib/works";
 import { chooseNextStep, type NextStep } from "@/lib/afterPost";
 import { checkReviewSafety } from "@/lib/contentSafety";
+import { MAX_PHOTO_BYTES, isImageFile, guessContentType, limitFor, megabytes } from "@/lib/uploads";
 import { isAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -45,7 +46,34 @@ export async function createPost(
   const ratingRaw = String(formData.get("rating") ?? "");
   const rating = ratingRaw ? Number(ratingRaw) : null;
   const artist = String(formData.get("artist") ?? "").trim();
-  const coverUrl = String(formData.get("cover_url") ?? "").trim();
+  let coverUrl = String(formData.get("cover_url") ?? "").trim();
+
+  // A photograph, straight off the phone. Until now the only way to put a
+  // picture on a photography post was to paste a URL, which meant hosting
+  // it somewhere else first - so the site had a photography category that
+  // a photographer could not actually post to.
+  const photo = formData.get("photo_file");
+  if (photo instanceof File && photo.size > 0) {
+    if (!isImageFile(photo)) return { error: "That file isn't an image." };
+    const limit = limitFor(photo, MAX_PHOTO_BYTES);
+    if (photo.size > limit) {
+      return { error: `Photos must be under ${megabytes(limit)}MB.` };
+    }
+    // Named by a fresh id rather than the file name, so two photos both
+    // called IMG_0001.jpg don't overwrite each other.
+    const ext = photo.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${user.id}/photos/${crypto.randomUUID()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, photo, { upsert: false, contentType: guessContentType(photo) });
+    if (uploadError) return { error: uploadError.message };
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("avatars").getPublicUrl(path);
+    // Wins over a pasted URL: if somebody did both, the file they chose
+    // just now is the one they meant.
+    coverUrl = publicUrl;
+  }
   const spotifyTrackId = String(formData.get("spotify_track_id") ?? "").trim();
   const youtubeVideoId = String(formData.get("youtube_video_id") ?? "").trim();
   const respondsTo = String(formData.get("responds_to") ?? "").trim() || null;

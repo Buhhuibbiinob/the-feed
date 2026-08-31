@@ -6,6 +6,8 @@ import { createPost, type PostFormState } from "@/app/actions/posts";
 import { closeComposeSheet } from "@/components/ComposeSheet";
 import type { YoutubeVideo } from "@/lib/youtube";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
+import { MAX_PHOTO_BYTES, megabytes } from "@/lib/uploads";
+import { shrinkImage } from "@/lib/shrinkImage";
 import { GenrePicker } from "@/components/GenrePicker";
 
 const initialState: PostFormState = {};
@@ -32,6 +34,13 @@ export function PostForm({
   const [mediaType, setMediaType] = useState(prefill?.mediaType ?? "music");
   const [title, setTitle] = useState(prefill?.title ?? "");
   const [genre, setGenre] = useState<string | null>(null);
+  const [photoName, setPhotoName] = useState("");
+  const [photoPreview, setPhotoPreview] = useState("");
+  // Checked before submitting as well as on the server: an 8MB limit
+  // discovered after uploading 20MB over a phone connection is a limit
+  // enforced at the worst possible moment.
+  const [clientError, setClientError] = useState<string | null>(null);
+  const [shrinking, setShrinking] = useState(false);
   const [posterUrl, setPosterUrl] = useState("");
   const [videoQuery, setVideoQuery] = useState("");
   const [videoResults, setVideoResults] = useState<YoutubeVideo[]>([]);
@@ -48,6 +57,9 @@ export function PostForm({
       setMediaType(prefill?.mediaType ?? "music");
       setTitle(prefill?.title ?? "");
       setGenre(null);
+      setPhotoName("");
+      setPhotoPreview("");
+      setClientError(null);
       setPosterUrl("");
       setVideoQuery("");
       setVideoResults([]);
@@ -138,7 +150,9 @@ export function PostForm({
     <div className="panel">
       <div className="panel-head">{answering ? "Your answer" : "Post a Review"}</div>
       <div className="panel-body">
-        {state.error && <div className="form-error">{state.error}</div>}
+        {(clientError || state.error) && (
+          <div className="form-error">{clientError ?? state.error}</div>
+        )}
         {answering && (
           <div className="duet-answering">
             Answering <b>{answering.username}</b> on{" "}
@@ -240,10 +254,66 @@ export function PostForm({
             )}
           </div>
 
+          {/* A photograph comes off a phone, not off a URL bar. Pasting a
+              link meant hosting the picture somewhere else first, which
+              is not a thing anybody does from a phone - so the category
+              existed and could not actually be posted to. */}
+          {mediaType === "photography" && !selectedVideo && (
+            <div className="field">
+              <label htmlFor="photo-file">Your photo</label>
+              <input
+                id="photo-file"
+                name="photo_file"
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const input = e.currentTarget;
+                  const file = input.files?.[0];
+                  if (!file) {
+                    setPhotoName("");
+                    setPhotoPreview("");
+                    setClientError(null);
+                    return;
+                  }
+                  setPhotoName(file.name);
+                  setPhotoPreview(URL.createObjectURL(file));
+                  setShrinking(true);
+                  // Resized here rather than rejected: a phone photo is
+                  // routinely bigger than any request body limit, and
+                  // telling somebody to go and shrink it themselves is
+                  // telling them not to post.
+                  const smaller = await shrinkImage(file);
+                  setShrinking(false);
+                  if (smaller !== file) {
+                    const carrier = new DataTransfer();
+                    carrier.items.add(smaller);
+                    input.files = carrier.files;
+                    setPhotoName(smaller.name);
+                  }
+                  setClientError(
+                    smaller.size > MAX_PHOTO_BYTES
+                      ? `That photo is still ${megabytes(smaller.size)}MB after shrinking. The limit is ${megabytes(MAX_PHOTO_BYTES)}MB.`
+                      : null
+                  );
+                }}
+              />
+              {photoPreview && (
+                <div className="track-selected">
+                  <img src={photoPreview} alt="" />
+                  <div>
+                    <b>{photoName}</b>
+                    <div className="sub">{shrinking ? "Preparing…" : "Ready to post"}</div>
+                  </div>
+                </div>
+              )}
+              <div className="field-hint">Up to {megabytes(MAX_PHOTO_BYTES)}MB. Or paste a link below.</div>
+            </div>
+          )}
+
           {!selectedVideo && (
             <div className="field">
               <label htmlFor="poster-url">
-                {mediaType === "photography" ? "Photo URL" : "Or paste a cover image URL"}
+                {mediaType === "photography" ? "Or a photo URL" : "Or paste a cover image URL"}
               </label>
               <input
                 id="poster-url"
@@ -311,8 +381,8 @@ export function PostForm({
             </div>
           </div>
           <div className="form-actions">
-            <button className="btn" type="submit" disabled={pending}>
-              {pending ? "Posting…" : "Post"}
+            <button className="btn" type="submit" disabled={pending || shrinking}>
+              {pending ? "Posting…" : shrinking ? "Preparing photo…" : "Post"}
             </button>
           </div>
         </form>
