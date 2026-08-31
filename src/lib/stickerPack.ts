@@ -65,7 +65,6 @@ export const STICKER_PACK: PackSticker[] = [
   { id: "sneaker", label: "Sneaker", group: "Sporty" },
   { id: "jersey", label: "Jersey", group: "Sporty" },
   { id: "trophy", label: "Trophy", group: "Sporty" },
-  { id: "whistle", label: "Whistle", group: "Sporty" },
   { id: "stopwatch", label: "Stopwatch", group: "Sporty" },
   { id: "dumbbell", label: "Dumbbell", group: "Sporty" },
 
@@ -91,7 +90,6 @@ export const STICKER_PACK: PackSticker[] = [
 
   { id: "cactus", label: "Cactus", group: "Tumblr" },
   { id: "pineapple", label: "Pineapple", group: "Tumblr" },
-  { id: "flamingo", label: "Flamingo", group: "Tumblr" },
   { id: "rose", label: "Rose", group: "Tumblr" },
   { id: "flashcam", label: "Camera", group: "Tumblr" },
 
@@ -100,7 +98,6 @@ export const STICKER_PACK: PackSticker[] = [
   { id: "guitar", label: "Guitar", group: "Underground" },
   { id: "skateboard", label: "Skateboard", group: "Underground" },
   { id: "skull", label: "Skull", group: "Underground" },
-  { id: "safetypin", label: "Safety pin", group: "Underground" },
   { id: "boot", label: "Boot", group: "Underground" },
 ];
 
@@ -124,6 +121,13 @@ export const STICKER_GROUPS = [
  * naming a sticker that doesn't exist gets nothing rather than putting
  * an arbitrary string into image_url. That is the whole reason ids are
  * posted instead of URLs.
+ *
+ * It is also why a sticker can be retired by deleting its line above and
+ * nothing else: the file stays in public/stickers so that anybody who
+ * already placed one still sees it rather than a broken-image icon, but
+ * this gate no longer hands the id out, so no new one can be added.
+ * Retired so far: flamingo, whistle, safetypin - none of them readable
+ * at the size a reaction actually renders.
  */
 export function packStickerUrl(id: unknown): string | null {
   if (typeof id !== "string") return null;
