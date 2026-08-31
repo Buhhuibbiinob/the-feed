@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-<defs><radialGradient id="g" cx="35%" cy="28%" r="78%"><stop offset="0%" stop-color="#7fe08a"/><stop offset="55%" stop-color="#1f9e4a"/><stop offset="100%" stop-color="#1f9e4a"/></radialGradient></defs>
-<path d="M46 44h9l5 48H42z" fill="#a96a34" stroke="#5e3a17" stroke-width="4"/>
-<path d="M50 40C36 26 20 28 12 38c14-4 26 0 34 8zM50 40c14-14 30-12 38-2-14-4-26 0-34 8zM50 40c-4-18-18-26-30-24 12 6 20 14 24 26zM50 40c8-16 22-22 32-18-12 6-22 12-26 22z" fill="url(#g)" stroke="#0f6b30" stroke-width="4" stroke-linejoin="round"/>
-<circle cx="50" cy="40" r="6" fill="#8a5a2a" stroke="#5e3a17" stroke-width="3"/>
+<defs><radialGradient id="g" cx="35%" cy="26%" r="78%"><stop offset="0%" stop-color="#7fe08a"/><stop offset="55%" stop-color="#1f9e4a"/><stop offset="100%" stop-color="#1f9e4a"/></radialGradient></defs>
+<path d="M40 40h20l6 56H34z" fill="#a96a34" stroke="#5e3a17" stroke-width="6"/>
+<path d="M50 38C34 14 12 20 8 36c16-8 28-4 34 4zM50 38c16-24 38-18 42-2-16-8-28-4-34 4zM50 38c0-20-10-32-24-34 10 10 14 22 14 36z" fill="url(#g)" stroke="#0f6b30" stroke-width="6" stroke-linejoin="round"/>
+<circle cx="50" cy="40" r="9" fill="#8a5a2a" stroke="#5e3a17" stroke-width="5"/>
 </svg>
