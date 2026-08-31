@@ -1,6 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-<defs><radialGradient id="g" cx="35%" cy="28%" r="78%"><stop offset="0%" stop-color="#fff"/><stop offset="55%" stop-color="#dfe4ec"/><stop offset="100%" stop-color="#dfe4ec"/></radialGradient></defs>
-<path d="M32 16l-20 12 8 18 10-5v45h40V41l10 5 8-18-20-12-8 8h-20z" fill="url(#g)" stroke="#2a2f3a" stroke-width="4" stroke-linejoin="round"/>
-<text x="50" y="72" font-family="Impact, 'Arial Black', sans-serif" font-size="34" text-anchor="middle" fill="#e0364f" stroke="#2a2f3a" stroke-width="2">23</text>
-<rect x="24" y="30" width="9" height="12" rx="4" fill="#fff" opacity=".65"/>
+<defs><radialGradient id="g" cx="35%" cy="24%" r="76%"><stop offset="0%" stop-color="#ffffff"/><stop offset="55%" stop-color="#dfe4ec"/><stop offset="100%" stop-color="#dfe4ec"/></radialGradient></defs>
+<path d="M30 10L6 24l10 22 14-7v51h40V39l14 7 10-22-24-14-8 10H38z" fill="url(#g)" stroke="#2a2f3a" stroke-width="6" stroke-linejoin="round"/>
+<text x="50" y="76" font-family="Impact, 'Arial Black', sans-serif" font-size="42" text-anchor="middle" fill="#e0364f" stroke="#8d0f22" stroke-width="3">23</text>
 </svg>
