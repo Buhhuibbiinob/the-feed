@@ -74,9 +74,48 @@ export const STICKER_PACK: PackSticker[] = [
   { id: "chain", label: "Chain", group: "Swag" },
   { id: "hundred", label: "100", group: "Swag" },
   { id: "fire", label: "Fire", group: "Swag" },
+  { id: "flipphone", label: "Flip phone", group: "Swag" },
+  { id: "lipgloss", label: "Lip gloss", group: "Swag" },
+  { id: "nails", label: "Nails", group: "Swag" },
+  { id: "discoball", label: "Disco ball", group: "Swag" },
+  { id: "dollar", label: "Money", group: "Swag" },
+
+  // The aesthetics a member asked for by name. Grouped the way they said
+  // them rather than lumped into one bin: somebody decorating a page is
+  // usually going for one of these, not browsing all of them.
+  { id: "palm", label: "Palm tree", group: "Cali" },
+  { id: "sun", label: "Sun", group: "Cali" },
+  { id: "wave", label: "Wave", group: "Cali" },
+  { id: "citrus", label: "Orange", group: "Cali" },
+  { id: "shake", label: "Milkshake", group: "Cali" },
+
+  { id: "cactus", label: "Cactus", group: "Tumblr" },
+  { id: "pineapple", label: "Pineapple", group: "Tumblr" },
+  { id: "flamingo", label: "Flamingo", group: "Tumblr" },
+  { id: "rose", label: "Rose", group: "Tumblr" },
+  { id: "flashcam", label: "Camera", group: "Tumblr" },
+
+  { id: "boombox", label: "Boombox", group: "Underground" },
+  { id: "speaker", label: "Speaker", group: "Underground" },
+  { id: "guitar", label: "Guitar", group: "Underground" },
+  { id: "skateboard", label: "Skateboard", group: "Underground" },
+  { id: "skull", label: "Skull", group: "Underground" },
+  { id: "safetypin", label: "Safety pin", group: "Underground" },
+  { id: "boot", label: "Boot", group: "Underground" },
 ];
 
-export const STICKER_GROUPS = ["Cute", "Shiny", "Sporty", "Swag", "Bits", "Media", "Hearts"] as const;
+export const STICKER_GROUPS = [
+  "Cute",
+  "Shiny",
+  "Sporty",
+  "Swag",
+  "Cali",
+  "Tumblr",
+  "Underground",
+  "Bits",
+  "Media",
+  "Hearts",
+] as const;
 
 /**
  * The image path for a pack id, or null.
