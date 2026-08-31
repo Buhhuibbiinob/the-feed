@@ -13719,3 +13719,20 @@ a.issue-link::after {
   padding: 8px 5px;
   background: color-mix(in srgb, var(--link) 12%, transparent);
 }
+
+/* Destructive actions look destructive. There was only a scoped rule for
+   the review action row, so a delete button anywhere else came out
+   looking like Save - which is the wrong thing for the one action on the
+   site that cannot be undone. */
+.comment-action.danger {
+  color: #b3261e;
+}
+.btn.danger {
+  background: linear-gradient(180deg, #d93a2b, #a51b0f);
+  border-color: #8d1409;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+.btn.danger:disabled {
+  opacity: 0.6;
+}

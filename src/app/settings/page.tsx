@@ -7,6 +7,7 @@ import { BackgroundPicker } from "@/components/BackgroundPicker";
 import { isBackgroundFit, DEFAULT_BACKGROUND_FIT } from "@/lib/background";
 import { disconnectYoutube } from "@/app/actions/youtube";
 import { EmailPrefsForm } from "@/components/EmailPrefsForm";
+import { DeleteAccountForm } from "@/components/DeleteAccountForm";
 import { resolveEmailPrefs, resolveNudgePref } from "@/lib/emailPrefs";
 
 export const metadata = { title: "Settings - Feedback" };
@@ -32,7 +33,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("theme, custom_background_url, background_fit, background_flipped")
+    .select("username, theme, custom_background_url, background_fit, background_flipped")
     .eq("id", user.id)
     .single();
 
@@ -122,6 +123,19 @@ export default async function SettingsPage() {
           )}
         </div>
       </div>
+
+      {/* Last on the page, where a thing you cannot undo belongs. Also
+          required to be here rather than by emailing us: an app that lets
+          you make an account has to let you delete it from inside the
+          app. */}
+      {profile?.username && (
+        <div className="panel">
+          <div className="panel-head">Delete Account</div>
+          <div className="panel-body">
+            <DeleteAccountForm username={profile.username} />
+          </div>
+        </div>
+      )}
     </>
   );
 }
