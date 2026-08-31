@@ -51,9 +51,32 @@ export const STICKER_PACK: PackSticker[] = [
   { id: "heart-blue", label: "Blue heart", group: "Hearts" },
   { id: "heart-green", label: "Green heart", group: "Hearts" },
   { id: "heart-orange", label: "Orange heart", group: "Hearts" },
+
+  // Asked for by a member: sporty, and the 2015 kind of swag.
+  //
+  // Drawn rather than traced. Every one of these has an obvious real
+  // logo attached to it in that era - a swoosh on the sneaker, a box
+  // logo on the cap - and putting somebody else's trademark on a
+  // sticker other people then paste all over a public page is a
+  // different kind of problem from a badly drawn shoe. So the sneaker
+  // is a high-top with a red stripe, the jersey is a 23, and none of it
+  // belongs to anybody.
+  { id: "basketball", label: "Basketball", group: "Sporty" },
+  { id: "sneaker", label: "Sneaker", group: "Sporty" },
+  { id: "jersey", label: "Jersey", group: "Sporty" },
+  { id: "trophy", label: "Trophy", group: "Sporty" },
+  { id: "whistle", label: "Whistle", group: "Sporty" },
+  { id: "stopwatch", label: "Stopwatch", group: "Sporty" },
+  { id: "dumbbell", label: "Dumbbell", group: "Sporty" },
+
+  { id: "snapback", label: "Snapback", group: "Swag" },
+  { id: "shades", label: "Shades", group: "Swag" },
+  { id: "chain", label: "Chain", group: "Swag" },
+  { id: "hundred", label: "100", group: "Swag" },
+  { id: "fire", label: "Fire", group: "Swag" },
 ];
 
-export const STICKER_GROUPS = ["Cute", "Shiny", "Bits", "Media", "Hearts"] as const;
+export const STICKER_GROUPS = ["Cute", "Shiny", "Sporty", "Swag", "Bits", "Media", "Hearts"] as const;
 
 /**
  * The image path for a pack id, or null.
