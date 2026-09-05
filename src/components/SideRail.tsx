@@ -24,12 +24,17 @@ export function SideRail({
   isAdmin,
   notificationCount = 0,
   unreadDmCount = 0,
+  hiddenSlugs = [],
 }: {
   username: string | null;
   isAdmin?: boolean;
   notificationCount?: number;
   unreadDmCount?: number;
+  /** Archived pages. The rail listed Messages unconditionally, so
+   *  archiving it hid the link everywhere except here. */
+  hiddenSlugs?: string[];
 }) {
+  const hidden = new Set(hiddenSlugs);
   const pathname = usePathname();
 
   const groups: { heading: string; rows: Row[] }[] = [
@@ -64,7 +69,9 @@ export function SideRail({
       rows: [
         { href: `/profile/${username}`, label: "My Profile" },
         { href: "/queue", label: "Up Next" },
-        { href: "/messages", label: "Messages", badge: unreadDmCount },
+        ...(hidden.has("messages")
+          ? []
+          : [{ href: "/messages", label: "Messages", badge: unreadDmCount }]),
         { href: "/alerts", label: "Alerts", badge: notificationCount },
         { href: "/wrapped", label: "Wrapped" },
         { href: "/settings", label: "Settings" },

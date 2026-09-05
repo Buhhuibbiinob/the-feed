@@ -20,7 +20,22 @@ export const BUILTIN_PAGES: { slug: string; label: string; path: string }[] = [
   { slug: "queue", label: "Up Next", path: "/queue" },
   { slug: "wrapped", label: "Wrapped", path: "/wrapped" },
   { slug: "newsletter", label: "Newsletter", path: "/newsletter" },
+  { slug: "messages", label: "Messages", path: "/messages" },
 ];
+
+// Pages that are OFF unless somebody has turned them on, rather than on
+// unless somebody has turned them off.
+//
+// Direct messages are here because they were switched off deliberately:
+// a private inbox on a site with thirteen people is a place for things
+// to happen that nobody else can see, and it is the one part of a small
+// community that cannot be moderated by being read. Nothing is deleted -
+// every message is still in the database, and one toggle in
+// Admin -> Pages brings the whole thing back exactly as it was.
+//
+// The mechanism is general: anything listed here needs a site_pages row
+// saying archived=false before it appears.
+export const DEFAULT_ARCHIVED_SLUGS = new Set(["messages"]);
 
 // The top level is Feed, Discover and Profile - the three things the site
 // is actually for. Chat and Leaderboard used to sit up here too, which

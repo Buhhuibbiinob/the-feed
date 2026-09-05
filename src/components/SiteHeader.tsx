@@ -231,9 +231,11 @@ export function SiteHeader({
             {username ? (
               <>
                 <NotificationBell initialCount={notificationCount} />
-                <IconButtonLink href="/messages" badge={unreadDmCount}>
-                  Messages
-                </IconButtonLink>
+                {!hidden.has("messages") && (
+                  <IconButtonLink href="/messages" badge={unreadDmCount}>
+                    Messages
+                  </IconButtonLink>
+                )}
                 {/* Admin, Settings and Sign Out used to sit out here and
                     drag the bar past its own width. They live behind the
                     account menu now - the bar keeps a fixed set of
@@ -377,7 +379,7 @@ export function SiteHeader({
             {username ? (
               <>
                 <Link href={`/profile/${username}`}>Profile</Link>
-                <Link href="/messages">Messages</Link>
+                {!hidden.has("messages") && <Link href="/messages">Messages</Link>}
                 {isAdmin && <Link href="/admin">Admin</Link>}
                 <Link href="/settings">Settings</Link>
                 <button type="button" onClick={() => signOut()}>
