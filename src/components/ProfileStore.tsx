@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import type { StoreItem } from "@/lib/profileStore";
+import { HERO_SLOTS, type StoreItem } from "@/lib/profileStore";
 
 // The iTunes Music Store front page, built out of one member's reviews.
 //
@@ -103,6 +103,7 @@ function Shelf({
 }
 
 export function ProfileStore({
+  profileTile,
   hero,
   shelves,
   promos,
@@ -111,6 +112,10 @@ export function ProfileStore({
   genres,
   username,
 }: {
+  /** The first banner is whose page this is - their picture, their name,
+   *  their review count. The store is about a person, and three album
+   *  covers with no face among them does not say that. */
+  profileTile?: StoreItem | null;
   hero: StoreItem[];
   shelves: { title: string; items: StoreItem[]; seeAllHref: string }[];
   promos: StoreItem[];
@@ -121,9 +126,20 @@ export function ProfileStore({
 }) {
   return (
     <div className="store">
-      {hero.length > 0 && (
+      {(profileTile || hero.length > 0) && (
         <div className="store-hero">
-          {hero.map((item) => (
+          {profileTile && (
+            <Link href={profileTile.href} className="store-hero-tile store-hero-me">
+              <Art item={profileTile} size="hero" />
+              <span className="store-hero-text">
+                <b>{profileTile.title}</b>
+                <span>{profileTile.subtitle}</span>
+              </span>
+            </Link>
+          )}
+          {/* One fewer record when the profile tile is present, so the
+              row stays three wide rather than wrapping to four. */}
+          {(profileTile ? hero.slice(0, HERO_SLOTS - 1) : hero).map((item) => (
             <Link key={item.id} href={item.href} className="store-hero-tile">
               <Art item={item} size="hero" />
               <span className="store-hero-text">

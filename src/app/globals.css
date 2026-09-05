@@ -13182,3 +13182,65 @@ a.issue-link::after {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.8));
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
+
+/* ---- The sticker hub ----
+   What is left of stickers after the layer went: a grid at one size, in
+   a panel, on the profile only. Everything that made them a decoration
+   - drag, scale, rotate, z-order - is absent by design. */
+.sticker-hub {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 6px;
+}
+.sticker-hub-cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) inset;
+}
+.sticker-hub-cell img {
+  max-width: 84%;
+  max-height: 84%;
+  object-fit: contain;
+  display: block;
+}
+.sticker-hub-remove {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  /* Only on hover or keyboard focus: a grid of little × buttons reads
+     as an error state rather than a collection. */
+  opacity: 0;
+}
+.sticker-hub-cell:hover .sticker-hub-remove,
+.sticker-hub-remove:focus-visible {
+  opacity: 1;
+}
+/* No hover on a touch screen, so there the buttons are simply always
+   there - invisible controls you cannot reveal are worse than visible
+   ones you did not ask for. */
+@media (hover: none) {
+  .sticker-hub-remove {
+    opacity: 1;
+  }
+}
+
+/* The profile's own banner leads the store row. It is a person, not a
+   record, so it gets the one frame that says so. */
+.store-hero-me {
+  box-shadow: 0 0 0 2px rgba(47, 111, 206, 0.55);
+}

@@ -21,6 +21,8 @@ import { loadPageConfig } from "@/lib/pageConfigStore";
 import { moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
 import { ProfileArranger } from "@/components/ProfileArranger";
 import { ProfileStore } from "@/components/ProfileStore";
+import { StickerHub } from "@/components/StickerHub";
+import { fetchStickerHub } from "@/lib/stickerHub";
 import {
   chartRows,
   featuredArtists,
@@ -502,6 +504,7 @@ export default async function ProfilePage({
   // profile without enough artwork to fill the shelves keeps the plain
   // layout instead - a shopfront with one record on it looks broken in a
   // way a list does not.
+  const hubStickers = await fetchStickerHub(supabase, profile.id);
   const storeHero = heroPicks(posts);
   const storeRecent = recentShelf(posts);
   const storeSecond = secondShelf(posts, [...storeHero, ...storeRecent]);
@@ -570,6 +573,7 @@ export default async function ProfilePage({
     twin: isOwnProfile && twin !== null,
     about: !!profile.bio,
     pinned: pinnedPosts.length > 0,
+    stickers: hubStickers.length > 0,
     presence: (viewerCount ?? 0) > 0 || !!custom?.last_seen_at,
     highlights: highlights.length > 0,
     collections: collections.length > 0,
@@ -756,6 +760,13 @@ export default async function ProfilePage({
                 ))}
               </div>
             )}
+          </Panel>
+        );
+
+      case "stickers":
+        return (
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Stickers">
+            <StickerHub stickers={hubStickers} isOwner={isOwnProfile} />
           </Panel>
         );
 
@@ -1242,6 +1253,13 @@ export default async function ProfilePage({
               arranged them. */}
           {showStore && (
             <ProfileStore
+              profileTile={{
+                id: "profile-tile",
+                title: profile.username,
+                subtitle: `${posts.length} review${posts.length === 1 ? "" : "s"}`,
+                coverUrl: profile.banner_url ?? profile.avatar_url,
+                href: `#reviews`,
+              }}
               hero={storeHero}
               shelves={[
                 { title: "New Releases", items: storeRecent, seeAllHref: `/profile/${profile.username}#reviews` },
