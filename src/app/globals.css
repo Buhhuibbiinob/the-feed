@@ -12972,3 +12972,142 @@ a.issue-link::after {
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7);
 }
+
+/* ================================================================
+   Mobile: take the boxes off
+   ================================================================
+   The reference is the Apple Music artist page: rows that run edge to
+   edge, separated by one hairline, on a plain background. No card has an
+   outline; nothing has a drop shadow; a section is announced by a small
+   label above it rather than by a bevelled title bar.
+
+   What was there instead: every review sat in a .post-card with a
+   border, a 7px radius, two inset bevels, two drop shadows and a
+   gradient sheen down the top - six pieces of chrome per row, repeated
+   down a scrolling feed. Each one was defensible on its own and the
+   effect together was a wall of boxes, which is exactly the look this
+   removes.
+
+   Phone only. The desktop layout is a separate job with a separate
+   reference, and none of this touches it.
+
+   The rules are scoped to the default theme rather than written at the
+   base, because the decade themes are supposed to be able to put their
+   own frames back - a 90s theme with no bevels would be missing the
+   point of the 90s. */
+
+@media (max-width: 760px) {
+  /* Rows run to both edges of the phone. The gutter that used to sit
+     either side of the cards is what made them read as objects on a
+     page rather than as a list.
+     
+     The wrapper itself has to go flat too, not just lose its padding: it
+     carries a 14px radius and a background on phones, so stripping the
+     cards alone left one big rounded box with a flat list inside it -
+     the same wall, one layer out. */
+  [data-theme="ios-light"] .wrap {
+    padding-left: 0;
+    padding-right: 0;
+    margin: 0 auto;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  /* Anything that is genuinely a block of prose keeps its gutter -
+     text running into the edge of the screen is not clean, it is
+     unfinished. */
+  [data-theme="ios-light"] .page-header,
+  [data-theme="ios-light"] .empty-state,
+  [data-theme="ios-light"] .tagline {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  /* ---- The review row ---- */
+  [data-theme="ios-light"] .post-card {
+    border: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.11);
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+    background: var(--panel-body-bg);
+  }
+  /* The sheen was the last thing making a row look like a lid. */
+  [data-theme="ios-light"] .post-card::before {
+    display: none;
+  }
+  /* One line per row, at the bottom. The dotted rule under .track-row
+     split every review into two stacked boxes, so each card was drawing
+     two separators where the reference draws one. */
+  [data-theme="ios-light"] .post-card .track-row {
+    border-bottom: 0;
+  }
+  [data-theme="ios-light"] .post-card:last-child {
+    border-bottom: 0;
+  }
+
+  /* ---- Panels become sections ---- */
+  [data-theme="ios-light"] .panel {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    margin-bottom: 22px;
+  }
+  /* "TOP SONGS ›" - a quiet label above the content, not a title bar
+     across the top of a box. */
+  [data-theme="ios-light"] .panel-head {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    padding: 4px 14px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted, #8a8a8e);
+    text-shadow: none;
+  }
+  [data-theme="ios-light"] .panel-body {
+    background: var(--panel-body-bg);
+    border-top: 1px solid rgba(0, 0, 0, 0.11);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.11);
+    /* The 10px radius and the white inset lip are what kept drawing one
+       big rounded card around the list after every card inside it had
+       been flattened - the same wall, one layer out. */
+    border-radius: 0;
+    box-shadow: none;
+  }
+  /* Cover art is a square, not a stack of prints. The thumbnail carried
+     a two-layer paper stack, a 14px drop shadow and a 3px white mount -
+     four pieces of chrome on a 46px image, repeated down the feed. */
+  [data-theme="ios-light"] .track-row .track-thumb {
+    box-shadow: none;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+  /* A panel that is only a list of rows does not need its own top rule
+     as well as the row's. */
+  [data-theme="ios-light"] .panel-body.flush {
+    border-top: 0;
+    border-bottom: 0;
+  }
+
+  /* ---- Everything else that was drawing a box ---- */
+  [data-theme="ios-light"] .shelf,
+  [data-theme="ios-light"] .comment-box,
+  [data-theme="ios-light"] .chat-row,
+  [data-theme="ios-light"] .site-links-link {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* The dark mode of this theme is where the reference actually lives -
+     white type on near-black, hairlines in white at low alpha. Same
+     structure, inverted separators. */
+  [data-theme="ios-light"][data-mode="dark"] .post-card,
+  [data-theme="ios-light"][data-mode="dark"] .panel-body {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
