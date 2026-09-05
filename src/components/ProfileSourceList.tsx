@@ -19,7 +19,7 @@ const ICONS: Record<string, string> = {
   reviews: "♫",
   highlights: "★",
   collections: "▦",
-  guestbook: "✎",
+  stickers: "✦",
   obsessed: "♥",
   repeat: "↻",
   twin: "◑",

@@ -12724,6 +12724,62 @@ a.issue-link::after {
   }
 }
 
+
+/* ---- Admin: the profile wording editor ---- */
+.label-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--divider, rgba(0, 0, 0, 0.1));
+}
+.label-row:last-child {
+  border-bottom: 0;
+}
+.label-row-main {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.label-row-main input {
+  flex: 1;
+  min-width: 0;
+}
+.label-row-main button {
+  flex: none;
+}
+.label-row .field-hint {
+  margin: 4px 0 0;
+}
+
+
+/* ---- Club badges ----
+   The club's own icon rather than a media-type pill. Five rows all
+   reading MUSIC/MUSIC VIDEO told you which category a club was in and
+   nothing about which club it was; the logos are what people recognise. */
+.club-badge {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #f2f4f7, #d9dee6);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.16) inset;
+}
+.club-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* A club with no icon yet gets its initial rather than an empty square,
+   so the column of badges stays a column. */
+.club-badge-letter {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5b6b80;
+}
+
 /* ================================================================
    The profile page as the iTunes Music Store
    ================================================================
@@ -13243,4 +13299,123 @@ a.issue-link::after {
    record, so it gets the one frame that says so. */
 .store-hero-me {
   box-shadow: 0 0 0 2px rgba(47, 111, 206, 0.55);
+}
+
+
+/* ================================================================
+   The phone profile: the Apple Music artist page
+   ================================================================
+   The reference is one photo filling the top of the screen with the
+   name sitting on it, and everything else arriving as you scroll. Three
+   banners side by side is a desktop idea; on a 390px screen it is three
+   postage stamps.
+
+   So on a phone the row becomes the photo. The two record banners are
+   not deleted - they are the first two things under it, which is where
+   the reference puts an artist's top songs anyway. Profile only, and
+   it inherits the store's own scoping. */
+
+@media (max-width: 760px) {
+  .store-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin-bottom: 0;
+  }
+  /* 42vh: the reference gives the photo a little under half the screen,
+     which is enough to be the page without hiding that there is more
+     under it. Capped so it cannot swallow a short landscape window. */
+  .store-hero-me {
+    aspect-ratio: auto;
+    height: 42vh;
+    max-height: 380px;
+    min-height: 240px;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    box-shadow: none;
+  }
+  .store-hero-me .store-hero-text {
+    padding: 40px 16px 14px;
+    /* A taller, softer scrim than the desktop tiles: the name sits over
+       a photograph here rather than over album art, and a hard bar
+       across the bottom of somebody's face looks like a mistake. */
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.35) 45%,
+      rgba(0, 0, 0, 0.82) 100%
+    );
+  }
+  .store-hero-me .store-hero-text b {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .store-hero-me .store-hero-text span {
+    font-size: 13px;
+    opacity: 0.9;
+  }
+  /* The record banners drop below the photo, side by side. */
+  .store-hero-tile:not(.store-hero-me) {
+    display: none;
+  }
+
+  .store-hero-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+  }
+  /* The FOLLOW pill: an outline, not a filled button. It is sitting on
+     a photograph, and a solid button there fights the image. */
+  .store-hero-actions form button,
+  .store-hero-actions button {
+    padding: 5px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    background: rgba(0, 0, 0, 0.25);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  /* Section headings become the reference's small caps rule. */
+  .store-shelf {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+    margin-bottom: 0;
+  }
+  .store-shelf-head {
+    background: none;
+    border-bottom: 0;
+    padding: 14px 14px 6px;
+  }
+  .store-shelf-title {
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-shadow: none;
+  }
+  /* The arrows and dots are a mouse idea. On a phone the shelf is a
+     thing you push with a thumb, which it already is. */
+  .store-arrow,
+  .store-shelf-dots {
+    display: none;
+  }
+  .store-shelf-body {
+    padding: 0 0 6px 14px;
+  }
+  .store-body {
+    gap: 0;
+  }
+  .store-promos {
+    padding: 0 14px 12px;
+  }
 }
