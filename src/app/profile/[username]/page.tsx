@@ -23,6 +23,16 @@ import { fontStack } from "@/lib/profileSkin";
 import { loadPageConfig } from "@/lib/pageConfigStore";
 import { moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
 import { ProfileArranger } from "@/components/ProfileArranger";
+import { ProfileStore } from "@/components/ProfileStore";
+import {
+  chartRows,
+  featuredArtists,
+  genresPresent,
+  hasStorefront,
+  heroPicks,
+  recentShelf,
+  secondShelf,
+} from "@/lib/profileStore";
 import { pageStyle } from "@/lib/pageTheme";
 import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
 import { MoodRingEditor } from "@/components/MoodRing";
@@ -542,6 +552,19 @@ export default async function ProfilePage({
     skew: row.skew ?? 0,
     z: row.z,
   }));
+
+  // ---- The store front ----
+  // Derived from the reviews already loaded above; no extra queries. A
+  // profile without enough artwork to fill the shelves keeps the plain
+  // layout instead - a shopfront with one record on it looks broken in a
+  // way a list does not.
+  const storeHero = heroPicks(posts);
+  const storeRecent = recentShelf(posts);
+  const storeSecond = secondShelf(posts, [...storeHero, ...storeRecent]);
+  const storeChart = chartRows(posts);
+  const storeArtists = featuredArtists(posts);
+  const storeGenres = genresPresent(posts);
+  const showStore = hasStorefront(posts);
 
   const pinnedPosts = (pinnedRows ?? [])
     .map((row) => posts.find((p) => p.id === row.post_id))
@@ -1373,6 +1396,25 @@ export default async function ProfilePage({
         }
         mainHeader={
           <>
+          {/* The store front sits above the arranged panels: it is a
+              fixed presentation of this person's reviews, not another
+              module to drag around, and it is the first thing the page
+              should say. The panels below stay exactly as the member
+              arranged them. */}
+          {showStore && (
+            <ProfileStore
+              hero={storeHero}
+              shelves={[
+                { title: "New Releases", items: storeRecent, seeAllHref: `/profile/${profile.username}#reviews` },
+                { title: "Just Added", items: storeSecond, seeAllHref: `/profile/${profile.username}#reviews` },
+              ]}
+              promos={storeSecond.slice(0, 3)}
+              chart={storeChart}
+              artists={storeArtists}
+              genres={storeGenres}
+              username={profile.username}
+            />
+          )}
           {/* The banner heads the main column - the wide space it was
               made for, rather than squeezed into the narrow one. */}
           {profile.banner_url && (

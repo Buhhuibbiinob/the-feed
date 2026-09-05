@@ -13,6 +13,7 @@
     "check:emoji": "npx tsx scripts/emoji-keyboard-check.ts",
     "check:pages": "npx tsx scripts/archived-pages-check.ts",
     "check:profilescope": "npx tsx scripts/profile-scope-check.ts",
+    "check:store": "npx tsx scripts/store-check.ts",
     "check:afterpost": "npx tsx scripts/after-post-check.ts",
     "check:winback": "npx tsx scripts/winback-check.ts",
     "check:genres": "npx tsx scripts/genre-check.ts",
