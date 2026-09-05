@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { isValidTheme } from "@/lib/themes";
+import { isValidTheme, migrateTheme } from "@/lib/themes";
 
 export const SITE_THEME_KEY = "site_theme";
 export const SITE_THEME_FORCED_KEY = "site_theme_forced";
@@ -44,6 +44,11 @@ export function resolveTheme(
   fallback: string
 ): string {
   if (site.forced && site.theme) return site.theme;
-  if (isValidTheme(personal)) return personal;
+  // migrateTheme, not isValidTheme: somebody still stored on one of the
+  // eighteen retired themes gets the decade it belonged to rather than
+  // being dropped on the default, whether or not migration 010 has
+  // reached their row yet.
+  const own = migrateTheme(personal);
+  if (own) return own;
   return site.theme ?? fallback;
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_THEME, isValidTheme } from "@/lib/themes";
+import { DEFAULT_THEME, migrateTheme } from "@/lib/themes";
+import { getThemeNames } from "@/lib/themeNames";
 import { ThemeForm } from "@/components/ThemeForm";
 import { SoundToggle } from "@/components/SoundToggle";
 import { BackgroundPicker } from "@/components/BackgroundPicker";
@@ -37,7 +38,8 @@ export default async function SettingsPage() {
     .eq("id", user.id)
     .single();
 
-  const currentTheme = isValidTheme(profile?.theme) ? profile.theme : DEFAULT_THEME;
+  const currentTheme = migrateTheme(profile?.theme) ?? DEFAULT_THEME;
+  const themeNames = await getThemeNames(supabase);
   const currentFit = isBackgroundFit(profile?.background_fit)
     ? profile.background_fit
     : DEFAULT_BACKGROUND_FIT;
@@ -62,7 +64,7 @@ export default async function SettingsPage() {
       <div className="panel">
         <div className="panel-head">Settings</div>
         <div className="panel-body">
-          <ThemeForm currentTheme={currentTheme} />
+          <ThemeForm currentTheme={currentTheme} themeNames={themeNames} />
           <BackgroundPicker
             currentUrl={profile?.custom_background_url ?? null}
             currentFit={currentFit}
