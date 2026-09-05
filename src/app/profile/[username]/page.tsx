@@ -28,7 +28,7 @@ import { ProfileSongPicker } from "@/components/ProfileSongPicker";
 import { StickerHub } from "@/components/StickerHub";
 import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
 import { fetchStickerHub } from "@/lib/stickerHub";
-import { getProfileLabels } from "@/lib/profileLabels";
+import { getProfileLabels, personalise } from "@/lib/profileLabels";
 import {
   chartRows,
   featuredArtists,
@@ -532,7 +532,7 @@ export default async function ProfilePage({
   // way a list does not.
   const hubStickers = await fetchStickerHub(supabase, profile.id);
   const mediaSlots = await fetchMediaSlots(supabase, profile.id);
-  const L = await getProfileLabels(supabase);
+  const L = personalise(await getProfileLabels(supabase), profile.username);
   const storeHero = heroPicks(posts);
   const storeRecent = recentShelf(posts);
   // The member's own picks, flattened out of the by-kind grouping the

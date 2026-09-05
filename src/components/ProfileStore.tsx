@@ -272,16 +272,16 @@ export function ProfileStore({
                 <a href="#favorites">{labels.store_added}</a>
               </li>
               <li>
-                <Link href="/search">Power Search</Link>
+                <Link href="/search">{labels.store_browse_search}</Link>
               </li>
               <li>
-                <Link href="/recs">Browse Music</Link>
+                <Link href="/recs">{labels.store_browse_discover}</Link>
               </li>
               <li>
-                <a href="#clubs">Clubs</a>
+                <a href="#clubs">{labels.store_browse_clubs}</a>
               </li>
               <li>
-                <a href="#guestbook">Requests &amp; Feedback</a>
+                <a href="#guestbook">{labels.store_browse_note}</a>
               </li>
             </ul>
           </div>
@@ -308,7 +308,7 @@ export function ProfileStore({
                 ))}
               </ul>
               <Link href="/profiles" className="store-side-foot">
-                See All
+                {labels.store_browse_all}
               </Link>
             </div>
           )}

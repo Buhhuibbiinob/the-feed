@@ -36,6 +36,11 @@ export type ProfileLabelKey =
   | "store_genre"
   | "store_see_all"
   | "store_all_reviews"
+  | "store_browse_search"
+  | "store_browse_discover"
+  | "store_browse_clubs"
+  | "store_browse_note"
+  | "store_browse_all"
   | "follow";
 
 /** The shipped wording, and the order the admin screen lists them in. */
@@ -55,13 +60,29 @@ export const PROFILE_LABELS: { key: ProfileLabelKey; label: string; hint: string
   { key: "pinned", label: "Pinned", hint: "Reviews they've pinned to the top." },
   { key: "stickers", label: "Stickers", hint: "The sticker hub." },
   { key: "guestbook", label: "Guestbook", hint: "Where visitors leave a note." },
-  { key: "store_new", label: "New Releases", hint: "First shelf: their most recent reviews." },
-  { key: "store_added", label: "Selected Favorites", hint: "Second shelf: the things the member picked themselves." },
-  { key: "store_chart", label: "Top Rated", hint: "The numbered chart down the right." },
-  { key: "store_artists", label: "Featured Artists", hint: "Who they review most." },
-  { key: "store_genre", label: "Choose Genre", hint: "The genre menu." },
-  { key: "store_see_all", label: "See All", hint: "The link at the end of every shelf." },
-  { key: "store_all_reviews", label: "All Reviews", hint: "The link under the chart." },
+  // ---- The store front ----
+  // These were the 2003 Music Store's own words - New Releases, Just
+  // Added, Featured Artists, Power Search - and on a shop selling
+  // records to strangers they are exactly right. On one person's page
+  // they are nonsense: nothing here is "released", nobody is "featured",
+  // and the artists are not the shop's picks, they are whoever this
+  // person keeps writing about. The layout is borrowed; the words should
+  // not be.
+  //
+  // {name} is replaced with whose page it is, so a heading can address
+  // the person rather than describing a category.
+  { key: "store_new", label: "Lately", hint: "First shelf: their most recent reviews." },
+  { key: "store_added", label: "{name}'s Favorites", hint: "Second shelf: the things they picked themselves." },
+  { key: "store_chart", label: "Best Rated", hint: "The numbered chart down the right." },
+  { key: "store_artists", label: "On Repeat", hint: "The artists they review most - worked out, not chosen." },
+  { key: "store_genre", label: "Any genre", hint: "The genre filter." },
+  { key: "store_see_all", label: "See all", hint: "The link at the end of every shelf." },
+  { key: "store_all_reviews", label: "Every review", hint: "The link under the chart." },
+  { key: "store_browse_search", label: "Search", hint: "Sidebar link to site search." },
+  { key: "store_browse_discover", label: "Discover", hint: "Sidebar link to recommendations." },
+  { key: "store_browse_clubs", label: "Their clubs", hint: "Sidebar link to the clubs section." },
+  { key: "store_browse_note", label: "Leave a note", hint: "Sidebar link to the guestbook." },
+  { key: "store_browse_all", label: "Everyone", hint: "The link under Featured Artists." },
   { key: "follow", label: "Follow", hint: "The button on somebody else's profile." },
 ];
 
@@ -75,6 +96,23 @@ export function profileLabelKey(key: ProfileLabelKey): string {
 
 export function cleanProfileLabel(raw: unknown): string {
   return String(raw ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_PROFILE_LABEL);
+}
+
+/**
+ * Puts whose page it is into a label.
+ *
+ * A profile heading can say "Kim's Favorites" where a shop can only say
+ * "Selected Favorites", and that difference is most of what makes a
+ * borrowed layout feel like somebody's own page. Labels without {name}
+ * are returned untouched, so this costs nothing for the ones that read
+ * fine on their own.
+ */
+export function personalise(labels: ProfileLabels, username: string): ProfileLabels {
+  const out = {} as ProfileLabels;
+  for (const key of Object.keys(labels) as ProfileLabelKey[]) {
+    out[key] = labels[key].replace(/\{name\}/g, username);
+  }
+  return out;
 }
 
 export function defaultProfileLabels(): ProfileLabels {

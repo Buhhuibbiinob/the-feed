@@ -60,7 +60,10 @@ export function ProfileLabelsForm({ labels }: { labels: ProfileLabels }) {
       <div className="panel-body">
         <div className="tagline" style={{ marginBottom: 12 }}>
           Every heading and label on a profile. Rename anything you don&apos;t
-          like; leave a box empty to put the original word back.
+          like; leave a box empty to put the original word back. Write{" "}
+          <b>{"{name}"}</b> anywhere and it becomes whoever&apos;s page it is
+          &mdash; so &ldquo;{"{name}"}&apos;s Favorites&rdquo; reads as
+          &ldquo;kim&apos;s Favorites&rdquo; on kim&apos;s profile.
         </div>
         {PROFILE_LABELS.map((l) => (
           <LabelRow
