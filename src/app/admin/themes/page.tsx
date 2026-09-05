@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { THEMES, DEFAULT_THEME, isValidTheme } from "@/lib/themes";
+import { getThemeNames } from "@/lib/themeNames";
+import { ThemeNameForm } from "@/components/ThemeNameForm";
 import { getAllThemeTokens } from "@/lib/themeTokens";
 import { ThemeTokenForm } from "@/components/ThemeTokenForm";
 import { getSiteTheme } from "@/lib/siteSettings";
@@ -32,6 +34,7 @@ export default async function AdminThemesPage({
   ]);
   const overrides = Object.fromEntries(allTokens.get(selected) ?? []);
   const selectedTheme = THEMES.find((t) => t.id === selected)!;
+  const themeNames = await getThemeNames(supabase);
 
   return (
     <>
@@ -49,7 +52,7 @@ export default async function AdminThemesPage({
           <p className="field-hint" style={{ marginTop: 0 }}>
             {siteTheme.theme
               ? siteTheme.forced
-                ? `Everyone sees ${THEMES.find((t) => t.id === siteTheme.theme)?.label ?? siteTheme.theme}. Their own theme setting is ignored while this is on.`
+                ? `Everyone sees ${themeNames[siteTheme.theme] ?? siteTheme.theme}. Their own theme setting is ignored while this is on.`
                 : `New accounts and anyone who hasn't picked start on ${THEMES.find((t) => t.id === siteTheme.theme)?.label ?? siteTheme.theme}. People who've chosen keep their own.`
               : "No site theme set - everyone gets their own choice, defaulting to Default."}
           </p>
@@ -60,7 +63,7 @@ export default async function AdminThemesPage({
                 <option value="">No site theme (everyone chooses)</option>
                 {THEMES.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.label}
+                    {themeNames[t.id] ?? t.label}
                   </option>
                 ))}
               </select>
@@ -90,7 +93,7 @@ export default async function AdminThemesPage({
                 style={t.id === selected ? { fontWeight: 700 } : undefined}
               >
                 <span>
-                  {t.label}
+                  {themeNames[t.id] ?? t.label}
                   {count > 0 && (
                     <span className="dm-inbox-time">
                       {" "}
@@ -105,19 +108,17 @@ export default async function AdminThemesPage({
         </div>
       </div>
 
-      <div className="panel">
-        <div className="panel-head">Editing: {selectedTheme.label}</div>
-        <div className="panel-body">
-          <p className="field-hint" style={{ marginTop: 0 }}>
-            {selectedTheme.description}
-          </p>
-        </div>
-      </div>
+      <ThemeNameForm
+        key={`name-${selected}`}
+        theme={selected}
+        name={themeNames[selected] ?? selectedTheme.label}
+        shippedName={selectedTheme.label}
+      />
 
       <ThemeTokenForm
         key={selected}
         theme={selected}
-        themeLabel={selectedTheme.label}
+        themeLabel={themeNames[selected] ?? selectedTheme.label}
         overrides={overrides}
         hasBackground={Boolean(overrides["--body-image"])}
       />

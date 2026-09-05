@@ -5348,655 +5348,7 @@ footer .copy {
   font-size: 10px;
   color: var(--muted);
   padding: 2px 8px 8px;
-}
-
-/* ================================================================
-   Theme definitions — each block only redefines the tokens declared
-   in :root above. To add a new theme: add an entry to THEMES in
-   src/lib/themes.ts, then add a matching block here. Every theme below
-   ios-light is colors-only - no border-radius/shadow/spacing changes,
-   so switching themes never reshapes the site (see the "ios-light gets
-   its own real structural look" rule further down).
-   ================================================================ */
-
-/* ---- MySpace: cobalt blue and black over white panels ---- */
-[data-theme="myspace"] {
-  --font-family: Arial, Helvetica, sans-serif;
-
-  --body-bg: radial-gradient(circle at 20% 15%, rgba(0, 102, 255, 0.25), transparent 45%),
-    radial-gradient(circle at 80% 80%, rgba(0, 51, 153, 0.3), transparent 50%),
-    linear-gradient(160deg, #000000 0%, #001233 45%, #000000 100%);
-  --body-glyph-color: rgba(0, 153, 255, 0.1);
-
-  --nav-bg: linear-gradient(180deg, #000000, #001a4d 70%);
-  --nav-border: #0055cc;
-  --nav-text: #ffffff;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #000000, #001233);
-  --subnav-border: #003d99;
-  --subnav-text: #6fb3ff;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #0052cc 75%);
-  --wordmark-color: #0066ff;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #d6e8ff 46%, #7fb3ff 50%, #2d76e0 100%);
-  --acct-btn-border: #003d99;
-  --acct-btn-text: #002a66;
-  --acct-btn-primary-bg: linear-gradient(180deg, #2d76e0 0%, #0047b3 46%, #003380 50%, #001a4d 100%);
-  --acct-btn-primary-border: #000d26;
-
-  --panel-border: #0055cc;
-  --panel-head-bg: linear-gradient(180deg, #001a4d, #000000);
-  --panel-head-border: #0055cc;
-  --panel-body-bg: #ffffff;
-  --shelf-bg: #ffffff;
-
-  --btn-bg: linear-gradient(180deg, #2d76e0 0%, #0047b3 46%, #003380 50%, #001a4d 100%);
-  --btn-border: #000d26;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #ffffff;
-  --hero-tagline-color: #7fb3ff;
-  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-
-  --like-color: #ff2d78;
-}
-
-/* ---- Twitter: sky blue on white, clean and flat ---- */
-[data-theme="twitter"] {
-  --font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-
-  --body-bg: radial-gradient(circle at 30% 10%, rgba(29, 155, 240, 0.12), transparent 45%),
-    radial-gradient(circle at 80% 85%, rgba(29, 155, 240, 0.08), transparent 50%),
-    linear-gradient(160deg, #ffffff 0%, #f5f8fa 100%);
-  --body-glyph-color: rgba(29, 155, 240, 0.06);
-
-  --nav-bg: linear-gradient(180deg, #ffffff, #f5f8fa);
-  --nav-border: #cfd9de;
-  --nav-text: #0f1419;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #ffffff, #eff3f4);
-  --subnav-border: #cfd9de;
-  --subnav-text: #536471;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #1d9bf0 75%);
-  --wordmark-color: #1d9bf0;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #eff3f4 100%);
-  --acct-btn-border: #cfd9de;
-  --acct-btn-text: #0f1419;
-  --acct-btn-primary-bg: linear-gradient(180deg, #4ab3f4 0%, #1d9bf0 46%, #0c7ec9 50%, #095a92 100%);
-  --acct-btn-primary-border: #073e64;
-
-  --panel-border: #cfd9de;
-  --panel-head-bg: linear-gradient(180deg, #ffffff, #eff3f4);
-  --panel-head-border: #cfd9de;
-  --panel-body-bg: #ffffff;
-  --shelf-bg: #ffffff;
-
-  --btn-bg: linear-gradient(180deg, #4ab3f4 0%, #1d9bf0 46%, #0c7ec9 50%, #095a92 100%);
-  --btn-border: #073e64;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #0f1419;
-  --hero-tagline-color: #536471;
-  --hero-text-shadow: none;
-
-  --like-color: #e0245e;
-}
-
-/* ---- YouTube: brand red on white/black chrome ---- */
-[data-theme="youtube"] {
-  --font-family: Roboto, Arial, Helvetica, sans-serif;
-
-  --body-bg: radial-gradient(circle at 25% 10%, rgba(255, 0, 0, 0.1), transparent 45%),
-    linear-gradient(160deg, #ffffff 0%, #f1f1f1 100%);
-  --body-glyph-color: rgba(255, 0, 0, 0.06);
-
-  --nav-bg: linear-gradient(180deg, #ffffff, #f1f1f1);
-  --nav-border: #d3d3d3;
-  --nav-text: #0f0f0f;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #ffffff, #e8e8e8);
-  --subnav-border: #d3d3d3;
-  --subnav-text: #606060;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff0000 75%);
-  --wordmark-color: #ff0000;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f1f1f1 100%);
-  --acct-btn-border: #d3d3d3;
-  --acct-btn-text: #0f0f0f;
-  --acct-btn-primary-bg: linear-gradient(180deg, #ff4c4c 0%, #ff0000 46%, #cc0000 50%, #900000 100%);
-  --acct-btn-primary-border: #5c0000;
-
-  --panel-border: #d3d3d3;
-  --panel-head-bg: linear-gradient(180deg, #ffffff, #f1f1f1);
-  --panel-head-border: #d3d3d3;
-  --panel-body-bg: #ffffff;
-  --shelf-bg: #ffffff;
-
-  --btn-bg: linear-gradient(180deg, #ff4c4c 0%, #ff0000 46%, #cc0000 50%, #900000 100%);
-  --btn-border: #5c0000;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #0f0f0f;
-  --hero-tagline-color: #606060;
-  --hero-text-shadow: none;
-
-  --like-color: #ff0000;
-}
-
-/* ---- Y2K McBling: hot pink chrome, Paris Hilton rhinestone bling ---- */
-[data-theme="mcbling"] {
-  --font-family: "Comic Sans MS", "Comic Sans", cursive;
-
-  --body-bg: radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.55) 0%, transparent 3%),
-    radial-gradient(circle at 32% 55%, rgba(255, 255, 255, 0.5) 0%, transparent 2.4%),
-    radial-gradient(circle at 60% 30%, rgba(255, 255, 255, 0.5) 0%, transparent 2.8%),
-    radial-gradient(circle at 78% 65%, rgba(255, 255, 255, 0.5) 0%, transparent 2.2%),
-    radial-gradient(circle at 45% 85%, rgba(255, 255, 255, 0.5) 0%, transparent 2.6%),
-    radial-gradient(circle at 90% 15%, rgba(255, 255, 255, 0.5) 0%, transparent 2.4%),
-    radial-gradient(ellipse at 20% 90%, rgba(255, 255, 255, 0.25), transparent 55%),
-    radial-gradient(ellipse at 90% 5%, rgba(255, 214, 240, 0.4), transparent 50%),
-    linear-gradient(150deg, #4a0026 0%, #99005c 30%, #e6007a 60%, #ff5fa8 85%, #ffd3ea 100%);
-  --body-glyph-color: rgba(255, 255, 255, 0.08);
-
-  --nav-bg: linear-gradient(180deg, #ff8fc7, #d6006f 70%);
-  --nav-border: #8a0048;
-  --nav-text: #fff0f7;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #e6007a, #99005c);
-  --subnav-border: #700041;
-  --subnav-text: #ffd6ec;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff2e93 75%);
-  --wordmark-color: #fff0f7;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #ffd3ea 46%, #ff8fc7 50%, #e6007a 100%);
-  --acct-btn-border: #8a0048;
-  --acct-btn-text: #7a003f;
-  --acct-btn-primary-bg: linear-gradient(180deg, #ff2e93 0%, #d6006f 46%, #99005c 50%, #4a0026 100%);
-  --acct-btn-primary-border: #33001a;
-
-  --panel-border: #ff9fd0;
-  --panel-head-bg: linear-gradient(180deg, #ffe6f3, #ffb8dd);
-  --panel-head-border: #ff8fc7;
-  --panel-body-bg: #fff5fa;
-  --shelf-bg: #fff5fa;
-
-  --btn-bg: linear-gradient(180deg, #ff2e93 0%, #d6006f 46%, #99005c 50%, #4a0026 100%);
-  --btn-border: #33001a;
-  --btn-text: #fff0f7;
-
-  --hero-title-color: #fff0f7;
-  --hero-tagline-color: #ffc2e3;
-  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-
-  --like-color: #ffea00;
-}
-
-/* ---- Scene: hot pink/electric blue on black-and-white high contrast ---- */
-[data-theme="scene"] {
-  --font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
-
-  --body-bg: radial-gradient(circle at 20% 15%, rgba(255, 0, 153, 0.35), transparent 42%),
-    radial-gradient(circle at 80% 25%, rgba(0, 204, 255, 0.3), transparent 45%),
-    linear-gradient(160deg, #000000 0%, #1a0014 45%, #000000 100%);
-  --body-glyph-color: rgba(255, 0, 153, 0.1);
-
-  --nav-bg: linear-gradient(180deg, #000000, #1a0014 70%);
-  --nav-border: #ff0099;
-  --nav-text: #ffffff;
-  --nav-active-text: #000000;
-
-  --subnav-bg: linear-gradient(180deg, #000000, #0d000a);
-  --subnav-border: #00ccff;
-  --subnav-text: #00ccff;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff0099 75%);
-  --wordmark-color: #ff0099;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #ffffff 50%, #000000 50%, #000000 100%);
-  --acct-btn-border: #000000;
-  --acct-btn-text: #000000;
-  --acct-btn-primary-bg: linear-gradient(135deg, #ff0099 0%, #cc0077 50%, #00ccff 100%);
-  --acct-btn-primary-border: #000000;
-
-  --panel-border: #ff0099;
-  --panel-head-bg: linear-gradient(180deg, #1a0014, #000000);
-  --panel-head-border: #ff0099;
-  --panel-body-bg: #ffffff;
-  --shelf-bg: #ffffff;
-
-  --btn-bg: linear-gradient(135deg, #ff0099 0%, #cc0077 50%, #00ccff 100%);
-  --btn-border: #000000;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #ffffff;
-  --hero-tagline-color: #ff0099;
-  --hero-text-shadow: 0 0 8px rgba(255, 0, 153, 0.6);
-
-  --like-color: #00ccff;
-}
-
-/* ---- Emo: black and deep crimson, band-tee minimal ---- */
-[data-theme="emo"] {
-  --font-family: Georgia, "Times New Roman", serif;
-
-  --body-bg: radial-gradient(circle at 30% 10%, rgba(140, 0, 20, 0.35), transparent 45%),
-    radial-gradient(ellipse at 80% 90%, rgba(60, 0, 40, 0.4), transparent 55%),
-    linear-gradient(160deg, #050505 0%, #150507 45%, #000000 100%);
-  --body-glyph-color: rgba(180, 0, 30, 0.08);
-
-  --nav-bg: linear-gradient(180deg, #0d0d0d, #000000 70%);
-  --nav-border: #6e0014;
-  --nav-text: #e8e8e8;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #0d0d0d, #000000);
-  --subnav-border: #4a000d;
-  --subnav-text: #b0b0b0;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #8c0014 75%);
-  --wordmark-color: #b3001e;
-
-  --acct-btn-bg: linear-gradient(180deg, #2a2a2a 0%, #141414 100%);
-  --acct-btn-border: #6e0014;
-  --acct-btn-text: #e8e8e8;
-  --acct-btn-primary-bg: linear-gradient(180deg, #b3001e 0%, #7a0014 46%, #4a000d 50%, #1a0004 100%);
-  --acct-btn-primary-border: #000000;
-
-  --panel-border: #6e0014;
-  --panel-head-bg: linear-gradient(180deg, #1a1a1a, #000000);
-  --panel-head-border: #6e0014;
-  --panel-body-bg: #141414;
-  --shelf-bg: #141414;
-
-  --btn-bg: linear-gradient(180deg, #b3001e 0%, #7a0014 46%, #4a000d 50%, #1a0004 100%);
-  --btn-border: #000000;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #ffffff;
-  --hero-tagline-color: #b0b0b0;
-  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-
-  --like-color: #b3001e;
-
-  --text: #e0e0e0;
-  --muted: #9a9a9a;
-}
-
-/* ---- Frutiger Metro: glossy Frutiger Aero blended with flat Metro tiles ---- */
-[data-theme="frutiger-metro"] {
-  --font-family: "Segoe UI", Frutiger, Tahoma, sans-serif;
-
-  --body-bg: radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.4), transparent 35%),
-    radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.22), transparent 30%),
-    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.16), transparent 32%),
-    radial-gradient(circle at 85% 80%, rgba(255, 255, 255, 0.14), transparent 28%),
-    linear-gradient(135deg, #0f9d58 0%, #2d89ef 45%, #00b0d7 75%, #00e0c6 100%);
-  --body-glyph-color: rgba(255, 255, 255, 0.08);
-
-  --nav-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(45, 137, 239, 0.25) 70%),
-    linear-gradient(180deg, #2d89ef, #1c5fa8);
-  --nav-border: #17497e;
-  --nav-text: #eaf6ff;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #1f8fd6, #146196);
-  --subnav-border: #124e79;
-  --subnav-text: #d7f0ff;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #0f9d58 75%);
-  --wordmark-color: #ffffff;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #cdeeff 46%, #6fc6f2 50%, #2d89ef 100%);
-  --acct-btn-border: #17497e;
-  --acct-btn-text: #0b3d66;
-  --acct-btn-primary-bg: linear-gradient(180deg, #0fc98a 0%, #0f9d58 46%, #0b7a43 50%, #04502a 100%);
-  --acct-btn-primary-border: #033018;
-
-  --panel-border: #9adcf5;
-  --panel-head-bg: linear-gradient(180deg, #eaf9ff, #b7e6f7);
-  --panel-head-border: #7fc9e6;
-  --panel-body-bg: #f3fcff;
-  --shelf-bg: #f3fcff;
-
-  --btn-bg: linear-gradient(180deg, #2d89ef 0%, #1c5fa8 46%, #124e79 50%, #0a2f4a 100%);
-  --btn-border: #041c2c;
-  --btn-text: #fff;
-
-  --hero-title-color: #ffffff;
-  --hero-tagline-color: #d7f6ee;
-  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-
-  --like-color: #ff5f6d;
-}
-
-/* ---- Frutiger Aero: glossy blue/green glass, bright specular highlights ---- */
-[data-theme="frutiger-aero"] {
-  --font-family: "Trebuchet MS", Verdana, sans-serif;
-
-  --body-bg: radial-gradient(circle at 25% 10%, rgba(255, 255, 255, 0.75), transparent 35%),
-    radial-gradient(ellipse at 85% 15%, rgba(255, 255, 255, 0.35), transparent 40%),
-    radial-gradient(ellipse at 20% 90%, rgba(190, 255, 150, 0.45), transparent 55%),
-    radial-gradient(ellipse at 90% 85%, rgba(120, 235, 210, 0.4), transparent 55%),
-    linear-gradient(160deg, #d6f5ff 0%, #7fd8f7 30%, #35b6dd 55%, #22a08c 80%, #7fe0a0 100%);
-  --body-glyph-color: rgba(255, 255, 255, 0.18);
-
-  --nav-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(214, 245, 255, 0.7) 45%, rgba(120, 210, 230, 0.65));
-  --nav-border: #6fb8cf;
-  --nav-text: #114a5c;
-  --nav-active-text: #fff;
-
-  --subnav-bg: linear-gradient(180deg, rgba(240, 253, 255, 0.95), rgba(178, 232, 245, 0.85));
-  --subnav-border: #8fcfe0;
-  --subnav-text: #146680;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #4fc3f7 75%);
-  --wordmark-color: #0d5872;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #d5f5ff 46%, #9fe0f0 50%, #5fc0da 100%);
-  --acct-btn-border: #4fa8c2;
-  --acct-btn-text: #0d5872;
-  --acct-btn-primary-bg: linear-gradient(180deg, #baf0c8 0%, #6fd48f 46%, #35b56a 50%, #1f8a4f 100%);
-  --acct-btn-primary-border: #1a7a44;
-
-  --panel-border: #a9dfe8;
-  --panel-head-bg: linear-gradient(180deg, #eafcff, #bfeef7);
-  --panel-head-border: #9fd9e6;
-  --panel-body-bg: #fdffff;
-  --shelf-bg: #fdffff;
-
-  --btn-bg: linear-gradient(180deg, #baf0ff 0%, #6fcdea 46%, #3fa9dd 50%, #1c7fb0 100%);
-  --btn-border: #12648f;
-  --btn-text: #fff;
-
-  --hero-title-color: #0a3a4a;
-  --hero-tagline-color: #1a5468;
-  --hero-text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-
-  --like-color: #ff6f91;
-}
-
-/* ---- Party Rock: neon pink/green/yellow glow on black, 2010s club-flyer energy ---- */
-[data-theme="party-rock-2010"] {
-  --font-family: "Arial Black", Arial, sans-serif;
-
-  --body-bg: radial-gradient(circle at 15% 15%, rgba(255, 0, 200, 0.35), transparent 42%),
-    radial-gradient(circle at 85% 20%, rgba(0, 255, 170, 0.3), transparent 45%),
-    radial-gradient(circle at 50% 90%, rgba(255, 230, 0, 0.25), transparent 50%),
-    linear-gradient(160deg, #000000 0%, #0d001a 40%, #1a0022 70%, #000000 100%);
-  --body-glyph-color: rgba(255, 0, 200, 0.12);
-
-  --nav-bg: linear-gradient(180deg, #1a0022, #000000 70%);
-  --nav-border: #ff00c8;
-  --nav-text: #fff;
-  --nav-active-text: #000;
-
-  --subnav-bg: linear-gradient(180deg, #1a0022, #000000);
-  --subnav-border: #00ffaa;
-  --subnav-text: #00ffaa;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff00c8 75%);
-  --wordmark-color: #ff00c8;
-
-  --acct-btn-bg: linear-gradient(180deg, #00ffaa 0%, #00cc88 100%);
-  --acct-btn-border: #008f5f;
-  --acct-btn-text: #000;
-  --acct-btn-primary-bg: linear-gradient(180deg, #ff44dd 0%, #ff00c8 46%, #cc0099 50%, #8f006b 100%);
-  --acct-btn-primary-border: #5c0044;
-
-  --panel-border: #ff00c8;
-  --panel-head-bg: linear-gradient(180deg, #ffe600 0%, #ffb300 100%);
-  --panel-head-border: #cc8f00;
-  --panel-body-bg: #0d001a;
-  --shelf-bg: #0d001a;
-
-  --btn-bg: linear-gradient(180deg, #ff44dd 0%, #ff00c8 46%, #cc0099 50%, #8f006b 100%);
-  --btn-border: #5c0044;
-  --btn-text: #fff;
-
-  --hero-title-color: #ff00c8;
-  --hero-tagline-color: #00ffaa;
-  --hero-text-shadow: 0 0 8px rgba(255, 0, 200, 0.8), 0 0 16px rgba(255, 0, 200, 0.4);
-
-  --like-color: #00ffaa;
-
-  --text: #f0e0ff;
-  --muted: #cc99e0;
-  --link: #00ffaa;
-}
-[data-theme="party-rock-2010"] .panel-head-tab,
-[data-theme="party-rock-2010"] .tab-main {
-  color: #1a0022;
-}
-
-/* ---- Champagne Bling: Kimora Lee Simmons champagne-gold meets Hello Kitty light pink/light teal ---- */
-[data-theme="champagne-bling"] {
-  --font-family: "Brush Script MT", "Lucida Handwriting", cursive;
-
-  --body-bg: radial-gradient(circle at 20% 15%, rgba(255, 214, 240, 0.4), transparent 45%),
-    radial-gradient(circle at 80% 20%, rgba(180, 240, 230, 0.35), transparent 45%),
-    radial-gradient(ellipse at 50% 90%, rgba(212, 175, 122, 0.3), transparent 55%),
-    linear-gradient(160deg, #fdf3e3 0%, #f5e1c8 45%, #e8cd9e 100%);
-  --body-glyph-color: rgba(212, 175, 122, 0.12);
-
-  --nav-bg: linear-gradient(180deg, #f5e1c8, #d4af7a 70%);
-  --nav-border: #b8934f;
-  --nav-text: #4a3418;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #fdf3e3, #f0dcb8);
-  --subnav-border: #d4af7a;
-  --subnav-text: #7a5a2e;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff9ec8 75%);
-  --wordmark-color: #a67c3d;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #ffe0f0 46%, #ffb8dd 50%, #ff9ec8 100%);
-  --acct-btn-border: #d4899f;
-  --acct-btn-text: #7a3d5a;
-  --acct-btn-primary-bg: linear-gradient(180deg, #a0e8dd 0%, #6fd4c2 46%, #3fada0 50%, #1f7d6f 100%);
-  --acct-btn-primary-border: #145a4f;
-
-  --panel-border: #d4af7a;
-  --panel-head-bg: linear-gradient(180deg, #fdf3e3, #ecd6ac);
-  --panel-head-border: #c9a466;
-  --panel-body-bg: #fffbf4;
-  --shelf-bg: #fffbf4;
-
-  --btn-bg: linear-gradient(180deg, #f0dba8 0%, #d4af7a 46%, #b8934f 50%, #8a6b35 100%);
-  --btn-border: #5c4720;
-  --btn-text: #3a2810;
-
-  --hero-title-color: #6b4a20;
-  --hero-tagline-color: #a67c3d;
-  --hero-text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
-
-  --like-color: #ff8fc7;
-}
-
-/* ---- 2018 Swag: black/white streetwear with a bold red accent ---- */
-[data-theme="swag-2018"] {
-  --font-family: "Arial Black", Arial, sans-serif;
-
-  --body-bg: radial-gradient(circle at 25% 15%, rgba(226, 35, 26, 0.12), transparent 45%),
-    linear-gradient(160deg, #ffffff 0%, #eeeeee 100%);
-  --body-glyph-color: rgba(0, 0, 0, 0.05);
-
-  --nav-bg: linear-gradient(180deg, #1a1a1a, #000000 70%);
-  --nav-border: #000000;
-  --nav-text: #ffffff;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #1a1a1a, #000000);
-  --subnav-border: #2a2a2a;
-  --subnav-text: #cccccc;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #e2231a 75%);
-  --wordmark-color: #000000;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #ececec 100%);
-  --acct-btn-border: #000000;
-  --acct-btn-text: #000000;
-  --acct-btn-primary-bg: linear-gradient(180deg, #ff4437 0%, #e2231a 46%, #b01810 50%, #700d08 100%);
-  --acct-btn-primary-border: #3a0704;
-
-  --panel-border: #000000;
-  --panel-head-bg: linear-gradient(180deg, #1a1a1a, #000000);
-  --panel-head-border: #000000;
-  --panel-body-bg: #ffffff;
-  --shelf-bg: #ffffff;
-
-  --btn-bg: linear-gradient(180deg, #2a2a2a 0%, #000000 100%);
-  --btn-border: #000000;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #000000;
-  --hero-tagline-color: #4a4a4a;
-  --hero-text-shadow: none;
-
-  --like-color: #e2231a;
-}
-
-/* ---- 2016: millennial pink and rose gold over marble white ---- */
-[data-theme="mm2016"] {
-  --font-family: "Century Gothic", Futura, "Trebuchet MS", sans-serif;
-
-  --body-bg: radial-gradient(circle at 20% 15%, rgba(244, 194, 194, 0.4), transparent 45%),
-    radial-gradient(ellipse at 85% 85%, rgba(183, 110, 121, 0.25), transparent 55%),
-    linear-gradient(160deg, #fdf6f5 0%, #f7e3e1 45%, #f0d0cd 100%);
-  --body-glyph-color: rgba(183, 110, 121, 0.1);
-
-  --nav-bg: linear-gradient(180deg, #f4c2c2, #d4949a 70%);
-  --nav-border: #b76e79;
-  --nav-text: #5c2b32;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #fdf6f5, #f0d0cd);
-  --subnav-border: #d4949a;
-  --subnav-text: #8a4a52;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #d4949a 75%);
-  --wordmark-color: #b76e79;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #f7e3e1 46%, #f0c2c2 50%, #d4949a 100%);
-  --acct-btn-border: #b76e79;
-  --acct-btn-text: #5c2b32;
-  --acct-btn-primary-bg: linear-gradient(180deg, #d4949a 0%, #b76e79 46%, #8a4a52 50%, #5c2b32 100%);
-  --acct-btn-primary-border: #3a1a1f;
-
-  --panel-border: #d4949a;
-  --panel-head-bg: linear-gradient(180deg, #fdf6f5, #f0d0cd);
-  --panel-head-border: #d4949a;
-  --panel-body-bg: #fffbfa;
-  --shelf-bg: #fffbfa;
-
-  --btn-bg: linear-gradient(180deg, #d4949a 0%, #b76e79 46%, #8a4a52 50%, #5c2b32 100%);
-  --btn-border: #3a1a1f;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #5c2b32;
-  --hero-tagline-color: #b76e79;
-  --hero-text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
-
-  --like-color: #e0808a;
-}
-
-/* ---- Tumblr: stark navy-on-white classic blog look ---- */
-[data-theme="tumblr"] {
-  --font-family: Georgia, "Times New Roman", serif;
-
-  --body-bg: radial-gradient(circle at 30% 10%, rgba(0, 25, 53, 0.08), transparent 45%),
-    linear-gradient(160deg, #ffffff 0%, #f7f7f7 100%);
-  --body-glyph-color: rgba(0, 25, 53, 0.05);
-
-  --nav-bg: linear-gradient(180deg, #001935, #000d1c 70%);
-  --nav-border: #000d1c;
-  --nav-text: #ffffff;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #ffffff, #ececec);
-  --subnav-border: #d0d0d0;
-  --subnav-text: #36465d;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #001935 75%);
-  --wordmark-color: #001935;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #ececec 100%);
-  --acct-btn-border: #001935;
-  --acct-btn-text: #001935;
-  --acct-btn-primary-bg: linear-gradient(180deg, #36465d 0%, #001935 46%, #000d1c 50%, #000000 100%);
-  --acct-btn-primary-border: #000000;
-
-  --panel-border: #d0d0d0;
-  --panel-head-bg: linear-gradient(180deg, #ffffff, #f2f2f2);
-  --panel-head-border: #d0d0d0;
-  --panel-body-bg: #ffffff;
-  --shelf-bg: #ffffff;
-
-  --btn-bg: linear-gradient(180deg, #36465d 0%, #001935 46%, #000d1c 50%, #000000 100%);
-  --btn-border: #000000;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #001935;
-  --hero-tagline-color: #36465d;
-  --hero-text-shadow: none;
-
-  --like-color: #001935;
-}
-
-/* ---- Tropical: Zara Larsson turquoise, coral, and sunny yellow ---- */
-[data-theme="tropical"] {
-  --font-family: "Trebuchet MS", Verdana, sans-serif;
-
-  --body-bg: radial-gradient(circle at 20% 10%, rgba(255, 214, 92, 0.35), transparent 45%),
-    radial-gradient(ellipse at 85% 85%, rgba(255, 111, 97, 0.35), transparent 55%),
-    linear-gradient(160deg, #00c9b1 0%, #00b4d8 45%, #0090c2 100%);
-  --body-glyph-color: rgba(255, 255, 255, 0.12);
-
-  --nav-bg: linear-gradient(180deg, #00d4b8, #009688 70%);
-  --nav-border: #007a6e;
-  --nav-text: #ffffff;
-  --nav-active-text: #007a6e;
-
-  --subnav-bg: linear-gradient(180deg, #00c2a8, #008a7d);
-  --subnav-border: #006b5f;
-  --subnav-text: #d6fff6;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #fff, #ff6f61 75%);
-  --wordmark-color: #ffffff;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #d6fff6 46%, #7fe8d4 50%, #33c9ae 100%);
-  --acct-btn-border: #1f9e87;
-  --acct-btn-text: #00473f;
-  --acct-btn-primary-bg: linear-gradient(180deg, #ffb347 0%, #ff8f5e 46%, #ff6f61 50%, #d94f42 100%);
-  --acct-btn-primary-border: #8a2f27;
-
-  --panel-border: #33b8a3;
-  --panel-head-bg: linear-gradient(180deg, #d6fff6, #9fe8da);
-  --panel-head-border: #33b8a3;
-  --panel-body-bg: #f3fffc;
-  --shelf-bg: #f3fffc;
-
-  --btn-bg: linear-gradient(180deg, #ffb347 0%, #ff8f5e 46%, #ff6f61 50%, #d94f42 100%);
-  --btn-border: #8a2f27;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #ffffff;
-  --hero-tagline-color: #ffe6a3;
-  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-
-  --like-color: #ff6f61;
-}
-
-[data-theme="ios-light"] {
+}[data-theme="ios-light"] {
   /* Canonical palette per STYLE_GUIDE.md - light brushed-metal chrome,
      blue accent throughout. This is the default; dark mode is opt-in
      via the toggle (data-mode="dark" below), same blue accent, darker
@@ -8189,638 +7541,18 @@ button.btn,
 [data-mode="dark"] .side-list .row:nth-child(even),
 [data-mode="dark"] .leaderboard-row:nth-child(even) {
   background-color: rgba(255, 255, 255, 0.035);
-}
-
-/* ================================================================
-   Per-theme structure
-
-   Themes used to be colour-token blocks only, sharing the default
-   theme's shape, chrome and type. That is why none of them read as the
-   thing they are named after. Each block below sets the structural
-   tokens too: display face, panel shape and weight, nav treatment,
-   background texture, heading scale.
-   ================================================================ */
-
-/* MySpace: dense, boxy, Arial, hard edges and a thin bright seam. */
-[data-theme="myspace"] {
-  --font-display: Arial, Helvetica, sans-serif;
-  --panel-radius: 0px;
-  --panel-frame: #0055cc;
-  --panel-shadow: 0 0 0 1px rgba(0, 85, 204, 0.35), 0 2px 0 rgba(0, 0, 0, 0.5);
-  --nav-seam: #0066ff;
-  --nav-shadow: 0 2px 0 rgba(0, 102, 255, 0.5);
-  --hero-weight: 700;
-  --hero-spacing: 0;
-  --btn-radius: 3px;
-  --letterpress: none;
-}
-
-/* Twitter: flat, roomy, soft corners, almost no shadow. */
-[data-theme="twitter"] {
-  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --panel-radius: 16px;
-  --panel-frame: #cfd9de;
-  --panel-shadow: none;
-  --nav-shadow: 0 1px 0 #cfd9de;
-  --hero-weight: 800;
-  --btn-radius: 999px;
-  --letterpress: none;
-}
-
-/* YouTube: card-flat with a hard red seam under the bar. */
-[data-theme="youtube"] {
-  --font-display: Roboto, "Helvetica Neue", Arial, sans-serif;
-  --panel-radius: 12px;
-  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --nav-seam: #cc0000;
-  --nav-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --hero-weight: 700;
-  --btn-radius: 2px;
-  --letterpress: none;
-}
-
-/* Y2K McBling: rhinestone gloss, fat rounded chrome, pink glow. */
-[data-theme="mcbling"] {
-  --font-display: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
-  --panel-radius: 18px;
-  --panel-frame: #ff5fb0;
-  --panel-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9) inset, 0 0 18px rgba(255, 95, 176, 0.55),
-    0 10px 24px rgba(120, 0, 60, 0.4);
-  --panel-texture: repeating-linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.5) 0 2px,
-    rgba(255, 190, 225, 0.15) 2px 6px
-  );
-  --body-texture: radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.5), transparent 22%),
-    radial-gradient(circle at 76% 30%, rgba(255, 255, 255, 0.4), transparent 18%),
-    radial-gradient(circle at 44% 78%, rgba(255, 255, 255, 0.35), transparent 20%);
-  --nav-shadow: 0 3px 14px rgba(255, 95, 176, 0.5);
-  --hero-weight: 800;
-  --hero-spacing: -1px;
-  --btn-radius: 999px;
-  --letterpress: 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Scene: hard black/white contrast, tight leading, zebra flash. */
-[data-theme="scene"] {
-  --font-display: Impact, "Haettenschweiler", "Arial Narrow Bold", sans-serif;
-  --panel-radius: 4px;
-  --panel-frame: #ff1f8f;
-  --panel-shadow: 0 0 0 2px #000, 0 0 14px rgba(255, 31, 143, 0.6);
-  --panel-texture: repeating-linear-gradient(
-    115deg,
-    rgba(0, 0, 0, 0.07) 0 6px,
-    rgba(255, 255, 255, 0) 6px 12px
-  );
-  --body-texture: repeating-linear-gradient(
-    115deg,
-    rgba(0, 0, 0, 0.5) 0 14px,
-    rgba(255, 255, 255, 0.12) 14px 28px
-  );
-  --nav-seam: #00e5ff;
-  --nav-shadow: 0 3px 0 #ff1f8f;
-  --hero-weight: 400;
-  --hero-spacing: 1px;
-  --hero-transform: uppercase;
-  --btn-radius: 2px;
-  --letterpress: 2px 2px 0 rgba(0, 0, 0, 0.85);
-}
-
-/* Emo: flat black, thin crimson rule, condensed caps. */
-[data-theme="emo"] {
-  --font-display: "Courier New", "Lucida Console", monospace;
-  --panel-radius: 0px;
-  --panel-frame: #3a0d16;
-  --panel-shadow: 0 0 0 1px rgba(160, 20, 50, 0.35);
-  --nav-seam: #8b0f2b;
-  --nav-shadow: none;
-  --hero-weight: 700;
-  --hero-spacing: 3px;
-  --hero-transform: lowercase;
-  --btn-radius: 0px;
-  --letterpress: none;
-}
-
-/* Frutiger Aero: wet glass, deep gloss, generous radius. */
-[data-theme="frutiger-aero"] {
-  --font-display: "Segoe UI", Frutiger, "Helvetica Neue", sans-serif;
-  --panel-radius: 14px;
-  --panel-frame: rgba(255, 255, 255, 0.7);
-  --panel-shadow: 0 2px 0 rgba(255, 255, 255, 0.95) inset, 0 -14px 24px rgba(255, 255, 255, 0.35) inset,
-    0 18px 36px rgba(0, 60, 90, 0.4);
-  --panel-texture: linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0) 55%);
-  --body-texture: radial-gradient(ellipse at 78% 8%, rgba(255, 255, 255, 0.75), transparent 42%),
-    radial-gradient(ellipse at 12% 88%, rgba(150, 255, 220, 0.4), transparent 46%);
-  --nav-shadow: 0 2px 0 rgba(255, 255, 255, 0.8) inset, 0 6px 18px rgba(0, 60, 90, 0.35);
-  --btn-radius: 999px;
-  --letterpress: 0 1px 0 rgba(255, 255, 255, 0.95);
-}
-
-/* Frutiger Metro: aero gloss up top, hard flat tiles below. */
-[data-theme="frutiger-metro"] {
-  --font-display: "Segoe UI", "Segoe UI Light", "Helvetica Neue", sans-serif;
-  --panel-radius: 0px;
-  --panel-frame: transparent;
-  --panel-shadow: none;
-  --nav-shadow: 0 4px 16px rgba(0, 60, 90, 0.35);
-  --hero-weight: 300;
-  --hero-spacing: -1px;
-  --btn-radius: 0px;
-  --letterpress: none;
-}
-
-/* Party Rock: black club flyer, neon rules, everything shouting. */
-[data-theme="party-rock-2010"] {
-  --font-display: "Arial Black", "Arial Bold", Gadget, sans-serif;
-  --panel-radius: 6px;
-  --panel-frame: #39ff14;
-  --panel-shadow: 0 0 0 1px rgba(255, 0, 200, 0.5), 0 0 22px rgba(57, 255, 20, 0.35);
-  --body-texture: repeating-linear-gradient(
-    45deg,
-    rgba(255, 0, 200, 0.09) 0 12px,
-    rgba(57, 255, 20, 0.07) 12px 24px
-  );
-  --nav-seam: #ff00c8;
-  --nav-shadow: 0 0 18px rgba(255, 0, 200, 0.6);
-  --hero-weight: 900;
-  --hero-transform: uppercase;
-  --hero-spacing: -1px;
-  --btn-radius: 999px;
-  --letterpress: 0 0 10px rgba(57, 255, 20, 0.8);
-}
-
-/* Champagne Bling: gold leaf, soft pink, ornate and glossy. */
-[data-theme="champagne-bling"] {
-  --font-display: "Palatino Linotype", Palatino, Georgia, serif;
-  --panel-radius: 20px;
-  --panel-frame: #d9b46a;
-  --panel-shadow: 0 0 0 2px rgba(255, 245, 220, 0.9) inset, 0 12px 30px rgba(120, 90, 30, 0.35);
-  --panel-texture: linear-gradient(180deg, rgba(255, 250, 235, 0.7), rgba(255, 255, 255, 0) 60%);
-  --nav-shadow: 0 4px 14px rgba(160, 120, 40, 0.4);
-  --hero-weight: 700;
-  --btn-radius: 999px;
-  --letterpress: 0 1px 0 rgba(255, 250, 235, 0.95);
-}
-
-/* 2018 Swag: streetwear, stark boxes, wide caps. */
-[data-theme="swag-2018"] {
-  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --panel-radius: 2px;
-  --panel-frame: #111;
-  --panel-shadow: 6px 6px 0 rgba(0, 0, 0, 0.9);
-  --nav-seam: #e01b24;
-  --nav-shadow: none;
-  --hero-weight: 800;
-  --hero-transform: uppercase;
-  --hero-spacing: 2px;
-  --btn-radius: 0px;
-  --letterpress: none;
-}
-
-/* 2016: marble, rose gold, thin type, very soft everything. */
-[data-theme="mm2016"] {
-  --font-display: "Avenir Next", "Century Gothic", "Futura", sans-serif;
-  --panel-radius: 14px;
-  --panel-frame: #ecdcd8;
-  --panel-shadow: 0 10px 30px rgba(180, 140, 130, 0.25);
-  --body-texture: radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.7), transparent 45%),
-    radial-gradient(ellipse at 75% 70%, rgba(240, 220, 215, 0.6), transparent 50%);
-  --nav-shadow: 0 1px 0 rgba(200, 170, 165, 0.5);
-  --hero-weight: 300;
-  --hero-spacing: 4px;
-  --hero-transform: uppercase;
-  --btn-radius: 999px;
-  --letterpress: none;
-}
-
-/* Tumblr: blog-plain, tight serif headings, minimal chrome. */
-[data-theme="tumblr"] {
-  --font-display: Georgia, "Times New Roman", serif;
-  --panel-radius: 3px;
-  --panel-frame: #d9dee3;
-  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-  --nav-shadow: none;
-  --hero-weight: 700;
-  --btn-radius: 3px;
-  --letterpress: none;
-}
-
-/* Tropical: sun-bleached, rounded, high-key. */
-[data-theme="tropical"] {
-  --font-display: "Trebuchet MS", "Gill Sans", sans-serif;
-  --panel-radius: 22px;
-  --panel-frame: #ffffff;
-  --panel-shadow: 0 12px 26px rgba(0, 120, 130, 0.3);
-  --body-texture: radial-gradient(circle at 82% 14%, rgba(255, 240, 150, 0.55), transparent 34%);
-  --nav-shadow: 0 4px 12px rgba(0, 120, 130, 0.3);
-  --hero-weight: 800;
-  --btn-radius: 999px;
-  --letterpress: 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-/* Buttons follow the theme's own corner radius. */
+}/* Buttons follow the theme's own corner radius. */
 .btn,
 button.btn,
 .new-post-btn {
   border-radius: var(--btn-radius);
-}
-
-/* ================================================================
-   Per-theme layout and surface treatment
-
-   The second half of the theme pass. Everything above gave themes their
-   own shape and type; this gives them their own arrangement (sidebar
-   side, page width, gutter) and their own chrome (button treatment,
-   star style, artwork frame, row stripe), which used to be drawn by the
-   default theme's rules for everybody.
-   ================================================================ */
-
-/* MySpace: narrow column, sidebar on the LEFT, flat blue chrome. */
-[data-theme="myspace"] {
-  --tab-gloss: none;
-  --btn-letterpress: none;
-  --btn-shadow: none;
-  --btn-ghost-shadow: none;
-  --btn-ghost-frame: #6fb3ff;
-  --art-frame: 1px solid #0055cc;
-  --row-stripe: rgba(0, 85, 204, 0.08);
-  --chip-shadow: 0 0 0 1px #0055cc;
-  --star-on: linear-gradient(180deg, #ffe066, #ffb300);
-  --panel-head-text: #ffffff;
-}
-
-/* Twitter: single wide column feel, airy gutters, no chrome at all. */
-[data-theme="twitter"] {
-  --tab-gloss: none;
-  --btn-shadow: none;
-  --btn-ghost-shadow: none;
-  --art-frame: none;
-  --row-stripe: transparent;
-  --chip-shadow: none;
-  --panel-head-text: #0f1419;
-  --star-on: linear-gradient(180deg, #1d9bf0, #0f6fb8);
-}
-
-/* YouTube: wide, dense, card grid. */
-[data-theme="youtube"] {
-  --tab-gloss: none;
-  --btn-shadow: none;
-  --btn-ghost-shadow: none;
-  --art-frame: none;
-  --row-stripe: rgba(0, 0, 0, 0.04);
-  --chip-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --star-on: linear-gradient(180deg, #ff4e45, #cc0000);
-}
-
-/* McBling: tight and busy, everything glossed, rhinestone stars. */
-[data-theme="mcbling"] {
-  --btn-letterpress: 0 1px 0 rgba(255, 255, 255, 0.7);
-  --btn-shadow: 0 2px 0 rgba(255, 255, 255, 0.85) inset, 0 6px 16px rgba(255, 95, 176, 0.5);
-  --btn-ghost-shadow: 0 2px 0 rgba(255, 255, 255, 0.9) inset;
-  --art-frame: 3px solid #ff9ed2;
-  --art-sweep: linear-gradient(118deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 44%);
-  --row-stripe: rgba(255, 95, 176, 0.09);
-  --star-on: linear-gradient(180deg, #ffffff 0%, #ffd6ec 40%, #ff5fb0 100%);
-  --star-on-filter: drop-shadow(0 0 4px rgba(255, 95, 176, 0.9));
-  --panel-head-letterpress: 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Scene: hard edges, no gloss, everything outlined in black. */
-[data-theme="scene"] {
-  --tab-gloss: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
-  --btn-letterpress: 1px 1px 0 rgba(0, 0, 0, 0.9);
-  --btn-shadow: 0 0 0 2px #000;
-  --btn-ghost-shadow: 0 0 0 2px #000;
-  --art-frame: 3px solid #ff1f8f;
-  --art-sweep: none;
-  --row-stripe: rgba(255, 31, 143, 0.14);
-  --star-on: linear-gradient(180deg, #ff1f8f, #00e5ff);
-  --star-on-filter: drop-shadow(1px 1px 0 #000);
-  --panel-head-text: #ffffff;
-  --panel-head-letterpress: 2px 2px 0 rgba(0, 0, 0, 0.9);
-}
-
-/* Emo: flat, narrow, monospace, almost no ornament. */
-[data-theme="emo"] {
-  --tab-gloss: none;
-  --btn-shadow: none;
-  --btn-ghost-shadow: none;
-  --art-frame: 1px solid #8b0f2b;
-  --art-sweep: none;
-  --row-stripe: rgba(139, 15, 43, 0.12);
-  --chip-shadow: none;
-  --star-on: linear-gradient(180deg, #c9264a, #6d0a20);
-  --panel-head-text: #e8d5da;
-}
-
-/* Frutiger Aero: wide, wet, everything catching light. */
-[data-theme="frutiger-aero"] {
-  --btn-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.35);
-  --btn-shadow: 0 2px 0 rgba(255, 255, 255, 0.9) inset, 0 -8px 12px rgba(0, 60, 90, 0.25) inset,
-    0 6px 16px rgba(0, 60, 90, 0.4);
-  --art-frame: 3px solid rgba(255, 255, 255, 0.9);
-  --art-sweep: linear-gradient(118deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0) 48%);
-  --row-stripe: rgba(255, 255, 255, 0.4);
-  --star-on: linear-gradient(180deg, #ffffff, #7fe3ff 50%, #00a2c8);
-  --star-on-filter: drop-shadow(0 1px 2px rgba(0, 80, 110, 0.5));
-}
-
-/* Frutiger Metro: full-bleed tiles, no gutters, no frames. */
-[data-theme="frutiger-metro"] {
-  --tab-gloss: none;
-  --btn-shadow: none;
-  --btn-ghost-shadow: none;
-  --btn-letterpress: none;
-  --art-frame: none;
-  --art-sweep: none;
-  --row-stripe: rgba(255, 255, 255, 0.08);
-  --chip-shadow: none;
-  --star-on: linear-gradient(180deg, #ffffff, #b8b8b8);
-}
-
-/* Party Rock: neon everything, glowing chrome. */
-[data-theme="party-rock-2010"] {
-  --tab-gloss: linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0));
-  --btn-letterpress: 0 0 8px rgba(57, 255, 20, 0.9);
-  --btn-shadow: 0 0 16px rgba(255, 0, 200, 0.7);
-  --btn-ghost-shadow: 0 0 12px rgba(57, 255, 20, 0.5);
-  --art-frame: 2px solid #39ff14;
-  --art-sweep: none;
-  --row-stripe: rgba(255, 0, 200, 0.14);
-  --star-on: linear-gradient(180deg, #39ff14, #ff00c8);
-  --star-on-filter: drop-shadow(0 0 6px rgba(57, 255, 20, 0.9));
-  --panel-head-text: #ffffff;
-}
-
-/* Champagne Bling: wide, ornate, gold-edged. */
-[data-theme="champagne-bling"] {
-  --btn-letterpress: 0 1px 0 rgba(255, 250, 235, 0.8);
-  --btn-shadow: 0 2px 0 rgba(255, 250, 235, 0.9) inset, 0 8px 20px rgba(120, 90, 30, 0.4);
-  --art-frame: 4px solid #e8cd93;
-  --art-sweep: linear-gradient(118deg, rgba(255, 250, 235, 0.6) 0%, rgba(255, 255, 255, 0) 44%);
-  --row-stripe: rgba(217, 180, 106, 0.15);
-  --star-on: linear-gradient(180deg, #fff4d4 0%, #e8cd93 45%, #b8912f 100%);
-  --star-on-filter: drop-shadow(0 1px 1px rgba(120, 90, 30, 0.6));
-}
-
-/* 2018 Swag: hard offset shadows, stark boxes, no gloss. */
-[data-theme="swag-2018"] {
-  --tab-gloss: none;
-  --btn-shadow: 4px 4px 0 rgba(0, 0, 0, 0.9);
-  --btn-shadow-active: 1px 1px 0 rgba(0, 0, 0, 0.9);
-  --btn-ghost-shadow: 4px 4px 0 rgba(0, 0, 0, 0.25);
-  --btn-letterpress: none;
-  --art-frame: 3px solid #111;
-  --art-sweep: none;
-  --row-stripe: rgba(0, 0, 0, 0.06);
-  --chip-shadow: 6px 6px 0 rgba(0, 0, 0, 0.9);
-  --star-on: linear-gradient(180deg, #e01b24, #8a0f16);
-}
-
-/* 2016: airy, very wide gutters, almost weightless. */
-[data-theme="mm2016"] {
-  --tab-gloss: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0));
-  --btn-shadow: 0 6px 18px rgba(180, 140, 130, 0.35);
-  --btn-ghost-shadow: none;
-  --btn-letterpress: none;
-  --art-frame: 6px solid #ffffff;
-  --art-sweep: none;
-  --row-stripe: rgba(236, 220, 216, 0.5);
-  --chip-shadow: 0 10px 26px rgba(180, 140, 130, 0.25);
-  --star-on: linear-gradient(180deg, #f0c9c0, #c98e80);
-}
-
-/* Tumblr: narrow blog column, minimal chrome. */
-[data-theme="tumblr"] {
-  --tab-gloss: none;
-  --btn-shadow: none;
-  --btn-ghost-shadow: none;
-  --btn-letterpress: none;
-  --art-frame: none;
-  --art-sweep: none;
-  --row-stripe: rgba(0, 0, 0, 0.025);
-  --chip-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-  --star-on: linear-gradient(180deg, #36465d, #001935);
-}
-
-/* Tropical: wide, rounded, sun-bleached. */
-[data-theme="tropical"] {
-  --btn-letterpress: 0 1px 0 rgba(255, 255, 255, 0.6);
-  --btn-shadow: 0 8px 20px rgba(0, 120, 130, 0.35);
-  --art-frame: 4px solid #ffffff;
-  --art-sweep: linear-gradient(118deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 42%);
-  --row-stripe: rgba(0, 190, 200, 0.12);
-  --star-on: linear-gradient(180deg, #ffe066, #ff8a5c);
-  --star-on-filter: drop-shadow(0 1px 2px rgba(0, 120, 130, 0.4));
-}
-
-/* Sidebar-on-the-left themes have to flip back when the grid stacks,
+}/* Sidebar-on-the-left themes have to flip back when the grid stacks,
    or the sidebar lands above the feed on a phone. */
 @media (max-width: 1024px) {
   .content-grid {
     flex-direction: column;
   }
-}
-
-/* ================================================================
-   Reference-matched theme surfaces
-
-   The first pass gave each theme its own shape and type but kept the
-   backgrounds to tame gradients, so nothing read as the era it is
-   named after. These are the actual patterns: leopard, zebra,
-   halftone, blacklight grid, sky-and-grass. All built from gradients
-   rather than images, so they cost nothing to load, tile at any size
-   and can be recoloured from the theme editor.
-   ================================================================ */
-
-/* ---- Y2K McBling: leopard print in hot pink and gold ----
-   Spots are two offset radial grids, the second nudged half a tile so
-   the print doesn't read as a regular checkerboard. */
-[data-theme="mcbling"] {
-  --body-bg: linear-gradient(180deg, #d8a25a 0%, #c98f45 50%, #b87b33 100%);
-  --body-texture:
-    radial-gradient(ellipse 14px 11px at 20% 22%, #2b1608 58%, transparent 60%),
-    radial-gradient(ellipse 9px 7px at 27% 15%, #7a4718 60%, transparent 62%),
-    radial-gradient(ellipse 13px 10px at 62% 44%, #2b1608 58%, transparent 60%),
-    radial-gradient(ellipse 8px 6px at 69% 37%, #7a4718 60%, transparent 62%),
-    radial-gradient(ellipse 15px 11px at 40% 74%, #2b1608 58%, transparent 60%),
-    radial-gradient(ellipse 9px 7px at 47% 67%, #7a4718 60%, transparent 62%),
-    radial-gradient(ellipse 12px 9px at 85% 88%, #2b1608 58%, transparent 60%),
-    radial-gradient(ellipse 14px 10px at 8% 60%, #2b1608 58%, transparent 60%);
-  --body-texture-size: 118px 118px;
-  --panel-body-bg: #fff0f8;
-  --panel-head-bg: linear-gradient(180deg, #ff9ed2 0%, #ff5fb0 48%, #e0348c 52%, #b81f6d 100%);
-  --panel-head-text: #ffffff;
-  --btn-image: linear-gradient(180deg, #ffd6ec 0%, #ff7cc0 46%, #ec3f96 54%, #b81f6d 100%);
-  --btn-border: #9c1257;
-  /* The bar used to run from near-white pink to deep magenta, which no
-     single text colour survives - white vanished at the top, dark
-     vanished at the bottom. Pulling the light end down keeps the gloss
-     and lets white read the whole way. */
-  --nav-bg: linear-gradient(180deg, #d94d95 0%, #cc3a85 46%, #b82a73 54%, #8f1250 100%);
-  --nav-text: #ffffff;
-  --nav-active-text: #ffffff;
-  --nav-seam: #ffd700;
-  --like-color: #ff2d95;
-}
-
-/* ---- Scene: zebra diagonals, pink and cyan on black ---- */
-[data-theme="scene"] {
-  --body-bg: #0a0a0a;
-  --body-texture: repeating-linear-gradient(
-      108deg,
-      #0a0a0a 0 18px,
-      #f4f4f4 18px 26px,
-      #0a0a0a 26px 34px,
-      #f4f4f4 34px 39px
-    );
-  --body-texture-size: auto;
-  --panel-body-bg: #131316;
-  --panel-head-bg: linear-gradient(180deg, #ff1f8f 0%, #c4106a 100%);
-  --panel-head-text: #ffffff;
-  --btn-image: linear-gradient(180deg, #00e5ff 0%, #00a9c4 100%);
-  --btn-border: #000000;
-  --btn-text: #0a0a0a;
-  --nav-bg: linear-gradient(180deg, #1a1a1d, #050505);
-  --text: #f2f2f4;
-  --muted: #b9b9c2;
-  --like-color: #ff1f8f;
-  /* Neither dark theme declared a link, so both fell back to :root's
-     #0a5fd6 - a blue chosen to sit on a white panel - and rendered it on
-     near-black at 3.2:1. The theme's own cyan is already in --btn-image
-     and reads at 12:1 here. */
-  --link: #00e5ff;
-}
-
-/* ---- Frutiger Aero: sky over grass, sun flare, water beads ---- */
-[data-theme="frutiger-aero"] {
-  --body-bg: linear-gradient(180deg, #4aa8e0 0%, #8fd4f2 42%, #d8f0c0 66%, #6fbf3f 100%);
-  --body-texture:
-    radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 16%),
-    radial-gradient(circle at 82% 12%, rgba(255, 255, 240, 0.55), rgba(255, 255, 255, 0) 34%),
-    radial-gradient(circle 5px at 24% 30%, rgba(255, 255, 255, 0.75), transparent 100%),
-    radial-gradient(circle 3px at 31% 26%, rgba(255, 255, 255, 0.65), transparent 100%),
-    radial-gradient(circle 7px at 68% 58%, rgba(255, 255, 255, 0.6), transparent 100%),
-    radial-gradient(circle 4px at 74% 66%, rgba(255, 255, 255, 0.7), transparent 100%),
-    radial-gradient(circle 6px at 12% 72%, rgba(255, 255, 255, 0.55), transparent 100%);
-  --body-texture-size: auto;
-  --panel-body-bg: rgba(255, 255, 255, 0.9);
-  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #cfeeff 45%, #8fd0f0 55%, #4aa8e0 100%);
-  --panel-head-text: #0a3a52;
-  --btn-image: linear-gradient(180deg, #ffffff 0%, #b6e8ff 44%, #58bff0 54%, #1785c4 100%);
-  --btn-border: #0d5c88;
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #d8f0ff 44%, #8fd0f0 54%, #3f9fd4 100%);
-  --nav-seam: #ffffff;
-  --like-color: #1785c4;
-}
-
-/* ---- Party Rock: blacklight neon on a dark grid ---- */
-[data-theme="party-rock-2010"] {
-  --body-bg: #06010e;
-  --body-texture:
-    repeating-linear-gradient(0deg, rgba(255, 0, 200, 0.16) 0 1px, transparent 1px 44px),
-    repeating-linear-gradient(90deg, rgba(57, 255, 20, 0.13) 0 1px, transparent 1px 44px),
-    radial-gradient(ellipse at 20% 0%, rgba(255, 0, 200, 0.45), transparent 52%),
-    radial-gradient(ellipse at 84% 22%, rgba(57, 255, 20, 0.32), transparent 48%),
-    radial-gradient(ellipse at 50% 100%, rgba(0, 200, 255, 0.35), transparent 55%);
-  --body-texture-size: auto;
-  --panel-body-bg: #120522;
-  --panel-head-bg: linear-gradient(180deg, #ff00c8 0%, #8a0070 100%);
-  --panel-head-text: #ffffff;
-  --btn-image: linear-gradient(180deg, #39ff14 0%, #17b800 100%);
-  --btn-text: #06010e;
-  --btn-border: #0b4a00;
-  --nav-bg: linear-gradient(180deg, #1a0230, #06010e);
-  --text: #f6e9ff;
-  --muted: #b98fd0;
-  --like-color: #ff00c8;
-}
-
-/* ---- Emo / A Great Chaos: black, blood red, VHS scanlines ---- */
-[data-theme="emo"] {
-  --body-bg: #050506;
-  --body-texture:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px),
-    radial-gradient(ellipse at 50% 0%, rgba(139, 15, 43, 0.5), transparent 58%),
-    radial-gradient(ellipse at 20% 90%, rgba(0, 90, 90, 0.28), transparent 52%);
-  --body-texture-size: auto;
-  --panel-body-bg: #0d0d10;
-  --panel-head-bg: linear-gradient(180deg, #2a0810, #0a0203);
-  --panel-head-text: #e8d5da;
-  --btn-image: linear-gradient(180deg, #8b0f2b, #4a0616);
-  --btn-border: #c9264a;
-  --nav-bg: linear-gradient(180deg, #16060a, #050506);
-  --nav-seam: #8b0f2b;
-  --text: #ddd6d8;
-  --muted: #8d8288;
-  --like-color: #c9264a;
-  /* Same fallback problem as scene. The theme's crimson is only 3.6:1 on
-     its own panel, so the link is a lighter tint of it - 7.1:1, and still
-     unmistakably the same colour. */
-  --link: #ff6b8a;
-}
-
-/* ---- 2018 Swag: red/black/white streetwear, box-logo blocks ---- */
-[data-theme="swag-2018"] {
-  --body-bg: #f2f2f2;
-  --body-texture: repeating-linear-gradient(
-    135deg,
-    rgba(0, 0, 0, 0.05) 0 22px,
-    rgba(0, 0, 0, 0) 22px 44px
-  );
-  --body-texture-size: auto;
-  --panel-body-bg: #ffffff;
-  --panel-head-bg: #e01b24;
-  --panel-head-text: #ffffff;
-  --btn-image: #e01b24;
-  --btn-border: #111111;
-  --btn-text: #ffffff;
-  --nav-bg: #111111;
-  --nav-text: #ffffff;
-  --like-color: #e01b24;
-}
-
-/* ---- Tropical: halftone circles, lime and cyan Y2K poster ---- */
-[data-theme="tropical"] {
-  --body-bg: linear-gradient(160deg, #a8e02b 0%, #5fc93f 45%, #17b3a0 100%);
-  --body-texture:
-    radial-gradient(circle 26px at 18% 22%, rgba(255, 255, 255, 0.35), transparent 100%),
-    radial-gradient(circle 16px at 30% 34%, rgba(0, 0, 0, 0.12), transparent 100%),
-    radial-gradient(circle 34px at 76% 18%, rgba(255, 255, 255, 0.28), transparent 100%),
-    radial-gradient(circle 20px at 64% 72%, rgba(0, 0, 0, 0.1), transparent 100%),
-    radial-gradient(circle 12px at 88% 60%, rgba(255, 255, 255, 0.4), transparent 100%),
-    repeating-radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 6px);
-  --body-texture-size: 320px 320px;
-  --panel-body-bg: #ffffff;
-  --panel-head-bg: linear-gradient(180deg, #ffe066 0%, #ffb020 100%);
-  --panel-head-text: #1d3b12;
-  --btn-image: linear-gradient(180deg, #ff8a5c, #f2542d);
-  --btn-border: #b8331a;
-  --nav-bg: linear-gradient(180deg, #a8e02b, #5fc93f);
-  /* White on light lime was 1.57:1. Deep green sits on both stops. */
-  --nav-text: #133d0c;
-  --nav-active-text: #ffffff;
-  --like-color: #f2542d;
-}
-
-/* ---- 2016: rose-gold marble ---- */
-[data-theme="mm2016"] {
-  --body-bg: linear-gradient(150deg, #f7efec 0%, #f0e2dd 55%, #e8d6d0 100%);
-  --body-texture:
-    linear-gradient(118deg, transparent 38%, rgba(190, 150, 140, 0.18) 40%, transparent 43%),
-    linear-gradient(102deg, transparent 60%, rgba(190, 150, 140, 0.14) 62%, transparent 64%),
-    linear-gradient(140deg, transparent 20%, rgba(210, 175, 165, 0.16) 22%, transparent 25%);
-  --body-texture-size: auto;
-  --panel-body-bg: #fffbfa;
-  --panel-head-bg: linear-gradient(180deg, #f3ded8, #e0bcb2);
-  --panel-head-text: #6b4a42;
-  --btn-image: linear-gradient(180deg, #e8bfb4, #c98e80);
-  --btn-border: #a86f60;
-  --nav-bg: linear-gradient(180deg, #fffbfa, #f0e2dd);
-  --like-color: #c98e80;
-}
-
-/* Per-layer sizing for the four background layers, in the order they are
+}/* Per-layer sizing for the four background layers, in the order they are
    declared: scrim, uploaded image, texture, base.
 
    The uploaded image has to be `cover` HERE. Its token value carries
@@ -8830,81 +7562,7 @@ button.btn,
 body {
   background-size: auto, cover, var(--body-texture-size), auto;
   background-repeat: repeat, no-repeat, repeat, repeat;
-}
-
-/* Patterned themes: let the pattern be the page, and keep headings legible
-   against it. */
-[data-theme="mcbling"] {
-  --wrap-bg: rgba(255, 240, 248, 0.82);
-  --wrap-shadow: 0 25px 60px rgba(120, 0, 60, 0.45);
-  --hero-title-color: #9c1257;
-  --hero-tagline-color: #b8447f;
-  --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-[data-theme="scene"] {
-  --wrap-bg: rgba(10, 10, 12, 0.88);
-  --wrap-shadow: 0 0 0 3px #ff1f8f, 0 25px 60px rgba(0, 0, 0, 0.8);
-  --hero-title-color: #ffffff;
-  --hero-tagline-color: #00e5ff;
-  --hero-text-shadow: 2px 2px 0 #000;
-}
-[data-theme="party-rock-2010"] {
-  --wrap-bg: rgba(10, 2, 20, 0.82);
-  --wrap-shadow: 0 0 40px rgba(255, 0, 200, 0.45);
-  --hero-title-color: #39ff14;
-  --hero-tagline-color: #ff5fd8;
-  --hero-text-shadow: 0 0 14px rgba(57, 255, 20, 0.8);
-}
-[data-theme="emo"] {
-  --wrap-bg: rgba(10, 10, 12, 0.9);
-  --wrap-shadow: 0 0 0 1px #8b0f2b, 0 25px 60px rgba(0, 0, 0, 0.85);
-  --hero-title-color: #ddd6d8;
-  --hero-tagline-color: #8d8288;
-  --hero-text-shadow: none;
-}
-[data-theme="frutiger-aero"] {
-  --wrap-bg: rgba(255, 255, 255, 0.66);
-  --wrap-shadow: 0 25px 60px rgba(0, 70, 100, 0.4), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
-  --hero-title-color: #0a3a52;
-  --hero-tagline-color: #17708f;
-  --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95);
-}
-[data-theme="tropical"] {
-  --wrap-bg: rgba(255, 255, 255, 0.8);
-  --wrap-shadow: 0 25px 60px rgba(0, 110, 90, 0.4);
-  --hero-title-color: #14532d;
-  --hero-tagline-color: #1d7a5f;
-}
-[data-theme="swag-2018"] {
-  --wrap-bg: #ffffff;
-  --wrap-shadow: 10px 10px 0 rgba(0, 0, 0, 0.9);
-  --hero-title-color: #111111;
-  --hero-tagline-color: #e01b24;
-  --hero-text-shadow: none;
-}
-[data-theme="myspace"] {
-  --wrap-bg: #ffffff;
-  --wrap-shadow: 0 0 0 1px #0055cc;
-  --hero-title-color: #003b8e;
-  --hero-tagline-color: #0066ff;
-  --hero-text-shadow: none;
-}
-[data-theme="mm2016"] {
-  --wrap-bg: rgba(255, 251, 250, 0.85);
-  --wrap-shadow: 0 25px 60px rgba(180, 140, 130, 0.3);
-  --hero-title-color: #6b4a42;
-  --hero-tagline-color: #a8837a;
-  --hero-text-shadow: none;
-}
-[data-theme="tumblr"] {
-  --wrap-bg: #ffffff;
-  --wrap-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  --hero-title-color: #001935;
-  --hero-tagline-color: #4f6c8a;
-  --hero-text-shadow: none;
-}
-
-/* ================================================================
+}/* ================================================================
    Density: stop the top row and Feed TV eating the whole page
    ================================================================ */
 
@@ -8937,131 +7595,7 @@ body {
 .theslap-3col .spotlight-avatar {
   width: 54px;
   height: 54px;
-}
-
-/* ================================================================
-   The three reference looks nothing covered yet
-   ================================================================ */
-
-/* Zebra Bling - the messaging-app icon: zebra under bubblegum gloss. */
-[data-theme="zebra-bling"] {
-  --font-family: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
-  --font-display: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
-  --body-bg: #f4f4f4;
-  --body-texture: repeating-linear-gradient(
-      74deg,
-      #101010 0 16px,
-      #fafafa 16px 30px,
-      #101010 30px 38px,
-      #fafafa 38px 62px
-    );
-  --body-texture-size: auto;
-  --wrap-bg: rgba(255, 240, 248, 0.9);
-  --wrap-shadow: 0 0 0 4px #ff6fb5, 0 25px 60px rgba(0, 0, 0, 0.6);
-  --panel-radius: 22px;
-  --panel-frame: #ff6fb5;
-  --panel-shadow: 0 2px 0 rgba(255, 255, 255, 0.95) inset, 0 10px 24px rgba(180, 40, 110, 0.35);
-  --panel-body-bg: #fff6fb;
-  --panel-head-bg: linear-gradient(180deg, #ffc2e0 0%, #ff8ec8 46%, #f558a8 54%, #d62f85 100%);
-  --panel-head-text: #ffffff;
-  --panel-head-letterpress: 0 1px 0 rgba(255, 255, 255, 0.6);
-  --nav-bg: linear-gradient(180deg, #2a2a2a, #0d0d0d);
-  --nav-text: #ffffff;
-  --nav-seam: #ff6fb5;
-  --btn-image: linear-gradient(180deg, #ffd0e8 0%, #ff8ec8 46%, #f558a8 54%, #c92878 100%);
-  --btn-border: #a81f63;
-  --btn-radius: 999px;
-  --btn-letterpress: 0 1px 0 rgba(255, 255, 255, 0.55);
-  --art-frame: 4px solid #ffffff;
-  --row-stripe: rgba(255, 111, 181, 0.12);
-  --star-on: linear-gradient(180deg, #ffffff, #ff8ec8 55%, #d62f85);
-  --hero-title-color: #c92878;
-  --hero-tagline-color: #6a6a6a;
-  --like-color: #f558a8;
-}
-
-/* PLUR - washed-out festival photo: bloom, flare, kandi pastels. */
-[data-theme="plur-rave"] {
-  --font-family: "Avenir Next", "Century Gothic", Futura, sans-serif;
-  --font-display: "Avenir Next", "Century Gothic", Futura, sans-serif;
-  --body-bg: linear-gradient(155deg, #f7d9ff 0%, #c9a8f5 34%, #f5b0d8 62%, #eaf6a8 100%);
-  --body-texture:
-    radial-gradient(circle 60px at 22% 26%, rgba(255, 255, 255, 0.7), transparent 100%),
-    radial-gradient(circle 34px at 34% 18%, rgba(255, 210, 255, 0.65), transparent 100%),
-    radial-gradient(circle 78px at 72% 62%, rgba(255, 255, 255, 0.5), transparent 100%),
-    radial-gradient(circle 26px at 84% 30%, rgba(200, 255, 240, 0.7), transparent 100%),
-    radial-gradient(circle 46px at 12% 78%, rgba(255, 240, 160, 0.6), transparent 100%),
-    linear-gradient(118deg, transparent 40%, rgba(255, 255, 255, 0.45) 50%, transparent 60%);
-  --body-texture-size: auto;
-  --wrap-bg: rgba(255, 255, 255, 0.62);
-  --wrap-shadow: 0 25px 70px rgba(150, 90, 190, 0.45), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
-  --panel-radius: 22px;
-  --panel-frame: rgba(255, 255, 255, 0.9);
-  --panel-shadow: 0 2px 0 rgba(255, 255, 255, 0.95) inset, 0 14px 32px rgba(150, 90, 190, 0.3);
-  --panel-body-bg: rgba(255, 255, 255, 0.86);
-  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #f2d4ff 50%, #d9a8f0 100%);
-  --panel-head-text: #6b2f8a;
-  --nav-bg: linear-gradient(180deg, #ffffff, #f0d8ff);
-  --nav-text: #6b2f8a;
-  --nav-seam: rgba(255, 255, 255, 0.9);
-  --btn-image: linear-gradient(180deg, #ffffff 0%, #f0b8e8 48%, #c77ae0 100%);
-  --btn-border: #a655c9;
-  --btn-text: #4a1a63;
-  --btn-radius: 999px;
-  --art-frame: 5px solid rgba(255, 255, 255, 0.95);
-  --row-stripe: rgba(201, 168, 245, 0.18);
-  --star-on: linear-gradient(180deg, #fff2a8, #ff9ed8 60%, #a8e6ff);
-  --star-on-filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.9));
-  --hero-title-color: #6b2f8a;
-  --hero-tagline-color: #9a5ab5;
-  --hero-weight: 300;
-  --hero-spacing: 2px;
-  --like-color: #e05bb8;
-}
-
-/* Rainbow - iOS 7 era: white ground, every colour, halftone swirls. */
-[data-theme="ios7-rainbow"] {
-  --font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --body-bg: #ffffff;
-  --body-texture:
-    radial-gradient(circle 90px at 12% 16%, rgba(255, 90, 130, 0.5), transparent 100%),
-    radial-gradient(circle 70px at 30% 8%, rgba(255, 200, 60, 0.5), transparent 100%),
-    radial-gradient(circle 110px at 72% 20%, rgba(80, 200, 255, 0.45), transparent 100%),
-    radial-gradient(circle 80px at 88% 54%, rgba(140, 230, 120, 0.45), transparent 100%),
-    radial-gradient(circle 96px at 46% 78%, rgba(190, 130, 255, 0.4), transparent 100%),
-    radial-gradient(circle 60px at 8% 68%, rgba(255, 150, 90, 0.4), transparent 100%),
-    repeating-radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 7px);
-  --body-texture-size: auto;
-  --wrap-bg: rgba(255, 255, 255, 0.86);
-  --wrap-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
-  --panel-radius: 14px;
-  --panel-frame: #e6e6ea;
-  --panel-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
-  --panel-body-bg: #ffffff;
-  --panel-head-bg: linear-gradient(90deg, #ff5a82, #ffc83c 25%, #50c8ff 55%, #8ce678 78%, #be82ff 100%);
-  --panel-head-text: #ffffff;
-  --panel-head-letterpress: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --nav-bg: rgba(255, 255, 255, 0.95);
-  --nav-text: #1a1a1c;
-  --nav-seam: #50c8ff;
-  --btn-image: linear-gradient(90deg, #ff5a82, #be82ff);
-  --btn-border: transparent;
-  --btn-text: #ffffff;
-  --btn-radius: 999px;
-  --btn-shadow: 0 4px 12px rgba(190, 130, 255, 0.4);
-  --art-frame: none;
-  --row-stripe: rgba(80, 200, 255, 0.09);
-  --star-on: linear-gradient(180deg, #ffc83c, #ff5a82);
-  --hero-title-color: #1a1a1c;
-  --hero-tagline-color: #6b6b72;
-  --hero-weight: 200;
-  --hero-spacing: -1px;
-  --letterpress: none;
-  --like-color: #ff5a82;
-}
-
-/* ================================================================
+}/* ================================================================
    Panels follow their theme
 
    A dozen surfaces - post cards, side lists, stats, chat, the clubs
@@ -9098,32 +7632,7 @@ body {
 .dm-bubble {
   color: var(--text);
   border-color: var(--panel-border);
-}
-
-/* Dark themes: the shared surface tokens, so each one doesn't have to
-   restate them. Any theme that wants a different panel colour just sets
-   --panel-body-bg itself and this never applies. */
-[data-theme="scene"],
-[data-theme="emo"],
-[data-theme="party-rock-2010"],
-[data-theme="myspace"] {
-  --shelf-bg: var(--panel-body-bg);
-  --input-bg: rgba(255, 255, 255, 0.05);
-}
-[data-theme="scene"] input,
-[data-theme="scene"] textarea,
-[data-theme="emo"] input,
-[data-theme="emo"] textarea,
-[data-theme="party-rock-2010"] input,
-[data-theme="party-rock-2010"] textarea,
-[data-theme="myspace"] input,
-[data-theme="myspace"] textarea {
-  background-color: var(--input-bg);
-  color: var(--text);
-  border-color: var(--panel-border);
-}
-
-/* Feed TV size picker. Takes the theme's own button treatment so it reads
+}/* Feed TV size picker. Takes the theme's own button treatment so it reads
    as part of the site rather than as YouTube chrome, but stays compact
    enough to sit in the player's transport row. */
 .feedtv-size {
@@ -14013,4 +12522,312 @@ a.issue-link::after {
   .sk-announce {
     animation: none;
   }
+}
+
+/* ================================================================
+   The decades
+   ================================================================
+   Five themes, one per decade, replacing the eighteen that were named
+   after websites and scenes. Each is colours only - the shapes, spacing
+   and bevels come from the site's own defaults, which is why switching
+   theme recolours the page without ever reshaping it.
+
+   The brief for each one is that it should be unmistakable at a glance.
+   Eighteen themes failed that: half of them were different shades of the
+   same three years and you could not tell which from the names. Five
+   decades cannot hide - if two of these looked alike it would be
+   obvious, so each one commits.
+
+   Every colour pair here is checked by check:contrast, which reads
+   --nav-text against --nav-bg and --text and --link against
+   --panel-body-bg, at every stop of every gradient. */
+
+/* ---- The 70s: burnt orange, mustard and cream. Warm, analogue,
+   printed rather than lit - the only theme here with no glow in it. ---- */
+[data-theme="decade-70s"] {
+  --font-family: "Avenir Next", Futura, "Trebuchet MS", sans-serif;
+
+  --body-bg: radial-gradient(circle at 18% 12%, rgba(230, 140, 40, 0.28), transparent 46%),
+    radial-gradient(circle at 82% 84%, rgba(122, 60, 20, 0.32), transparent 52%),
+    linear-gradient(165deg, #5c2f10 0%, #7a4318 45%, #4a2409 100%);
+  --body-texture: repeating-linear-gradient(
+    90deg,
+    rgba(255, 220, 160, 0.05) 0 2px,
+    rgba(0, 0, 0, 0) 2px 5px
+  );
+  --body-glyph-color: rgba(255, 196, 110, 0.09);
+
+  --nav-bg: linear-gradient(180deg, #a55a23 0%, #8a4a1e 48%, #7a4018 52%, #5c2f10 100%);
+  --nav-border: #3d1d08;
+  --nav-text: #ffeed4;
+  --nav-active-text: #ffffff;
+
+  --subnav-bg: linear-gradient(180deg, #7a4318, #5c2f10);
+  --subnav-border: #3d1d08;
+  --subnav-text: #f6c98a;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #ffe9c2, #c96a1c 75%);
+  --wordmark-color: #ffd79a;
+
+  --acct-btn-bg: linear-gradient(180deg, #f6d9a8 0%, #e8bc7c 46%, #d9a55f 50%, #b87c36 100%);
+  --acct-btn-border: #6d3a12;
+  --acct-btn-text: #4a2409;
+  --acct-btn-primary-bg: linear-gradient(180deg, #e08a34 0%, #c96a1c 46%, #b45a13 50%, #8a3f08 100%);
+  --acct-btn-primary-border: #5c2708;
+
+  --panel-border: #d8c19a;
+  --panel-head-bg: linear-gradient(180deg, #f0dcb4, #dcc192);
+  --panel-head-border: #c9a874;
+  --panel-head-text: #4a2409;
+  --panel-body-bg: #fdf5e4;
+  --shelf-bg: #fdf5e4;
+
+  --text: #3a2a17;
+  --muted: #7a6242;
+  --link: #a33c0f;
+
+  --btn-bg: linear-gradient(180deg, #e08a34 0%, #c96a1c 46%, #b45a13 50%, #8a3f08 100%);
+  --btn-border: #5c2708;
+  --btn-text: #ffffff;
+
+  --hero-title-color: #ffeed4;
+  --hero-tagline-color: #f6c98a;
+  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+
+  --like-color: #d94f1e;
+}
+
+/* ---- The 80s: neon on black. Magenta and cyan, a grid running to a
+   horizon, everything emitting light. ---- */
+[data-theme="decade-80s"] {
+  --font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --body-bg: radial-gradient(circle at 50% 100%, rgba(255, 42, 190, 0.3), transparent 55%),
+    radial-gradient(circle at 15% 8%, rgba(0, 224, 255, 0.22), transparent 48%),
+    linear-gradient(180deg, #150029 0%, #08000f 55%, #000000 100%);
+  --body-texture: repeating-linear-gradient(
+      0deg,
+      rgba(0, 224, 255, 0.06) 0 1px,
+      rgba(0, 0, 0, 0) 1px 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 42, 190, 0.05) 0 1px,
+      rgba(0, 0, 0, 0) 1px 4px
+    );
+  --body-glyph-color: rgba(0, 224, 255, 0.1);
+
+  --nav-bg: linear-gradient(180deg, #2b0050 0%, #1a0033 48%, #12002a 52%, #05000d 100%);
+  --nav-border: #ff2abe;
+  --nav-text: #6ff4ff;
+  --nav-active-text: #ffffff;
+
+  --subnav-bg: linear-gradient(180deg, #1a0033, #05000d);
+  --subnav-border: #8a1b7a;
+  --subnav-text: #ff8ade;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #b6fbff, #ff2abe 75%);
+  --wordmark-color: #6ff4ff;
+
+  --acct-btn-bg: linear-gradient(180deg, #47106e 0%, #33094f 46%, #2a0742 50%, #1a0129 100%);
+  --acct-btn-border: #ff2abe;
+  --acct-btn-text: #6ff4ff;
+  --acct-btn-primary-bg: linear-gradient(180deg, #ff5cd0 0%, #ff2abe 46%, #e00fa2 50%, #a3007a 100%);
+  --acct-btn-primary-border: #6d0052;
+
+  --panel-border: #6b1f8c;
+  --panel-head-bg: linear-gradient(180deg, #2b0050, #16002b);
+  --panel-head-border: #ff2abe;
+  --panel-head-text: #6ff4ff;
+  --panel-body-bg: #140626;
+  --shelf-bg: #140626;
+
+  /* Light type on a dark panel - the one theme here that inverts, so
+     --text and --link have to be restated or they would be inherited
+     dark and vanish. */
+  --text: #f2e9ff;
+  --muted: #a98fc4;
+  --link: #6ff4ff;
+
+  --btn-bg: linear-gradient(180deg, #ff5cd0 0%, #ff2abe 46%, #e00fa2 50%, #a3007a 100%);
+  --btn-border: #6d0052;
+  --btn-text: #ffffff;
+
+  --hero-title-color: #ffffff;
+  --hero-tagline-color: #6ff4ff;
+  --hero-text-shadow: 0 0 10px rgba(255, 42, 190, 0.7);
+
+  --like-color: #ff2abe;
+}
+
+/* ---- The 90s: the desktop. Teal wallpaper, a navy title bar, silver
+   panels and a blue underlined link. Pushed as far as it goes - this is
+   the decade people actually mean by "old web". ---- */
+[data-theme="decade-90s"] {
+  --font-family: Verdana, Geneva, "Trebuchet MS", sans-serif;
+  --font-display: "Times New Roman", Times, serif;
+
+  --body-bg: linear-gradient(180deg, #008080 0%, #007070 100%);
+  --body-texture: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.035) 0 2px,
+      rgba(0, 0, 0, 0) 2px 4px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(0, 0, 0, 0.04) 0 2px,
+      rgba(0, 0, 0, 0) 2px 4px
+    );
+  --body-glyph-color: rgba(255, 255, 255, 0.08);
+
+  /* The title bar, right down to the gradient it had. */
+  --nav-bg: linear-gradient(90deg, #000080 0%, #0a6cb0 100%);
+  --nav-border: #000040;
+  --nav-text: #ffffff;
+  --nav-active-text: #ffffff;
+
+  --subnav-bg: linear-gradient(180deg, #d4d0c8, #bfbbb4);
+  --subnav-border: #808080;
+  --subnav-text: #000080;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #ffffff, #000080 75%);
+  --wordmark-color: #ffffff;
+
+  /* Grey chrome with a hard light edge and a hard dark edge - the
+     bevel every dialog box on earth had. */
+  --acct-btn-bg: linear-gradient(180deg, #f0ece4 0%, #d4d0c8 48%, #c8c4bc 52%, #a8a49c 100%);
+  --acct-btn-border: #404040;
+  --acct-btn-text: #000000;
+  --acct-btn-primary-bg: linear-gradient(180deg, #1084d0 0%, #0064b0 48%, #005498 50%, #000080 100%);
+  --acct-btn-primary-border: #000040;
+
+  --panel-border: #808080;
+  --panel-head-bg: linear-gradient(90deg, #000080 0%, #0a6cb0 100%);
+  --panel-head-border: #000040;
+  --panel-head-text: #ffffff;
+  --panel-body-bg: #ffffff;
+  --shelf-bg: #d4d0c8;
+
+  --text: #000000;
+  --muted: #5a5a5a;
+  /* The link colour. Not chosen - remembered. */
+  --link: #0000ee;
+
+  --btn-bg: linear-gradient(180deg, #f0ece4 0%, #d4d0c8 48%, #c8c4bc 52%, #a8a49c 100%);
+  --btn-border: #404040;
+  --btn-text: #000000;
+
+  --hero-title-color: #ffffff;
+  --hero-tagline-color: #c8f0f0;
+  --hero-text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+
+  --like-color: #ff0000;
+}
+
+/* ---- The 2000s: chrome, gloss and hot pink. Y2K into bling - every
+   surface wet-looking, every edge catching light. ---- */
+[data-theme="decade-00s"] {
+  --font-family: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
+
+  --body-bg: radial-gradient(circle at 22% 10%, rgba(255, 255, 255, 0.85), transparent 42%),
+    radial-gradient(circle at 78% 88%, rgba(255, 138, 212, 0.5), transparent 50%),
+    linear-gradient(160deg, #cfeaff 0%, #e9d6ff 48%, #ffd9ef 100%);
+  --body-texture: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0 1px,
+    rgba(0, 0, 0, 0.02) 1px 3px
+  );
+  --body-glyph-color: rgba(201, 24, 127, 0.1);
+
+  /* Deep enough at the top stop that white type survives it. The first
+     draft ran #ffa8dd up there, which is white on candy floss at 1.77:1 -
+     the contrast guard failed the build on it, correctly. */
+  --nav-bg: linear-gradient(180deg, #d22a89 0%, #c01978 46%, #b81273 52%, #8f0a55 100%);
+  --nav-border: #8a0d55;
+  --nav-text: #ffffff;
+  --nav-active-text: #ffffff;
+
+  --subnav-bg: linear-gradient(180deg, #f6fbff 0%, #d7e9f8 48%, #c2dcf0 52%, #a8c8e0 100%);
+  --subnav-border: #7fa4c0;
+  --subnav-text: #b81273;
+
+  --orb-bg: radial-gradient(circle at 35% 28%, #ffffff, #ff5cbb 70%);
+  --wordmark-color: #ffffff;
+
+  /* Aqua-era chrome: bright lip, hard midpoint, dark base. */
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #e6f2ff 46%, #c3ddf5 50%, #8fb8dd 100%);
+  --acct-btn-border: #5d87ab;
+  --acct-btn-text: #123a5c;
+  --acct-btn-primary-bg: linear-gradient(180deg, #ff9ad6 0%, #ff4fb2 46%, #e5288f 50%, #a80f66 100%);
+  --acct-btn-primary-border: #7a0a4a;
+
+  --panel-border: #e7b9d8;
+  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #ffe4f4 48%, #ffd0ec 52%, #ffb4de 100%);
+  --panel-head-border: #e79ac8;
+  --panel-head-text: #8a0d55;
+  --panel-body-bg: #ffffff;
+  --shelf-bg: #fff6fb;
+
+  --text: #2c1b25;
+  --muted: #8a6e7d;
+  --link: #c9187f;
+
+  --btn-bg: linear-gradient(180deg, #ff9ad6 0%, #ff4fb2 46%, #e5288f 50%, #a80f66 100%);
+  --btn-border: #7a0a4a;
+  --btn-text: #ffffff;
+
+  --hero-title-color: #ffffff;
+  --hero-tagline-color: #ffe4f4;
+  --hero-text-shadow: 0 1px 3px rgba(138, 13, 85, 0.55);
+
+  --like-color: #ff2d95;
+}
+
+/* ---- The 2010s: flat. White, hairlines, one blue, no gloss anywhere.
+   The decade that took the shine off everything. ---- */
+[data-theme="decade-10s"] {
+  --font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --body-bg: linear-gradient(180deg, #fafafa 0%, #f2f2f2 100%);
+  --body-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --body-glyph-color: rgba(0, 0, 0, 0.035);
+
+  --nav-bg: linear-gradient(180deg, #ffffff, #fbfbfb);
+  --nav-border: #dbdbdb;
+  --nav-text: #262626;
+  --nav-active-text: #ffffff;
+
+  --subnav-bg: linear-gradient(180deg, #ffffff, #fafafa);
+  --subnav-border: #efefef;
+  --subnav-text: #737373;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #ffffff, #0072c6 78%);
+  --wordmark-color: #262626;
+
+  --acct-btn-bg: linear-gradient(180deg, #ffffff, #fafafa);
+  --acct-btn-border: #dbdbdb;
+  --acct-btn-text: #262626;
+  --acct-btn-primary-bg: linear-gradient(180deg, #1f86d0, #0072c6);
+  --acct-btn-primary-border: #005b9e;
+
+  --panel-border: #efefef;
+  --panel-head-bg: linear-gradient(180deg, #ffffff, #fbfbfb);
+  --panel-head-border: #efefef;
+  --panel-head-text: #262626;
+  --panel-body-bg: #ffffff;
+  --shelf-bg: #fafafa;
+
+  --text: #262626;
+  --muted: #8e8e8e;
+  --link: #0072c6;
+
+  --btn-bg: linear-gradient(180deg, #1f86d0, #0072c6);
+  --btn-border: #005b9e;
+  --btn-text: #ffffff;
+
+  --hero-title-color: #262626;
+  --hero-tagline-color: #8e8e8e;
+  --hero-text-shadow: none;
+
+  --like-color: #ed4956;
 }

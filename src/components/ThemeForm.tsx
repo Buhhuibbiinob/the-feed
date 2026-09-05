@@ -6,7 +6,14 @@ import { THEMES } from "@/lib/themes";
 
 const initialState: ThemeFormState = {};
 
-export function ThemeForm({ currentTheme }: { currentTheme: string }) {
+export function ThemeForm({
+  currentTheme,
+  themeNames = {},
+}: {
+  currentTheme: string;
+  /** Live names, since an admin may have renamed any of them. */
+  themeNames?: Record<string, string>;
+}) {
   const [state, action, pending] = useActionState(updateTheme, initialState);
   const [selected, setSelected] = useState(currentTheme);
 
@@ -41,8 +48,10 @@ export function ThemeForm({ currentTheme }: { currentTheme: string }) {
             onClick={() => pick(theme.id)}
           >
             <div className="theme-swatch-preview" />
-            <div className="theme-swatch-label">{theme.label}</div>
-            <div className="theme-swatch-desc">{theme.description}</div>
+            {/* Name only. A theme is a picture - you pick it by looking at
+                the swatch, not by reading a sentence about glossy chrome
+                underneath one. */}
+            <div className="theme-swatch-label">{themeNames[theme.id] ?? theme.label}</div>
           </div>
         ))}
       </div>

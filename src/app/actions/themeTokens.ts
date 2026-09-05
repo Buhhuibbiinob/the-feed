@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { isValidTheme } from "@/lib/themes";
+import { cleanThemeName, defaultThemeName, themeNameKey } from "@/lib/themeNames";
 import { EDITABLE_TOKENS, isSafeTokenValue } from "@/lib/themeTokens";
 import { SITE_THEME_KEY, SITE_THEME_FORCED_KEY } from "@/lib/siteSettings";
 import { isImageFile, guessContentType, megabytes, MAX_BACKGROUND_BYTES } from "@/lib/uploads";
@@ -188,4 +189,33 @@ export async function clearThemeBackground(formData: FormData) {
 
   revalidatePath("/", "layout");
   revalidatePath("/admin/themes");
+}
+
+/**
+ * Renames a theme, or puts its shipped name back when left blank.
+ *
+ * Display only: the theme's id never moves, so nobody's profile changes
+ * theme because somebody retyped a label.
+ */
+export async function setThemeName(formData: FormData) {
+  const { supabase, admin } = await requireAdmin();
+  if (!admin) return;
+
+  const theme = String(formData.get("theme") ?? "");
+  if (!isValidTheme(theme)) return;
+
+  const name = cleanThemeName(formData.get("name"));
+  if (!name || name === defaultThemeName(theme)) {
+    // Storing a row that says the same thing as the code would leave a
+    // stale copy behind the next time a shipped name changes.
+    await supabase.from("site_settings").delete().eq("key", themeNameKey(theme));
+  } else {
+    await supabase
+      .from("site_settings")
+      .upsert([{ key: themeNameKey(theme), value: name }], { onConflict: "key" });
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/themes");
+  revalidatePath("/settings");
 }
