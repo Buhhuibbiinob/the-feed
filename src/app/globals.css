@@ -12831,3 +12831,144 @@ a.issue-link::after {
 
   --like-color: #ed4956;
 }
+
+/* ================================================================
+   The tab bar, matched to the iOS 6 Clock app
+   ================================================================
+   The reference is four tabs on near-black, every glyph a thin outline
+   of one weight, and the selected tab sitting in a shallow lighter well
+   that is cut INTO the bar rather than raised off it.
+
+   Three things did most of the damage in the old bar and all three are
+   gone here:
+
+     1. The selected tab was told apart by a glow. A glow is a light
+        source, and a bar is not lit from inside - the reference marks
+        selection with a recess, which is the same trick as a pressed
+        button and reads instantly without adding any colour to the bar.
+     2. The icons were solid silhouettes. At 25px a filled shape is a
+        blob; the outlines carry the same information at a fraction of
+        the visual weight, which is why the reference bar looks calm
+        with four icons on it and ours looked busy with five.
+     3. The Post tab was a raised blue circle hanging above the bar.
+        There is no such thing in the reference - every tab is the same
+        object - so it is a tab now. Posting keeps its prominence from
+        the "+ Post" button in the top bar and the composer sheet, both
+        of which are still one tap away.
+
+   This block is last in the file on purpose. The tab bar had rules in
+   four places, two of them inside media queries and two not, and the
+   later ones silently won - so the honest fix is to state the finished
+   thing once, at the end, rather than to leave four rules arguing. */
+
+.sk-ios-tabbar {
+  /* Padding so the wells never touch the bar's own edges. */
+  padding: 4px 4px 3px;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+.sk-ios-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  margin: 0 1px;
+  padding: 4px 0 3px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  /* Both states are colours, not opacities. Opacity fades the badge and
+     the label with the icon, which is why the unread count used to go
+     dim on every tab you were not standing on. */
+  color: #8e8e93;
+}
+
+.sk-ios-tab-icon {
+  position: relative;
+  width: 25px;
+  height: 25px;
+  /* Was 0.65 - the icons are outlines now and dim themselves. */
+  opacity: 1;
+  color: inherit;
+}
+.sk-ios-tab-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sk-ios-tab-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: inherit;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
+  /* Five labels on a 320px phone: "Discover" must shrink rather than
+     wrap onto a second line and make that one tab taller. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The selected tab: a recess, not a glow. */
+.sk-ios-tab.active {
+  color: #ffffff;
+  background: linear-gradient(180deg, #3a3a3c 0%, #29292b 55%, #202022 100%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.65), inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.sk-ios-tab.active .sk-ios-tab-icon {
+  /* The iOS 6 tint. The only colour anywhere on this bar. */
+  color: #34aadc;
+  filter: none;
+}
+.sk-ios-tab.active .sk-ios-tab-label {
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7);
+}
+.sk-ios-tab:active {
+  color: #c7c7cc;
+}
+
+/* The Post tab is an ordinary tab now; the FAB rules have nothing left
+   to style, and leaving them would keep a 40px circle in the markup's
+   reach if anything ever re-added the class. */
+.sk-ios-post-fab {
+  all: unset;
+  display: contents;
+}
+
+[data-theme="ios-light"] .sk-ios-tabbar {
+  background: linear-gradient(180deg, #2e2e30 0%, #202022 6%, #151517 55%, #0c0c0e 100%);
+  border-top: 1px solid #000000;
+  /* A hairline of light along the very top edge, then the contact
+     shadow. Same construction as the nav bar at the other end. */
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.14) inset, 0 -2px 8px rgba(0, 0, 0, 0.45);
+}
+[data-theme="ios-light"] .sk-ios-tab {
+  color: #8e8e93;
+}
+[data-theme="ios-light"] .sk-ios-tab-label {
+  color: inherit;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
+}
+[data-theme="ios-light"] .sk-ios-tab.active {
+  color: #ffffff;
+}
+[data-theme="ios-light"] .sk-ios-tab.active .sk-ios-tab-icon {
+  color: #34aadc;
+  filter: none;
+}
+[data-theme="ios-light"] .sk-ios-tab.active .sk-ios-tab-label {
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7);
+}
