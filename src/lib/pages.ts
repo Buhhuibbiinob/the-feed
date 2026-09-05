@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import { isAdmin } from "@/lib/admin";
 
+import { BUILTIN_PAGES, DEFAULT_ARCHIVED_SLUGS } from "@/lib/builtinPages";
+
 export { BUILTIN_PAGES, MORE_PAGES } from "@/lib/builtinPages";
 
 export type SitePage = {
@@ -39,12 +41,24 @@ export async function guardBuiltinPage(supabase: SupabaseClient, slug: string): 
 }
 
 export async function getArchivedBuiltinSlugs(supabase: SupabaseClient): Promise<Set<string>> {
+  // Both states are read, not just archived=true, because some pages are
+  // off by default (DEFAULT_ARCHIVED_SLUGS). For those, "no row" means
+  // archived, so an explicit archived=false row is the only thing that
+  // can turn one on - and it has to be able to outrank the default.
   const { data } = await supabase
     .from("site_pages")
-    .select("slug")
-    .eq("kind", "builtin")
-    .eq("archived", true);
-  return new Set((data ?? []).map((r) => r.slug as string));
+    .select("slug, archived")
+    .eq("kind", "builtin");
+
+  const explicit = new Map((data ?? []).map((r) => [r.slug as string, r.archived as boolean]));
+  const archived = new Set<string>();
+  for (const page of BUILTIN_PAGES) {
+    const row = explicit.get(page.slug);
+    if (row === undefined ? DEFAULT_ARCHIVED_SLUGS.has(page.slug) : row) {
+      archived.add(page.slug);
+    }
+  }
+  return archived;
 }
 
 export async function getActiveCustomPages(supabase: SupabaseClient): Promise<SitePage[]> {

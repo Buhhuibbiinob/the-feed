@@ -185,6 +185,7 @@ export default async function RootLayout({
                   isAdmin={admin}
                   notificationCount={notificationCount}
                   unreadDmCount={unreadDmCount}
+                  hiddenSlugs={[...archivedSlugs]}
                 />
                 <div className="split-detail">
                   <PageTransition>{children}</PageTransition>
