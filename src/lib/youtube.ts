@@ -110,6 +110,7 @@ type YoutubeSearchItem = {
 export type SearchFailure =
   | { reason: "not-configured" }
   | { reason: "quota" }
+  | { reason: "rate-limited" }
   | { reason: "http"; status: number }
   | { reason: "network" };
 
@@ -121,6 +122,10 @@ export function describeSearchFailure(failure: SearchFailure): string {
       return "Song search isn't set up yet - YOUTUBE_API_KEY is missing.";
     case "quota":
       return "Song search has used up today's YouTube quota. It comes back tomorrow.";
+    case "rate-limited":
+      // 429 is searches arriving too fast, not the daily wall - it clears
+      // in seconds, so this says wait rather than come back tomorrow.
+      return "Searching a bit fast for YouTube. Wait a few seconds and try again.";
     case "network":
       return "Couldn't reach YouTube. Try again in a moment.";
     default:
@@ -159,10 +164,9 @@ export async function searchVideosDetailed(
   if (!res.ok) {
     // 403 is what an exhausted quota looks like, and it is by far the
     // likeliest failure on a key that used to work.
-    return {
-      videos: [],
-      failure: res.status === 403 ? { reason: "quota" } : { reason: "http", status: res.status },
-    };
+    if (res.status === 403) return { videos: [], failure: { reason: "quota" } };
+    if (res.status === 429) return { videos: [], failure: { reason: "rate-limited" } };
+    return { videos: [], failure: { reason: "http", status: res.status } };
   }
 
   const data = (await res.json()) as { items: YoutubeSearchItem[] };

@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  MIN_QUERY_LENGTH,
+  SEARCH_DEBOUNCE_MS,
+  searchVideosClient,
+} from "@/lib/videoSearch";
+
 import { useActionState, useEffect, useState } from "react";
 import { setStatus, clearStatus, type ProfileFormState } from "@/app/actions/profile";
 import type { YoutubeVideo } from "@/lib/youtube";
@@ -30,13 +36,15 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
     let cancelled = false;
     const timeout = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(videoQuery)}`);
-        const data = await res.json();
-        if (!cancelled) setVideoResults(data.videos ?? []);
+        const answer = await searchVideosClient(videoQuery);
+        if (!cancelled && answer) {
+          setVideoResults(answer.videos);
+          setSearchError(answer.error);
+        }
       } finally {
         if (!cancelled) setVideoSearching(false);
       }
-    }, 350);
+    }, SEARCH_DEBOUNCE_MS);
     return () => {
       cancelled = true;
       clearTimeout(timeout);
