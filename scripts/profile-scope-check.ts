@@ -12,11 +12,23 @@
  *
  * Run: npx tsx scripts/profile-scope-check.ts
  */
+import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const MARKER = "The profile page as the iTunes Music Store";
 /** Anchors that only ever appear on a profile (or club) page. */
-const PROFILE_ONLY = [".profile-columns", ".profile-col-main", ".profile-col-side", ".itunes-", ".pf-"];
+const PROFILE_ONLY = [
+  ".profile-columns",
+  ".profile-col-main",
+  ".profile-col-side",
+  ".itunes-",
+  ".pf-",
+  // The store front. ".store" is a generic enough name that this is only
+  // safe while ProfileStore is the sole thing rendering it - which is
+  // checked below rather than assumed, because the day somebody mounts
+  // it on the homepage this list would silently start lying.
+  ".store",
+];
 
 const css = readFileSync("src/app/globals.css", "utf8");
 let failures = 0;
@@ -58,6 +70,22 @@ check(
 // the phone where there is no room for a third column.
 const sourceDefault = /\.itunes-source\s*\{[^}]*display:\s*none/.test(block);
 check("the Source column is hidden until there is room for it", sourceDefault);
+
+// The store markup itself must stay on the profile. The CSS check above
+// is only as true as this is: ".store" is allowed as a profile-only
+// anchor because exactly one page mounts the component that emits it.
+const importers = execSync(
+  "grep -rl 'components/ProfileStore' src --include=*.tsx --include=*.ts || true",
+  { encoding: "utf8" }
+)
+  .split("\n")
+  .map((l) => l.trim())
+  .filter((l) => l && !l.endsWith("components/ProfileStore.tsx"));
+check(
+  "only the profile page mounts the store",
+  importers.length === 1 && importers[0].includes("profile/"),
+  importers.join(", ") || "nothing imports it"
+);
 
 if (failures > 0) {
   console.error(`\n${failures} check${failures === 1 ? "" : "s"} failed.`);
