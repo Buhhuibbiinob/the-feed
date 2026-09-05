@@ -55,16 +55,22 @@ function SlotForm({ slot, current, ownerId }: { slot: SlotIndex; current?: Media
             />
           </div>
         ) : (
-          <div className="field">
-            <label htmlFor={`slot-img-${slot}`}>Image URL</label>
-            <input
-              id={`slot-img-${slot}`}
-              name="image_url"
-              type="text"
-              defaultValue={current?.imageUrl ?? ""}
-              placeholder="https://..."
-            />
-          </div>
+          <>
+            <div className="field">
+              <label htmlFor={`slot-file-${slot}`}>Choose a file</label>
+              <input id={`slot-file-${slot}`} name="image_file" type="file" accept="image/*" />
+            </div>
+            <div className="field">
+              <label htmlFor={`slot-img-${slot}`}>…or paste an image URL</label>
+              <input
+                id={`slot-img-${slot}`}
+                name="image_url"
+                type="text"
+                defaultValue={current?.imageUrl ?? ""}
+                placeholder="https://..."
+              />
+            </div>
+          </>
         )}
         <div className="field">
           <label htmlFor={`slot-title-${slot}`}>Caption (optional)</label>

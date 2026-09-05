@@ -115,8 +115,13 @@ function Shelf({
           {items.map((item) => (
             <Link key={item.id} href={item.href} className="store-cell">
               <Art item={item} size="shelf" />
-              <span className="store-cell-title">{item.title}</span>
-              <span className="store-cell-sub">{item.subtitle}</span>
+              {/* Wrapped, so the row layout on a phone puts the art
+                  beside a COLUMN of two lines rather than beside two
+                  separate items that end up on the same line. */}
+              <span className="store-cell-lines">
+                <span className="store-cell-title">{item.title}</span>
+                <span className="store-cell-sub">{item.subtitle}</span>
+              </span>
             </Link>
           ))}
         </div>

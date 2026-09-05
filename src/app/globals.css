@@ -13192,6 +13192,12 @@ a.issue-link::after {
 .store-track::-webkit-scrollbar {
   display: none;
 }
+.store-cell-lines {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
 .store-cell {
   flex: 0 0 calc(25% - 8px);
   min-width: 92px;
@@ -13284,6 +13290,18 @@ a.issue-link::after {
    What is left of stickers after the layer went: a grid at one size, in
    a panel, on the profile only. Everything that made them a decoration
    - drag, scale, rotate, z-order - is absent by design. */
+.sticker-hub-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+.sticker-hub-add input[type="file"] {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+}
 .sticker-hub {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
@@ -13427,6 +13445,126 @@ a.issue-link::after {
     letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
+  }
+
+  /* ---- Closer to the reference ----
+     The artist page is dark, and its Top Songs is a VERTICAL list with
+     small square art on each row - not a horizontal shelf. A shelf you
+     push sideways is right for a store front on a laptop and wrong for
+     the one screen a phone gives you: it hides three of every four
+     records behind a gesture nobody is told about. */
+  .store {
+    background: #1c1c1e;
+    color: #f2f2f7;
+    margin-bottom: 0;
+  }
+  .store-shelf,
+  .store-side-panel,
+  .store-chart,
+  .store-shelf-head {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .store-track {
+    flex-direction: column;
+    gap: 0;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+  /* Each cell becomes a row: art, then two lines of text beside it. */
+  .store-cell {
+    flex: none;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 11px;
+    text-align: left;
+    padding: 7px 14px 7px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+  }
+  .store-cell:last-child {
+    border-bottom: 0;
+  }
+  .store-art-shelf {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 3px;
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+  .store-cell-lines {
+    flex: 1;
+    min-width: 0;
+  }
+  .store-cell-title,
+  .store-cell-sub {
+    text-align: left;
+  }
+  .store-cell-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #f2f2f7;
+  }
+  .store-cell-sub {
+    font-size: 11.5px;
+    color: #98989f;
+  }
+  /* The chevron the reference puts after a section name. */
+  .store-shelf-title::after {
+    content: " \203A";
+    opacity: 0.7;
+  }
+  .store-shelf-title {
+    color: #98989f;
+  }
+  .store-chart-list li,
+  .store-side-list li {
+    border-color: rgba(255, 255, 255, 0.11);
+    color: #98989f;
+  }
+  .store-chart-list b,
+  .store-chart-list a {
+    color: #f2f2f7;
+  }
+  .store-chart-head,
+  .store-side-head {
+    background: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: #98989f;
+    text-shadow: none;
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 14px 14px 6px;
+  }
+  .store-chart-foot {
+    background: none;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #0a84ff;
+  }
+  .store-statusbar {
+    background: none;
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0;
+    color: #98989f;
+    padding: 10px 14px;
+    margin-top: 0;
+  }
+  .store-statusbar b {
+    color: #f2f2f7;
+  }
+  .store-display {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: none;
+    margin: 8px 14px;
+  }
+  .store-display-text b {
+    color: #f2f2f7;
+  }
+  .store-genre {
+    padding: 0 14px;
   }
 
   /* Section headings become the reference's small caps rule. */
