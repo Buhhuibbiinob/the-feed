@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { siteUrl } from "@/lib/site";
 
-const API_KEY = process.env.YOUTUBE_API_KEY!;
+// No "!" here. The non-null assertion was a lie the type system
+// believed: with no key set, `key=undefined` went to YouTube, YouTube
+// said 400, and the code below turned that into an empty list.
+const API_KEY = process.env.YOUTUBE_API_KEY ?? "";
 const CLIENT_ID = process.env.YOUTUBE_CLIENT_ID!;
 const CLIENT_SECRET = process.env.YOUTUBE_CLIENT_SECRET!;
 const SCOPES = "https://www.googleapis.com/auth/youtube.readonly";
@@ -95,6 +98,91 @@ type YoutubeSearchItem = {
 // Public search - uses a server API key, not a signed-in user's OAuth
 // token, so it works for every visitor regardless of whether they've
 // connected their own YouTube account.
+/**
+ * Why a search came back with nothing.
+ *
+ * "No matches" and "search is broken" look identical to somebody typing
+ * into a box, and for a long time they looked identical here too: every
+ * failure returned an empty array. A missing API key, an exhausted daily
+ * quota and a genuinely obscure song all produced the same "No matches
+ * found", which is the most misleading thing a search box can say.
+ */
+export type SearchFailure =
+  | { reason: "not-configured" }
+  | { reason: "quota" }
+  | { reason: "http"; status: number }
+  | { reason: "network" };
+
+export type SearchResult = { videos: YoutubeVideo[]; failure?: SearchFailure };
+
+export function describeSearchFailure(failure: SearchFailure): string {
+  switch (failure.reason) {
+    case "not-configured":
+      return "Song search isn't set up yet - YOUTUBE_API_KEY is missing.";
+    case "quota":
+      return "Song search has used up today's YouTube quota. It comes back tomorrow.";
+    case "network":
+      return "Couldn't reach YouTube. Try again in a moment.";
+    default:
+      return `YouTube said ${failure.status}. Try again in a moment.`;
+  }
+}
+
+/** The full answer, failure included. */
+export async function searchVideosDetailed(
+  query: string,
+  limit = 8,
+  options: Parameters<typeof searchVideos>[2] = {}
+): Promise<SearchResult> {
+  if (!API_KEY) return { videos: [], failure: { reason: "not-configured" } };
+
+  const params = new URLSearchParams({
+    key: API_KEY,
+    q: query,
+    part: "snippet",
+    type: "video",
+    maxResults: String(limit),
+    ...(options.publishedAfter ? { publishedAfter: options.publishedAfter } : {}),
+    ...(options.publishedBefore ? { publishedBefore: options.publishedBefore } : {}),
+    ...(options.order ? { order: options.order } : {}),
+  });
+
+  let res: Response;
+  try {
+    res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`, {
+      next: { revalidate: options.revalidateSeconds ?? 1800 },
+    });
+  } catch {
+    return { videos: [], failure: { reason: "network" } };
+  }
+
+  if (!res.ok) {
+    // 403 is what an exhausted quota looks like, and it is by far the
+    // likeliest failure on a key that used to work.
+    return {
+      videos: [],
+      failure: res.status === 403 ? { reason: "quota" } : { reason: "http", status: res.status },
+    };
+  }
+
+  const data = (await res.json()) as { items: YoutubeSearchItem[] };
+  return {
+    videos: data.items
+      .filter((item) => item.id.videoId)
+      .map((item) => ({
+        id: item.id.videoId,
+        title: item.snippet.title,
+        channelTitle: item.snippet.channelTitle,
+        thumbnailUrl:
+          item.snippet.thumbnails.medium?.url ?? item.snippet.thumbnails.default?.url ?? null,
+      })),
+  };
+}
+
+/**
+ * Videos only, for the callers that run on a schedule and have nobody to
+ * tell. The search box uses searchVideosDetailed instead.
+ */
 export async function searchVideos(
   query: string,
   limit = 8,
@@ -108,31 +196,7 @@ export async function searchVideos(
     revalidateSeconds?: number;
   } = {}
 ): Promise<YoutubeVideo[]> {
-  const params = new URLSearchParams({
-    key: API_KEY,
-    q: query,
-    part: "snippet",
-    type: "video",
-    maxResults: String(limit),
-    ...(options.publishedAfter ? { publishedAfter: options.publishedAfter } : {}),
-    ...(options.publishedBefore ? { publishedBefore: options.publishedBefore } : {}),
-    ...(options.order ? { order: options.order } : {}),
-  });
-  const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`, {
-    // Identical query returns identical results for everyone browsing the
-    // same title, so cache it the same way Spotify search results are cached.
-    next: { revalidate: options.revalidateSeconds ?? 1800 },
-  });
-  if (!res.ok) return [];
-  const data = (await res.json()) as { items: YoutubeSearchItem[] };
-  return data.items
-    .filter((item) => item.id.videoId)
-    .map((item) => ({
-      id: item.id.videoId,
-      title: item.snippet.title,
-      channelTitle: item.snippet.channelTitle,
-      thumbnailUrl: item.snippet.thumbnails.medium?.url ?? item.snippet.thumbnails.default?.url ?? null,
-    }));
+  return (await searchVideosDetailed(query, limit, options)).videos;
 }
 
 type YoutubeAccountRow = {

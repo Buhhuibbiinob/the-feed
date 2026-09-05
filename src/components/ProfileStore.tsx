@@ -256,6 +256,35 @@ export function ProfileStore({
 
       <div className="store-body">
         <aside className="store-side">
+          {/* The reference's Source column is a LIST of places - New
+              Releases, Just Added, Power Search, Browse Music, Requests
+              & Feedback - sitting above Featured Artists. Ours stopped
+              after the genre menu, which left the column a third the
+              height of the shelves beside it and a wall of wallpaper
+              under it. These are the same destinations this profile
+              actually has. */}
+          <div className="store-side-panel store-side-browse">
+            <ul className="store-side-list">
+              <li>
+                <a href="#reviews">{labels.store_new}</a>
+              </li>
+              <li>
+                <a href="#favorites">{labels.store_added}</a>
+              </li>
+              <li>
+                <Link href="/search">Power Search</Link>
+              </li>
+              <li>
+                <Link href="/recs">Browse Music</Link>
+              </li>
+              <li>
+                <a href="#clubs">Clubs</a>
+              </li>
+              <li>
+                <a href="#guestbook">Requests &amp; Feedback</a>
+              </li>
+            </ul>
+          </div>
           {genres.length > 0 && (
             <form action={`/profile/${username}`} className="store-genre">
               <select name="genre" defaultValue="" aria-label="Choose genre">
@@ -278,6 +307,9 @@ export function ProfileStore({
                   </li>
                 ))}
               </ul>
+              <Link href="/profiles" className="store-side-foot">
+                See All
+              </Link>
             </div>
           )}
         </aside>

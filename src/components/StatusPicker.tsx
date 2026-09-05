@@ -16,6 +16,7 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
   const [videoResults, setVideoResults] = useState<YoutubeVideo[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
   const [videoSearching, setVideoSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   // See ClubPostForm: collapse on success during render, not in an effect.
   const [lastOk, setLastOk] = useState(state.ok);
@@ -112,7 +113,7 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
                 {videoSearching ? (
                   <div className="track-result">Searching…</div>
                 ) : videoResults.length === 0 ? (
-                  <div className="track-result">No matches.</div>
+                  <div className="track-result">{searchError ?? "No matches."}</div>
                 ) : (
                   videoResults.map((video) => (
                     <div

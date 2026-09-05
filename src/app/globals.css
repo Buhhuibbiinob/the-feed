@@ -13062,6 +13062,24 @@ a.issue-link::after {
   background: linear-gradient(180deg, #7fb2ee 0%, #4b8ede 47%, #3a7ed3 53%, #2665b8 100%);
   border-bottom: 1px solid #23538f;
 }
+.store-side-browse {
+  margin-bottom: 8px;
+}
+.store-side-browse .store-side-list {
+  padding: 6px 8px;
+}
+.store-side-foot {
+  display: block;
+  padding: 5px 8px;
+  font-size: 10.5px;
+  border-top: 1px solid #cfd8e4;
+  background: linear-gradient(180deg, #f2f6fb, #e2eaf4);
+}
+/* The column runs the height of the shelves beside it rather than
+   stopping a third of the way down. */
+.store-side {
+  align-self: stretch;
+}
 .store-side-list,
 .store-chart-list {
   margin: 0;

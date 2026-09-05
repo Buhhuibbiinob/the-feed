@@ -21,6 +21,7 @@ export function MediaSearchField({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<YoutubeVideo[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   // "Searching" is switched on where the typing happens, not in the effect
   // below: the effect's job is the request, and setting state synchronously
@@ -40,9 +41,15 @@ export function MediaSearchField({
       try {
         const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(trimmed)}`);
         const data = await res.json();
-        if (!cancelled) setResults(data.videos ?? []);
+        if (!cancelled) {
+          setResults(data.videos ?? []);
+          setSearchError(typeof data.error === "string" ? data.error : null);
+        }
       } catch {
-        if (!cancelled) setResults([]);
+        if (!cancelled) {
+          setResults([]);
+          setSearchError("Couldn't reach the search. Try again in a moment.");
+        }
       } finally {
         if (!cancelled) setSearching(false);
       }
@@ -74,7 +81,7 @@ export function MediaSearchField({
           {searching ? (
             <div className="track-result">Searching…</div>
           ) : results.length === 0 ? (
-            <div className="track-result">No matches.</div>
+            <div className="track-result">{searchError ?? "No matches."}</div>
           ) : (
             results.map((video) => (
               <div
