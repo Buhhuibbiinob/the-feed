@@ -2625,6 +2625,15 @@ a:hover {
     grid-template-columns: minmax(0, 1fr) minmax(230px, 280px);
     gap: 0 18px;
   }
+  /* An empty side column still took its 280px and left a strip of
+     wallpaper down the side of the page. :has() is the honest test -
+     the column is only a column when something is in it. */
+  .profile-columns:has(.profile-col-side:empty) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .profile-col-side:empty {
+    display: none;
+  }
   .profile-col-side {
     grid-column: 2;
     grid-row: 1;
@@ -12866,6 +12875,31 @@ a.issue-link::after {
   display: block;
 }
 
+/* ---- The profile picture on the hero ----
+   The tile behind it is their banner, which is wallpaper. This is the
+   face, and a profile without one is not a profile. Round, on a ring, so
+   it reads as a person against whatever photograph is behind it. */
+.store-hero-me .store-hero-text {
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 10px;
+}
+.store-hero-lines {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.store-hero-avatar {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
 /* ================================================================
    The profile page as the iTunes Music Store
    ================================================================
@@ -13337,6 +13371,10 @@ a.issue-link::after {
       rgba(0, 0, 0, 0.35) 45%,
       rgba(0, 0, 0, 0.82) 100%
     );
+  }
+  .store-hero-avatar {
+    width: 62px;
+    height: 62px;
   }
   .store-hero-me .store-hero-text b {
     font-size: 26px;

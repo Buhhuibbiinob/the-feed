@@ -119,6 +119,7 @@ export function ProfileStore({
   caption,
   statusBar,
   nowPlaying,
+  avatarUrl,
 }: {
   /** The first banner is whose page this is - their picture, their name,
    *  their review count. The store is about a person, and three album
@@ -141,6 +142,9 @@ export function ProfileStore({
   statusBar?: React.ReactNode;
   /** Their profile song, in the window's own readout. */
   nowPlaying?: React.ReactNode;
+  /** Their actual profile picture. The hero tile behind it is their
+   *  banner, which is wallpaper - this is the face. */
+  avatarUrl?: string | null;
 }) {
   return (
     <div className="store">
@@ -155,10 +159,22 @@ export function ProfileStore({
           {profileTile && (
             <div className="store-hero-tile store-hero-me">
               <Art item={profileTile} size="hero" />
+              {/* The avatar sits INSIDE the caption block as a flex
+                  child rather than absolutely beside it. Positioning it
+                  absolutely meant offsetting the text with a
+                  padding-left, and .store-hero-text sets `padding`
+                  shorthand - so the two fought and the name rendered
+                  underneath the photo. A row that lays itself out cannot
+                  have that argument. */}
               <span className="store-hero-text">
-                <b>{profileTile.title}</b>
-                <span>{profileTile.subtitle}</span>
-                {caption && <span className="store-hero-caption">{caption}</span>}
+                {avatarUrl && (
+                  <img src={avatarUrl} alt="" className="store-hero-avatar" />
+                )}
+                <span className="store-hero-lines">
+                  <b>{profileTile.title}</b>
+                  <span>{profileTile.subtitle}</span>
+                  {caption && <span className="store-hero-caption">{caption}</span>}
+                </span>
               </span>
               {/* Phone only: the row of actions the reference puts under
                   the name. Rendered here rather than in a panel so it
