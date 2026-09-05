@@ -22,6 +22,8 @@ import { moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
 import { ProfileArranger } from "@/components/ProfileArranger";
 import { ProfileStore } from "@/components/ProfileStore";
 import { StoreNowPlaying } from "@/components/StoreNowPlaying";
+import { MediaSlotsEditor } from "@/components/MediaSlotsEditor";
+import { fetchMediaSlots, resolveSlots } from "@/lib/mediaSlots";
 import { ProfileSongPicker } from "@/components/ProfileSongPicker";
 import { StickerHub } from "@/components/StickerHub";
 import { fetchStickerHub } from "@/lib/stickerHub";
@@ -33,7 +35,7 @@ import {
   hasStorefront,
   heroPicks,
   recentShelf,
-  secondShelf,
+  favoritesShelf,
 } from "@/lib/profileStore";
 import { pageStyle } from "@/lib/pageTheme";
 import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
@@ -508,14 +510,29 @@ export default async function ProfilePage({
   // layout instead - a shopfront with one record on it looks broken in a
   // way a list does not.
   const hubStickers = await fetchStickerHub(supabase, profile.id);
+  const mediaSlots = await fetchMediaSlots(supabase, profile.id);
   const L = await getProfileLabels(supabase);
   const storeHero = heroPicks(posts);
   const storeRecent = recentShelf(posts);
-  const storeSecond = secondShelf(posts, [...storeHero, ...storeRecent]);
+  // The member's own picks, flattened out of the by-kind grouping the
+  // Favorites panel uses.
+  const storeFavorites = favoritesShelf(
+    Object.values(favorites).flat().sort((a, b) => a.position - b.position)
+  );
   const storeChart = chartRows(posts);
   const storeArtists = featuredArtists(posts);
   const storeGenres = genresPresent(posts);
   const showStore = hasStorefront(posts);
+  // Six boxes: the member's choice where they made one, the store's own
+  // pick where they didn't. Slot 0 is their profile tile by default.
+  const resolvedSlots = resolveSlots(mediaSlots, [
+    null,
+    storeHero[0] ?? null,
+    storeHero[1] ?? null,
+    storeRecent[1] ?? null,
+    storeRecent[2] ?? null,
+    storeRecent[3] ?? null,
+  ]);
 
   const pinnedPosts = (pinnedRows ?? [])
     .map((row) => posts.find((p) => p.id === row.post_id))
@@ -1073,15 +1090,16 @@ export default async function ProfilePage({
               hero={storeHero}
               shelves={[
                 { title: L.store_new, items: storeRecent, seeAllHref: `/profile/${profile.username}#reviews` },
-                { title: L.store_added, items: storeSecond, seeAllHref: `/profile/${profile.username}#reviews` },
+                { title: L.store_added, items: storeFavorites, seeAllHref: `/profile/${profile.username}#favorites` },
               ]}
-              promos={storeSecond.slice(0, 3)}
+              promos={storeRecent.slice(1, 4)}
               chart={storeChart}
               artists={storeArtists}
               genres={storeGenres}
               username={profile.username}
               labels={L}
               avatarUrl={profile.avatar_url}
+              slots={resolvedSlots}
               nowPlaying={
                 <StoreNowPlaying
                   youtubeVideoId={songId}
@@ -1230,6 +1248,7 @@ export default async function ProfilePage({
                 ownerId={profile.id}
               />
               <FavoritesEditor favorites={favorites} ownerId={profile.id} />
+              <MediaSlotsEditor slots={mediaSlots} ownerId={profile.id} />
               {/* Colours, fonts, background and module order all live in one
                   editor now, and the same one runs on club pages. */}
                   <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />

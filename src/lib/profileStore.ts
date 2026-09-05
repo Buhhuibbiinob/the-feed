@@ -73,20 +73,35 @@ export function recentShelf(posts: StorePost[], slots = SHELF_SLOTS): StoreItem[
 }
 
 /**
- * "Just Added": the shelf under the first one, and it must not simply
- * repeat it. Anything already on the hero or the recent shelf is skipped,
- * so the two shelves and the banners are three different sets of records
- * rather than the same four albums three times - which is what a small
- * catalogue does to a layout this wide if nobody stops it.
+ * "Selected Favorites": the shelf the member fills themselves.
+ *
+ * This was "Just Added", which was more reviews picked by a rule - and
+ * the trouble with a store built entirely out of rules is that none of
+ * it is a choice. profile_favorites already exists for exactly this
+ * ("hand-picked by the member rather than derived from their reviews -
+ * the whole point is that it says what they want it to say"), so the
+ * shelf reads that rather than inventing a second way to pin things.
+ *
+ * Favourites with no artwork still show, unlike reviews on the first
+ * shelf: somebody typed this one in on purpose, and dropping it because
+ * they had no picture to hand would be the shelf overruling the person
+ * it belongs to.
  */
-export function secondShelf(posts: StorePost[], taken: StoreItem[], slots = SHELF_SLOTS): StoreItem[] {
-  const used = new Set(taken.map((i) => i.id));
-  return withArt(posts)
-    .filter((p) => !used.has(p.id))
-    .slice()
-    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || newest(a, b))
-    .slice(0, slots)
-    .map(toItem);
+export type FavoriteLike = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  imageUrl: string | null;
+};
+
+export function favoritesShelf(favorites: FavoriteLike[], slots = SHELF_SLOTS * 2): StoreItem[] {
+  return favorites.slice(0, slots).map((f) => ({
+    id: f.id,
+    title: f.title,
+    subtitle: f.subtitle ?? "",
+    coverUrl: f.imageUrl,
+    href: `/search?q=${encodeURIComponent(f.title)}`,
+  }));
 }
 
 /**

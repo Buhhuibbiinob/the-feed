@@ -15,7 +15,8 @@ import {
   hasStorefront,
   heroPicks,
   recentShelf,
-  secondShelf,
+  favoritesShelf,
+  type FavoriteLike,
   type StorePost,
 } from "../src/lib/profileStore";
 
@@ -61,11 +62,38 @@ const shelf1 = recentShelf(many);
 check("first shelf is newest first", shelf1.map((i) => i.id).join(",") === "b,c,d,e");
 check("a coverless post never reaches a shelf", !shelf1.some((i) => i.id === "h"));
 
-// The one that matters: three slots, one small catalogue.
-const shelf2 = secondShelf(many, [...hero, ...shelf1]);
-const overlap = shelf2.filter((i) => [...hero, ...shelf1].some((t) => t.id === i.id));
-check("second shelf repeats nothing above it", overlap.length === 0, overlap.map((i) => i.id).join(","));
-check("second shelf still fills up", shelf2.length > 0, `${shelf2.length} items`);
+// ---- the second shelf: their own picks ----
+// This used to be more reviews chosen by a rule, and the test here was
+// that it must not repeat the shelf above. It is the member's own
+// favourites now, so the rule that matters is different: what they
+// picked is what shows, in the order they put it in.
+const favs: FavoriteLike[] = [
+  { id: "f1", title: "Aaliyah", subtitle: "artist", imageUrl: "/a.jpg" },
+  { id: "f2", title: "In the Mood for Love", subtitle: "movie", imageUrl: null },
+  { id: "f3", title: "Twin Peaks", subtitle: null, imageUrl: "/t.jpg" },
+];
+const shelf2 = favoritesShelf(favs);
+check("the favourites shelf keeps their order", shelf2.map((i) => i.id).join(",") === "f1,f2,f3");
+// Deliberately unlike the first shelf, which drops coverless reviews:
+// somebody typed this one in on purpose.
+check(
+  "a favourite with no artwork still shows",
+  shelf2.some((i) => i.id === "f2"),
+  "dropping it would be the shelf overruling the person"
+);
+check("a missing subtitle becomes empty, not 'null'", shelf2[2].subtitle === "");
+check("an empty shortlist is an empty shelf", favoritesShelf([]).length === 0);
+check(
+  "the shelf is capped",
+  favoritesShelf(
+    Array.from({ length: 40 }, (_, i) => ({
+      id: `x${i}`,
+      title: `T${i}`,
+      subtitle: null,
+      imageUrl: null,
+    }))
+  ).length <= 8
+);
 
 // ---- the chart ----
 const chart = chartRows(many);
@@ -110,4 +138,4 @@ if (failures > 0) {
   console.error(`\n${failures} check${failures === 1 ? "" : "s"} failed.`);
   process.exit(1);
 }
-console.log("\nEvery shelf fills, and no two show the same records.");
+console.log("\nEvery shelf fills: reviews by rule, favourites by choice.");
