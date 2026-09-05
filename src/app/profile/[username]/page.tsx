@@ -26,6 +26,7 @@ import { MediaSlotsEditor } from "@/components/MediaSlotsEditor";
 import { fetchMediaSlots, resolveSlots } from "@/lib/mediaSlots";
 import { ProfileSongPicker } from "@/components/ProfileSongPicker";
 import { StickerHub } from "@/components/StickerHub";
+import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
 import { fetchStickerHub } from "@/lib/stickerHub";
 import { getProfileLabels } from "@/lib/profileLabels";
 import {
@@ -494,6 +495,26 @@ export default async function ProfilePage({
   // The guestbook, top-connections and sticker queries were here too.
   // The tables still hold every row; nothing on the page asks for them
   // any more, which is three fewer round trips on every profile view.
+  const { data: guestbookRows } = await supabase
+    .from("guestbook_entries")
+    .select("id, body, created_at, author_id, profiles!guestbook_entries_author_id_fkey(username, avatar_url)")
+    .eq("profile_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(30)
+    .returns<GuestbookRow[]>();
+
+  const guestbook: GuestbookEntry[] = (guestbookRows ?? []).map((row) => {
+    const author = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return {
+      id: row.id,
+      body: row.body,
+      createdAt: row.created_at,
+      authorId: row.author_id,
+      authorUsername: author?.username ?? "someone",
+      authorAvatarUrl: author?.avatar_url ?? null,
+    };
+  });
+
   const { data: pinnedRows } = await supabase
     .from("pinned_posts")
     .select("post_id, position")
@@ -594,7 +615,8 @@ export default async function ProfilePage({
     twin: isOwnProfile && twin !== null,
     about: !!profile.bio,
     pinned: pinnedPosts.length > 0,
-    stickers: hubStickers.length > 0,
+    guestbook: true,
+    stickers: hubStickers.length > 0 || isOwnProfile,
     presence: (viewerCount ?? 0) > 0 || !!custom?.last_seen_at,
     highlights: highlights.length > 0,
     collections: collections.length > 0,
@@ -787,7 +809,7 @@ export default async function ProfilePage({
       case "stickers":
         return (
           <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title={L.stickers}>
-            <StickerHub stickers={hubStickers} isOwner={isOwnProfile} />
+            <StickerHub stickers={hubStickers} isOwner={isOwnProfile} ownerId={profile.id} />
           </Panel>
         );
 
@@ -995,6 +1017,18 @@ export default async function ProfilePage({
               ))}
             </div>
           </div>
+        );
+
+      case "guestbook":
+        return (
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title={L.guestbook}>
+            <Guestbook
+              profileId={profile.id}
+              entries={guestbook}
+              currentUserId={user?.id ?? null}
+              isOwner={isOwnProfile}
+            />
+          </Panel>
         );
 
       case "reviews":

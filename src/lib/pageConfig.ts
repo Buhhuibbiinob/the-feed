@@ -65,6 +65,13 @@ export type ModuleDef = {
 // every member who has already ordered their page.
 // ---- What was taken out, and why ----
 //
+// A second pass removed the side column entirely: Bio, Favorites, By the
+// Numbers, Trophies and Online. None of them was deleted so much as
+// promoted - the bio is on the hero photo, the favourites ARE the second
+// shelf, and the numbers are the status bar along the bottom of the
+// store. Keeping panels that repeat what the store already says is how a
+// page ends up with a column of little boxes down the side of it.
+//
 // Five modules went at once: the mood widget, the autoplaying profile
 // song, the free-text blurbs, the top-friends row and the comment wall.
 // Renaming them had not worked - "Right Now", "On Repeat", "Liner
@@ -82,12 +89,7 @@ export type ModuleDef = {
 // back here and rendering it again.
 export const PAGE_MODULES: ModuleDef[] = [
   // Side column: who you are, at a glance.
-  { id: "about", label: "Bio", surfaces: ["profile", "club"], column: "side", defaultOn: true },
-  { id: "favorites", label: "Favorites", surfaces: ["profile"], column: "side", defaultOn: true },
-  { id: "stats", label: "By the Numbers", surfaces: ["profile", "club"], column: "side", defaultOn: true },
-  { id: "achievements", label: "Trophies", surfaces: ["profile"], column: "side" },
   { id: "clubs", label: "Clubs", surfaces: ["profile"], column: "side" },
-  { id: "presence", label: "Online", surfaces: ["profile"], column: "side" },
   // What is left of stickers: a collection in a box, not a layer over
   // the page. Only appears for people who actually placed some.
   { id: "stickers", label: "Stickers", surfaces: ["profile"], column: "main", defaultOn: true },
@@ -100,6 +102,13 @@ export const PAGE_MODULES: ModuleDef[] = [
   { id: "pinned", label: "Pinned", surfaces: ["profile", "club"], column: "main" },
   { id: "highlights", label: "Greatest Hits", surfaces: ["profile"], column: "main" },
   { id: "collections", label: "Collections", surfaces: ["profile"], column: "main" },
+  // Back, because taking it away left holes. The guestbook was removed
+  // as MySpace furniture and it is - but the thing that made it feel
+  // like that was a wall of comments halfway down a page already full of
+  // widgets. On a page that is otherwise a shopfront, one place for
+  // people to say something is the only part of a profile that is about
+  // anybody other than its owner.
+  { id: "guestbook", label: "Guestbook", surfaces: ["profile", "club"], column: "main", defaultOn: true },
   { id: "reviews", label: "Reviews", surfaces: ["profile", "club"], column: "main", defaultOn: true },
 ];
 

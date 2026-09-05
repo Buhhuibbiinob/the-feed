@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSlotIndex, parseYoutubeId } from "@/lib/mediaSlots";
+import { guessContentType, isImageFile, MAX_BANNER_BYTES, megabytes } from "@/lib/uploads";
 
 export type SlotFormState = { error?: string; ok?: boolean };
 
@@ -42,11 +43,38 @@ export async function setMediaSlot(
     );
     if (error) return { error: describe(error.message) };
   } else {
-    const imageUrl = String(formData.get("image_url") ?? "").trim();
+    // A file if they chose one, otherwise whatever is in the URL box.
+    // Most people have the picture, not a link to it - asking for a URL
+    // and nothing else means asking them to go and host it somewhere
+    // first, which is not a thing to ask.
+    const file = formData.get("image_file");
+    let imageUrl = String(formData.get("image_url") ?? "").trim();
+
+    if (file instanceof File && file.size > 0) {
+      if (!isImageFile(file)) return { error: "That file isn't an image." };
+      if (file.size > MAX_BANNER_BYTES) {
+        return { error: `Image must be under ${megabytes(MAX_BANNER_BYTES)}MB.` };
+      }
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `profile-boxes/${auth.userId}/${slot}.${ext}`;
+      const { error: uploadError } = await auth.supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: guessContentType(file) });
+      if (uploadError) return { error: uploadError.message };
+      const {
+        data: { publicUrl },
+      } = auth.supabase.storage.from("avatars").getPublicUrl(path);
+      // Cache-buster: the path is fixed per slot, so replacing a picture
+      // would otherwise keep showing the old one.
+      imageUrl = `${publicUrl}?t=${Date.now()}`;
+    }
+
     // Relative uploads or full URLs only - never a javascript: or data:
     // string, which is the one way a text field like this turns into a
     // way to run something.
-    if (!/^(https?:\/\/|\/)/.test(imageUrl)) return { error: "Paste an image URL." };
+    if (!/^(https?:\/\/|\/)/.test(imageUrl)) {
+      return { error: "Choose a file, or paste an image URL." };
+    }
     const { error } = await auth.supabase.from("profile_media_slots").upsert(
       { user_id: auth.userId, slot, kind, image_url: imageUrl.slice(0, 500), youtube_id: null, title, subtitle },
       { onConflict: "user_id,slot" }
