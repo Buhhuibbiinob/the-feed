@@ -12,6 +12,7 @@
  * Run: npx tsx scripts/emoji-keyboard-check.ts
  */
 import { existsSync, readdirSync } from "node:fs";
+import { STICKER_PACK } from "../src/lib/stickerPack";
 import { CLASSIC_EMOJI, EMOJI_GROUPS, emojiLabel, spriteFor } from "../src/components/ClassicEmoji";
 
 let failures = 0;
@@ -53,14 +54,28 @@ const unlabelled = allChars.filter((c) => emojiLabel(c) === "emoji");
 check("every key has a search label", unlabelled.length === 0, `${unlabelled.length} unlabelled`);
 
 // ---- 5. No sprite file is orphaned.
-// public/stickers is now fed by exactly one thing. A file nobody names
-// is 2KB nobody will ever remove on purpose, so it gets reported.
-const referenced = new Set(allChars.map((c) => spriteFor(c)).filter(Boolean));
+// Two things name these files now: the emoji keyboard and the sticker
+// pack. A file named by neither is 2KB nobody will ever remove on
+// purpose, so it still gets reported - but the pack coming back is a
+// legitimate second reason for a drawing to exist.
+const referenced = new Set([
+  ...allChars.map((c) => spriteFor(c)),
+  ...STICKER_PACK.map((s) => s.id),
+].filter(Boolean));
 const orphans = readdirSync("public/stickers")
   .filter((f) => f.endsWith(".svg"))
   .map((f) => f.replace(/\.svg$/, ""))
   .filter((id) => !referenced.has(id));
 check("no sprite file is unreachable", orphans.length === 0, orphans.join(", "));
+
+// Every sticker in the pack must have a drawing behind it, or the
+// picker shows a grid with holes in it.
+const packMissing = STICKER_PACK.filter((s) => !existsSync(`public/stickers/${s.id}.svg`));
+check(
+  "every sticker in the pack has a file",
+  packMissing.length === 0,
+  packMissing.map((s) => s.id).join(", ")
+);
 
 // ---- 6. A tab nobody can reach the bottom of is a tab that hides things.
 // 31 keys is five thumb-rows; the Vibes tail that prompted this was 42

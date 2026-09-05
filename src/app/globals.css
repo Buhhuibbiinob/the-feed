@@ -13308,6 +13308,68 @@ a.issue-link::after {
    What is left of stickers after the layer went: a grid at one size, in
    a panel, on the profile only. Everything that made them a decoration
    - drag, scale, rotate, z-order - is absent by design. */
+.sticker-hub-tools {
+  margin-top: 10px;
+}
+/* Choosing from the pack. A grid of buttons at one size, which is the
+   whole difference between a collection and the canvas this used to be:
+   there is nowhere to drop one, so there is nothing to drop it on. */
+.sticker-pack {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 7px;
+  border: 1px solid var(--panel-border);
+  background: var(--shelf-bg, rgba(0, 0, 0, 0.03));
+}
+.sticker-pack-tabs {
+  margin-bottom: 8px;
+  /* Ten groups will not fit across a phone, so the strip scrolls rather
+     than crushing every label to three letters. */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sticker-pack-tabs::-webkit-scrollbar {
+  display: none;
+}
+.sticker-pack-tabs .seg-item {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 0 10px;
+  font-size: 11px;
+}
+.sticker-pack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 5px;
+}
+.sticker-pack-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+}
+.sticker-pack-cell:hover {
+  border-color: var(--panel-border);
+}
+.sticker-pack-cell img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+/* One you already have: shown rather than hidden, so the pack does not
+   reshuffle every time you pick something. */
+.sticker-pack-cell.owned {
+  opacity: 0.32;
+  cursor: default;
+}
+
 .sticker-hub-add {
   display: flex;
   flex-wrap: wrap;

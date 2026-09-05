@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { guessContentType, isImageFile, MAX_AVATAR_BYTES, megabytes } from "@/lib/uploads";
+import { packStickerUrl } from "@/lib/stickerPack";
 
 // Adding to and removing from your own sticker hub.
 //
@@ -73,4 +74,37 @@ export async function addHubSticker(
 
   revalidatePath("/profile", "layout");
   return { ok: true };
+}
+
+/**
+ * Adds one of the site's own stickers to your hub.
+ *
+ * The id is looked up rather than trusted: packStickerUrl returns a path
+ * only for a sticker that exists, so a forged request cannot put an
+ * arbitrary string into image_url. That gate is the whole reason ids are
+ * posted here instead of URLs.
+ */
+export async function addPackSticker(formData: FormData) {
+  const ownerId = String(formData.get("owner_id") ?? "");
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user || user.id !== ownerId) return;
+
+  const url = packStickerUrl(formData.get("sticker_id"));
+  if (!url) return;
+
+  // Once each: the hub is a collection, and four copies of the same
+  // heart is a mess rather than a choice.
+  const { data: existing } = await supabase
+    .from("profile_stickers")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("image_url", url)
+    .maybeSingle();
+  if (existing) return;
+
+  await supabase.from("profile_stickers").insert({ user_id: user.id, image_url: url });
+  revalidatePath("/profile", "layout");
 }

@@ -31,6 +31,9 @@ const PROFILE_ONLY = [
   // The sticker hub. Same reasoning and same proof as .store below:
   // profile-only because exactly one page mounts the component.
   ".sticker-hub",
+  // Emitted by StickerHub too - the picker inside it. Safe for the same
+  // reason and proved by the same check: one page mounts that component.
+  ".sticker-pack",
 ];
 
 /** Components whose CSS prefixes are trusted above, and must stay put. */

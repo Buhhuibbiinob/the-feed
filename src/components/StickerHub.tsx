@@ -1,7 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
-import { addHubSticker, removeHubSticker, type HubUploadState } from "@/app/actions/stickerHub";
+import { useState } from "react";
+import {
+  addHubSticker,
+  addPackSticker,
+  removeHubSticker,
+  type HubUploadState,
+} from "@/app/actions/stickerHub";
+import { packStickerUrl, packStickersByGroup, STICKER_GROUPS } from "@/lib/stickerPack";
 import type { HubSticker } from "@/lib/stickerHub";
 
 // The sticker hub: a grid, not a canvas.
@@ -20,6 +27,9 @@ export function StickerHub({
   ownerId: string;
 }) {
   const [state, add, adding] = useActionState<HubUploadState, FormData>(addHubSticker, {});
+  const [picking, setPicking] = useState(false);
+  const [group, setGroup] = useState<string>(STICKER_GROUPS[0]);
+  const owned = new Set(stickers.map((s) => s.imageUrl));
 
   // An empty hub is still shown to its owner - that is where the upload
   // lives, and a feature you can only find once you already have one is
@@ -43,6 +53,57 @@ export function StickerHub({
         </span>
       ))}
       </div>
+      {isOwner && (
+        <>
+          <div className="sticker-hub-tools">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => setPicking((open) => !open)}
+              aria-expanded={picking}
+            >
+              {picking ? "Done" : "Add from the pack"}
+            </button>
+          </div>
+          {picking && (
+            <div className="sticker-pack">
+              <div className="seg sticker-pack-tabs">
+                {STICKER_GROUPS.map((name) => (
+                  <button
+                    type="button"
+                    key={name}
+                    className={`seg-item${group === name ? " active" : ""}`}
+                    onClick={() => setGroup(name)}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+              <div className="sticker-pack-grid">
+                {packStickersByGroup(group).map((sticker) => {
+                  const url = packStickerUrl(sticker.id);
+                  const already = !!url && owned.has(url);
+                  return (
+                    <form action={addPackSticker} key={sticker.id}>
+                      <input type="hidden" name="owner_id" value={ownerId} />
+                      <input type="hidden" name="sticker_id" value={sticker.id} />
+                      <button
+                        type="submit"
+                        className={`sticker-pack-cell${already ? " owned" : ""}`}
+                        title={already ? `${sticker.label} - already yours` : sticker.label}
+                        aria-label={sticker.label}
+                        disabled={already}
+                      >
+                        <img src={url ?? ""} alt="" loading="lazy" />
+                      </button>
+                    </form>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
       {isOwner && (
         <form action={add} className="sticker-hub-add">
           <input type="hidden" name="owner_id" value={ownerId} />
