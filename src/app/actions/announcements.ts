@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
-import { MAX_BODY, MAX_BUTTON_LABEL, MAX_TITLE } from "@/lib/announcements";
+import { isBuiltin, MAX_BODY, MAX_BUTTON_LABEL, MAX_TITLE } from "@/lib/announcements";
 
 // Writing and closing announcements.
 //
@@ -36,16 +36,26 @@ function timestampOrNull(formData: FormData, key: string): string | null {
   return Number.isNaN(at.getTime()) ? null : at.toISOString();
 }
 
-export async function createAnnouncement(formData: FormData) {
+export type AnnouncementFormState = { error?: string; ok?: boolean };
+
+export async function createAnnouncement(
+  _prev: AnnouncementFormState,
+  formData: FormData
+): Promise<AnnouncementFormState> {
   const { supabase, userId } = await requireAdmin();
 
   const title = trimmed(formData, "title", MAX_TITLE);
-  if (!title) return;
+  if (!title) return { error: "Give it a title." };
 
   const style = String(formData.get("style") ?? "alert") === "banner" ? "banner" : "alert";
   const linkUrl = trimmed(formData, "link_url", 500);
 
-  await supabase.from("announcements").insert({
+  // The error used to be discarded here, which made this the worst
+  // possible kind of button: one that reports success and does nothing.
+  // If the announcements table has not been created yet - migration 009
+  // - the insert fails, and until now the only symptom was an
+  // announcement that never appeared.
+  const { error } = await supabase.from("announcements").insert({
     title,
     body: trimmed(formData, "body", MAX_BODY),
     style,
@@ -58,8 +68,18 @@ export async function createAnnouncement(formData: FormData) {
     created_by: userId,
   });
 
+  if (error) {
+    const missingTable = /relation .* does not exist|schema cache/i.test(error.message);
+    return {
+      error: missingTable
+        ? "The announcements table isn't there yet - run migration 009 in the Supabase SQL editor, then try again."
+        : error.message,
+    };
+  }
+
   // Every page renders the announcement, so every page is stale now.
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function setAnnouncementActive(formData: FormData) {
@@ -94,6 +114,9 @@ export async function deleteAnnouncement(formData: FormData) {
  */
 export async function dismissAnnouncement(announcementId: string) {
   if (!announcementId) return;
+  // The built-in announcement has no row, and announcement_dismissals
+  // references one. The browser remembers this one on its own.
+  if (isBuiltin(announcementId)) return;
   try {
     const supabase = await createClient();
     const {

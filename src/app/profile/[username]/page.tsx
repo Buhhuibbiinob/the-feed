@@ -2,14 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { selectPosts } from "@/lib/postQuery";
-import { fetchStickers } from "@/lib/stickerQuery";
 import { PostCard } from "@/components/PostCard";
-import { ProfileAnthem } from "@/components/ProfileAnthem";
 import { FollowButton } from "@/components/FollowButton";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { ProfileCustomize } from "@/components/ProfileCustomize";
 import { ObsessedPicker } from "@/components/ObsessedPicker";
-import { ProfileSongPicker } from "@/components/ProfileSongPicker";
 import { FavoritesEditor } from "@/components/FavoritesEditor";
 import { StatusPicker } from "@/components/StatusPicker";
 import { MEDIA_LABELS, MEDIA_TYPES, MEDIA_VERBS, type MediaType } from "@/lib/media";
@@ -35,19 +32,12 @@ import {
 } from "@/lib/profileStore";
 import { pageStyle } from "@/lib/pageTheme";
 import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
-import { MoodRingEditor } from "@/components/MoodRing";
 import { ClassicEmoji } from "@/components/ClassicEmoji";
 import { DecorateBar } from "@/components/DecorateBar";
 import { sanitizeProfileCss } from "@/lib/profileCss";
 import { decorStyle } from "@/lib/pageDecor";
 import { canEditProfile } from "@/lib/botEditing";
 import { ProfileReviews } from "@/components/ProfileReviews";
-import { ProfileCssEditor } from "@/components/ProfileCssEditor";
-import { BlurbsEditor } from "@/components/BlurbsEditor";
-import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
-import { TopConnections, type Connection } from "@/components/TopConnections";
-import { StickerLayer } from "@/components/StickerLayer";
-import type { Sticker } from "@/lib/stickers";
 import {
   FAVORITE_KINDS,
   FAVORITE_LABELS,
@@ -494,64 +484,18 @@ export default async function ProfilePage({
       : null,
   ].filter((h): h is { label: string; post: PostRow } => h !== null);
 
-  const [{ data: guestbookRows }, { data: connectionRows }, { data: pinnedRows }, stickerRows] =
-    await Promise.all([
-    supabase
-      .from("guestbook_entries")
-      .select("id, body, created_at, author_id, profiles!guestbook_entries_author_id_fkey(username, avatar_url)")
-      .eq("profile_id", profile.id)
-      .order("created_at", { ascending: false })
-      .limit(30)
-      .returns<GuestbookRow[]>(),
-    supabase
-      .from("top_connections")
-      .select("friend_id, position, profiles!top_connections_friend_id_fkey(username, avatar_url)")
-      .eq("user_id", profile.id)
-      .order("position", { ascending: true })
-      .returns<ConnectionRow[]>(),
-    supabase
-      .from("pinned_posts")
-      .select("post_id, position")
-      .eq("user_id", profile.id)
-      .order("position", { ascending: true })
-      .returns<PinnedRow[]>(),
-    fetchStickers(supabase, profile.id),
-  ]);
+  // The guestbook, top-connections and sticker queries were here too.
+  // The tables still hold every row; nothing on the page asks for them
+  // any more, which is three fewer round trips on every profile view.
+  const { data: pinnedRows } = await supabase
+    .from("pinned_posts")
+    .select("post_id, position")
+    .eq("user_id", profile.id)
+    .order("position", { ascending: true })
+    .returns<PinnedRow[]>();
 
-  const guestbook: GuestbookEntry[] = (guestbookRows ?? []).map((row) => {
-    const author = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-    return {
-      id: row.id,
-      body: row.body,
-      createdAt: row.created_at,
-      authorId: row.author_id,
-      authorUsername: author?.username ?? "someone",
-      authorAvatarUrl: author?.avatar_url ?? null,
-    };
-  });
 
-  const connections: Connection[] = (connectionRows ?? []).flatMap((row) => {
-    const friend = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-    return friend ? [{ id: row.friend_id, username: friend.username, avatarUrl: friend.avatar_url }] : [];
-  });
 
-  const stickers: Sticker[] = (stickerRows ?? []).map((row) => ({
-    id: row.id,
-    imageUrl: row.image_url,
-    x: row.x,
-    y: row.y,
-    // Null for stickers placed before these columns existed, which is
-    // every sticker on the site today - so they all keep their current
-    // position on every screen.
-    mobileX: row.mobile_x ?? null,
-    mobileY: row.mobile_y ?? null,
-    scale: row.scale,
-    // Null for stickers placed before these columns existed.
-    scaleY: row.scale_y ?? 1,
-    rotation: row.rotation,
-    skew: row.skew ?? 0,
-    z: row.z,
-  }));
 
   // ---- The store front ----
   // Derived from the reviews already loaded above; no extra queries. A
@@ -624,12 +568,8 @@ export default async function ProfilePage({
     // The twin callout is the owner's alone, so for anyone else this
     // section has nothing in it by definition.
     twin: isOwnProfile && twin !== null,
-    mood: !!moodEmoji || !!custom?.mood_text,
     about: !!profile.bio,
-    blurbs: !!custom?.blurb_next || !!custom?.blurb_free,
-    connections: connections.length > 0,
     pinned: pinnedPosts.length > 0,
-    guestbook: guestbook.length > 0,
     presence: (viewerCount ?? 0) > 0 || !!custom?.last_seen_at,
     highlights: highlights.length > 0,
     collections: collections.length > 0,
@@ -660,27 +600,6 @@ export default async function ProfilePage({
                 </div>
               ) : (
                 <EmptySlot>{isOwnProfile ? "Pin whatever you can't shut up about." : "Nothing pinned."}</EmptySlot>
-              )}
-            </div>
-          </div>
-        );
-
-      case "anthem":
-        return (
-          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">On Repeat</div>
-            <div className="panel-body">
-              {hasSong ? (
-                <ProfileAnthem
-                  youtubeVideoId={songId}
-                  spotifyTrackId={songSpotifyId}
-                  title={custom?.profile_song_title ?? "Profile song"}
-                  artist={custom?.profile_song_artist ?? null}
-                  thumbnailUrl={custom?.profile_song_thumbnail_url ?? null}
-                  autoplay={custom?.profile_song_autoplay === true}
-                />
-              ) : (
-                <EmptySlot>{isOwnProfile ? "No song yet. Pick one." : "Silence."}</EmptySlot>
               )}
             </div>
           </div>
@@ -791,25 +710,6 @@ export default async function ProfilePage({
           </div>
         );
 
-      case "mood":
-        return (
-          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Mood">
-            {!moodEmoji && !custom?.mood_text ? (
-              <EmptySlot>{isOwnProfile ? "How are you, then?" : "No mood set."}</EmptySlot>
-            ) : (
-              <div className="mood-ring-row">
-                <span
-                  className="mood-ring"
-                  style={{ borderColor: custom?.mood_color ?? "var(--link)" }}
-                >
-                  {moodEmoji ? <ClassicEmoji char={moodEmoji} size={26} /> : "•"}
-                </span>
-                {custom?.mood_text && <span className="mood-text">{custom.mood_text}</span>}
-              </div>
-            )}
-          </Panel>
-        );
-
       case "about":
         return (
           <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Bio">
@@ -820,32 +720,6 @@ export default async function ProfilePage({
             ) : (
               <EmptySlot>{isOwnProfile ? "Say something about yourself." : "Nothing written."}</EmptySlot>
             )}
-          </Panel>
-        );
-
-      case "blurbs":
-        return (
-          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Blurbs">
-            {!custom?.blurb_next && !custom?.blurb_free ? (
-              <EmptySlot>{isOwnProfile ? "What are you putting off reviewing?" : "Empty."}</EmptySlot>
-            ) : (
-              <div className="blurb-list">
-                {custom?.blurb_next && (
-                  <div className="blurb">
-                    <span className="week-standout-label">What I&apos;d like to review next</span>
-                    <div>{custom.blurb_next}</div>
-                  </div>
-                )}
-                {custom?.blurb_free && <div className="blurb">{custom.blurb_free}</div>}
-              </div>
-            )}
-          </Panel>
-        );
-
-      case "connections":
-        return (
-          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Regulars">
-            <TopConnections connections={connections} isOwner={canDecorate} ownerId={profile.id} />
           </Panel>
         );
 
@@ -882,18 +756,6 @@ export default async function ProfilePage({
                 ))}
               </div>
             )}
-          </Panel>
-        );
-
-      case "guestbook":
-        return (
-          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Guestbook">
-            <Guestbook
-              profileId={profile.id}
-              entries={guestbook}
-              currentUserId={user?.id ?? null}
-              isOwner={isOwnProfile}
-            />
           </Panel>
         );
 
@@ -1160,8 +1022,6 @@ export default async function ProfilePage({
       {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
       <DecorateBar isOwner={canDecorate} />
-      {canDecorate && <ProfileCssEditor ownerId={profile.id} config={config} />}
-      <StickerLayer stickers={stickers} isOwner={canDecorate} ownerId={profile.id} />
 
       {/* The columns belong to the arranger now: it places each panel and
           lets the owner drag them between the two. The panels themselves
@@ -1362,28 +1222,7 @@ export default async function ProfilePage({
                 }}
                 ownerId={profile.id}
               />
-              <ProfileSongPicker
-                current={{
-                  youtubeId: songId,
-                  title: custom?.profile_song_title ?? null,
-                  artist: custom?.profile_song_artist ?? null,
-                  thumbnailUrl: custom?.profile_song_thumbnail_url ?? null,
-                  autoplay: custom?.profile_song_autoplay === true,
-                }}
-                ownerId={profile.id}
-              />
               <FavoritesEditor favorites={favorites} ownerId={profile.id} />
-              <MoodRingEditor
-                emoji={moodEmoji}
-                color={custom?.mood_color ?? null}
-                text={custom?.mood_text ?? null}
-                ownerId={profile.id}
-              />
-              <BlurbsEditor
-                next={custom?.blurb_next ?? null}
-                free={custom?.blurb_free ?? null}
-                ownerId={profile.id}
-              />
               {/* Colours, fonts, background and module order all live in one
                   editor now, and the same one runs on club pages. */}
                   <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />

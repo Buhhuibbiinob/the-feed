@@ -12,8 +12,12 @@
  * Run: npx tsx scripts/announcement-check.ts
  */
 import {
+  BUILTIN_ANNOUNCEMENT,
   buttonFor,
+  isBuiltin,
   isLive,
+  MAX_BODY,
+  MAX_TITLE,
   pickAnnouncement,
   type Announcement,
 } from "../src/lib/announcements";
@@ -128,6 +132,42 @@ check(
 check(
   "url and label travel together",
   buttonFor(make({ link_url: "/post/new", button_label: "Write one" }))?.label === "Write one"
+);
+
+// ---- the built-in announcement ----
+// It ships in code because the admin form could not write a row. It has
+// to survive the same rules every other announcement does.
+check("the built-in one is live", isLive(BUILTIN_ANNOUNCEMENT, NOW));
+check("it is recognised as built-in", isBuiltin(BUILTIN_ANNOUNCEMENT.id));
+check("nothing else is", !isBuiltin("some-uuid"));
+check(
+  "its title fits the field",
+  BUILTIN_ANNOUNCEMENT.title.length <= MAX_TITLE,
+  `${BUILTIN_ANNOUNCEMENT.title.length}/${MAX_TITLE}`
+);
+check(
+  "its body fits the field",
+  BUILTIN_ANNOUNCEMENT.body.length <= MAX_BODY,
+  `${BUILTIN_ANNOUNCEMENT.body.length}/${MAX_BODY}`
+);
+check("its button goes somewhere", buttonFor(BUILTIN_ANNOUNCEMENT) !== null);
+// A fallback that could outrank a real announcement is not a fallback.
+// It is dated 1970 so newest-first always puts it behind one.
+check(
+  "any real announcement outranks it",
+  pickAnnouncement([make({ id: "real" }), BUILTIN_ANNOUNCEMENT], [], NOW)?.id === "real"
+);
+check(
+  "even a year-old real one outranks it",
+  pickAnnouncement(
+    [make({ id: "old", created_at: hoursFromNow(-24 * 365) }), BUILTIN_ANNOUNCEMENT],
+    [],
+    NOW
+  )?.id === "old"
+);
+check(
+  "dismissing it hides it",
+  pickAnnouncement([BUILTIN_ANNOUNCEMENT], [BUILTIN_ANNOUNCEMENT.id], NOW) === null
 );
 
 if (failures > 0) {
