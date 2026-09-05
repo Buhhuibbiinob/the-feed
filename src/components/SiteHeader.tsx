@@ -47,55 +47,77 @@ function titleFor(pathname: string): string {
   return TITLES.find((t) => t.match(pathname))?.title ?? "Feedback";
 }
 
+// The tab bar icons, drawn as one line.
+//
+// These were solid silhouettes, which is a tab bar from a different
+// decade - the iOS 6 Clock bar this is matched to draws every glyph as a
+// thin outline of a constant weight, and the difference is most of why
+// the old bar read as heavy. Same stroke width, same round caps, same
+// 24-unit box for all of them, so no single icon looks bolder than its
+// neighbours at 25px.
+const STROKE = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.7,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+} as const;
+
 function HomeIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z" />
+    <svg viewBox="0 0 24 24" {...STROKE}>
+      <path d="M3.5 11.2 12 4l8.5 7.2" />
+      <path d="M5.6 12.6V20h12.8v-7.4" />
+      <path d="M9.9 20v-5.2h4.2V20" />
     </svg>
   );
 }
 function SearchIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-      <circle cx="11" cy="11" r="6" />
-      <path d="M16 16l4.5 4.5" />
+    <svg viewBox="0 0 24 24" {...STROKE}>
+      <circle cx="10.8" cy="10.8" r="6.1" />
+      <path d="M15.4 15.4 20 20" />
     </svg>
   );
 }
 function BellIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V8a6 6 0 0 0-6-6zm0 20a3 3 0 0 0 3-3H9a3 3 0 0 0 3 3z" />
+    <svg viewBox="0 0 24 24" {...STROKE}>
+      <path d="M6.3 16.4V10.6a5.7 5.7 0 0 1 11.4 0v5.8l1.5 2.1H4.8z" />
+      <path d="M10.2 20.6a1.9 1.9 0 0 0 3.6 0" />
     </svg>
   );
 }
 function CompassIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.7 6.3-2.1 5-5 2.1 2.1-5zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+    <svg viewBox="0 0 24 24" {...STROKE}>
+      <circle cx="12" cy="12" r="8.2" />
+      <path d="m15.4 8.6-2 4.8-4.8 2 2-4.8z" />
     </svg>
   );
 }
 function PersonIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4 0-7 2-7 4.5V21h14v-2.5C19 16 16 14 12 14z" />
+    <svg viewBox="0 0 24 24" {...STROKE}>
+      <circle cx="12" cy="8.4" r="3.7" />
+      <path d="M5.4 20.2c0-3.3 2.9-5.6 6.6-5.6s6.6 2.3 6.6 5.6" />
     </svg>
   );
 }
 function MoreIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <circle cx="5" cy="12" r="2" />
-      <circle cx="12" cy="12" r="2" />
-      <circle cx="19" cy="12" r="2" />
+    <svg viewBox="0 0 24 24" {...STROKE}>
+      <circle cx="5.2" cy="12" r="1.5" />
+      <circle cx="12" cy="12" r="1.5" />
+      <circle cx="18.8" cy="12" r="1.5" />
     </svg>
   );
 }
 function PlusIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-      <path d="M12 5v14M5 12h14" />
+    <svg viewBox="0 0 24 24" {...STROKE}>
+      <circle cx="12" cy="12" r="8.2" />
+      <path d="M12 8.3v7.4M8.3 12h7.4" />
     </svg>
   );
 }
@@ -304,7 +326,7 @@ export function SiteHeader({
             if (username && openComposeSheet()) e.preventDefault();
           }}
         >
-          <span className="sk-ios-post-fab">
+          <span className="sk-ios-tab-icon">
             <PlusIcon />
           </span>
           <span className="sk-ios-tab-label">Post</span>
