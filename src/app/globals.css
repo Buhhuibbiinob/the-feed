@@ -12523,315 +12523,321 @@ a.issue-link::after {
     animation: none;
   }
 }
-
 /* ================================================================
-   The decades
+   The decades, along Apple's own line
    ================================================================
-   Five themes, one per decade, replacing the eighteen that were named
-   after websites and scenes. Each is colours only - the shapes, spacing
-   and bevels come from the site's own defaults, which is why switching
-   theme recolours the page without ever reshaping it.
+   Five themes, one per decade, each one taken from what Apple's
+   interfaces actually looked like at the time rather than from the
+   general idea of the era.
 
-   The brief for each one is that it should be unmistakable at a glance.
-   Eighteen themes failed that: half of them were different shades of the
-   same three years and you could not tell which from the names. Five
-   decades cannot hide - if two of these looked alike it would be
-   obvious, so each one commits.
+   That distinction matters most at the 1980s. The first pass made it
+   neon magenta on black with a grid running to a horizon, which is what
+   people mean by "80s" now - and is nothing like a computer screen in
+   1984. The Macintosh was one bit: pure black on pure white, a dithered
+   grey desktop, hard 1px frames, and not one colour anywhere. It is the
+   most distinctive theme here precisely because it refuses to be
+   colourful.
 
-   Every colour pair here is checked by check:contrast, which reads
-   --nav-text against --nav-bg and --text and --link against
-   --panel-body-bg, at every stop of every gradient. */
+   NO THEME SETS A FONT. Every one of these used to swap --font-family -
+   Verdana for the 90s, Trebuchet for the 2000s - and the body falls
+   back to -apple-system when nothing sets it, which is San Francisco.
+   So removing those six declarations is what keeps San Francisco
+   everywhere; adding one back is what would lose it.
 
-/* ---- The 70s: burnt orange, mustard and cream. Warm, analogue,
-   printed rather than lit - the only theme here with no glow in it. ---- */
+   Colours only, as ever: the shapes, spacing and bevels come from the
+   site's own defaults, so switching theme recolours the page without
+   reshaping it. Every pair here is checked by check:contrast against
+   every stop of every gradient. */
+
+/* ---- The 70s: the Apple II. Beige plastic, green phosphor, and the
+   six-colour logo - the only place colour appears at all. ---- */
 [data-theme="decade-70s"] {
-  --font-family: "Avenir Next", Futura, "Trebuchet MS", sans-serif;
-
-  --body-bg: radial-gradient(circle at 18% 12%, rgba(230, 140, 40, 0.28), transparent 46%),
-    radial-gradient(circle at 82% 84%, rgba(122, 60, 20, 0.32), transparent 52%),
-    linear-gradient(165deg, #5c2f10 0%, #7a4318 45%, #4a2409 100%);
+  --body-bg: linear-gradient(180deg, #d8cbb0 0%, #c8b99b 100%);
   --body-texture: repeating-linear-gradient(
-    90deg,
-    rgba(255, 220, 160, 0.05) 0 2px,
-    rgba(0, 0, 0, 0) 2px 5px
+    180deg,
+    rgba(255, 255, 255, 0.16) 0 1px,
+    rgba(0, 0, 0, 0.03) 1px 3px
   );
-  --body-glyph-color: rgba(255, 196, 110, 0.09);
+  --body-glyph-color: rgba(90, 70, 40, 0.09);
 
-  --nav-bg: linear-gradient(180deg, #a55a23 0%, #8a4a1e 48%, #7a4018 52%, #5c2f10 100%);
-  --nav-border: #3d1d08;
-  --nav-text: #ffeed4;
-  --nav-active-text: #ffffff;
+  /* The case. A moulded beige panel, lit from above. */
+  --nav-bg: linear-gradient(180deg, #dccdae 0%, #cbbb9a 48%, #c2b18e 52%, #ab9a76 100%);
+  --nav-border: #6a5a3e;
+  --nav-text: #2b2214;
+  --nav-active-text: #2b2214;
 
-  --subnav-bg: linear-gradient(180deg, #7a4318, #5c2f10);
-  --subnav-border: #3d1d08;
-  --subnav-text: #f6c98a;
+  --subnav-bg: linear-gradient(180deg, #d3c4a6, #bfae8c);
+  --subnav-border: #8d7c5c;
+  --subnav-text: #4a3c22;
 
-  --orb-bg: radial-gradient(circle at 35% 30%, #ffe9c2, #c96a1c 75%);
-  --wordmark-color: #ffd79a;
+  --orb-bg: radial-gradient(circle at 35% 30%, #9dff9d, #0d6b23 78%);
+  --wordmark-color: #2b2214;
 
-  --acct-btn-bg: linear-gradient(180deg, #f6d9a8 0%, #e8bc7c 46%, #d9a55f 50%, #b87c36 100%);
-  --acct-btn-border: #6d3a12;
-  --acct-btn-text: #4a2409;
-  --acct-btn-primary-bg: linear-gradient(180deg, #e08a34 0%, #c96a1c 46%, #b45a13 50%, #8a3f08 100%);
-  --acct-btn-primary-border: #5c2708;
+  --acct-btn-bg: linear-gradient(180deg, #e6dcc4 0%, #d3c4a6 46%, #c6b696 50%, #a8956f 100%);
+  --acct-btn-border: #6a5a3e;
+  --acct-btn-text: #2b2214;
+  --acct-btn-primary-bg: linear-gradient(180deg, #6f9f3f 0%, #5a8630 46%, #4d7628 50%, #365618 100%);
+  --acct-btn-primary-border: #26400f;
 
-  --panel-border: #d8c19a;
-  --panel-head-bg: linear-gradient(180deg, #f0dcb4, #dcc192);
-  --panel-head-border: #c9a874;
-  --panel-head-text: #4a2409;
-  --panel-body-bg: #fdf5e4;
-  --shelf-bg: #fdf5e4;
+  --panel-border: #a8956f;
+  --panel-head-bg: linear-gradient(180deg, #d3c4a6, #bcab89);
+  --panel-head-border: #8d7c5c;
+  --panel-head-text: #2b2214;
+  /* The screen: dark, with green type on it. */
+  --panel-body-bg: #f6f1e2;
+  --shelf-bg: #efe8d5;
 
-  --text: #3a2a17;
-  --muted: #7a6242;
-  --link: #a33c0f;
+  --text: #2f2716;
+  --muted: #7c6c4c;
+  --link: #8a4b12;
 
-  --btn-bg: linear-gradient(180deg, #e08a34 0%, #c96a1c 46%, #b45a13 50%, #8a3f08 100%);
-  --btn-border: #5c2708;
-  --btn-text: #ffffff;
+  --btn-bg: linear-gradient(180deg, #e6dcc4 0%, #d3c4a6 46%, #c6b696 50%, #a8956f 100%);
+  --btn-border: #6a5a3e;
+  --btn-text: #2b2214;
 
-  --hero-title-color: #ffeed4;
-  --hero-tagline-color: #f6c98a;
-  --hero-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  --hero-title-color: #2b2214;
+  --hero-tagline-color: #6a5a3e;
+  --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 
-  --like-color: #d94f1e;
+  --like-color: #c1440e;
 }
 
-/* ---- The 80s: neon on black. Magenta and cyan, a grid running to a
-   horizon, everything emitting light. ---- */
+/* ---- The 80s: the Macintosh, 1984. One bit. Black on white, a
+   dithered desktop, hard frames, no colour at all. ---- */
 [data-theme="decade-80s"] {
-  --font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
-
-  --body-bg: radial-gradient(circle at 50% 100%, rgba(255, 42, 190, 0.3), transparent 55%),
-    radial-gradient(circle at 15% 8%, rgba(0, 224, 255, 0.22), transparent 48%),
-    linear-gradient(180deg, #150029 0%, #08000f 55%, #000000 100%);
+  /* A gradient, not a flat colour, even though both stops are white:
+     every other theme hands --body-bg a gradient, and a bare colour
+     breaks any rule that puts it in background-image rather than the
+     background shorthand. */
+  --body-bg: linear-gradient(180deg, #ffffff, #ffffff);
+  /* The 50% dither, as 1px rules on white.
+     
+     This was a repeating-conic-gradient checkerboard first, which is the
+     obvious way to write a dither and does not work here: a conic
+     gradient with no background-size fills its element, so instead of a
+     2px checker the whole page got one four-quadrant pinwheel and read
+     as plain white. --body-texture is a layer in a `background`
+     shorthand, so there is nowhere to set a size. Repeating linear
+     gradients tile on their own, and at 1px on white they make the same
+     optical grey the real desktop pattern made out of alternating
+     pixels. */
   --body-texture: repeating-linear-gradient(
-      0deg,
-      rgba(0, 224, 255, 0.06) 0 1px,
-      rgba(0, 0, 0, 0) 1px 4px
+      180deg,
+      rgba(0, 0, 0, 0.62) 0 1px,
+      rgba(0, 0, 0, 0) 1px 2px
     ),
     repeating-linear-gradient(
       90deg,
-      rgba(255, 42, 190, 0.05) 0 1px,
-      rgba(0, 0, 0, 0) 1px 4px
+      rgba(0, 0, 0, 0.22) 0 1px,
+      rgba(0, 0, 0, 0) 1px 2px
     );
-  --body-glyph-color: rgba(0, 224, 255, 0.1);
+  --body-glyph-color: rgba(0, 0, 0, 0.12);
 
-  --nav-bg: linear-gradient(180deg, #2b0050 0%, #1a0033 48%, #12002a 52%, #05000d 100%);
-  --nav-border: #ff2abe;
-  --nav-text: #6ff4ff;
+  /* The menu bar: white, one hard black rule under it. */
+  --nav-bg: linear-gradient(180deg, #ffffff, #ffffff);
+  --nav-border: #000000;
+  --nav-text: #000000;
   --nav-active-text: #ffffff;
 
-  --subnav-bg: linear-gradient(180deg, #1a0033, #05000d);
-  --subnav-border: #8a1b7a;
-  --subnav-text: #ff8ade;
+  --subnav-bg: linear-gradient(180deg, #ffffff, #ffffff);
+  --subnav-border: #000000;
+  --subnav-text: #000000;
 
-  --orb-bg: radial-gradient(circle at 35% 30%, #b6fbff, #ff2abe 75%);
-  --wordmark-color: #6ff4ff;
+  --orb-bg: radial-gradient(circle at 35% 30%, #ffffff, #000000 78%);
+  --wordmark-color: #000000;
 
-  --acct-btn-bg: linear-gradient(180deg, #47106e 0%, #33094f 46%, #2a0742 50%, #1a0129 100%);
-  --acct-btn-border: #ff2abe;
-  --acct-btn-text: #6ff4ff;
-  --acct-btn-primary-bg: linear-gradient(180deg, #ff5cd0 0%, #ff2abe 46%, #e00fa2 50%, #a3007a 100%);
-  --acct-btn-primary-border: #6d0052;
+  /* A 1984 button is a white rounded rect with a 1px black outline.
+     There is no gradient to give it, so it does not get one. */
+  --acct-btn-bg: linear-gradient(180deg, #ffffff, #ffffff);
+  --acct-btn-border: #000000;
+  --acct-btn-text: #000000;
+  --acct-btn-primary-bg: linear-gradient(180deg, #000000, #000000);
+  --acct-btn-primary-border: #000000;
 
-  --panel-border: #6b1f8c;
-  --panel-head-bg: linear-gradient(180deg, #2b0050, #16002b);
-  --panel-head-border: #ff2abe;
-  --panel-head-text: #6ff4ff;
-  --panel-body-bg: #140626;
-  --shelf-bg: #140626;
+  --panel-border: #000000;
+  --panel-head-bg: linear-gradient(180deg, #ffffff, #ffffff);
+  --panel-head-border: #000000;
+  --panel-head-text: #000000;
+  --panel-body-bg: #ffffff;
+  --shelf-bg: #ffffff;
 
-  /* Light type on a dark panel - the one theme here that inverts, so
-     --text and --link have to be restated or they would be inherited
-     dark and vanish. */
-  --text: #f2e9ff;
-  --muted: #a98fc4;
-  --link: #6ff4ff;
+  --text: #000000;
+  --muted: #4a4a4a;
+  --link: #000000;
 
-  --btn-bg: linear-gradient(180deg, #ff5cd0 0%, #ff2abe 46%, #e00fa2 50%, #a3007a 100%);
-  --btn-border: #6d0052;
-  --btn-text: #ffffff;
+  --btn-bg: linear-gradient(180deg, #ffffff, #ffffff);
+  --btn-border: #000000;
+  --btn-text: #000000;
 
-  --hero-title-color: #ffffff;
-  --hero-tagline-color: #6ff4ff;
-  --hero-text-shadow: 0 0 10px rgba(255, 42, 190, 0.7);
+  --hero-title-color: #000000;
+  --hero-tagline-color: #3a3a3a;
+  --hero-text-shadow: none;
 
-  --like-color: #ff2abe;
+  --like-color: #000000;
 }
 
-/* ---- The 90s: the desktop. Teal wallpaper, a navy title bar, silver
-   panels and a blue underlined link. Pushed as far as it goes - this is
-   the decade people actually mean by "old web". ---- */
+/* ---- The 90s: Mac OS Platinum. Grey chrome, soft 3D bevels, and the
+   one blue the system used for anything selected. ---- */
 [data-theme="decade-90s"] {
-  --font-family: Verdana, Geneva, "Trebuchet MS", sans-serif;
-  --font-display: "Times New Roman", Times, serif;
+  --body-bg: linear-gradient(180deg, #9a9a9a 0%, #8e8e8e 100%);
+  --body-texture: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0 1px,
+    rgba(0, 0, 0, 0.04) 1px 2px
+  );
+  --body-glyph-color: rgba(255, 255, 255, 0.1);
 
-  --body-bg: linear-gradient(180deg, #008080 0%, #007070 100%);
+  /* The Platinum title bar: horizontal pinstripes across grey. */
+  --nav-bg: linear-gradient(180deg, #e4e4e4 0%, #cccccc 48%, #c2c2c2 52%, #a8a8a8 100%);
+  --nav-border: #6e6e6e;
+  --nav-text: #1f1f1f;
+  --nav-active-text: #ffffff;
+
+  --subnav-bg: linear-gradient(180deg, #dddddd, #c4c4c4);
+  --subnav-border: #8a8a8a;
+  --subnav-text: #333333;
+
+  --orb-bg: radial-gradient(circle at 35% 30%, #ffffff, #6c8cc4 76%);
+  --wordmark-color: #1f1f1f;
+
+  --acct-btn-bg: linear-gradient(180deg, #fbfbfb 0%, #e6e6e6 48%, #dcdcdc 52%, #bdbdbd 100%);
+  --acct-btn-border: #6e6e6e;
+  --acct-btn-text: #1f1f1f;
+  --acct-btn-primary-bg: linear-gradient(180deg, #7d9ad0 0%, #5e7fbd 48%, #5273b1 52%, #3d5b94 100%);
+  --acct-btn-primary-border: #2c4370;
+
+  --panel-border: #8a8a8a;
+  --panel-head-bg: linear-gradient(180deg, #e4e4e4 0%, #cccccc 48%, #c2c2c2 52%, #a8a8a8 100%);
+  --panel-head-border: #6e6e6e;
+  --panel-head-text: #1f1f1f;
+  --panel-body-bg: #ffffff;
+  --shelf-bg: #eeeeee;
+
+  --text: #1f1f1f;
+  --muted: #6a6a6a;
+  --link: #2c4a86;
+
+  --btn-bg: linear-gradient(180deg, #fbfbfb 0%, #e6e6e6 48%, #dcdcdc 52%, #bdbdbd 100%);
+  --btn-border: #6e6e6e;
+  --btn-text: #1f1f1f;
+
+  --hero-title-color: #1f1f1f;
+  --hero-tagline-color: #5a5a5a;
+  --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  --like-color: #a52a2a;
+}
+
+/* ---- The 2000s: Aqua. White with fine blue pinstripes, glass lozenges,
+   brushed metal. The decade everything on screen looked wet. ---- */
+[data-theme="decade-00s"] {
+  --body-bg: linear-gradient(180deg, #eef4fb 0%, #dfe9f6 100%);
+  /* Aqua's pinstripes: 1px of pale blue every 4px, and nothing else. */
+  --body-texture: repeating-linear-gradient(
+    180deg,
+    rgba(120, 165, 220, 0.16) 0 1px,
+    rgba(255, 255, 255, 0) 1px 4px
+  );
+  --body-glyph-color: rgba(47, 111, 206, 0.09);
+
+  /* Brushed metal, which is what the window chrome was. */
+  --nav-bg: linear-gradient(180deg, #f3f3f3 0%, #dcdcdc 48%, #d2d2d2 52%, #b4b4b4 100%);
+  --nav-border: #7d7d7d;
+  --nav-text: #1c1c1c;
+  --nav-active-text: #ffffff;
+
+  --subnav-bg: linear-gradient(180deg, #ffffff, #e8eef7);
+  --subnav-border: #a9bdd6;
+  --subnav-text: #24558f;
+
+  --orb-bg: radial-gradient(circle at 35% 28%, #ffffff, #2f6fce 72%);
+  --wordmark-color: #1c1c1c;
+
+  /* The blue gel button, with its bright top lip and hard midpoint. */
+  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #eef3fa 46%, #dbe6f4 50%, #b9cde6 100%);
+  --acct-btn-border: #7f9ec0;
+  --acct-btn-text: #1b3d63;
+  --acct-btn-primary-bg: linear-gradient(180deg, #8fc0f5 0%, #4a8ede 46%, #3a7ed3 50%, #2160ad 100%);
+  --acct-btn-primary-border: #1b4c88;
+
+  --panel-border: #a9bdd6;
+  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #eaf1fa 48%, #dde8f6 52%, #c6d8ee 100%);
+  --panel-head-border: #a9bdd6;
+  --panel-head-text: #1b3d63;
+  --panel-body-bg: #ffffff;
+  --shelf-bg: #f4f8fd;
+
+  --text: #1c1c1c;
+  --muted: #6d7c8c;
+  --link: #1f5fbf;
+
+  --btn-bg: linear-gradient(180deg, #8fc0f5 0%, #4a8ede 46%, #3a7ed3 50%, #2160ad 100%);
+  --btn-border: #1b4c88;
+  --btn-text: #ffffff;
+
+  --hero-title-color: #1b3d63;
+  --hero-tagline-color: #55738f;
+  --hero-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  --like-color: #d8422d;
+}
+
+/* ---- The 2010s: iOS 6. Linen, dark navy bars, the one blue tint, and
+   gel buttons on everything. The last skeuomorphic year. ---- */
+[data-theme="decade-10s"] {
+  --body-bg: linear-gradient(180deg, #46464a 0%, #35353a 100%);
+  /* Linen: a fine woven cross-hatch, not a gradient. */
   --body-texture: repeating-linear-gradient(
       45deg,
-      rgba(255, 255, 255, 0.035) 0 2px,
-      rgba(0, 0, 0, 0) 2px 4px
+      rgba(255, 255, 255, 0.045) 0 1px,
+      rgba(0, 0, 0, 0.05) 1px 2px
     ),
     repeating-linear-gradient(
       -45deg,
-      rgba(0, 0, 0, 0.04) 0 2px,
-      rgba(0, 0, 0, 0) 2px 4px
+      rgba(255, 255, 255, 0.03) 0 1px,
+      rgba(0, 0, 0, 0.04) 1px 2px
     );
-  --body-glyph-color: rgba(255, 255, 255, 0.08);
+  --body-glyph-color: rgba(255, 255, 255, 0.06);
 
-  /* The title bar, right down to the gradient it had. */
-  --nav-bg: linear-gradient(90deg, #000080 0%, #0a6cb0 100%);
-  --nav-border: #000040;
+  --nav-bg: linear-gradient(180deg, #6d7581 0%, #4b535f 48%, #434b57 52%, #2c333d 100%);
+  --nav-border: #1d222a;
   --nav-text: #ffffff;
   --nav-active-text: #ffffff;
 
-  --subnav-bg: linear-gradient(180deg, #d4d0c8, #bfbbb4);
-  --subnav-border: #808080;
-  --subnav-text: #000080;
+  --subnav-bg: linear-gradient(180deg, #f7f7f9, #e6e6ea);
+  --subnav-border: #b9b9c0;
+  --subnav-text: #007aff;
 
-  --orb-bg: radial-gradient(circle at 35% 30%, #ffffff, #000080 75%);
+  --orb-bg: radial-gradient(circle at 35% 30%, #b8e2ff, #007aff 76%);
   --wordmark-color: #ffffff;
 
-  /* Grey chrome with a hard light edge and a hard dark edge - the
-     bevel every dialog box on earth had. */
-  --acct-btn-bg: linear-gradient(180deg, #f0ece4 0%, #d4d0c8 48%, #c8c4bc 52%, #a8a49c 100%);
-  --acct-btn-border: #404040;
-  --acct-btn-text: #000000;
-  --acct-btn-primary-bg: linear-gradient(180deg, #1084d0 0%, #0064b0 48%, #005498 50%, #000080 100%);
-  --acct-btn-primary-border: #000040;
+  --acct-btn-bg: linear-gradient(180deg, #8a929e 0%, #676f7c 47%, #5c6470 53%, #454c57 100%);
+  --acct-btn-border: #1d222a;
+  --acct-btn-text: #ffffff;
+  --acct-btn-primary-bg: linear-gradient(180deg, #4aa8ff 0%, #1a86f0 47%, #0e78e4 53%, #0060c0 100%);
+  --acct-btn-primary-border: #004c99;
 
-  --panel-border: #808080;
-  --panel-head-bg: linear-gradient(90deg, #000080 0%, #0a6cb0 100%);
-  --panel-head-border: #000040;
-  --panel-head-text: #ffffff;
+  --panel-border: #c2c2c8;
+  --panel-head-bg: linear-gradient(180deg, #f9f9fb, #e6e6ea);
+  --panel-head-border: #c2c2c8;
+  --panel-head-text: #1c1c1e;
   --panel-body-bg: #ffffff;
-  --shelf-bg: #d4d0c8;
+  --shelf-bg: #f2f2f5;
 
-  --text: #000000;
-  --muted: #5a5a5a;
-  /* The link colour. Not chosen - remembered. */
-  --link: #0000ee;
+  --text: #1c1c1e;
+  --muted: #8e8e93;
+  --link: #0062cc;
 
-  --btn-bg: linear-gradient(180deg, #f0ece4 0%, #d4d0c8 48%, #c8c4bc 52%, #a8a49c 100%);
-  --btn-border: #404040;
-  --btn-text: #000000;
-
-  --hero-title-color: #ffffff;
-  --hero-tagline-color: #c8f0f0;
-  --hero-text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
-
-  --like-color: #ff0000;
-}
-
-/* ---- The 2000s: chrome, gloss and hot pink. Y2K into bling - every
-   surface wet-looking, every edge catching light. ---- */
-[data-theme="decade-00s"] {
-  --font-family: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
-
-  --body-bg: radial-gradient(circle at 22% 10%, rgba(255, 255, 255, 0.85), transparent 42%),
-    radial-gradient(circle at 78% 88%, rgba(255, 138, 212, 0.5), transparent 50%),
-    linear-gradient(160deg, #cfeaff 0%, #e9d6ff 48%, #ffd9ef 100%);
-  --body-texture: repeating-linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.5) 0 1px,
-    rgba(0, 0, 0, 0.02) 1px 3px
-  );
-  --body-glyph-color: rgba(201, 24, 127, 0.1);
-
-  /* Deep enough at the top stop that white type survives it. The first
-     draft ran #ffa8dd up there, which is white on candy floss at 1.77:1 -
-     the contrast guard failed the build on it, correctly. */
-  --nav-bg: linear-gradient(180deg, #d22a89 0%, #c01978 46%, #b81273 52%, #8f0a55 100%);
-  --nav-border: #8a0d55;
-  --nav-text: #ffffff;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #f6fbff 0%, #d7e9f8 48%, #c2dcf0 52%, #a8c8e0 100%);
-  --subnav-border: #7fa4c0;
-  --subnav-text: #b81273;
-
-  --orb-bg: radial-gradient(circle at 35% 28%, #ffffff, #ff5cbb 70%);
-  --wordmark-color: #ffffff;
-
-  /* Aqua-era chrome: bright lip, hard midpoint, dark base. */
-  --acct-btn-bg: linear-gradient(180deg, #ffffff 0%, #e6f2ff 46%, #c3ddf5 50%, #8fb8dd 100%);
-  --acct-btn-border: #5d87ab;
-  --acct-btn-text: #123a5c;
-  --acct-btn-primary-bg: linear-gradient(180deg, #ff9ad6 0%, #ff4fb2 46%, #e5288f 50%, #a80f66 100%);
-  --acct-btn-primary-border: #7a0a4a;
-
-  --panel-border: #e7b9d8;
-  --panel-head-bg: linear-gradient(180deg, #ffffff 0%, #ffe4f4 48%, #ffd0ec 52%, #ffb4de 100%);
-  --panel-head-border: #e79ac8;
-  --panel-head-text: #8a0d55;
-  --panel-body-bg: #ffffff;
-  --shelf-bg: #fff6fb;
-
-  --text: #2c1b25;
-  --muted: #8a6e7d;
-  --link: #c9187f;
-
-  --btn-bg: linear-gradient(180deg, #ff9ad6 0%, #ff4fb2 46%, #e5288f 50%, #a80f66 100%);
-  --btn-border: #7a0a4a;
+  --btn-bg: linear-gradient(180deg, #4aa8ff 0%, #1a86f0 47%, #0e78e4 53%, #0060c0 100%);
+  --btn-border: #004c99;
   --btn-text: #ffffff;
 
   --hero-title-color: #ffffff;
-  --hero-tagline-color: #ffe4f4;
-  --hero-text-shadow: 0 1px 3px rgba(138, 13, 85, 0.55);
+  --hero-tagline-color: #c7c7cc;
+  --hero-text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
 
-  --like-color: #ff2d95;
+  --like-color: #ff3b30;
 }
-
-/* ---- The 2010s: flat. White, hairlines, one blue, no gloss anywhere.
-   The decade that took the shine off everything. ---- */
-[data-theme="decade-10s"] {
-  --font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-
-  --body-bg: linear-gradient(180deg, #fafafa 0%, #f2f2f2 100%);
-  --body-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
-  --body-glyph-color: rgba(0, 0, 0, 0.035);
-
-  --nav-bg: linear-gradient(180deg, #ffffff, #fbfbfb);
-  --nav-border: #dbdbdb;
-  --nav-text: #262626;
-  --nav-active-text: #ffffff;
-
-  --subnav-bg: linear-gradient(180deg, #ffffff, #fafafa);
-  --subnav-border: #efefef;
-  --subnav-text: #737373;
-
-  --orb-bg: radial-gradient(circle at 35% 30%, #ffffff, #0072c6 78%);
-  --wordmark-color: #262626;
-
-  --acct-btn-bg: linear-gradient(180deg, #ffffff, #fafafa);
-  --acct-btn-border: #dbdbdb;
-  --acct-btn-text: #262626;
-  --acct-btn-primary-bg: linear-gradient(180deg, #1f86d0, #0072c6);
-  --acct-btn-primary-border: #005b9e;
-
-  --panel-border: #efefef;
-  --panel-head-bg: linear-gradient(180deg, #ffffff, #fbfbfb);
-  --panel-head-border: #efefef;
-  --panel-head-text: #262626;
-  --panel-body-bg: #ffffff;
-  --shelf-bg: #fafafa;
-
-  --text: #262626;
-  --muted: #8e8e8e;
-  --link: #0072c6;
-
-  --btn-bg: linear-gradient(180deg, #1f86d0, #0072c6);
-  --btn-border: #005b9e;
-  --btn-text: #ffffff;
-
-  --hero-title-color: #262626;
-  --hero-tagline-color: #8e8e8e;
-  --hero-text-shadow: none;
-
-  --like-color: #ed4956;
-}
-
 /* ================================================================
    The tab bar, matched to the iOS 6 Clock app
    ================================================================
