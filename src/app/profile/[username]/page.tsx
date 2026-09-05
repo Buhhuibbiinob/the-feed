@@ -1054,21 +1054,14 @@ export default async function ProfilePage({
           lets the owner drag them between the two. The panels themselves
           are still rendered here on the server - the arranger only decides
           where they go. */}
-      <ProfileArranger
-        ownerId={profile.id}
-        config={config}
-        order={shownModules}
-        isOwner={canDecorate}
-        panels={Object.fromEntries(shownModules.map((id) => [id, renderSection(id)]))}
-        sideHeader={undefined}
-        mainHeader={
-          <>
-          {/* The store front sits above the arranged panels: it is a
-              fixed presentation of this person's reviews, not another
-              module to drag around, and it is the first thing the page
-              should say. The panels below stay exactly as the member
-              arranged them. */}
-          {showStore && (
+      {/* Full width, outside the columns.
+          
+          It used to live in mainHeader, which is one cell of a
+          two-column grid - so the side column kept its 280px whether or
+          not anything was in it, and the store was squeezed into what
+          was left with a strip of wallpaper beside it. The store is the
+          page; the columns are what comes after it. */}
+      {showStore && (
             <ProfileStore
               profileTile={{
                 id: "profile-tile",
@@ -1088,6 +1081,7 @@ export default async function ProfilePage({
               genres={storeGenres}
               username={profile.username}
               labels={L}
+              avatarUrl={profile.avatar_url}
               nowPlaying={
                 <StoreNowPlaying
                   youtubeVideoId={songId}
@@ -1153,6 +1147,22 @@ export default async function ProfilePage({
               }
             />
           )}
+
+      <ProfileArranger
+        ownerId={profile.id}
+        config={config}
+        order={shownModules}
+        isOwner={canDecorate}
+        panels={Object.fromEntries(shownModules.map((id) => [id, renderSection(id)]))}
+        sideHeader={undefined}
+        mainHeader={
+          <>
+          {/* The store front sits above the arranged panels: it is a
+              fixed presentation of this person's reviews, not another
+              module to drag around, and it is the first thing the page
+              should say. The panels below stay exactly as the member
+              arranged them. */}
+
           {/* The banner heads the main column - the wide space it was
               made for, rather than squeezed into the narrow one. */}
           {profile.banner_url && (
