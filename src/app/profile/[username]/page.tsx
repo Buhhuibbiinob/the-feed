@@ -21,6 +21,8 @@ import { loadPageConfig } from "@/lib/pageConfigStore";
 import { moduleStyle, visibleModules, type ModuleId } from "@/lib/pageConfig";
 import { ProfileArranger } from "@/components/ProfileArranger";
 import { ProfileStore } from "@/components/ProfileStore";
+import { StoreNowPlaying } from "@/components/StoreNowPlaying";
+import { ProfileSongPicker } from "@/components/ProfileSongPicker";
 import { StickerHub } from "@/components/StickerHub";
 import { fetchStickerHub } from "@/lib/stickerHub";
 import { getProfileLabels } from "@/lib/profileLabels";
@@ -1058,203 +1060,7 @@ export default async function ProfilePage({
         order={shownModules}
         isOwner={canDecorate}
         panels={Object.fromEntries(shownModules.map((id) => [id, renderSection(id)]))}
-        sideHeader={
-          <>
-          {/* The identity card: big square photo, actions stacked beside
-              it, everything else underneath. This is the block the whole
-              page is built around, so it leads the column. */}
-          <div className="pf-card">
-            <div className="pf-card-head">
-              {isOwnProfile ? "Hello, " : ""}
-              <b style={profile.name_color ? { color: profile.name_color } : undefined}>
-                {profile.username}
-              </b>
-              <span>{isOwnProfile ? "!" : ""}</span>
-              {profile.is_verified && <VerifiedBadge />}
-            </div>
-            <div className="pf-card-body">
-              {/* The photo runs the full width of the column. It's the
-                  thing people came to look at, so it gets the room. */}
-              <img
-                src={profile.avatar_url || "/avatars/preset-1.svg"}
-                alt={profile.username}
-                className="pf-photo"
-              />
-
-              <div className="pf-id">
-                <div className="pf-links">
-                  {isOwnProfile ? (
-                    <>
-                      <Link href="/post/new">Post a Review</Link>
-                      <Link href="/settings">Account Settings</Link>
-                      <Link href="/collections">Manage Collections</Link>
-                      <Link href="/messages">Read Messages</Link>
-                      <Link href="/alerts">See Alerts</Link>
-                    </>
-                  ) : user ? (
-                    <>
-                      <FollowButton
-                        followedId={profile.id}
-                        username={profile.username}
-                        following={isFollowing}
-                      />
-                      <Link href={`/messages/${profile.username}`}>Send Message</Link>
-                    </>
-                  ) : (
-                    <Link href="/sign-in">Sign in to follow</Link>
-                  )}
-                </div>
-              </div>
-
-              {status?.status_media_type && (
-                <div className="pf-status">
-                  {MEDIA_VERBS[status.status_media_type as MediaType] ?? "Listening to"}{" "}
-                  <b>{status.status_title}</b>
-                  {status.status_artist && <> - {status.status_artist}</>}
-                </div>
-              )}
-
-              {profile.bio && (
-                <div className="pf-blurb" style={bioStyle}>
-                  {renderRichBio(profile.bio)}
-                </div>
-              )}
-
-              <div className="pf-viewmy">
-                <b>View:</b> <Link href={`/profile/${profile.username}#reviews`}>Reviews</Link>
-                {clubs.length > 0 && (
-                  <>
-                    {" | "}
-                    <Link href="/clubs">Clubs</Link>
-                  </>
-                )}
-                {collections.length > 0 && (
-                  <>
-                    {" | "}
-                    <Link href="/collections">Collections</Link>
-                  </>
-                )}
-              </div>
-              <div className="pf-url">
-                <b>URL:</b> /profile/{profile.username}
-              </div>
-            </div>
-          </div>
-
-          {/* The numbers, in their own box the way the reference keeps
-              them - not crammed under the name. */}
-          <div className="pf-card">
-            <div className="pf-card-head alt">
-              {isOwnProfile ? "Your Stats" : `${profile.username}'s Stats`}
-            </div>
-            <div className="pf-card-body">
-              <table className="pf-stats">
-                <tbody>
-                  <tr>
-                    <td>Reviews</td>
-                    <td>{posts.length}</td>
-                  </tr>
-                  <tr>
-                    <td>Followers</td>
-                    <td>{totalFollowerCount}</td>
-                  </tr>
-                  <tr>
-                    <td>Following</td>
-                    <td>{followingCount ?? 0}</td>
-                  </tr>
-                  <tr>
-                    <td>Likes</td>
-                    <td>{totalLikesReceived}</td>
-                  </tr>
-                  {tasteMatch !== null && (
-                    <tr>
-                      <td>Taste match</td>
-                      <td className="taste-match">{tasteMatch}%</td>
-                    </tr>
-                  )}
-                  {streak > 1 && (
-                    <tr>
-                      <td>Streak</td>
-                      <td className="streak-count">{streak} days</td>
-                    </tr>
-                  )}
-                  {isOwnProfile && viewerCount != null && viewerCount > 0 && (
-                    <tr>
-                      <td>Profile views</td>
-                      <td>{viewerCount}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              {badges.length > 0 && (
-                <div className="profile-badges">
-                  {badges.map((b) => (
-                    <span
-                      key={b.id}
-                      className="profile-badge"
-                      title={`${b.label} - ${b.threshold}+ reviews`}
-                    >
-                      {b.label}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {nextBadge && isOwnProfile && (
-                <div className="profile-badge-next">
-                  {nextBadge.threshold - posts.length} more review
-                  {nextBadge.threshold - posts.length === 1 ? "" : "s"} to unlock {nextBadge.label}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* The controls, in the side column under the card - the same
-              place the reference keeps "Edit Profile". Gated on canDecorate
-              rather than on it being your own page, so an admin on a bot's
-              page gets the whole card and not the four fields the bot
-              admin panel exposes. Every control inside posts the page's
-              id; the server decides whether that's allowed. */}
-          {canDecorate && (
-            /* Linked to by #customize from the post confirmation, which is
-               the only thing on the site that points anybody here. */
-            <div className="pf-card" id="customize">
-              {/* Named on somebody else's page. These controls look
-                  identical to the ones on your own, and an admin who
-                  forgets which page they are on edits the wrong one. */}
-              <div className="pf-card-head alt">
-                {isOwnProfile ? "Customize" : `Customize ${profile.username}`}
-              </div>
-              <div className="pf-card-body">
-                <div className="profile-editor-actions">
-              <AvatarPicker ownerId={profile.id} />
-              <ProfileCustomize
-                bio={profile.bio}
-                bioFont={custom?.bio_font ?? null}
-                bioColor={custom?.bio_color ?? null}
-                bannerAspectId={custom?.banner_aspect ?? null}
-                ownerId={profile.id}
-              />
-              <StatusPicker hasStatus={!!status?.status_media_type} ownerId={profile.id} />
-              <ObsessedPicker
-                current={{
-                  kind: obsessedKind,
-                  title: obsessedTitle,
-                  note: custom?.obsessed_note ?? null,
-                  imageUrl: custom?.obsessed_image_url ?? null,
-                }}
-                ownerId={profile.id}
-              />
-              <FavoritesEditor favorites={favorites} ownerId={profile.id} />
-              {/* Colours, fonts, background and module order all live in one
-                  editor now, and the same one runs on club pages. */}
-                  <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          </>
-        }
+        sideHeader={undefined}
         mainHeader={
           <>
           {/* The store front sits above the arranged panels: it is a
@@ -1282,6 +1088,60 @@ export default async function ProfilePage({
               genres={storeGenres}
               username={profile.username}
               labels={L}
+              nowPlaying={
+                <StoreNowPlaying
+                  youtubeVideoId={songId}
+                  title={custom?.profile_song_title ?? null}
+                  artist={custom?.profile_song_artist ?? null}
+                  autoplay={custom?.profile_song_autoplay !== false}
+                />
+              }
+              caption={
+                <>
+                  {status?.status_media_type && (
+                    <>
+                      {MEDIA_VERBS[status.status_media_type as MediaType] ?? "Listening to"}{" "}
+                      <b>{status.status_title}</b>
+                      {status.status_artist && <> - {status.status_artist}</>}
+                    </>
+                  )}
+                  {profile.bio && (
+                    <span className="store-hero-bio" style={bioStyle}>
+                      {renderRichBio(profile.bio)}
+                    </span>
+                  )}
+                </>
+              }
+              statusBar={
+                <>
+                  <span>
+                    <b>{posts.length}</b> reviews
+                  </span>
+                  <span>
+                    <b>{totalFollowerCount}</b> followers
+                  </span>
+                  <span>
+                    <b>{totalLikesReceived}</b> ratings
+                  </span>
+                  {streak > 1 && (
+                    <span>
+                      <b>{streak}</b> day streak
+                    </span>
+                  )}
+                  {isOwnProfile && viewerCount != null && (
+                    <span>
+                      <b>{viewerCount}</b> views
+                    </span>
+                  )}
+                  {isOwnProfile && (
+                    <span className="store-statusbar-links">
+                      <Link href="/post/new">Post a Review</Link>
+                      <Link href="/settings">Settings</Link>
+                      <Link href="#customize">Customize</Link>
+                    </span>
+                  )}
+                </>
+              }
               actions={
                 !isOwnProfile && user ? (
                   <FollowButton
@@ -1306,6 +1166,67 @@ export default async function ProfilePage({
           </>
         }
       />
+
+      {/* The owner's editors, at the foot of the page.
+          
+          They used to sit in a card beside the store - "Hello, username"
+          on top of an avatar, a stack of links, the bio, a View: row, a
+          URL: row, the stats and this. That whole column was the MySpace
+          page with the widgets taken out: same shape, same idea, just
+          emptier. Removing the widgets was never going to fix it, so the
+          column is gone and each piece went where the store already had
+          a place for it - the links into the Source list, the numbers
+          into the status bar, the bio onto the photo. Only the editors
+          were left, and they belong at the end, after the page they
+          edit. */}
+          {canDecorate && (
+            /* Linked to by #customize from the post confirmation, which is
+               the only thing on the site that points anybody here. */
+            <div className="pf-card" id="customize">
+              {/* Named on somebody else's page. These controls look
+                  identical to the ones on your own, and an admin who
+                  forgets which page they are on edits the wrong one. */}
+              <div className="pf-card-head alt">
+                {isOwnProfile ? "Customize" : `Customize ${profile.username}`}
+              </div>
+              <div className="pf-card-body">
+                <div className="profile-editor-actions">
+              <AvatarPicker ownerId={profile.id} />
+              <ProfileCustomize
+                bio={profile.bio}
+                bioFont={custom?.bio_font ?? null}
+                bioColor={custom?.bio_color ?? null}
+                bannerAspectId={custom?.banner_aspect ?? null}
+                ownerId={profile.id}
+              />
+              <StatusPicker hasStatus={!!status?.status_media_type} ownerId={profile.id} />
+              <ProfileSongPicker
+                current={{
+                  youtubeId: songId,
+                  title: custom?.profile_song_title ?? null,
+                  artist: custom?.profile_song_artist ?? null,
+                  thumbnailUrl: custom?.profile_song_thumbnail_url ?? null,
+                  autoplay: custom?.profile_song_autoplay !== false,
+                }}
+                ownerId={profile.id}
+              />
+              <ObsessedPicker
+                current={{
+                  kind: obsessedKind,
+                  title: obsessedTitle,
+                  note: custom?.obsessed_note ?? null,
+                  imageUrl: custom?.obsessed_image_url ?? null,
+                }}
+                ownerId={profile.id}
+              />
+              <FavoritesEditor favorites={favorites} ownerId={profile.id} />
+              {/* Colours, fonts, background and module order all live in one
+                  editor now, and the same one runs on club pages. */}
+                  <PageAppearanceEditor surface="profile" ownerId={profile.id} config={config} />
+                </div>
+              </div>
+            </div>
+          )}
     </div>
   );
 }

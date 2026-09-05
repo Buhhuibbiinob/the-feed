@@ -34,7 +34,7 @@ const PROFILE_ONLY = [
 ];
 
 /** Components whose CSS prefixes are trusted above, and must stay put. */
-const PROFILE_ONLY_COMPONENTS = ["ProfileStore", "StickerHub"];
+const PROFILE_ONLY_COMPONENTS = ["ProfileStore", "StickerHub", "StoreNowPlaying"];
 
 const css = readFileSync("src/app/globals.css", "utf8");
 let failures = 0;
@@ -71,11 +71,20 @@ check(
   unscoped.length ? `would leak onto the feed: ${unscoped.join(" | ")}` : ""
 );
 
-// The Source column must stay hidden by default - it is revealed by a
-// min-width query, so an unconditional `display:block` would put it on
-// the phone where there is no room for a third column.
-const sourceDefault = /\.itunes-source\s*\{[^}]*display:\s*none/.test(block);
-check("the Source column is hidden until there is room for it", sourceDefault);
+// The store's three columns must be a widescreen arrangement, not the
+// default. There WAS a separate .itunes-source column outside the store
+// as well, and having both is what crushed the shelves into a strip -
+// so the rule now is that .store-body starts as one column and only
+// becomes three inside a min-width query.
+const oneColumnFirst = /\.store-body\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/.test(block);
+check("the store stacks to one column by default", oneColumnFirst);
+const threeColumnsGated = /@media\s*\(min-width:[^)]*\)\s*\{[^@]*\.store-body\s*\{[^}]*grid-template-columns:\s*\d/.test(block);
+check("three columns only above a min-width", threeColumnsGated);
+check(
+  "the retired Source column is really gone",
+  !block.includes("itunes-source"),
+  "a second sidebar outside the store is what squashed the shelves"
+);
 
 // The markup itself must stay on the profile. The CSS check above is
 // only as true as this is: a generic class prefix is allowed as a

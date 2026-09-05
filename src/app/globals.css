@@ -2529,7 +2529,8 @@ a:hover {
   display: block;
   font-size: 10.5px;
   color: var(--muted);
-}.mood-text {
+}
+.mood-text {
   font-size: 13px;
 }
 .mood-quick {
@@ -2856,36 +2857,10 @@ a:hover {
   border-radius: 8px;
   display: block;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
-}
-
-/* Stickers float over the whole profile.
-   The layers themselves are never interactive - only the sticker images
-   inside them are. An interactive layer covers the entire page including
-   the controls underneath, which is what made Remove and the sliders look
-   dead. */
-/* A sticker's position comes from custom properties so a media query can
-   choose between the desktop pair and a phone pair. --mx/--my only exist
-   when somebody has dragged this sticker on a phone, and var()'s fallback
-   handles every sticker that has not been. */
-.sticker {
-  left: var(--sx);
-  top: calc(var(--sy) * 1cqw);
-}
-@media (max-width: 760px) {
-  .sticker {
-    left: var(--mx, var(--sx));
-    top: calc(var(--my, var(--sy)) * 1cqw);
-  }
-}.profile-columns {
+}@media (max-width: 760px) {}
+.profile-columns {
   position: relative;
   z-index: 2;
-}.sticker {
-  position: absolute;
-  user-select: none;
-  pointer-events: none;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
-}.sticker.selected {
-  outline: 2px solid var(--link);
 }@media (max-width: 760px) {}/* Visually hidden but still read out, for the labels that would clutter
    the panel if they were shown. */
 .sr-only {
@@ -2898,7 +2873,8 @@ a:hover {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
-}.pf-links {
+}
+.pf-links {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -5042,7 +5018,8 @@ footer .copy {
   font-size: 10px;
   color: var(--muted);
   padding: 2px 8px 8px;
-}[data-theme="ios-light"] {
+}
+[data-theme="ios-light"] {
   /* Canonical palette per STYLE_GUIDE.md - light brushed-metal chrome,
      blue accent throughout. This is the default; dark mode is opt-in
      via the toggle (data-mode="dark" below), same blue accent, darker
@@ -5320,7 +5297,8 @@ footer .copy {
 }
 [data-theme="ios-light"][data-mode="dark"] .artist-post-row-desc {
   color: #aeaeb2;
-}[data-theme="ios-light"][data-mode="dark"] .fun-fact-banner {
+}
+[data-theme="ios-light"][data-mode="dark"] .fun-fact-banner {
   background: linear-gradient(180deg, #1c1c1e, #101012);
   border-color: #000;
   color: #f2f2f2;
@@ -11068,7 +11046,8 @@ a.issue-link::after {
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   background-position: center;
-}.pack-chip {
+}
+.pack-chip {
   aspect-ratio: 1;
   padding: 5px;
   border: 1px solid var(--panel-border);
@@ -12780,6 +12759,113 @@ a.issue-link::after {
   color: #5b6b80;
 }
 
+/* ---- The window's readout, and its status bar ----
+   iTunes had one display across the top saying what was playing and one
+   line along the bottom saying what was in the window. A profile has
+   exactly those two things - a song, and some counts - so they go there
+   instead of into cards of their own. These are inside .store, which
+   only the profile mounts. */
+.store-display {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  /* Recessed, the way the real readout was: dark inside, lit rim. */
+  background: linear-gradient(180deg, #d3d8e0 0%, #e8ecf2 100%);
+  border: 1px solid #9aa5b4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28) inset, 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.store-display-btn {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #7f8b9c;
+  background: linear-gradient(180deg, #ffffff, #cfd6e0);
+  color: #2b3a4f;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+}
+.store-display-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  text-align: center;
+  overflow: hidden;
+}
+.store-display-text b {
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.store-display-text span {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.store-display-state {
+  flex: none;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* Not display:none - a hidden iframe is not allowed to play in some
+   browsers, and this one has to actually run. */
+.store-display-frame {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+}
+
+.store-statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  border-radius: 5px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-head-bg);
+}
+.store-statusbar b {
+  color: var(--text);
+}
+.store-statusbar-links {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+}
+
+/* Their bio and what they are listening to, under the name on the
+   photo rather than in a card beside it. */
+.store-hero-caption {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.9;
+  max-height: 2.6em;
+  overflow: hidden;
+}
+.store-hero-bio {
+  display: block;
+}
+
 /* ================================================================
    The profile page as the iTunes Music Store
    ================================================================
@@ -12798,101 +12884,6 @@ a.issue-link::after {
    The Source column is display:none rather than absent from the markup,
    so the anchors it points at are the same ones on every size. */
 
-@media (min-width: 1000px) {
-  [data-theme="ios-light"] .profile-columns {
-    /* Source, content, chart - the reference's proportions. */
-    grid-template-columns: 172px minmax(0, 1fr) minmax(230px, 280px);
-    gap: 0 14px;
-  }
-  [data-theme="ios-light"] .itunes-source {
-    display: block;
-    grid-column: 1;
-    grid-row: 1;
-    position: sticky;
-    top: 12px;
-    align-self: start;
-  }
-  [data-theme="ios-light"] .profile-col-main {
-    grid-column: 2;
-  }
-  [data-theme="ios-light"] .profile-col-side {
-    grid-column: 3;
-  }
-}
-
-/* Below three-column width the Source list has nowhere to go. The
-   sections are all still on the page and still anchored; you reach them
-   by scrolling, which is what you were doing anyway. */
-.itunes-source {
-  display: none;
-}
-
-.itunes-source-head {
-  padding: 5px 9px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #5b6b80;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
-  background: linear-gradient(180deg, #eef2f7 0%, #dde5ee 48%, #d2dbe6 52%, #c2cddb 100%);
-  border: 1px solid #9fb0c4;
-  border-bottom: 0;
-  border-radius: 7px 7px 0 0;
-}
-.itunes-source-list {
-  margin: 0;
-  padding: 4px;
-  list-style: none;
-  /* The Source column is a lighter blue than the page, which is what
-     makes it read as part of the window frame rather than as a card
-     sitting on the page. */
-  background: linear-gradient(180deg, #e6edf6 0%, #dae3ef 100%);
-  border: 1px solid #9fb0c4;
-  border-radius: 0 0 7px 7px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
-}
-.itunes-source-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 7px;
-  border-radius: 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #24405f;
-  text-decoration: none;
-  line-height: 1.3;
-}
-.itunes-source-row:hover {
-  background: rgba(255, 255, 255, 0.65);
-  text-decoration: none;
-}
-/* The selected row: the store's blue gel pill. */
-.itunes-source-row.active {
-  color: #ffffff;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
-  background: linear-gradient(180deg, #7fb2ee 0%, #4b8ede 47%, #3a7ed3 53%, #2665b8 100%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 1px 2px rgba(0, 0, 0, 0.22);
-}
-.itunes-source-icon {
-  flex: none;
-  width: 15px;
-  text-align: center;
-  font-size: 12px;
-  opacity: 0.85;
-}
-.itunes-source-label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ---- The shelf header ----
-   In the store every section is a blue bar with the name on the left and
-   "See All" on the right. The profile's panel heads already carry a
-   .see-all, so this is a recolouring rather than new markup. */
 @media (min-width: 1000px) {
   [data-theme="ios-light"] .profile-columns .panel {
     border-color: #9fb0c4;

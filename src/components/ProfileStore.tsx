@@ -116,6 +116,9 @@ export function ProfileStore({
   username,
   labels,
   actions,
+  caption,
+  statusBar,
+  nowPlaying,
 }: {
   /** The first banner is whose page this is - their picture, their name,
    *  their review count. The store is about a person, and three album
@@ -131,9 +134,17 @@ export function ProfileStore({
   labels: ProfileLabels;
   /** Follow / share / more, laid over the hero photo on a phone. */
   actions?: React.ReactNode;
+  /** Their bio and what they're listening to, under the name. */
+  caption?: React.ReactNode;
+  /** The counts. iTunes put "25 songs, 1:46:40 total time, 124 MB" along
+   *  the bottom of the window; this is the same line for a person. */
+  statusBar?: React.ReactNode;
+  /** Their profile song, in the window's own readout. */
+  nowPlaying?: React.ReactNode;
 }) {
   return (
     <div className="store">
+      {nowPlaying}
       {/* On a phone the profile tile is not one of three banners - it is
           the screen. The reference is the Apple Music artist page: a
           full-bleed photo about 40% tall with the name sitting on it,
@@ -147,6 +158,7 @@ export function ProfileStore({
               <span className="store-hero-text">
                 <b>{profileTile.title}</b>
                 <span>{profileTile.subtitle}</span>
+                {caption && <span className="store-hero-caption">{caption}</span>}
               </span>
               {/* Phone only: the row of actions the reference puts under
                   the name. Rendered here rather than in a panel so it
@@ -231,6 +243,8 @@ export function ProfileStore({
           </aside>
         )}
       </div>
+
+      {statusBar && <div className="store-statusbar">{statusBar}</div>}
     </div>
   );
 }
