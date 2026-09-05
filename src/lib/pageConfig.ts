@@ -88,6 +88,9 @@ export const PAGE_MODULES: ModuleDef[] = [
   { id: "achievements", label: "Trophies", surfaces: ["profile"], column: "side" },
   { id: "clubs", label: "Clubs", surfaces: ["profile"], column: "side" },
   { id: "presence", label: "Online", surfaces: ["profile"], column: "side" },
+  // What is left of stickers: a collection in a box, not a layer over
+  // the page. Only appears for people who actually placed some.
+  { id: "stickers", label: "Stickers", surfaces: ["profile"], column: "side" },
   { id: "members", label: "Members", surfaces: ["club"], column: "side", defaultOn: true },
   { id: "info", label: "The Story", surfaces: ["club"], column: "side", defaultOn: true },
   // Main column: the things you actually read.

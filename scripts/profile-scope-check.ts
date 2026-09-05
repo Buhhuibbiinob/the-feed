@@ -28,7 +28,13 @@ const PROFILE_ONLY = [
   // checked below rather than assumed, because the day somebody mounts
   // it on the homepage this list would silently start lying.
   ".store",
+  // The sticker hub. Same reasoning and same proof as .store below:
+  // profile-only because exactly one page mounts the component.
+  ".sticker-hub",
 ];
+
+/** Components whose CSS prefixes are trusted above, and must stay put. */
+const PROFILE_ONLY_COMPONENTS = ["ProfileStore", "StickerHub"];
 
 const css = readFileSync("src/app/globals.css", "utf8");
 let failures = 0;
@@ -71,21 +77,24 @@ check(
 const sourceDefault = /\.itunes-source\s*\{[^}]*display:\s*none/.test(block);
 check("the Source column is hidden until there is room for it", sourceDefault);
 
-// The store markup itself must stay on the profile. The CSS check above
-// is only as true as this is: ".store" is allowed as a profile-only
-// anchor because exactly one page mounts the component that emits it.
-const importers = execSync(
-  "grep -rl 'components/ProfileStore' src --include=*.tsx --include=*.ts || true",
-  { encoding: "utf8" }
-)
-  .split("\n")
-  .map((l) => l.trim())
-  .filter((l) => l && !l.endsWith("components/ProfileStore.tsx"));
-check(
-  "only the profile page mounts the store",
-  importers.length === 1 && importers[0].includes("profile/"),
-  importers.join(", ") || "nothing imports it"
-);
+// The markup itself must stay on the profile. The CSS check above is
+// only as true as this is: a generic class prefix is allowed as a
+// profile-only anchor because exactly one page mounts the component
+// that emits it.
+for (const component of PROFILE_ONLY_COMPONENTS) {
+  const importers = execSync(
+    `grep -rl 'components/${component}' src --include=*.tsx --include=*.ts || true`,
+    { encoding: "utf8" }
+  )
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.endsWith(`components/${component}.tsx`));
+  check(
+    `only the profile page mounts ${component}`,
+    importers.length === 1 && importers[0].includes("profile/"),
+    importers.join(", ") || "nothing imports it"
+  );
+}
 
 if (failures > 0) {
   console.error(`\n${failures} check${failures === 1 ? "" : "s"} failed.`);
