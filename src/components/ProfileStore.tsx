@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { HERO_SLOTS, type StoreItem } from "@/lib/profileStore";
+import type { ProfileLabels } from "@/lib/profileLabels";
 
 // The iTunes Music Store front page, built out of one member's reviews.
 //
@@ -32,10 +33,12 @@ function Shelf({
   title,
   items,
   seeAllHref,
+  seeAllLabel,
 }: {
   title: string;
   items: StoreItem[];
   seeAllHref: string;
+  seeAllLabel: string;
 }) {
   const track = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(0);
@@ -68,7 +71,7 @@ function Shelf({
           ))}
         </span>
         <Link href={seeAllHref} className="store-see-all">
-          See All
+          {seeAllLabel}
         </Link>
       </header>
       <div className="store-shelf-body">
@@ -111,6 +114,8 @@ export function ProfileStore({
   artists,
   genres,
   username,
+  labels,
+  actions,
 }: {
   /** The first banner is whose page this is - their picture, their name,
    *  their review count. The store is about a person, and three album
@@ -123,19 +128,31 @@ export function ProfileStore({
   artists: string[];
   genres: string[];
   username: string;
+  labels: ProfileLabels;
+  /** Follow / share / more, laid over the hero photo on a phone. */
+  actions?: React.ReactNode;
 }) {
   return (
     <div className="store">
+      {/* On a phone the profile tile is not one of three banners - it is
+          the screen. The reference is the Apple Music artist page: a
+          full-bleed photo about 40% tall with the name sitting on it,
+          and everything else revealed by scrolling. The same markup does
+          both; only the CSS differs. */}
       {(profileTile || hero.length > 0) && (
         <div className="store-hero">
           {profileTile && (
-            <Link href={profileTile.href} className="store-hero-tile store-hero-me">
+            <div className="store-hero-tile store-hero-me">
               <Art item={profileTile} size="hero" />
               <span className="store-hero-text">
                 <b>{profileTile.title}</b>
                 <span>{profileTile.subtitle}</span>
               </span>
-            </Link>
+              {/* Phone only: the row of actions the reference puts under
+                  the name. Rendered here rather than in a panel so it
+                  sits on the photo, where it belongs. */}
+              {actions && <span className="store-hero-actions">{actions}</span>}
+            </div>
           )}
           {/* One fewer record when the profile tile is present, so the
               row stays three wide rather than wrapping to four. */}
@@ -156,7 +173,7 @@ export function ProfileStore({
           {genres.length > 0 && (
             <form action={`/profile/${username}`} className="store-genre">
               <select name="genre" defaultValue="" aria-label="Choose genre">
-                <option value="">Choose Genre</option>
+                <option value="">{labels.store_genre}</option>
                 {genres.map((g) => (
                   <option key={g} value={g}>
                     {g}
@@ -167,7 +184,7 @@ export function ProfileStore({
           )}
           {artists.length > 0 && (
             <div className="store-side-panel">
-              <div className="store-side-head">Featured Artists</div>
+              <div className="store-side-head">{labels.store_artists}</div>
               <ul className="store-side-list">
                 {artists.map((name) => (
                   <li key={name}>
@@ -181,7 +198,7 @@ export function ProfileStore({
 
         <div className="store-main">
           {shelves.map((shelf) => (
-            <Shelf key={shelf.title} {...shelf} />
+            <Shelf key={shelf.title} {...shelf} seeAllLabel={labels.store_see_all} />
           ))}
           {promos.length > 0 && (
             <div className="store-promos">
@@ -197,7 +214,7 @@ export function ProfileStore({
 
         {chart.length > 0 && (
           <aside className="store-chart">
-            <div className="store-chart-head">Top Rated</div>
+            <div className="store-chart-head">{labels.store_chart}</div>
             <ol className="store-chart-list">
               {chart.map((item) => (
                 <li key={item.id}>
@@ -209,7 +226,7 @@ export function ProfileStore({
               ))}
             </ol>
             <Link href={`/profile/${username}#reviews`} className="store-chart-foot">
-              All Reviews
+              {labels.store_all_reviews}
             </Link>
           </aside>
         )}

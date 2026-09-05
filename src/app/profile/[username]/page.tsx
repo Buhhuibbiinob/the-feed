@@ -23,6 +23,7 @@ import { ProfileArranger } from "@/components/ProfileArranger";
 import { ProfileStore } from "@/components/ProfileStore";
 import { StickerHub } from "@/components/StickerHub";
 import { fetchStickerHub } from "@/lib/stickerHub";
+import { getProfileLabels } from "@/lib/profileLabels";
 import {
   chartRows,
   featuredArtists,
@@ -60,7 +61,7 @@ import {
 } from "@/lib/achievements";
 
 type ClubMembershipRow = {
-  clubs: { id: string; media_type: MediaType; name: string } | null;
+  clubs: { id: string; media_type: MediaType; name: string; avatar_url: string | null } | null;
 };
 
 type ProfileRow = {
@@ -286,7 +287,7 @@ export default async function ProfilePage({
     supabase.from("comments").select("post_id"),
     supabase
       .from("club_members")
-      .select("clubs(id, media_type, name)")
+      .select("clubs(id, media_type, name, avatar_url)")
       .eq("user_id", profile.id)
       .returns<ClubMembershipRow[]>(),
     supabase
@@ -505,6 +506,7 @@ export default async function ProfilePage({
   // layout instead - a shopfront with one record on it looks broken in a
   // way a list does not.
   const hubStickers = await fetchStickerHub(supabase, profile.id);
+  const L = await getProfileLabels(supabase);
   const storeHero = heroPicks(posts);
   const storeRecent = recentShelf(posts);
   const storeSecond = secondShelf(posts, [...storeHero, ...storeRecent]);
@@ -589,7 +591,7 @@ export default async function ProfilePage({
       case "obsessed":
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Obsessed With</div>
+            <div className="panel-head">{L.obsessed}</div>
             <div className="panel-body">
               {obsessedTitle ? (
                 <div className="obsessed">
@@ -667,7 +669,7 @@ export default async function ProfilePage({
         if (!isOwnProfile) return null;
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Taste Twin</div>
+            <div className="panel-head">{L.twin}</div>
             <div className="panel-body">
               {!twin ? (
                 <EmptySlot>Not enough overlap yet to name one.</EmptySlot>
@@ -690,7 +692,7 @@ export default async function ProfilePage({
       case "achievements":
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Trophies</div>
+            <div className="panel-head">{L.achievements}</div>
             <div className="panel-body">
               {achievements.length === 0 ? (
                 <EmptySlot>None yet.</EmptySlot>
@@ -729,7 +731,7 @@ export default async function ProfilePage({
 
       case "pinned":
         return (
-          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Pinned">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title={L.pinned}>
             {pinnedPosts.length === 0 ? (
               <EmptySlot>{isOwnProfile ? "Pin a review from its page." : "Nothing pinned."}</EmptySlot>
             ) : (
@@ -765,14 +767,14 @@ export default async function ProfilePage({
 
       case "stickers":
         return (
-          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Stickers">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title={L.stickers}>
             <StickerHub stickers={hubStickers} isOwner={isOwnProfile} />
           </Panel>
         );
 
       case "presence":
         return (
-          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title="Online">
+          <Panel key={id} id={id} style={moduleStyle(moduleStates.get(id))} title={L.presence}>
             <div className="week-figures">
               {isOwnProfile && viewerCount != null && (
                 <span>
@@ -794,7 +796,7 @@ export default async function ProfilePage({
       case "highlights":
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Greatest Hits</div>
+            <div className="panel-head">{L.highlights}</div>
             <div className="panel-body">
               {highlights.length === 0 ? (
                 <EmptySlot>{isOwnProfile ? "Rate something and your best turns up here." : "Nothing yet."}</EmptySlot>
@@ -878,7 +880,7 @@ export default async function ProfilePage({
       case "favorites":
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Favorites</div>
+            <div className="panel-head">{L.favorites}</div>
             <div className="panel-body">
               {favoriteCount === 0 ? (
                 <EmptySlot>{isOwnProfile ? "Pick your eight." : "Empty."}</EmptySlot>
@@ -913,7 +915,7 @@ export default async function ProfilePage({
       case "stats":
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Details</div>
+            <div className="panel-head">{L.stats}</div>
             <div className="panel-body flush">
               {/* Three figures across the top, the way a profile states
                   itself in every one of the references - big number over a
@@ -952,11 +954,23 @@ export default async function ProfilePage({
       case "clubs":
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Clubs</div>
+            <div className="panel-head">{L.clubs}</div>
             <div className="panel-body flush">
               {clubs.map((club) => (
                 <Link href={`/clubs/${club.id}`} className="club-row" key={club.id}>
-                  <span className={`badge ${club.media_type}`}>{MEDIA_LABELS[club.media_type]}</span>
+                  {/* The club's own icon, not a media-type pill. Five
+                      rows all reading MUSIC/MUSIC VIDEO told you nothing
+                      about which club was which; the logos are the thing
+                      people recognise at a glance. */}
+                  <span className={`club-badge ${club.media_type}`}>
+                    {club.avatar_url ? (
+                      <img src={club.avatar_url} alt="" loading="lazy" />
+                    ) : (
+                      <span className="club-badge-letter" aria-hidden="true">
+                        {club.name.slice(0, 1).toUpperCase()}
+                      </span>
+                    )}
+                  </span>
                   <span className="club-row-name">{club.name}</span>
                 </Link>
               ))}
@@ -967,7 +981,7 @@ export default async function ProfilePage({
       case "reviews":
         return (
           <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
-            <div className="panel-head">Reviews</div>
+            <div className="panel-head">{L.reviews}</div>
             <div className="panel-body flush">
               {posts.length === 0 ? (
                 <EmptySlot>No reviews yet.</EmptySlot>
@@ -1085,7 +1099,6 @@ export default async function ProfilePage({
                         following={isFollowing}
                       />
                       <Link href={`/messages/${profile.username}`}>Send Message</Link>
-                      <Link href={`/profile/${profile.username}#guestbook`}>Leave a note</Link>
                     </>
                   ) : (
                     <Link href="/sign-in">Sign in to follow</Link>
@@ -1109,8 +1122,6 @@ export default async function ProfilePage({
 
               <div className="pf-viewmy">
                 <b>View:</b> <Link href={`/profile/${profile.username}#reviews`}>Reviews</Link>
-                {" | "}
-                <Link href={`/profile/${profile.username}#guestbook`}>Signatures</Link>
                 {clubs.length > 0 && (
                   <>
                     {" | "}
@@ -1262,14 +1273,24 @@ export default async function ProfilePage({
               }}
               hero={storeHero}
               shelves={[
-                { title: "New Releases", items: storeRecent, seeAllHref: `/profile/${profile.username}#reviews` },
-                { title: "Just Added", items: storeSecond, seeAllHref: `/profile/${profile.username}#reviews` },
+                { title: L.store_new, items: storeRecent, seeAllHref: `/profile/${profile.username}#reviews` },
+                { title: L.store_added, items: storeSecond, seeAllHref: `/profile/${profile.username}#reviews` },
               ]}
               promos={storeSecond.slice(0, 3)}
               chart={storeChart}
               artists={storeArtists}
               genres={storeGenres}
               username={profile.username}
+              labels={L}
+              actions={
+                !isOwnProfile && user ? (
+                  <FollowButton
+                    followedId={profile.id}
+                    username={profile.username}
+                    following={isFollowing}
+                  />
+                ) : null
+              }
             />
           )}
           {/* The banner heads the main column - the wide space it was
