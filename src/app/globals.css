@@ -13111,3 +13111,140 @@ a.issue-link::after {
     border-color: rgba(255, 255, 255, 0.1);
   }
 }
+
+/* ================================================================
+   The profile page as the iTunes Music Store
+   ================================================================
+   The reference is the 2003 Music Store: a Source column down the left,
+   the content in the middle, a numbered chart down the right, all of it
+   inside one aqua window with a pinstriped title bar.
+
+   PROFILE PAGES ONLY. The feed keeps the quiet edge-to-edge list from
+   the mobile pass - a homepage is for reading, and framing a reading
+   column in store chrome would undo that. Everything here is scoped
+   under .profile-columns or .pf-store, both of which only exist on a
+   profile.
+
+   Desktop only, at 1000px and up: three columns need the width for it,
+   and below that the page keeps the two-column layout it already had.
+   The Source column is display:none rather than absent from the markup,
+   so the anchors it points at are the same ones on every size. */
+
+@media (min-width: 1000px) {
+  [data-theme="ios-light"] .profile-columns {
+    /* Source, content, chart - the reference's proportions. */
+    grid-template-columns: 172px minmax(0, 1fr) minmax(230px, 280px);
+    gap: 0 14px;
+  }
+  [data-theme="ios-light"] .itunes-source {
+    display: block;
+    grid-column: 1;
+    grid-row: 1;
+    position: sticky;
+    top: 12px;
+    align-self: start;
+  }
+  [data-theme="ios-light"] .profile-col-main {
+    grid-column: 2;
+  }
+  [data-theme="ios-light"] .profile-col-side {
+    grid-column: 3;
+  }
+}
+
+/* Below three-column width the Source list has nowhere to go. The
+   sections are all still on the page and still anchored; you reach them
+   by scrolling, which is what you were doing anyway. */
+.itunes-source {
+  display: none;
+}
+
+.itunes-source-head {
+  padding: 5px 9px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5b6b80;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, #eef2f7 0%, #dde5ee 48%, #d2dbe6 52%, #c2cddb 100%);
+  border: 1px solid #9fb0c4;
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+}
+.itunes-source-list {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  /* The Source column is a lighter blue than the page, which is what
+     makes it read as part of the window frame rather than as a card
+     sitting on the page. */
+  background: linear-gradient(180deg, #e6edf6 0%, #dae3ef 100%);
+  border: 1px solid #9fb0c4;
+  border-radius: 0 0 7px 7px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+}
+.itunes-source-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 7px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #24405f;
+  text-decoration: none;
+  line-height: 1.3;
+}
+.itunes-source-row:hover {
+  background: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+}
+/* The selected row: the store's blue gel pill. */
+.itunes-source-row.active {
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+  background: linear-gradient(180deg, #7fb2ee 0%, #4b8ede 47%, #3a7ed3 53%, #2665b8 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 1px 2px rgba(0, 0, 0, 0.22);
+}
+.itunes-source-icon {
+  flex: none;
+  width: 15px;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.85;
+}
+.itunes-source-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- The shelf header ----
+   In the store every section is a blue bar with the name on the left and
+   "See All" on the right. The profile's panel heads already carry a
+   .see-all, so this is a recolouring rather than new markup. */
+@media (min-width: 1000px) {
+  [data-theme="ios-light"] .profile-columns .panel {
+    border-color: #9fb0c4;
+    border-radius: 6px;
+  }
+  [data-theme="ios-light"] .profile-columns .panel-head {
+    background: linear-gradient(180deg, #7fb2ee 0%, #4b8ede 47%, #3a7ed3 53%, #2665b8 100%);
+    border-bottom: 1px solid #23538f;
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.32);
+    font-size: 11px;
+    letter-spacing: 0.01em;
+  }
+  [data-theme="ios-light"] .profile-columns .panel-head .see-all {
+    color: #ffffff;
+    opacity: 0.95;
+    font-weight: 700;
+  }
+  /* The store's content wells are white with a hairline, not bevelled. */
+  [data-theme="ios-light"] .profile-columns .panel-body {
+    background: #ffffff;
+  }
+}

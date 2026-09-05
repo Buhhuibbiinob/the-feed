@@ -3,6 +3,7 @@
 import { useSyncExternalStore, useState } from "react";
 import { decorateServerSnapshot, isDecorating, subscribeDecorate } from "@/lib/decorate";
 import { savePageAppearance } from "@/app/actions/pageConfig";
+import { ProfileSourceList } from "@/components/ProfileSourceList";
 import {
   moduleLabel,
   resolvedColumn,
@@ -164,6 +165,12 @@ export function ProfileArranger({
       )}
 
       <div className="profile-columns">
+        {/* The store's Source column. Main sections first, then the
+            identity panels, which is reading order rather than DOM
+            order - the DOM puts side first so the phone stacks the
+            picture and name above a wall of reviews. Hidden below the
+            width where there are three columns to have. */}
+        <ProfileSourceList sections={[...main, ...side]} />
         {column("side", side, sideHeader)}
         {column("main", main, mainHeader)}
       </div>
