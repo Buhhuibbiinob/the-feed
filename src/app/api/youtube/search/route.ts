@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { searchVideos } from "@/lib/youtube";
+import { describeSearchFailure, searchVideosDetailed } from "@/lib/youtube";
 
 export async function GET(request: NextRequest) {
   const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
@@ -12,6 +12,12 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const videos = await searchVideos(query);
-  return NextResponse.json({ videos });
+  const { videos, failure } = await searchVideosDetailed(query);
+  // The reason travels with the result. An empty list that means "search
+  // is broken" and an empty list that means "no such song" are different
+  // answers, and the box needs to be able to say which.
+  return NextResponse.json({
+    videos,
+    ...(failure ? { error: describeSearchFailure(failure) } : {}),
+  });
 }

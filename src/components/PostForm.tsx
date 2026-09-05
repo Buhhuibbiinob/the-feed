@@ -46,6 +46,7 @@ export function PostForm({
   const [videoResults, setVideoResults] = useState<YoutubeVideo[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
   const [videoSearching, setVideoSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   // The fields are cleared on success as before, but the form is no
   // longer what gets shown: `posted` swaps it for the confirmation, and
@@ -236,7 +237,7 @@ export function PostForm({
                     {videoSearching ? (
                       <div className="track-result">Searching…</div>
                     ) : videoResults.length === 0 ? (
-                      <div className="track-result">No matches.</div>
+                      <div className="track-result">{searchError ?? "No matches."}</div>
                     ) : (
                       videoResults.map((video) => (
                         <div className="track-result" key={video.id} onClick={() => selectVideo(video)}>
