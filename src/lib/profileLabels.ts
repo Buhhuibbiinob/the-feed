@@ -54,7 +54,7 @@ export const PROFILE_LABELS: { key: ProfileLabelKey; label: string; hint: string
   { key: "pinned", label: "Pinned", hint: "Reviews they've pinned to the top." },
   { key: "stickers", label: "Stickers", hint: "The sticker hub." },
   { key: "store_new", label: "New Releases", hint: "First shelf: their most recent reviews." },
-  { key: "store_added", label: "Just Added", hint: "Second shelf." },
+  { key: "store_added", label: "Selected Favorites", hint: "Second shelf: the things the member picked themselves." },
   { key: "store_chart", label: "Top Rated", hint: "The numbered chart down the right." },
   { key: "store_artists", label: "Featured Artists", hint: "Who they review most." },
   { key: "store_genre", label: "Choose Genre", hint: "The genre menu." },

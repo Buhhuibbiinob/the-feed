@@ -84,7 +84,7 @@ Code that reads a column which doesn't exist yet used to take every review off
 the site; `src/lib/postQuery.ts` now degrades instead, but the rule stands: ship
 the migration and the code together, and run the migration.
 
-Migrations so far: `001`–`009`. They are safe to re-run.
+Migrations so far: `001`–`011`. They are safe to re-run.
 
 **2. Secrets live in two places.** `.env.local` on your machine, and Vercel →
 Settings → Environment Variables for the live site. Changing one does not change

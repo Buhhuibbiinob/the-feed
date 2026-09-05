@@ -12900,6 +12900,22 @@ a.issue-link::after {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
+/* ---- Filling the six boxes ---- */
+.slot-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.slot-editor {
+  padding: 10px;
+  border-radius: 7px;
+  border: 1px solid var(--panel-border);
+  background: var(--shelf-bg, rgba(0, 0, 0, 0.02));
+}
+.slot-editor .form-actions {
+  margin-top: 6px;
+}
+
 /* ================================================================
    The profile page as the iTunes Music Store
    ================================================================
@@ -13447,4 +13463,14 @@ a.issue-link::after {
   .store-promos {
     padding: 0 14px 12px;
   }
+}
+
+/* A video box is an iframe, so it needs the frame an <img> got for free. */
+.store-art-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+  /* The iframe would otherwise eat the click that the tile is for. */
+  pointer-events: none;
 }

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { HERO_SLOTS, type StoreItem } from "@/lib/profileStore";
 import type { ProfileLabels } from "@/lib/profileLabels";
+import { isMediaSlot, type MediaSlot } from "@/lib/mediaSlots";
 
 // The iTunes Music Store front page, built out of one member's reviews.
 //
@@ -15,6 +16,33 @@ import type { ProfileLabels } from "@/lib/profileLabels";
 // through a fixed grid; here the shelf is a scroller and the arrows page
 // it, which means the same control works with a trackpad, a finger and a
 // mouse instead of only the last one.
+
+/**
+ * A box the member filled: a picture, or a video that plays.
+ *
+ * Muted, looping and inline, which is the only combination every browser
+ * will start on its own. Unmuted autoplay is blocked outright, and a
+ * video with sound that starts by itself on somebody's profile would be
+ * the wrong thing to build even if it were allowed - the profile song in
+ * the readout above is the one thing here that makes noise.
+ */
+function SlotMedia({ slot }: { slot: MediaSlot }) {
+  if (slot.kind === "video" && slot.youtubeId) {
+    return (
+      <iframe
+        className="store-art store-art-video"
+        src={`https://www.youtube.com/embed/${slot.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${slot.youtubeId}&controls=0&playsinline=1&modestbranding=1&rel=0`}
+        allow="autoplay; encrypted-media"
+        title={slot.title ?? "Profile video"}
+        tabIndex={-1}
+      />
+    );
+  }
+  if (slot.imageUrl) {
+    return <img src={slot.imageUrl} alt="" className="store-art store-art-hero" />;
+  }
+  return null;
+}
 
 function Art({ item, size }: { item: StoreItem; size: "hero" | "shelf" | "promo" }) {
   if (item.coverUrl) {
@@ -120,6 +148,7 @@ export function ProfileStore({
   statusBar,
   nowPlaying,
   avatarUrl,
+  slots,
 }: {
   /** The first banner is whose page this is - their picture, their name,
    *  their review count. The store is about a person, and three album
@@ -145,6 +174,9 @@ export function ProfileStore({
   /** Their actual profile picture. The hero tile behind it is their
    *  banner, which is wallpaper - this is the face. */
   avatarUrl?: string | null;
+  /** The six boxes, already resolved: the member's choice where they
+   *  made one, the store's own pick where they didn't. */
+  slots?: (MediaSlot | StoreItem | null)[];
 }) {
   return (
     <div className="store">
@@ -184,15 +216,36 @@ export function ProfileStore({
           )}
           {/* One fewer record when the profile tile is present, so the
               row stays three wide rather than wrapping to four. */}
-          {(profileTile ? hero.slice(0, HERO_SLOTS - 1) : hero).map((item) => (
-            <Link key={item.id} href={item.href} className="store-hero-tile">
-              <Art item={item} size="hero" />
-              <span className="store-hero-text">
-                <b>{item.title}</b>
-                <span>{item.subtitle}</span>
+          {(slots
+            ? slots.slice(1, HERO_SLOTS).filter((s): s is MediaSlot | StoreItem => !!s)
+            : profileTile
+              ? hero.slice(0, HERO_SLOTS - 1)
+              : hero
+          ).map((entry, i) =>
+            isMediaSlot(entry) ? (
+              <span key={`slot-${i}`} className="store-hero-tile">
+                <SlotMedia slot={entry} />
+                {(entry.title || entry.subtitle) && (
+                  <span className="store-hero-text">
+                    <span className="store-hero-lines">
+                      <b>{entry.title}</b>
+                      <span>{entry.subtitle}</span>
+                    </span>
+                  </span>
+                )}
               </span>
-            </Link>
-          ))}
+            ) : (
+              <Link key={entry.id} href={entry.href} className="store-hero-tile">
+                <Art item={entry} size="hero" />
+                <span className="store-hero-text">
+                  <span className="store-hero-lines">
+                    <b>{entry.title}</b>
+                    <span>{entry.subtitle}</span>
+                  </span>
+                </span>
+              </Link>
+            )
+          )}
         </div>
       )}
 
@@ -228,16 +281,29 @@ export function ProfileStore({
           {shelves.map((shelf) => (
             <Shelf key={shelf.title} {...shelf} seeAllLabel={labels.store_see_all} />
           ))}
-          {promos.length > 0 && (
-            <div className="store-promos">
-              {promos.map((item) => (
-                <Link key={item.id} href={item.href} className="store-promo">
-                  <Art item={item} size="promo" />
-                  <span className="store-promo-text">{item.title}</span>
-                </Link>
-              ))}
-            </div>
-          )}
+          {(() => {
+            const bottom = slots
+              ? slots.slice(HERO_SLOTS).filter((s): s is MediaSlot | StoreItem => !!s)
+              : promos;
+            if (bottom.length === 0) return null;
+            return (
+              <div className="store-promos">
+                {bottom.map((entry, i) =>
+                  isMediaSlot(entry) ? (
+                    <span key={`pslot-${i}`} className="store-promo">
+                      <SlotMedia slot={entry} />
+                      {entry.title && <span className="store-promo-text">{entry.title}</span>}
+                    </span>
+                  ) : (
+                    <Link key={entry.id} href={entry.href} className="store-promo">
+                      <Art item={entry} size="promo" />
+                      <span className="store-promo-text">{entry.title}</span>
+                    </Link>
+                  )
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {chart.length > 0 && (
