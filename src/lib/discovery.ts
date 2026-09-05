@@ -41,16 +41,18 @@ type ConfigRow = { owner_id: string; config: unknown };
 /**
  * Counts the deliberate choices someone has made. Each is worth one
  * point, so a page with a picture and a colour scores below one with a
- * theme, stickers, a song and a filled-in shortlist - which is the
- * ordering the carousel wants.
+ * theme, a background and a filled-in shortlist - which is the ordering
+ * the carousel wants.
+ *
+ * Stickers and the mood widget used to count here. Both are gone, so
+ * counting them would have quietly frozen every profile's score at
+ * whatever it was the day they went.
  */
-function effortScore(profile: ProfileRow, config: unknown, stickerCount: number): number {
+function effortScore(profile: ProfileRow, config: unknown): number {
   let score = 0;
   if (profile.avatar_url) score++;
   if (profile.banner_url) score++;
   if (profile.bio) score++;
-  if (profile.mood_emoji) score++;
-  if (stickerCount > 0) score += Math.min(3, stickerCount);
 
   if (config) {
     const resolved = resolvePageConfig(config, "profile");
@@ -68,7 +70,7 @@ export async function getDiscoverProfiles(
   supabase: SupabaseClient,
   { limit = 60 }: { limit?: number } = {}
 ): Promise<DiscoverProfile[]> {
-  const [{ data: profileRows }, { data: configRows }, { data: postRows }, { data: stickerRows }] =
+  const [{ data: profileRows }, { data: configRows }, { data: postRows }] =
     await Promise.all([
       // Bots are in the directory now, unlabelled, the same as they are
       // in the feed. They are capped further down rather than here: the
@@ -85,7 +87,6 @@ export async function getDiscoverProfiles(
         .eq("owner_type", "profile")
         .returns<ConfigRow[]>(),
       supabase.from("posts").select("user_id"),
-      supabase.from("profile_stickers").select("user_id"),
     ]);
 
   const configByUser = new Map((configRows ?? []).map((r) => [r.owner_id, r.config]));
@@ -95,10 +96,6 @@ export async function getDiscoverProfiles(
     reviewCounts.set(row.user_id, (reviewCounts.get(row.user_id) ?? 0) + 1);
   }
 
-  const stickerCounts = new Map<string, number>();
-  for (const row of stickerRows ?? []) {
-    stickerCounts.set(row.user_id, (stickerCounts.get(row.user_id) ?? 0) + 1);
-  }
 
   const all = (profileRows ?? []).map((profile) => ({
     id: profile.id,
@@ -109,7 +106,7 @@ export async function getDiscoverProfiles(
     moodEmoji: profile.mood_emoji,
     reviewCount: reviewCounts.get(profile.id) ?? 0,
     lastActive: profile.last_seen_at,
-    effort: effortScore(profile, configByUser.get(profile.id), stickerCounts.get(profile.id) ?? 0),
+    effort: effortScore(profile, configByUser.get(profile.id)),
     isBot: profile.is_bot === true,
   }));
 

@@ -63,13 +63,26 @@ export type ModuleDef = {
 // The ids are deliberately unchanged. A stored page config references
 // modules by id, so renaming one would silently reset the arrangement of
 // every member who has already ordered their page.
+// ---- What was taken out, and why ----
+//
+// Five modules went at once: the mood widget, the autoplaying profile
+// song, the free-text blurbs, the top-friends row and the comment wall.
+// Renaming them had not worked - "Right Now", "On Repeat", "Liner
+// Notes", "Regulars" and "Signatures" are still a mood, an anthem, a
+// Top 8 and a guestbook, and a page carrying all five reads as one
+// particular 2005 social network whatever the labels say.
+//
+// The count was the other half of it. Twenty modules on one page is not
+// a profile, it is a settings screen you scroll: the store front now
+// says who somebody is in one screen, and everything below it was
+// competing with that.
+//
+// Nothing is dropped from the database. The tables and every row in
+// them are untouched, so restoring any of these is putting its line
+// back here and rendering it again.
 export const PAGE_MODULES: ModuleDef[] = [
   // Side column: who you are, at a glance.
-  { id: "mood", label: "Right Now", surfaces: ["profile"], column: "side" },
-  { id: "anthem", label: "On Repeat", surfaces: ["profile", "club"], column: "side", defaultOn: true },
   { id: "about", label: "Bio", surfaces: ["profile", "club"], column: "side", defaultOn: true },
-  { id: "blurbs", label: "Liner Notes", surfaces: ["profile"], column: "side" },
-  { id: "connections", label: "Regulars", surfaces: ["profile"], column: "side" },
   { id: "favorites", label: "Favorites", surfaces: ["profile"], column: "side", defaultOn: true },
   { id: "stats", label: "By the Numbers", surfaces: ["profile", "club"], column: "side", defaultOn: true },
   { id: "achievements", label: "Trophies", surfaces: ["profile"], column: "side" },
@@ -84,7 +97,6 @@ export const PAGE_MODULES: ModuleDef[] = [
   { id: "pinned", label: "Pinned", surfaces: ["profile", "club"], column: "main" },
   { id: "highlights", label: "Greatest Hits", surfaces: ["profile"], column: "main" },
   { id: "collections", label: "Collections", surfaces: ["profile"], column: "main" },
-  { id: "guestbook", label: "Signatures", surfaces: ["profile", "club"], column: "main", defaultOn: true },
   { id: "reviews", label: "Reviews", surfaces: ["profile", "club"], column: "main", defaultOn: true },
 ];
 

@@ -38,7 +38,7 @@ export function DecorateBar({ isOwner }: { isOwner: boolean }) {
     <div className={`decorate-bar${on ? " on" : ""}`}>
       {on && (
         <span className="decorate-hint">
-          Drag panels to move them. Drag stickers anywhere. Everything saves as you go.
+          Drag panels to move them. Everything saves as you go.
         </span>
       )}
       <button

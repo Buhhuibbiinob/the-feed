@@ -81,6 +81,46 @@ export function pickAnnouncement(
 }
 
 /**
+ * An announcement that ships in the code rather than the database.
+ *
+ * Normally announcements are rows an admin writes. This one is here
+ * because the admin form could not write a row at all - the insert's
+ * error was being discarded, so if the announcements table did not exist
+ * yet the form reported success and nothing happened. That is fixed, but
+ * fixing it does not post the announcement, and this one needed posting.
+ *
+ * So it is defined here and shown when no database announcement is live.
+ * It needs no table, no migration and no button press. Publishing any
+ * real announcement replaces it; dismissing it is remembered in the
+ * browser, since there is no row for a dismissal to point at.
+ */
+export const BUILTIN_ANNOUNCEMENT_ID = "builtin-profiles-2026-09";
+
+export const BUILTIN_ANNOUNCEMENT: Announcement = {
+  id: BUILTIN_ANNOUNCEMENT_ID,
+  title: "Profiles have a new look",
+  body:
+    "We've been working on this one for a while, and you all saw the archive demo. " +
+    "The crowded MySpace look is gone - profiles now present your reviews properly " +
+    "instead of burying them under widgets.",
+  style: "alert",
+  button_label: "Take a look",
+  link_url: "/profiles",
+  active: true,
+  starts_at: null,
+  ends_at: null,
+  // Deliberately the beginning of time, so it always sorts last. This is
+  // the announcement that speaks when nothing else does; dating it
+  // "today" would have let it outrank a real one an admin published this
+  // morning, which is the opposite of what a fallback is for.
+  created_at: "1970-01-01T00:00:00.000Z",
+};
+
+export function isBuiltin(id: string): boolean {
+  return id === BUILTIN_ANNOUNCEMENT_ID;
+}
+
+/**
  * What this viewer should see right now, or null.
  *
  * Null on ANY failure, including the table not existing yet. This runs in
@@ -113,10 +153,18 @@ export async function fetchAnnouncementFor(
       dismissed = (rows ?? []).map((r) => r.announcement_id as string);
     }
 
-    return pickAnnouncement(data as Announcement[], dismissed, now);
+    const live = pickAnnouncement(data as Announcement[], dismissed, now);
+    if (live) return live;
   } catch {
-    return null;
+    // Fall through: a missing table is exactly the case the built-in
+    // announcement exists to survive.
   }
+
+  // Nothing live in the database, so the built-in one speaks. The
+  // browser decides whether it has already been dismissed - there is no
+  // row for a dismissal to reference, and localStorage is checked in the
+  // component either way.
+  return BUILTIN_ANNOUNCEMENT;
 }
 
 /**

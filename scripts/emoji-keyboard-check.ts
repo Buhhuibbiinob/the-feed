@@ -1,19 +1,18 @@
 /**
- * The emoji keyboard and the sticker pack are two doors onto one set of
- * drawings. This makes sure both doors open.
+ * Every drawing on the emoji keyboard is reachable and has a file.
  *
- * Written after ten sprites - the whole sporty set and half of swag -
- * shipped with SVGs in public/stickers and no entry on the keyboard.
- * They were placeable as stickers and unusable as reactions, and the
- * only way to find that out was to scroll the Vibes tab looking for a
- * snapback that was never there. Nothing failed; it was just quietly
- * absent, which is the kind of bug that survives for weeks.
+ * This used to also check the sticker pack, because the drawings had two
+ * doors onto them and ten of them shipped with only one - placeable as
+ * stickers, unusable as reactions. The sticker pack is gone now, so the
+ * keyboard is the only door and public/stickers exists purely to feed
+ * it: an SVG in there with no keyboard entry is now dead weight rather
+ * than a half-missing feature, and one MISSING is still a hole in a
+ * grid of hand-drawn glyphs.
  *
  * Run: npx tsx scripts/emoji-keyboard-check.ts
  */
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { CLASSIC_EMOJI, EMOJI_GROUPS, emojiLabel, spriteFor } from "../src/components/ClassicEmoji";
-import { STICKER_PACK } from "../src/lib/stickerPack";
 
 let failures = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -53,23 +52,15 @@ for (const group of EMOJI_GROUPS) {
 const unlabelled = allChars.filter((c) => emojiLabel(c) === "emoji");
 check("every key has a search label", unlabelled.length === 0, `${unlabelled.length} unlabelled`);
 
-// ---- 5. The one that would have caught the bug: every sticker anybody
-// might want to react with is reachable from the keyboard.
-//
-// "Bits" is exempt and stays exempt: an arrow and a strip of washi tape
-// are page decoration, and a smiley is already a drawn FACE. Everything
-// else - if it is good enough to stick on a profile it is good enough to
-// put under a review.
-const DECORATION_ONLY = new Set(["Bits"]);
-const onKeyboard = new Set(allChars.map((c) => spriteFor(c)).filter(Boolean));
-const stranded = STICKER_PACK.filter(
-  (s) => !DECORATION_ONLY.has(s.group) && !onKeyboard.has(s.id)
-);
-check(
-  "every non-decorative sticker is also on the keyboard",
-  stranded.length === 0,
-  stranded.map((s) => `${s.label} (${s.group})`).join(", ")
-);
+// ---- 5. No sprite file is orphaned.
+// public/stickers is now fed by exactly one thing. A file nobody names
+// is 2KB nobody will ever remove on purpose, so it gets reported.
+const referenced = new Set(allChars.map((c) => spriteFor(c)).filter(Boolean));
+const orphans = readdirSync("public/stickers")
+  .filter((f) => f.endsWith(".svg"))
+  .map((f) => f.replace(/\.svg$/, ""))
+  .filter((id) => !referenced.has(id));
+check("no sprite file is unreachable", orphans.length === 0, orphans.join(", "));
 
 // ---- 6. A tab nobody can reach the bottom of is a tab that hides things.
 // 31 keys is five thumb-rows; the Vibes tail that prompted this was 42
@@ -86,4 +77,4 @@ if (failures > 0) {
   console.error(`\n${failures} check${failures === 1 ? "" : "s"} failed.`);
   process.exit(1);
 }
-console.log("\nEvery drawing is reachable from both the keyboard and the sticker pack.");
+console.log("\nEvery drawing on the keyboard has a file, and every file is used.");

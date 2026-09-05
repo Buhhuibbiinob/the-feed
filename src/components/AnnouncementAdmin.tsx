@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import {
   createAnnouncement,
   deleteAnnouncement,
   setAnnouncementActive,
+  type AnnouncementFormState,
 } from "@/app/actions/announcements";
 import {
   isLive,
@@ -38,6 +39,12 @@ export function AnnouncementAdmin({ announcements }: { announcements: Announceme
   const [linkUrl, setLinkUrl] = useState("");
   const [buttonLabel, setButtonLabel] = useState("");
   const now = new Date();
+  // Publishing reports what happened now, rather than looking like it
+  // worked whatever the database said.
+  const [state, publish, publishing] = useActionState<AnnouncementFormState, FormData>(
+    createAnnouncement,
+    {}
+  );
 
   return (
     <div className="panel">
@@ -91,7 +98,7 @@ export function AnnouncementAdmin({ announcements }: { announcements: Announceme
         </div>
 
         {/* ---- Compose ---- */}
-        <form action={createAnnouncement}>
+        <form action={publish}>
           <div className="field">
             <label htmlFor="announce-title">Title</label>
             <input
@@ -164,9 +171,11 @@ export function AnnouncementAdmin({ announcements }: { announcements: Announceme
               <input id="announce-end" type="datetime-local" name="ends_at" />
             </div>
           </div>
+          {state.error && <div className="form-error">{state.error}</div>}
+          {state.ok && <div className="form-message">Published - it's live now.</div>}
           <div className="form-actions">
-            <button type="submit" className="btn">
-              Publish
+            <button type="submit" className="btn" disabled={publishing}>
+              {publishing ? "Publishing…" : "Publish"}
             </button>
           </div>
         </form>
