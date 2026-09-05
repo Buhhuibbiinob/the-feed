@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  MIN_QUERY_LENGTH,
+  SEARCH_DEBOUNCE_MS,
+  searchVideosClient,
+} from "@/lib/videoSearch";
+
 import { useEffect, useState } from "react";
 import type { YoutubeVideo } from "@/lib/youtube";
 
@@ -34,16 +40,21 @@ export function MediaSearchField({
 
   useEffect(() => {
     const trimmed = query.trim();
-    if (!trimmed) return;
+    if (trimmed.length < MIN_QUERY_LENGTH) {
+
+      setSearching(false);
+
+      return;
+
+    }
 
     let cancelled = false;
     const timeout = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(trimmed)}`);
-        const data = await res.json();
-        if (!cancelled) {
-          setResults(data.videos ?? []);
-          setSearchError(typeof data.error === "string" ? data.error : null);
+        const answer = await searchVideosClient(trimmed);
+        if (!cancelled && answer) {
+          setResults(answer.videos);
+          setSearchError(answer.error);
         }
       } catch {
         if (!cancelled) {
@@ -53,7 +64,7 @@ export function MediaSearchField({
       } finally {
         if (!cancelled) setSearching(false);
       }
-    }, 350);
+    }, SEARCH_DEBOUNCE_MS);
 
     return () => {
       cancelled = true;

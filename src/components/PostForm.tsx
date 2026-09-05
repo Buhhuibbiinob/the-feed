@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  MIN_QUERY_LENGTH,
+  SEARCH_DEBOUNCE_MS,
+  searchVideosClient,
+} from "@/lib/videoSearch";
+
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { createPost, type PostFormState } from "@/app/actions/posts";
@@ -75,19 +81,22 @@ export function PostForm({
   const posted = state.posted && state.posted.postId !== dismissedPost ? state.posted : null;
 
   useEffect(() => {
-    if (!videoQuery.trim()) {
+    if (videoQuery.trim().length < MIN_QUERY_LENGTH) {
+      setVideoSearching(false);
       return;
     }
     let cancelled = false;
     const timeout = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(videoQuery)}`);
-        const data = await res.json();
-        if (!cancelled) setVideoResults(data.videos ?? []);
+        const answer = await searchVideosClient(videoQuery);
+        if (!cancelled && answer) {
+          setVideoResults(answer.videos);
+          setSearchError(answer.error);
+        }
       } finally {
         if (!cancelled) setVideoSearching(false);
       }
-    }, 350);
+    }, SEARCH_DEBOUNCE_MS);
     return () => {
       cancelled = true;
       clearTimeout(timeout);
