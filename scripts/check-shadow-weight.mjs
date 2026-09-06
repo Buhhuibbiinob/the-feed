@@ -58,6 +58,10 @@ const FLOATERS = [
   // Same argument for the shelves: a plank with no shadow under it is a
   // stripe, and the media standing on it has to cast onto the wood.
   "shelf-plank", "shelf-item", "shelf-media",
+  // A record standing on a shelf casts onto the board it is standing on.
+  // That shadow is the only thing telling you it is standing there
+  // rather than printed on the wood.
+  "wooditem", "wood-blank", "woodwall", "wood-play",
 ];
 
 const raw = readFileSync(CSS, "utf8");

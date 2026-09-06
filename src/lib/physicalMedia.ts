@@ -43,6 +43,21 @@ export function formatForDecadeTag(tag: string): MediaFormat {
   return formatForYear(year === null ? null : year + 5);
 }
 
+/**
+ * The decade tag a year belongs to: 1978 is "70s", 2005 is "00s".
+ *
+ * Worth a function rather than a slice at the call site, which is how it
+ * was written first: `"1978".slice(2)` is "78", and "78s" then parses
+ * back as the year 1978, so a shelf of 1978 records was being drawn as
+ * cassettes. Zero padding is the other half of it, since 2005's decade
+ * is "00s" and `2000 % 100` is the number 0.
+ */
+export function decadeTagForYear(year: number | null | undefined): string | null {
+  if (!year || !Number.isFinite(year)) return null;
+  const start = Math.floor(year / 10) * 10;
+  return `${String(start % 100).padStart(2, "0")}s`;
+}
+
 export function decadeStartYear(tag: string): number | null {
   const m = tag.match(/^(\d{2})s$/);
   if (!m) return null;

@@ -15392,6 +15392,425 @@ button.btn-ghost {
 }
 
 /* ================================================================
+   THE WOOD
+   ----------------------------------------------------------------
+   Newsstand, essentially. One shared vocabulary for every surface on
+   this site where things get put away: the Shelves, and the collection
+   that used to be a list called Up Next.
+
+   Measured off the reference rather than guessed. Reading straight down
+   an empty column of the iOS shelf, a single unit is:
+
+     dark back wall            ~195px
+     contact shadow            7px, #391C0A at the base, gone by the top
+     lit top edge of the board 2px, #E8C186
+     the board's front face    17px, #E2BC7D at the top to #C7A26D
+     a dark line under it      1px, #5E3716
+     the next back wall
+
+   and across the width there is a vignette worth 13%: the middle of the
+   board samples #EACB8B where the ends sample #CFA668. That last one is
+   what stops it looking like a stripe. A board lit evenly end to end is
+   a rectangle of brown; a board with a hot spot in the middle is a board
+   with a lamp above it.
+
+   Drawn as a REPEATING BACKGROUND on the wall rather than as an element
+   per row, for the reason the rows have no elements: how many items fit
+   on a shelf is decided by the viewport, so the shelf cannot be markup
+   without fixing the column count at every width. Locking the grid to a
+   fixed row height and giving the wall a background whose period is that
+   same height puts a board under every row at any width, and puts one
+   under a half empty row too, which is the detail that would give the
+   trick away if it were missing.
+   ================================================================ */
+
+:root {
+  /* Maple, which is the Newsstand wood. Warm, not orange. */
+  --wood-face-top: #e2bc7d;
+  --wood-face-bottom: #c7a26d;
+  --wood-lit-edge: #e8c186;
+  --wood-under: #5e3716;
+  /* The back wall is not black. Sampled down an empty column of the
+     reference it runs #6B472A right under the board above, where that
+     board is casting on it, and opens out to #C89B60 by a third of the
+     way down - light bouncing back off the board below. The first pass
+     had this at #350C00 and the whole case read as a cave with a gold
+     stripe in it. */
+  --wood-back-top: #6b472a;
+  --wood-back-mid: #c89b60;
+  --wood-back-bottom: #b98d55;
+  --wood-contact: rgba(57, 28, 10, 0.85);
+  /* One row: air, the item, the board, the label under it. */
+  /* One row: air, the object, the board it stands on, then the shaded
+     band under the board where its card and its two buttons go. The row
+     total and the background's period are the same number by
+     construction - if they ever drift apart, every board slides out from
+     under the records standing on it. */
+  --wood-row: 176px;
+  --wood-item: 96px;
+  --wood-board: 20px;
+  --wood-label: 32px;
+}
+/* Dark mode does not turn the wood into a different tree. A room with
+   the lights off has the same shelf in it, so the timber keeps its hue
+   and loses its lamp: the face darkens, the vignette flattens, and the
+   back wall goes almost to black. Recolouring it grey was the obvious
+   move and the wrong one, because the whole point of the surface is
+   that it is made of something. */
+:root[data-mode="dark"] {
+  --wood-face-top: #8d7148;
+  --wood-face-bottom: #6f583a;
+  --wood-lit-edge: #a0824f;
+  --wood-under: #2c1a0a;
+  --wood-back-top: #2e1c0d;
+  --wood-back-mid: #5c4227;
+  --wood-back-bottom: #503921;
+  --wood-contact: rgba(0, 0, 0, 0.9);
+}
+
+/* The wall. Everything below is one background stack, painted in this
+   order: grain, vignette, then the boards. */
+.woodwall {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 0;
+  background-color: var(--wood-back-bottom);
+  background-image:
+    /* Grain. Three periods that share no common factor, so the streaks
+       never line up into corduroy - the same trick the era-television
+       veneer needed. Tilted a degree off true, because sawn timber is.
+       Kept very faint: the first pass ran these at 5% and the wall came
+       out looking like corduroy after all. In the reference you have to
+       go looking for the grain, which is the difference between timber
+       and a texture. */
+    repeating-linear-gradient(
+      89deg,
+      rgba(255, 255, 255, 0.018) 0px,
+      rgba(255, 255, 255, 0.018) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 7px
+    ),
+    repeating-linear-gradient(
+      91deg,
+      rgba(0, 0, 0, 0.03) 0px,
+      rgba(0, 0, 0, 0.03) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 19px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(120, 70, 20, 0.035) 0px,
+      rgba(120, 70, 20, 0.035) 2px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0) 31px
+    ),
+    /* The lamp. 13%, measured. */
+    radial-gradient(ellipse 70% 120% at 50% 40%, rgba(255, 255, 255, 0.13), rgba(0, 0, 0, 0) 70%),
+    /* The boards themselves, one per row. The stops are the measured
+       ones, offset so the board lands under the item rather than under
+       the label. */
+    repeating-linear-gradient(
+      180deg,
+      var(--wood-back-top) 0px,
+      var(--wood-back-mid) calc(var(--wood-row) * 0.28),
+      var(--wood-back-bottom) calc(var(--wood-item) - 8px),
+      var(--wood-contact) calc(var(--wood-item) - 1px),
+      var(--wood-lit-edge) var(--wood-item),
+      var(--wood-face-top) calc(var(--wood-item) + 2px),
+      var(--wood-face-bottom) calc(var(--wood-item) + var(--wood-board) - 1px),
+      var(--wood-under) calc(var(--wood-item) + var(--wood-board)),
+      var(--wood-back-top) calc(var(--wood-item) + var(--wood-board) + 1px),
+      var(--wood-back-top) var(--wood-row)
+    );
+  /* A case has sides, and the sides are in shadow. Without this the wood
+     runs to the edge of the panel and reads as wallpaper. */
+  box-shadow: inset 14px 0 22px -12px rgba(0, 0, 0, 0.75),
+    inset -14px 0 22px -12px rgba(0, 0, 0, 0.75), inset 0 12px 18px -10px rgba(0, 0, 0, 0.6),
+    var(--edge-drop), var(--edge-outer);
+}
+
+/* The items, laid into rows the same height as the background's period.
+   gap: 0 is load-bearing - a gap would slide every row out of step with
+   the boards painted behind them. Space between items comes from their
+   own padding instead. */
+.woodgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  grid-auto-rows: var(--wood-row);
+  gap: 0;
+  padding: 10px 8px 0;
+}
+.woodslot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: var(--wood-row);
+}
+
+/* A thing standing on a board.
+   Bottom-aligned inside the space above the board, so a square sleeve
+   and a tall movie case both sit ON the shelf rather than floating at
+   different heights the way a centred item would. */
+.wooditem {
+  position: relative;
+  height: var(--wood-item);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.wooditem img,
+.wooditem .wood-blank {
+  display: block;
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  /* Sitting on wood, lit from above and slightly in front: a hard
+     contact shadow at the foot, a soft one behind, and one lit pixel
+     along the top edge where the lamp catches the sleeve. */
+  box-shadow: 0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+.wooditem .wood-blank {
+  width: var(--wood-item);
+  height: var(--wood-item);
+  background: linear-gradient(160deg, #3a3a3f, #17171a);
+}
+
+/* The card under the shelf.
+   Light type on the back wall, directly below the board the record is
+   standing on, which is where a shop puts the card that tells you what
+   section you are looking at. */
+.woodlabel {
+  height: var(--wood-label);
+  width: 100%;
+  padding: 4px 6px 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* The two things you can do with a record you are looking at, on the
+   shaded board under it. Small and quiet: the shelf is for looking
+   along, and a row of loud buttons under every sleeve turns it back into
+   a list of products. */
+.woodactions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: calc(var(--wood-row) - var(--wood-item) - var(--wood-board) - var(--wood-label));
+  font-size: 10px;
+}
+.woodactions .wood-link,
+.woodactions .inline-form button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: none;
+  border-radius: 0;
+  color: #ffe9c2;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+}
+.woodactions .wood-link:hover,
+.woodactions .inline-form button:hover {
+  color: #fff;
+}
+.woodactions .inline-form button:disabled {
+  color: rgba(255, 233, 194, 0.55);
+  text-decoration: none;
+  cursor: default;
+}
+
+/* The play button on a sleeve.
+   Sits on the artwork rather than under it, because pressing a record is
+   how you hear it. Same brushed dome as everywhere else that plays
+   something, at the size a 92px sleeve can carry. */
+.wood-play {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 10px;
+  text-indent: 1px;
+  color: #26262a;
+  background-image: linear-gradient(180deg, #ffffff 0%, #e6e6e9 44%, #bdbdc3 52%, #8e8e95 100%);
+  border: 1px solid #5f5f66;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 1) inset,
+    var(--edge-outer);
+}
+.wood-play.playing {
+  background-image: linear-gradient(180deg, #8e8e95 0%, #bdbdc3 48%, #e6e6e9 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45) inset;
+}
+.woodlabel b {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.15;
+  /* Cream, on the darkest band of the wall. The card sits in the strip
+     immediately under a board, which is where that board is casting its
+     own shadow and therefore the one place on the whole surface that
+     stays dark - so light type belongs here even though the wall two
+     inches above it is lit maple. Measured at about 6:1. */
+  color: #f8efe0;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.woodlabel span {
+  display: block;
+  font-size: 9.5px;
+  line-height: 1.2;
+  color: rgba(248, 239, 224, 0.7);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- The four objects ----
+   A shelf of identical squares is a grid with wood behind it. What makes
+   a shelf read as a shelf is that the things on it are different sizes
+   and different shapes, and that those shapes are the right ones for
+   what they hold: a twelve inch sleeve is square and tall, a cassette is
+   small and landscape, a jewel case is square and thicker than it looks,
+   a film is a tall case with a spine.
+
+   Which object a record gets is decided in src/lib/physicalMedia.ts by
+   the year it came out, so a 1974 album is not standing there on a CD. */
+
+/* Vinyl: full height, square, with the disc showing past the open edge.
+   The sleeve is the widest thing on the shelf, which is right - it is
+   the only twelve inch object here. */
+.wooditem.fmt-vinyl img,
+.wooditem.fmt-vinyl .wood-blank {
+  width: 92px;
+  height: 92px;
+}
+/* The record itself, sticking out of the right hand side of its sleeve.
+   Drawn as a circle clipped by the sleeve's own overflow, with the
+   label as a second ring - which at this size is three gradients and
+   reads instantly. */
+.wooditem.fmt-vinyl::before {
+  content: "";
+  position: absolute;
+  /* Measured off the sleeve rather than off the column. The sleeve is
+     92px and centred, so its right edge sits at `50% - 46px` from the
+     right; another 14px past that is how far a twelve inch record sticks
+     out of a sleeve it is only half in. */
+  right: calc(50% - 60px);
+  bottom: 3px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #b8912f 0 9%, #1a1a1c 9.5% 100%),
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.055) 0 1px,
+      rgba(0, 0, 0, 0) 1px 3px
+    );
+  box-shadow: 0 3px 5px -2px rgba(0, 0, 0, 0.7);
+}
+/* The sleeve has to be lifted over the disc. Both are children of the
+   same box, and an absolutely positioned pseudo element paints above an
+   in-flow sibling however the source is ordered - which is why the first
+   pass had a record sitting neatly on top of its own cover. Not done
+   with a negative z-index on the disc: that would put it behind the
+   parent's background too, and the wood is the parent's background. */
+.wooditem.fmt-vinyl img,
+.wooditem.fmt-vinyl .wood-blank {
+  position: relative;
+  z-index: 1;
+}
+
+/* CD: a jewel case, a shade smaller than a sleeve and squarer, with the
+   hinge down the left as a bright vertical line. */
+.wooditem.fmt-cd img,
+.wooditem.fmt-cd .wood-blank {
+  width: 78px;
+  height: 78px;
+}
+.wooditem.fmt-cd::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 39px);
+  bottom: 0;
+  width: 5px;
+  height: 78px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.12) 55%,
+    rgba(0, 0, 0, 0.35)
+  );
+  pointer-events: none;
+}
+
+/* Cassette: small, landscape, and sitting low on the board, because a
+   cassette case is the shortest thing anybody ever shelved. */
+.wooditem.fmt-cassette img,
+.wooditem.fmt-cassette .wood-blank {
+  width: 68px;
+  height: 43px;
+  object-position: center 30%;
+}
+
+/* A film. Taller than it is wide, with the spine catching light down the
+   left, which is the shape of every video shelf there has ever been. */
+.wooditem.fmt-case img,
+.wooditem.fmt-case .wood-blank {
+  width: 62px;
+  height: 92px;
+}
+.wooditem.fmt-case::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 31px);
+  bottom: 0;
+  width: 7px;
+  height: 92px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.32), rgba(0, 0, 0, 0.4));
+  pointer-events: none;
+}
+
+/* Digital. There is no object, and pretending otherwise is the failure
+   this whole file exists to avoid - a 2019 single does not come in a
+   case. So it is drawn as what it actually is: artwork on a screen, with
+   the glass over it. */
+.wooditem.fmt-download img,
+.wooditem.fmt-download .wood-blank {
+  width: 74px;
+  height: 74px;
+  border-radius: 9px;
+}
+.wooditem.fmt-download::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 37px);
+  bottom: 0;
+  width: 74px;
+  height: 74px;
+  border-radius: 9px;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 34%,
+    rgba(255, 255, 255, 0) 34.1%
+  );
+  pointer-events: none;
+}
+
+/* ================================================================
    The profile page as the iTunes Music Store
    ================================================================
    The reference is the 2003 Music Store: a Source column down the left,
