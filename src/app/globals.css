@@ -4785,6 +4785,486 @@ footer .copy {
   color: #d18f00;
 }
 
+/* ---- The Feed TV, per era ---- */
+/* Deliberately not written as theme-attribute rules. Those are held to
+   colour, background and font so the page layout never has to be
+   re-tested against every theme, and a television with knobs on it is
+   not a recolour. FeedTV reads the theme and puts the era class on
+   itself, so this is an ordinary component variant.
+   (Spelling that attribute selector out here would also trip the purity
+   check, which reads the text before a brace as the selector.) */
+
+/* One rule per panel rather than a shared one: .tv-set .tv-deck is more
+   specific than .tv-deck, so a shared `align-items: center` here beat the
+   deck's own `stretch` and collapsed the disc slot to the width of its
+   label - the mouth vanished and the slot read as a button. */
+.tv-knob-panel,
+.tv-button-panel,
+.tv-wheel-area {
+  display: flex;
+  align-items: center;
+}
+
+/* ---- Dials ---- */
+.tv-knob-panel {
+  gap: 18px;
+  padding: 12px 14px;
+}
+.tv-knob-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.tv-knob {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  cursor: grab;
+  touch-action: none;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 55%),
+    conic-gradient(from 0deg, #2a2a2a, #4a4a4a 12%, #1e1e1e 26%, #4a4a4a 40%, #222 55%, #464646 70%, #1c1c1c 86%, #2a2a2a);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+.tv-knob:active {
+  cursor: grabbing;
+}
+.tv-knob:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+/* The pointer is the only thing that turns. Rotating the whole dial
+   would spin its highlight too, which reads as the light moving rather
+   than the knob. */
+.tv-knob-pointer {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: #f2efe6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  transform-origin: 50% 16px;
+  transform: translateX(-50%) rotate(var(--knob-angle, 0deg));
+  transition: transform 140ms ease-out;
+}
+.tv-knob-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+/* The speaker cloth. Woven, not dotted: a dot grid reads as a modern
+   perforated grille, and these sets had fabric. */
+.tv-grille {
+  flex: 1;
+  align-self: stretch;
+  min-height: 46px;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) inset;
+}
+
+/* Each set gets its weight from bevels and inset highlights rather than
+   a big drop shadow. The shadow guard is right that an inline surface
+   wearing a modal's shadow makes the page noisy - and a real cabinet's
+   solidity was never in the shadow it cast anyway. */
+
+/* ---- 1970s: a piece of furniture ---- */
+.tv-70s .yt-shell {
+  border: 6px solid #6b4423;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #8a5a2b, #6b4423 55%, #4e3119);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 214, 165, 0.35) inset;
+}
+/* Wood is a stack of grain lines over the base colour rather than an
+   image, so it costs nothing and scales with the set. */
+.tv-70s .yt-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  /* Three grains at periods that share no common factor. One repeating
+     gradient alone lines up into even stripes and reads as corduroy;
+     layering 9px, 23px and 41px never repeats within the cabinet. */
+  background:
+    repeating-linear-gradient(
+      93deg,
+      rgba(60, 32, 12, 0.5) 0 2px,
+      rgba(160, 104, 54, 0.16) 2px 7px,
+      rgba(40, 20, 6, 0.3) 7px 9px
+    ),
+    repeating-linear-gradient(
+      91deg,
+      rgba(30, 14, 4, 0.32) 0 3px,
+      rgba(0, 0, 0, 0) 3px 23px
+    ),
+    repeating-linear-gradient(
+      95deg,
+      rgba(196, 132, 70, 0.22) 0 6px,
+      rgba(0, 0, 0, 0) 6px 41px
+    );
+}
+.tv-70s .yt-topbar {
+  background: linear-gradient(180deg, #55341a, #3a230f);
+  color: #f0d8b4;
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: 0.22em;
+}
+.tv-70s .yt-video {
+  border-radius: 22px / 16px;
+  border: 8px solid #2a1a0c;
+}
+.tv-70s .tv-knob-panel {
+  background: linear-gradient(180deg, #7a4f26, #5b3a1c);
+  color: #f0d8b4;
+}
+.tv-70s .yt-rate-row,
+.tv-70s .yt-scrub-row,
+.tv-70s .yt-tabs {
+  background: linear-gradient(180deg, #4a2e15, #33200d);
+}
+
+/* ---- 1980s: matte black plastic, not neon ---- */
+.tv-80s .yt-shell {
+  border: 5px solid #232326;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #35353a, #1b1b1e);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+/* The moulded texture of eighties consumer plastic - very fine, almost
+   invisible, and the thing that stops it reading as flat grey. */
+.tv-80s .yt-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px);
+}
+.tv-80s .yt-topbar {
+  background: linear-gradient(180deg, #2c2c30, #141416);
+  color: #d8d8dc;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+}
+.tv-80s .yt-video {
+  border-radius: 14px / 10px;
+  border: 10px solid #0f0f11;
+}
+.tv-80s .tv-knob-panel {
+  background: linear-gradient(180deg, #2e2e32, #1a1a1d);
+  color: #b9b9bf;
+}
+.tv-80s .tv-knob {
+  width: 32px;
+  height: 32px;
+}
+.tv-80s .tv-knob-pointer {
+  height: 10px;
+  transform-origin: 50% 11px;
+}
+
+/* ---- Disc decks: the 90s and 2000s ---- */
+.tv-deck {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+.tv-slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #17171a, #26262b);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.14) inset, 0 2px 5px rgba(0, 0, 0, 0.4) inset;
+}
+.tv-slot.over {
+  background: linear-gradient(180deg, #1d2a1d, #2c3d2c);
+}
+/* The mouth: a dark horizontal gap with a lit lip, which is what a tray
+   slot actually looks like. */
+.tv-slot-mouth {
+  flex: 1;
+  height: 7px;
+  border-radius: 3px;
+  background: #000;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28), 0 -1px 2px rgba(0, 0, 0, 0.8) inset;
+}
+.tv-slot-label {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #9aa;
+  white-space: nowrap;
+}
+.tv-cases {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-padding-inline: 2px;
+  padding-bottom: 4px;
+}
+/* A case, not a thumbnail: taller than it is wide, with a spine down one
+   edge, because that is how a shelf of them reads at a glance. */
+.tv-case {
+  position: relative;
+  flex: 0 0 62px;
+  height: 86px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  border-left: 5px solid rgba(255, 255, 255, 0.22);
+  border-radius: 2px 4px 4px 2px;
+  overflow: hidden;
+  cursor: grab;
+  background: #111;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.45);
+  transition: transform 120ms ease-out;
+}
+.tv-case:active {
+  cursor: grabbing;
+}
+.tv-case:hover {
+  transform: translateY(-3px);
+}
+.tv-case.lifting {
+  opacity: 0.45;
+  transform: translateY(-6px) rotate(-3deg);
+}
+.tv-case.loaded {
+  border-left-color: #d33;
+}
+.tv-case img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.tv-case-spine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 3px 4px;
+  font-size: 8px;
+  line-height: 1.15;
+  color: #fff;
+  text-align: left;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.85));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- 1990s: the grey set with a slot in it ---- */
+.tv-90s .yt-shell {
+  border: 5px solid #b8b4a8;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #d8d4c8, #b0aca0);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+.tv-90s .yt-topbar {
+  background: linear-gradient(180deg, #6f6b62, #4c4941);
+  color: #eae6da;
+  letter-spacing: 0.2em;
+}
+.tv-90s .yt-video {
+  border-radius: 18px / 13px;
+  border: 9px solid #3a3831;
+}
+.tv-90s .tv-deck {
+  background: linear-gradient(180deg, #cbc7bb, #aca89c);
+}
+.tv-90s .tv-slot-label {
+  color: #4c4941;
+}
+.tv-90s .yt-rate-row,
+.tv-90s .yt-scrub-row,
+.tv-90s .yt-tabs {
+  background: linear-gradient(180deg, #6a675e, #4a473f);
+}
+
+/* ---- 2000s: silver, soft keys, a headphone socket ---- */
+.tv-00s .yt-shell {
+  border: 4px solid #9b9ea3;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #e6e8ea, #b9bdc2 55%, #8f9398);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26), 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+}
+.tv-00s .yt-topbar {
+  background: linear-gradient(180deg, #3b3f44, #16181b);
+  color: #e8eaec;
+  letter-spacing: 0.18em;
+}
+.tv-00s .yt-video {
+  border-radius: 5px;
+  border: 12px solid #1a1c1f;
+}
+.tv-00s .tv-button-panel {
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #d3d6da, #adb1b6);
+}
+.tv-00s .tv-deck {
+  flex: 1 1 220px;
+  padding: 0;
+}
+.tv-softkeys {
+  display: flex;
+  gap: 6px;
+}
+.tv-softkeys button {
+  min-width: 30px;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #23262a;
+  border: 1px solid #8d9197;
+  border-radius: 4px;
+  cursor: pointer;
+  background: linear-gradient(180deg, #fdfdfe, #c9cdd2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+.tv-softkeys button:active {
+  background: linear-gradient(180deg, #b9bdc2, #d8dce0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35) inset;
+}
+.tv-softkeys button.wide {
+  min-width: 58px;
+}
+/* Not a control - every set of this shape had one on the front, and
+   leaving it off is the detail people notice. */
+.tv-jack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.tv-jack-ring {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #050505 0 34%, #55595e 34% 56%, #24262a 56%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+.tv-jack-text {
+  font-size: 7px;
+  letter-spacing: 0.14em;
+  color: #4a4e53;
+}
+
+/* ---- 2010s: it is in your pocket and it has a wheel ---- */
+.tv-10s .yt-shell {
+  border: 1px solid #c9ccd0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fdfdfd, #e6e8ea);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18), 0 1px 0 #fff inset;
+}
+.tv-10s .yt-topbar {
+  background: linear-gradient(180deg, #fbfbfc, #e2e4e7);
+  color: #2b2d31;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-shadow: none;
+  box-shadow: none;
+}
+.tv-10s .yt-video {
+  border-radius: 4px;
+  border: 10px solid #f2f3f4;
+}
+.tv-10s .yt-rate-row,
+.tv-10s .yt-scrub-row {
+  background: linear-gradient(180deg, #f4f5f6, #e4e6e9);
+}
+.tv-10s .yt-scrub-row .time,
+.tv-10s .yt-rate-btn.text {
+  color: #4a4d52;
+  text-shadow: none;
+}
+.tv-10s .yt-rate-btn svg {
+  fill: #3a3d42;
+  filter: none;
+}
+.tv-wheel-area {
+  justify-content: center;
+  padding: 14px 0 18px;
+  background: linear-gradient(180deg, #f4f5f6, #e4e6e9);
+}
+.tv-wheel {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  cursor: grab;
+  touch-action: none;
+  background: radial-gradient(circle at 50% 34%, #fdfdfd, #dcdee1 72%, #c6c9cd);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), 0 1px 0 #fff inset;
+}
+.tv-wheel:active {
+  cursor: grabbing;
+}
+.tv-wheel:focus-visible {
+  outline: 2px solid #3a7afe;
+  outline-offset: 3px;
+}
+.tv-wheel-label,
+.tv-wheel-edge {
+  position: absolute;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: #6d7075;
+}
+.tv-wheel-edge {
+  cursor: pointer;
+  font-size: 12px;
+}
+.tv-wheel-label.top {
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.tv-wheel-label.bottom {
+  bottom: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.tv-wheel-edge.left {
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.tv-wheel-edge.right {
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+/* The centre is its own button rather than a hole in the wheel: a drag
+   that starts here should still scrub, and a tap should still play. */
+.tv-wheel-centre {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  transform: translate(-50%, -50%);
+  border: 1px solid #cfd2d6;
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 38%, #fff, #e8eaed);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18) inset;
+}
+
 /* ---- Discovery rails ---- */
 /* Rows of things to listen to on /recs. Sideways rather than wrapped, so
    several directions fit on one screen and none of them is the page. */
