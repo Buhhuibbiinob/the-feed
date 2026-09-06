@@ -1,5 +1,18 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { FindRail } from "@/components/FindRail";
+import {
+  alreadyKnown,
+  communitySeeds,
+  describeDiscoveryStatus,
+  discoveryStatus,
+  enrichFinds,
+  eraFinds,
+  findsForSeeds,
+  sceneFinds,
+  seedArtists,
+  type SeedPost,
+} from "@/lib/musicDiscovery";
 import { selectPosts } from "@/lib/postQuery";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { OrbyBot } from "@/components/OrbyBot";
@@ -117,9 +130,83 @@ export default async function RecsPage() {
   }
 
 
+  // Actual new music, not more of what this site already contains.
+  //
+  // For You and Trending below are both other members' reviews, and on a
+  // site this size that is a handful of posts a week. The rails above them
+  // walk Last.fm's similar-artist graph on the reader's behalf, starting
+  // from what they rated highly - so the page has something to offer on a
+  // week when nobody posted at all.
+  //
+  // Signed out, or signed in and yet to rate anything: the seeds fall back
+  // to what the community rated highly, and then to a fixed shortlist. The
+  // rails are never empty for want of somebody's own history.
+  const mine: SeedPost[] = user
+    ? allPosts
+        .filter((p) => p.user_id === user.id)
+        .map((p) => ({ media_type: p.media_type, title: p.title, artist: p.artist, rating: p.rating }))
+    : [];
+  const communityPosts: SeedPost[] = allPosts.map((p) => ({
+    media_type: p.media_type,
+    title: p.title,
+    artist: p.artist,
+    rating: p.rating,
+  }));
+
+  const personalSeeds = seedArtists(mine);
+  const seeds = personalSeeds.length > 0 ? personalSeeds : communitySeeds(communityPosts);
+  const known = alreadyKnown(mine);
+
+  const [personal, scene, era] = await Promise.all([
+    findsForSeeds(seeds, known),
+    sceneFinds(known),
+    eraFinds(known),
+  ]);
+  const [personalFinds, sceneRail, eraRail] = await Promise.all([
+    enrichFinds(personal),
+    enrichFinds(scene.finds),
+    enrichFinds(era.finds),
+  ]);
+
+  // An empty rail because Last.fm is unreachable and an empty rail because
+  // the key was never set look identical, and both look like "there is
+  // nothing here" - which is the one thing they do not mean.
+  const status = discoveryStatus([personalFinds.length, sceneRail.length, eraRail.length]);
+  const railProblem = describeDiscoveryStatus(status);
+
   return (
     <>
       <OrbyBot />
+
+      <div className="panel">
+        <div className="panel-head">Find something new</div>
+        <div className="panel-body flush">
+          <FindRail
+            title={
+              personalSeeds.length > 0 ? "Out from what you love" : "Somewhere to start"
+            }
+            subtitle={
+              personalSeeds.length > 0
+                ? `One step sideways from ${personalSeeds.slice(0, 2).join(" and ")}`
+                : "Rate a few records four or five stars and this row becomes yours"
+            }
+            finds={personalFinds}
+            empty={railProblem || "Nothing new to show here yet - try again shortly."}
+          />
+          <FindRail
+            title={scene.tag}
+            subtitle="The scene of the day, past its greatest hits"
+            finds={sceneRail}
+            empty={railProblem || "That scene came back empty today."}
+          />
+          <FindRail
+            title={`Deeper into the ${era.label}`}
+            subtitle="Not the songs from the adverts"
+            finds={eraRail}
+            empty={railProblem || "That decade came back empty today."}
+          />
+        </div>
+      </div>
 
       <div className="panel">
         <div className="panel-head">For You</div>
