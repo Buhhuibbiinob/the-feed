@@ -5457,6 +5457,338 @@ footer .copy {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18) inset;
 }
 
+/* ---- The sets, in more detail ----
+   Skeuomorphism is mostly one idea repeated: a real object is never one
+   flat colour, and every edge on it catches light. So each set gets the
+   things a photograph of it would have - curved glass with the room
+   reflected in it, screws where the case is actually held together, vents
+   where the heat got out, a power lamp, and a maker's badge.
+
+   All of it is drawn: no images, so it scales with the player and costs
+   nothing to load. */
+
+/* ---- The glass ----
+   A CRT is not a rectangle of video. It is a thick curved bottle: bright
+   where the room falls on it, dark in the corners where the tube turns
+   away, and faintly striped by the scan. Three layers do all of that, and
+   the whole thing is pointer-transparent so the player underneath still
+   takes every click. */
+.tv-set .yt-video {
+  isolation: isolate;
+}
+.tv-set .yt-video::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    /* The window, reflected. Off-centre and soft, because a curved
+       screen smears a reflection rather than mirroring it. */
+    radial-gradient(
+      ellipse 60% 42% at 26% 16%,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0) 70%
+    ),
+    /* The corners of a tube fall away from the viewer and go dark. */
+    radial-gradient(
+      ellipse 78% 78% at 50% 50%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(0, 0, 0, 0.42) 100%
+    ),
+    /* The scan. Two pixels, barely there - visible enough to read as a
+       tube, faint enough not to fight the video. */
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.13) 0 1px,
+      rgba(255, 255, 255, 0) 1px 3px
+    );
+}
+/* The tube sits INSIDE the bezel, so the bezel's shadow falls on it. */
+.tv-70s .yt-video,
+.tv-80s .yt-video,
+.tv-90s .yt-video,
+.tv-00s .yt-video {
+  box-shadow:
+    0 0 14px rgba(0, 0, 0, 0.55) inset,
+    0 1px 0 rgba(255, 255, 255, 0.1) inset;
+}
+
+/* ---- Fasteners and vents ----
+   Drawn on the shell's ::after so the cabinets keep their ::before for
+   texture. */
+.tv-70s .yt-shell::after,
+.tv-80s .yt-shell::after,
+.tv-90s .yt-shell::after,
+.tv-00s .yt-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+}
+
+/* ---- Bezel screws ----
+   On the surround, in the four corners, which is where a set that was
+   held together with screws actually had them. The first version put
+   them on the top of the case, where nothing is ever fastened, and three
+   of the four landed on chrome dark enough to lose them entirely.
+
+   The ::before is inset by the negative of the era's border width, so it
+   sits ON the bezel rather than on the picture. */
+.tv-90s .yt-video::before,
+.tv-00s .yt-video::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+  background-repeat: no-repeat;
+  /* A screw is a dark dish with a lit rim below it: the light on these
+     sets comes from above, so the highlight is on the lower arc. */
+  background-image:
+    radial-gradient(circle at 50% 38%, rgba(0, 0, 0, 0.6) 0 38%, rgba(255, 255, 255, 0.55) 44% 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle at 50% 38%, rgba(0, 0, 0, 0.6) 0 38%, rgba(255, 255, 255, 0.55) 44% 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle at 50% 38%, rgba(0, 0, 0, 0.6) 0 38%, rgba(255, 255, 255, 0.55) 44% 60%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(circle at 50% 38%, rgba(0, 0, 0, 0.6) 0 38%, rgba(255, 255, 255, 0.55) 44% 60%, rgba(0, 0, 0, 0) 62%);
+  background-size: 7px 7px;
+  background-position: left 1px top 1px, right 1px top 1px, left 1px bottom 1px, right 1px bottom 1px;
+}
+.tv-90s .yt-video::before {
+  inset: -9px;
+}
+.tv-00s .yt-video::before {
+  inset: -12px;
+}
+
+/* ---- 70s: the cabinet ---- */
+/* A routed edge. Real veneer over chipboard has a lip that catches light
+   on top and shadow underneath, which one flat border cannot say. */
+.tv-70s .yt-shell {
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.3),
+    0 1px 0 rgba(255, 214, 165, 0.35) inset,
+    0 -2px 0 rgba(40, 20, 6, 0.5) inset,
+    0 0 0 1px rgba(30, 15, 4, 0.4) inset;
+}
+/* The maker's badge: a small gold plate screwed to the cabinet, which is
+   exactly what the brand name was. */
+.tv-70s .yt-brand {
+  padding: 3px 12px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #d8ab5e, #9a7231 55%, #6d4d1c);
+  color: #2c1a08;
+  text-shadow: 0 1px 0 rgba(255, 232, 190, 0.55);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 236, 200, 0.5) inset;
+}
+/* Chrome bezel round each dial, and a deeper dish under it. */
+.tv-70s .tv-knob,
+.tv-80s .tv-knob {
+  box-shadow:
+    0 0 0 2px rgba(214, 214, 218, 0.85),
+    0 0 0 3px rgba(60, 60, 64, 0.9),
+    0 2px 4px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 -3px 6px rgba(0, 0, 0, 0.4) inset;
+}
+/* Fabric, lit from above and sunk into the cabinet. */
+.tv-70s .tv-grille {
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.45) inset,
+    0 -1px 0 rgba(255, 220, 175, 0.18) inset;
+}
+.tv-70s .tv-grille::after {
+  content: "";
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(160deg, rgba(255, 226, 180, 0.16), rgba(255, 226, 180, 0) 55%);
+}
+
+/* ---- 80s: moulded plastic ---- */
+/* The seam where the two halves of the case met, and the vents above it.
+   Both were always there and both are what stops black plastic reading as
+   a black rectangle. */
+.tv-80s .yt-shell::after {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.55) 0 2px,
+      rgba(255, 255, 255, 0.05) 2px 5px
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.09));
+  background-size: 96px 5px, 100% 1px;
+  background-position: right 14px top 13px, 0 44px;
+}
+.tv-80s .yt-shell {
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.6) inset;
+}
+.tv-80s .yt-brand {
+  color: #c8c8ce;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.9), 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+/* The power lamp. A glow rather than a drop shadow - it is emitting, not
+   casting - which is also why the shadow guard leaves it alone. */
+.tv-80s .tv-knob-panel::after,
+.tv-90s .tv-deck::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  align-self: center;
+  background: radial-gradient(circle at 40% 35%, #ff8b7a, #d32b16 60%, #7a1508);
+  box-shadow: 0 0 7px rgba(226, 60, 34, 0.85);
+}
+.tv-90s .tv-deck::after {
+  position: absolute;
+  right: 14px;
+  bottom: 16px;
+  background: radial-gradient(circle at 40% 35%, #a8f7a0, #22a637 60%, #0d5a1c);
+  box-shadow: 0 0 7px rgba(50, 200, 80, 0.8);
+}
+.tv-90s .tv-deck {
+  position: relative;
+}
+
+/* ---- 90s: grey plastic ---- */
+.tv-90s .yt-shell {
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.26),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 -2px 0 rgba(120, 116, 106, 0.5) inset,
+    0 0 0 1px rgba(140, 136, 126, 0.7) inset;
+}
+.tv-90s .yt-brand {
+  color: #eae6da;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.55), 0 -1px 0 rgba(255, 255, 255, 0.12);
+}
+/* The tray mouth, with the lip of the tray just visible inside it. */
+.tv-90s .tv-slot-mouth,
+.tv-00s .tv-slot-mouth {
+  background: linear-gradient(180deg, #000 0 55%, #1c1c20 55%, #0a0a0c);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.32),
+    0 -1px 0 rgba(0, 0, 0, 0.9),
+    0 2px 4px rgba(0, 0, 0, 0.9) inset;
+}
+
+/* ---- 2000s: brushed metal and piano black ---- */
+/* Brushing is very fine vertical striations catching a broad highlight
+   across the middle. Without the highlight it is just noise. */
+.tv-00s .yt-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 26%, rgba(0, 0, 0, 0.16)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.16) 0 1px,
+      rgba(0, 0, 0, 0.08) 1px 2px
+    );
+}
+.tv-00s .yt-shell {
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.26),
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 0 0 1px rgba(120, 124, 130, 0.6) inset;
+}
+/* The gloss bezel: a hard diagonal band of reflected light across the
+   top corner, which is the single thing that says "piano black". */
+.tv-00s .yt-video {
+  box-shadow:
+    0 0 14px rgba(0, 0, 0, 0.55) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.tv-00s .yt-topbar {
+  position: relative;
+  overflow: hidden;
+}
+.tv-00s .yt-topbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    104deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.16) 45%,
+    rgba(255, 255, 255, 0.03) 52%,
+    rgba(255, 255, 255, 0) 62%
+  );
+}
+/* A blue standby lamp, which every one of these had. */
+.tv-00s .tv-button-panel::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: radial-gradient(circle at 40% 35%, #cfe9ff, #2e8fe0 55%, #0b3f78);
+  box-shadow: 0 0 8px rgba(64, 150, 235, 0.9);
+}
+/* The soft keys are moulded, so they have a lip and sit in a recess. */
+.tv-00s .tv-softkeys button {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.14) inset;
+}
+
+/* ---- 2010s: anodised aluminium and glass ---- */
+.tv-10s .yt-shell {
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.18),
+    0 1px 0 #fff inset,
+    0 0 0 1px rgba(0, 0, 0, 0.06) inset;
+}
+/* Glass, not a tube: one clean diagonal, no scan, no vignette. The whole
+   point of this era is that the screen stopped being an object. */
+.tv-10s .yt-video::after {
+  background: linear-gradient(
+    128deg,
+    rgba(255, 255, 255, 0.16) 0 26%,
+    rgba(255, 255, 255, 0.03) 27%,
+    rgba(255, 255, 255, 0) 46%
+  );
+}
+.tv-10s .yt-video {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.14) inset;
+}
+/* The wheel is a machined dish - the rim is proud, the middle is sunk. */
+.tv-10s .tv-wheel {
+  box-shadow:
+    0 1px 0 #fff inset,
+    0 -1px 0 rgba(0, 0, 0, 0.06) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.09),
+    0 2px 5px rgba(0, 0, 0, 0.2);
+}
+.tv-10s .tv-wheel-centre {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.2) inset,
+    0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* ---- The screen, when it is off ---- */
+/* Not black. A dark tube still shows the room in it, which is why an
+   "off" screen in a photograph is always grey-green rather than empty. */
+.tv-set .yt-video {
+  background: radial-gradient(circle at 30% 20%, #7a8ea0, #2f3a44 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-knob-pointer {
+    transition: none;
+  }
+}
+
 /* ---- Discovery rails ---- */
 /* Rows of things to listen to on /recs. Sideways rather than wrapped, so
    several directions fit on one screen and none of them is the page. */
