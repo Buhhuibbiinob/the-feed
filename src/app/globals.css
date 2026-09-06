@@ -15484,51 +15484,77 @@ button.btn-ghost {
    ================================================================ */
 
 :root {
-  /* Maple, which is the Newsstand wood. Warm, not orange. */
-  --wood-face-top: #e2bc7d;
-  --wood-face-bottom: #c7a26d;
-  --wood-lit-edge: #e8c186;
-  --wood-under: #5e3716;
-  /* The back wall is not black. Sampled down an empty column of the
-     reference it runs #6B472A right under the board above, where that
-     board is casting on it, and opens out to #C89B60 by a third of the
-     way down - light bouncing back off the board below. The first pass
-     had this at #350C00 and the whole case read as a cave with a gold
-     stripe in it. */
-  --wood-back-top: #6b472a;
-  --wood-back-mid: #c89b60;
-  --wood-back-bottom: #b98d55;
-  --wood-contact: rgba(57, 28, 10, 0.85);
-  /* One row: air, the item, the board, the label under it. */
-  /* One row: air, the object, the board it stands on, then the shaded
-     band under the board where its card and its two buttons go. The row
-     total and the background's period are the same number by
-     construction - if they ever drift apart, every board slides out from
-     under the records standing on it. */
-  --wood-row: 176px;
+  /* Blonde maple, measured off the empty iBooks shelf rather than off the
+     Newsstand screenshot, because the empty one shows the timber with
+     nothing standing on it.
+
+     The first version got the structure backwards. I had a DARK back wall
+     with a lit board in front of it, and that is not what is there: the
+     back panel is the same pale maple as the boards and it is lit. What
+     reads as darkness is one hard shadow, about fourteen pixels of it,
+     thrown by each board onto the panel directly below. Take that shadow
+     away and the whole thing flattens; make it into a dark wall instead
+     and you get a cave with a gold stripe in it, which is what I built.
+
+     Straight down an empty column, one shelf is:
+
+       #FDD99B  2px   the lit top edge of the board
+       #EFCE8B        the board's face, ten pixels of it
+       #E5C27E
+       #73481B  1px   the board's underside
+       #3E1900        hard shadow on the panel below
+       #916A3F  14px  ramping out of that shadow
+       #D3A567        the panel, lit, all the way to the next board  */
+  --wood-lit-edge: #fdd99b;
+  --wood-face-top: #efce8b;
+  --wood-face-bottom: #e5c27e;
+  --wood-under: #73481b;
+  /* The shadow the board throws. The darkest thing on the surface, and
+     the only dark thing on it. */
+  --wood-cast: #3e1900;
+  --wood-back-top: #916a3f;
+  --wood-back-bottom: #d3a567;
+  /* Used by the record standing on the board, not by the board. */
+  --wood-contact: rgba(62, 25, 0, 0.9);
+  /* One row: the panel, the object standing on the board, the board, and
+     the card below it. The row total and the background's period are the
+     same number by construction - if they ever drift apart, every board
+     slides out from under the records standing on it. */
+  --wood-row: 189px;
   --wood-item: 96px;
-  --wood-board: 20px;
-  --wood-label: 32px;
+  --wood-board: 21px;
+  --wood-label: 40px;
+  /* How far the board's shadow reaches down the panel below it. Read by
+     the card too, which starts below it rather than in it. */
+  --wood-cast-depth: 12px;
+  /* Where the groove above a board starts, and how far past the cast
+     shadow the panel takes to come back to full light. Tokens rather than
+     numbers written into the gradient for the same reason everything else
+     here is: a bare offset in there is a number that has to be kept in
+     step with the row by hand, and the guard cannot tell a structural one
+     from a hairline. */
+  --wood-groove: 12px;
+  --wood-cast-fade: 9px;
 }
-/* Dark mode does not turn the wood into a different tree. A room with
-   the lights off has the same shelf in it, so the timber keeps its hue
-   and loses its lamp: the face darkens, the vignette flattens, and the
-   back wall goes almost to black. Recolouring it grey was the obvious
-   move and the wrong one, because the whole point of the surface is
-   that it is made of something. */
+/* Dark mode does not turn the wood into a different tree. A room with the
+   lights off has the same shelf in it, so the timber keeps its hue and
+   loses its lamp: everything darkens by about the same amount, and the
+   cast shadow goes nearly to black because there is less light around to
+   fill it. Recolouring it grey was the obvious move and the wrong one,
+   since the whole point of the surface is that it is made of something. */
 :root[data-mode="dark"] {
-  --wood-face-top: #8d7148;
-  --wood-face-bottom: #6f583a;
-  --wood-lit-edge: #a0824f;
-  --wood-under: #2c1a0a;
-  --wood-back-top: #2e1c0d;
-  --wood-back-mid: #5c4227;
-  --wood-back-bottom: #503921;
-  --wood-contact: rgba(0, 0, 0, 0.9);
+  --wood-lit-edge: #a58a5c;
+  --wood-face-top: #93794f;
+  --wood-face-bottom: #866d46;
+  --wood-under: #33200c;
+  --wood-cast: #150800;
+  --wood-back-top: #4a3620;
+  --wood-back-bottom: #74593a;
+  --wood-contact: rgba(0, 0, 0, 0.92);
 }
 
-/* The wall. Everything below is one background stack, painted in this
-   order: grain, vignette, then the boards. */
+/* The wall. One background stack, painted in this order: grain, the side
+   vignette, then the boards. */
 .woodwall {
   position: relative;
   border-radius: 10px;
@@ -15536,57 +15562,89 @@ button.btn-ghost {
   padding: 0;
   background-color: var(--wood-back-bottom);
   background-image:
-    /* Grain. Three periods that share no common factor, so the streaks
-       never line up into corduroy - the same trick the era-television
-       veneer needed. Tilted a degree off true, because sawn timber is.
-       Kept very faint: the first pass ran these at 5% and the wall came
-       out looking like corduroy after all. In the reference you have to
-       go looking for the grain, which is the difference between timber
-       and a texture. */
+    /* Grain. Three periods sharing no common factor, so the streaks never
+       line up into corduroy - the same trick the era-television veneer
+       needed. Tilted a degree off true, because sawn timber is.
+
+       Measured at about seven per cent on the reference: the red channel
+       across a lit panel runs 185 to 214. My first pass ran these at
+       under two per cent trying not to repeat an earlier corduroy
+       mistake, and overcorrected into a surface with no timber in it at
+       all. You should be able to see the grain without hunting for it. */
     repeating-linear-gradient(
       89deg,
-      rgba(255, 255, 255, 0.018) 0px,
-      rgba(255, 255, 255, 0.018) 1px,
+      rgba(255, 255, 255, 0.07) 0px,
+      rgba(255, 255, 255, 0.07) 1px,
       rgba(0, 0, 0, 0) 1px,
       rgba(0, 0, 0, 0) 7px
     ),
     repeating-linear-gradient(
       91deg,
-      rgba(0, 0, 0, 0.03) 0px,
-      rgba(0, 0, 0, 0.03) 1px,
+      rgba(88, 48, 12, 0.08) 0px,
+      rgba(88, 48, 12, 0.08) 1px,
       rgba(0, 0, 0, 0) 1px,
       rgba(0, 0, 0, 0) 19px
     ),
     repeating-linear-gradient(
       90deg,
-      rgba(120, 70, 20, 0.035) 0px,
-      rgba(120, 70, 20, 0.035) 2px,
+      rgba(120, 70, 20, 0.06) 0px,
+      rgba(120, 70, 20, 0.06) 2px,
       rgba(0, 0, 0, 0) 2px,
       rgba(0, 0, 0, 0) 31px
     ),
-    /* The lamp. 13%, measured. */
-    radial-gradient(ellipse 70% 120% at 50% 40%, rgba(255, 255, 255, 0.13), rgba(0, 0, 0, 0) 70%),
-    /* The boards themselves, one per row. The stops are the measured
-       ones, offset so the board lands under the item rather than under
-       the label. */
+    /* The sides of the case, in shadow. Stronger than a vignette: the
+       reference samples #764F26 at the extreme edge against #CC9B5A in
+       the middle, which is a third of the light gone. */
+    linear-gradient(
+      90deg,
+      rgba(50, 24, 4, 0.55) 0%,
+      rgba(50, 24, 4, 0) 7%,
+      rgba(50, 24, 4, 0) 93%,
+      rgba(50, 24, 4, 0.55) 100%
+    ),
+    /* The lamp above it. */
+    radial-gradient(ellipse 62% 108% at 50% 42%, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0) 72%),
+    /* The boards, one per row.
+       Read from the top of a row: the panel, lit, all the way down to the
+       board; the contact shadow of whatever is standing on it; the lit
+       edge; the face; the underside; the hard cast shadow; and then the
+       ramp back out to a lit panel, which is where the card under the
+       board sits. */
     repeating-linear-gradient(
       180deg,
-      var(--wood-back-top) 0px,
-      var(--wood-back-mid) calc(var(--wood-row) * 0.28),
-      var(--wood-back-bottom) calc(var(--wood-item) - 8px),
-      var(--wood-contact) calc(var(--wood-item) - 1px),
+      var(--wood-back-bottom) 0px,
+      /* A dark groove just above the lit edge, and this is what makes a
+         board look like a board rather than a bright line.
+         On the reference the panel goes DARK about eight pixels before
+         the board - #73481B - and then lightens into the edge, which is
+         the underside of the lip seen from slightly above. Without it the
+         board's highlight sits against a lit panel and has nothing to
+         push off.
+         The painted contact shadow that used to be here is gone: a
+         standing record casts its own, so the background drawing one too
+         meant an EMPTY shelf had a shadow on it with nothing making it. */
+      var(--wood-back-bottom) calc(var(--wood-item) - var(--wood-groove)),
+      var(--wood-under) calc(var(--wood-item) - var(--wood-groove) + 5px),
       var(--wood-lit-edge) var(--wood-item),
       var(--wood-face-top) calc(var(--wood-item) + 2px),
       var(--wood-face-bottom) calc(var(--wood-item) + var(--wood-board) - 1px),
       var(--wood-under) calc(var(--wood-item) + var(--wood-board)),
-      var(--wood-back-top) calc(var(--wood-item) + var(--wood-board) + 1px),
-      var(--wood-back-top) var(--wood-row)
+      var(--wood-cast) calc(var(--wood-item) + var(--wood-board) + 1px),
+      var(--wood-back-top) calc(var(--wood-item) + var(--wood-board) + var(--wood-cast-depth)),
+      /* Out of the shadow and back to lit maple quickly, then flat for the
+         rest of the row. The first pass ramped from the shadow all the
+         way to the bottom of the row, which meant a third of the surface
+         was permanently mid-brown and the whole shelf read dark even
+         though the panel colour matched the reference to a few points.
+         On the reference the light panel is about three quarters of a
+         row. Here it is now about seventy per cent. */
+      var(--wood-back-bottom)
+        calc(var(--wood-item) + var(--wood-board) + var(--wood-cast-depth) + var(--wood-cast-fade)),
+      var(--wood-back-bottom) var(--wood-row)
     );
-  /* A case has sides, and the sides are in shadow. Without this the wood
-     runs to the edge of the panel and reads as wallpaper. */
-  box-shadow: inset 14px 0 22px -12px rgba(0, 0, 0, 0.75),
-    inset -14px 0 22px -12px rgba(0, 0, 0, 0.75), inset 0 12px 18px -10px rgba(0, 0, 0, 0.6),
-    var(--edge-drop), var(--edge-outer);
+  /* The case has a top edge, and it is in shadow. Light: at the weight
+     the sides carry it swallowed the first row. */
+  box-shadow: inset 0 7px 10px -8px rgba(40, 18, 2, 0.55), var(--edge-drop), var(--edge-outer);
 }
 
 /* The items, laid into rows the same height as the background's period.
@@ -15654,7 +15712,13 @@ button.btn-ghost {
 .woodlabel {
   height: var(--wood-label);
   width: 100%;
-  padding: 4px 6px 0;
+  /* Cleared past the board's cast shadow, rather than sitting in it. The
+     card lines up with the top of its box and the box starts the moment
+     the board ends, so the text was landing in the darkest twelve pixels
+     on the whole surface and the shelf looked like it had unreadable
+     labels. Reading the same token the shadow is drawn with means the two
+     cannot drift. */
+  padding: calc(var(--wood-cast-depth) + var(--wood-cast-fade)) 6px 0;
   text-align: center;
   overflow: hidden;
 }
@@ -15686,17 +15750,17 @@ button.btn-ghost {
   cursor: pointer;
   box-shadow: none;
   border-radius: 0;
-  color: #ffe9c2;
+  color: #5c3d14;
   text-decoration: underline;
   text-underline-offset: 2px;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 .woodactions .wood-link:hover,
 .woodactions .inline-form button:hover {
-  color: #fff;
+  color: #2f1e08;
 }
 .woodactions .inline-form button:disabled {
-  color: rgba(255, 233, 194, 0.55);
+  color: rgba(92, 61, 20, 0.5);
   text-decoration: none;
   cursor: default;
 }
@@ -15732,13 +15796,15 @@ button.btn-ghost {
   font-size: 10.5px;
   font-weight: 600;
   line-height: 1.15;
-  /* Cream, on the darkest band of the wall. The card sits in the strip
-     immediately under a board, which is where that board is casting its
-     own shadow and therefore the one place on the whole surface that
-     stays dark - so light type belongs here even though the wall two
-     inches above it is lit maple. Measured at about 6:1. */
-  color: #f8efe0;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.75);
+  /* Dark, pressed into the wood.
+     This went back and forth twice and the reference settled it. The card
+     sits under the board, and while the first fourteen pixels down there
+     are the board's cast shadow, the panel is lit maple by the time the
+     text starts. Light type on it was unreadable; dark type with one
+     white pixel under it reads as printed on the wood, which is what a
+     shelf label is. */
+  color: #3d2a12;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -15747,11 +15813,44 @@ button.btn-ghost {
   display: block;
   font-size: 9.5px;
   line-height: 1.2;
-  color: rgba(248, 239, 224, 0.7);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+  color: rgba(61, 42, 18, 0.72);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* On unlit timber the label turns over.
+   Dark type with a white highlight under it is how you print on pale
+   maple; on the same wood with the lights off it is mud, and the
+   highlight is the part that muddies it. So in dark mode the card is
+   cream and the letterpress goes the other way, above the letterform,
+   because that is where a shadow falls when the light is weak and coming
+   from overhead. Same rule the buttons already follow. */
+:root[data-mode="dark"] .woodlabel b {
+  color: #f6ecdb;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+:root[data-mode="dark"] .woodlabel span {
+  color: rgba(246, 236, 219, 0.66);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.75);
+}
+:root[data-mode="dark"] .woodactions .wood-link,
+:root[data-mode="dark"] .woodactions .wood-remove,
+:root[data-mode="dark"] .woodactions .inline-form button {
+  color: #ffd9a4;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+:root[data-mode="dark"] .woodactions .wood-link:hover,
+:root[data-mode="dark"] .woodactions .inline-form button:hover {
+  color: #fff0d6;
+}
+:root[data-mode="dark"] .wood-quiet {
+  color: rgba(255, 217, 164, 0.6);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.75);
+}
+:root[data-mode="dark"] .woodslot.played .woodlabel b {
+  color: rgba(246, 236, 219, 0.55);
 }
 
 /* ---- The four objects ----
@@ -15935,7 +16034,7 @@ button.btn-ghost {
   filter: saturate(0.45) brightness(0.72);
 }
 .woodslot.played .woodlabel b {
-  color: rgba(248, 239, 224, 0.62);
+  color: rgba(61, 42, 18, 0.55);
 }
 .played-wall {
   opacity: 0.92;

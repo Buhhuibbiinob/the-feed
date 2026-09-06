@@ -62,9 +62,16 @@ check(
   "on the default theme .panel-head is a quiet label on the linen, not a title bar - and background-image beats an earlier `background: none`"
 );
 for (const link of [".comment-action", ".inline-form button"]) {
+  // Matched at the start of a selector, not as a substring anywhere in
+  // the block. `.queue-actions .inline-form button,` contains
+  // ".inline-form button," and that rule does the OPPOSITE of glazing:
+  // it strips the ring and the radius off a button drawn as a link. The
+  // substring test failed on it and said the link had been glazed.
+  const escaped = link.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const glazed = new RegExp(`^${escaped}\\s*[,{]`, "m").test(block);
   check(
     `${link} is not glazed`,
-    !block.includes(`${link},`) && !block.includes(`${link} {`),
+    !glazed,
     "it is styled as a text link; a background turns it into a button, which says something different about what pressing it does"
   );
 }
