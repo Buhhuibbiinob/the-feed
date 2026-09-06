@@ -176,7 +176,10 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
           like a crate rather than like a box. */}
       <div className="crate-box" aria-hidden="true">
         <div className="crate-fill">
-          {sleeves.slice(index + 1, index + 15).map((sleeve, i) => (
+          {/* Twenty six, not fourteen. Fourteen edges across a crate this
+              wide left dark gaps between them and the whole thing read as
+              a row of matchsticks standing in a box. A crate is full. */}
+          {sleeves.slice(index + 1, index + 27).map((sleeve, i) => (
             <span
               key={sleeve.key}
               className={`crate-divider fmt-${formatForKey(sleeve.key)}`}

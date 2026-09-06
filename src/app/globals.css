@@ -6380,32 +6380,76 @@ footer .copy {
   gap: 12px;
 }
 
-/* The box. Four boards: two ends, a front and the dark inside. The end
-   grain runs the other way to the front, which is the thing that says
-   "this is joined from planks" rather than "this is a brown rectangle". */
+/* The box.
+   A record crate, made of the same maple as the shelves, because they
+   are the same room. Four boards: two ends, a front, and the dark inside
+   the records stand in.
+
+   Wider than the sleeve being held up, which is the thing that makes it
+   read as a crate at all. The first pass had a box narrower than the
+   record in front of it, and a container smaller than its contents reads
+   as a picture frame no matter what it is made of. */
 .crate-box {
   position: relative;
   width: 100%;
-  max-width: 320px;
-  height: 96px;
-  margin-top: -20px;
-  border-radius: 3px 3px 5px 5px;
+  max-width: 372px;
+  height: 128px;
+  margin-top: -34px;
+  border-radius: 3px 3px 6px 6px;
   overflow: hidden;
-  /* The dark inside of the box, which the records stand in. */
+  /* The dark inside. */
   background: linear-gradient(180deg, #2a1a0d 0%, #1a1008 40%, #120b06 100%);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(24, 12, 4, 0.7);
+  box-shadow: 0 6px 14px -4px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(24, 12, 4, 0.8),
+    var(--edge-outer);
 }
-/* The front board, standing proud of the records behind it. */
-/* The front board. Grain runs ALONG it, the way a board is cut, and at
-   three periods that share no common factor so it does not stripe into
-   corduroy the way a single repeating gradient does. */
+/* The two end boards. Grain runs the other way to the front, which is
+   the detail that says "joined from planks" rather than "brown
+   rectangle". */
+.crate-box::before,
+.crate-box::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 13px;
+  z-index: 3;
+  background:
+    repeating-linear-gradient(
+      1deg,
+      rgba(60, 32, 12, 0.34) 0 1px,
+      rgba(0, 0, 0, 0) 1px 6px
+    ),
+    linear-gradient(90deg, #9a662f 0%, #7d4f24 55%, #5a381a 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 216, 168, 0.3);
+}
+.crate-box::before {
+  left: 0;
+  border-radius: 3px 0 0 6px;
+}
+.crate-box::after {
+  right: 0;
+  border-radius: 0 3px 6px 0;
+  background:
+    repeating-linear-gradient(
+      -1deg,
+      rgba(60, 32, 12, 0.34) 0 1px,
+      rgba(0, 0, 0, 0) 1px 6px
+    ),
+    linear-gradient(270deg, #9a662f 0%, #7d4f24 55%, #5a381a 100%);
+}
+
+/* The front board, standing proud of the records behind it, with the
+   hand hole every crate has cut into it. The hole is what makes the
+   shape legible in one glance: a plain board is a plank, a board with a
+   slot in it is something you carry. */
 .crate-lip {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 46px;
-  border-radius: 0 0 5px 5px;
+  height: 54px;
+  z-index: 2;
+  border-radius: 0 0 6px 6px;
   background:
     repeating-linear-gradient(
       177deg,
@@ -6423,66 +6467,103 @@ footer .copy {
       rgba(0, 0, 0, 0) 1px 29px
     ),
     linear-gradient(180deg, #a06a33 0%, #855426 46%, #6d4523 54%, #4f3218 100%);
-  box-shadow:
-    0 -4px 8px rgba(0, 0, 0, 0.5),
-    0 1px 0 rgba(255, 216, 168, 0.4) inset,
-    0 -1px 0 rgba(30, 15, 4, 0.6) inset;
+  box-shadow: 0 -6px 10px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 216, 168, 0.42) inset,
+    0 -1px 0 rgba(30, 15, 4, 0.65) inset;
+}
+/* The hand hole: a dark slot with a lit lower lip, because you are
+   seeing the cut edge of a board from slightly above. */
+.crate-lip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 15px;
+  width: 74px;
+  height: 15px;
+  transform: translateX(-50%);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #1c0f05 0%, #34200f 70%, #56381b 100%);
+  box-shadow: 0 1px 0 rgba(255, 216, 168, 0.35), 0 -1px 2px rgba(0, 0, 0, 0.6) inset;
 }
 
-/* The records still in the box, seen end on. Each is a thin slab leaning
-   back, and the format decides how thick it is and what colour its edge
-   reads as: a vinyl sleeve is card, a jewel case is bright plastic, a
-   cassette is a small black box. */
-/* The records still in it, seen end on and leaning back. Their tops show
-   above the front board, which is the whole reason a crate reads as a
-   crate rather than as a closed box. */
+/* The records still in it, seen end on.
+   Packed, not spaced. A visible gap between every sleeve is what turned
+   the first two attempts into a row of matchsticks - records in a crate
+   touch, and what you actually see is a band of edges with the odd
+   bright one in it. */
 .crate-fill {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 30px;
-  height: 66px;
+  left: 15px;
+  right: 15px;
+  bottom: 26px;
+  height: 92px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  /* Packed, not spaced. A gap you can see between every sleeve reads as
-     a row of sticks; records in a crate touch. */
-  gap: 1px;
+  gap: 0;
 }
 .crate-divider {
   flex: 0 0 auto;
   border-radius: 2px 2px 0 0;
-  /* Leaning progressively, the way a part empty crate does. */
-  transform: rotate(calc(-3deg + var(--i) * 0.45deg));
+  /* Leaning back a little more with each one, the way a part full crate
+     does once you have taken a few out of the front. */
+  transform: rotate(calc(-4deg + var(--i) * 0.5deg));
   transform-origin: bottom center;
-  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
 }
+/* The format decides how thick a thing is and how tall it stands. */
 .crate-divider.fmt-vinyl {
-  width: 15px;
-  height: 64px;
-  background: linear-gradient(90deg, #e4ddcf 0 2px, #c6bdab 2px 60%, #8d8474);
+  width: 17px;
+  height: 88px;
 }
 .crate-divider.fmt-cd {
-  width: 11px;
-  height: 52px;
-  background: linear-gradient(90deg, #f4f8fb 0 2px, #cbd5df 2px 58%, #8c98a6);
+  width: 12px;
+  height: 70px;
 }
 .crate-divider.fmt-cassette {
   width: 10px;
-  height: 40px;
-  background: linear-gradient(90deg, #5a5a62 0 2px, #33333a 2px 60%, #17171a);
+  height: 52px;
 }
 .crate-divider.fmt-download {
-  width: 10px;
-  height: 48px;
-  background: linear-gradient(90deg, #cfd6de, #a3adb9 55%, #7e8894);
+  width: 11px;
+  height: 64px;
+}
+/* And the position in the row decides its colour, cycling through five
+   so the band has variety in it without anybody choosing per record. A
+   crate of identically coloured edges is a comb. */
+.crate-divider:nth-child(5n + 1) {
+  background: linear-gradient(90deg, #efe8da 0 2px, #cdc4b1 2px 60%, #918876);
+}
+.crate-divider:nth-child(5n + 2) {
+  background: linear-gradient(90deg, #6d5240 0 2px, #4a382c 2px 60%, #2a2019);
+}
+.crate-divider:nth-child(5n + 3) {
+  background: linear-gradient(90deg, #d8c9a2 0 2px, #ab9974 2px 60%, #6f6249);
+}
+.crate-divider:nth-child(5n + 4) {
+  background: linear-gradient(90deg, #9fb4c2 0 2px, #6f8695 2px 60%, #43535e);
+}
+.crate-divider:nth-child(5n + 5) {
+  background: linear-gradient(90deg, #c2a0a0 0 2px, #8d6a6a 2px 60%, #56403f);
+}
+/* Except the jewel cases, which are plastic whatever is printed inside
+   them, and the cassettes, which are black. Those two read wrong in
+   card colours, so they keep their own. */
+.crate-divider.fmt-cd {
+  background: linear-gradient(90deg, #f6fafd 0 2px, #cdd7e1 2px 58%, #8e9aa8);
+}
+.crate-divider.fmt-cassette {
+  background: linear-gradient(90deg, #5c5c64 0 2px, #34343b 2px 60%, #18181b);
 }
 
 /* The one in your hand: lifted out, tilted, and casting onto the box. */
 .crate-stack {
   position: relative;
   width: 100%;
-  max-width: 236px;
+  /* Smaller than the crate it came out of, deliberately. At 236 the
+     sleeve was wider than the box and covered the records still in it,
+     so the only thing you could see was the one you were holding - which
+     is the opposite of what a crate is for. */
+  max-width: 194px;
   margin: 0 auto;
   z-index: 1;
   transform: rotate(-1.6deg);
