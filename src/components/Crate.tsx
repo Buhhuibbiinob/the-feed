@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { addToQueue, type QueueState } from "@/app/actions/queue";
 import type { Sleeve } from "@/lib/crate";
+import { FORMAT_LABELS, formatForKey } from "@/lib/physicalMedia";
 
 // Flipping through a crate.
 //
@@ -134,16 +135,15 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
 
   return (
     <div className="crate">
-      <div className="crate-stack">
-        {/* The next sleeve, just visible behind this one. A stack with
-            nothing behind it does not read as a crate - it reads as one
-            record on a table. */}
-        {next && <div className="crate-behind" aria-hidden="true" />}
-
+      {/* The record in your hand, held up in front of the crate it came
+          out of. The box sits under it holding the rest, with their tops
+          showing above the front board.
+          Drawn this way round because a sleeve INSIDE the box turns the
+          crate into a picture frame: you cannot see the records at all,
+          and the box reads as a border rather than as a container. */}
+      <div className={`crate-stack fmt-${formatForKey(current.key)}`}>
         <div className="crate-sleeve">
           {art ? (
-            // Cover art comes from Apple's and Last.fm's CDNs, which are
-            // not in next.config's image allowlist.
             <img src={art} alt="" />
           ) : (
             <div className="crate-blank" aria-hidden="true">
@@ -171,11 +171,28 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
         </div>
       </div>
 
+      {/* The crate itself, with the records still in it. Their tops show
+          above the front board, which is the whole reason a crate looks
+          like a crate rather than like a box. */}
+      <div className="crate-box" aria-hidden="true">
+        <div className="crate-fill">
+          {sleeves.slice(index + 1, index + 15).map((sleeve, i) => (
+            <span
+              key={sleeve.key}
+              className={`crate-divider fmt-${formatForKey(sleeve.key)}`}
+              style={{ ["--i" as string]: i }}
+            />
+          ))}
+        </div>
+        <div className="crate-lip" />
+      </div>
+
       <div className="crate-label">
         <b>{current.name}</b>
-        <span>{current.artist}</span>
+        <span className="crate-by">{current.artist}</span>
         {/* No rating, no match score, no reason. The crate has no opinion
             about this record and saying so is the point. */}
+        <span className="crate-format">{FORMAT_LABELS[formatForKey(current.key)]}</span>
       </div>
 
       {saveError && <div className="form-error">{saveError}</div>}
@@ -185,13 +202,13 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
           Put it back
         </button>
         <button type="button" className="crate-keep" onClick={keep} disabled={saving}>
-          {saving ? "Taking it…" : "Take it"}
+          {saving ? "Taking it" : "Take it"}
         </button>
       </div>
 
       <div className="crate-count">
         {index + 1} of {sleeves.length}
-        {kept.length > 0 && ` · ${kept.length} taken`}
+        {kept.length > 0 && `, ${kept.length} taken`}
       </div>
     </div>
   );

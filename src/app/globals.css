@@ -311,6 +311,57 @@ a:hover {
   text-decoration: underline;
 }
 
+/* ---- The floor for a button nobody gave a class to ----
+   Left to itself a <button> renders as raw operating system chrome: the
+   grey rectangle with the thin ring that "Hand it to someone" was, sitting
+   in the middle of a page that spent fifteen thousand lines not looking
+   like that. Every one of those is a bug, but a bug that only shows up
+   when somebody happens to look at the right screen, so this is the floor
+   underneath all of them.
+
+   It borrows the ghost button's tokens rather than picking its own
+   colours, which is what lets it follow all eighteen themes and both
+   modes without knowing a thing about any of them.
+
+   Placed this early on purpose. Its weight ties with `.something button`,
+   so any rule scoped to a parent has to come later in the file to win,
+   and every one of those rules does. Move this block down and the tv
+   softkeys, the alert sheet and the queue rows all quietly turn into
+   silver pills. */
+button:not([class]) {
+  font: inherit;
+  font-weight: 600;
+  font-size: 12.5px;
+  padding: 5px 13px;
+  border-radius: var(--btn-radius, 6px);
+  cursor: pointer;
+  color: var(--btn-ghost-text);
+  border: 1px solid var(--btn-ghost-frame);
+  text-shadow: var(--btn-ghost-letterpress);
+  /* The glaze goes on as a background LAYER, not as a pseudo element
+     floating over the top. A pseudo element here would have to sit above
+     the label, which is how you end up with text under frosted glass. */
+  background-image: var(--glaze-pale), var(--btn-ghost-image);
+  /* The same eight-layer stack every other control wears. Written out
+     with the tokens rather than pointing at --btn-ghost-shadow, because
+     a button that has fallen this far is exactly the one nobody will
+     notice missing an edge. */
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    var(--edge-glow), var(--edge-outer);
+}
+button:not([class]):hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+button:not([class]):active:not(:disabled) {
+  background-image: var(--btn-ghost-image);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+  transform: translateY(1px);
+}
+button:not([class]):disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 /* ---- Top tab bar ---- */
 .apple-nav {
   /* The Alerts and More dropdowns were rendering *behind* the page.
@@ -686,7 +737,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #fff;
+  border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 .nav-bell-menu {
@@ -2433,7 +2484,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #fff;
+  border: 2px solid #fff;
 }
 
 .email-pref-row {
@@ -4292,11 +4343,20 @@ select:focus {
   flex: 1;
   padding: 9px 14px;
 }
-.btn-ghost {
-  background: linear-gradient(180deg, #ffffff 0%, #eef2f7 45%, #d7e0ea 55%, #b7c4d2 100%) !important;
-  border-color: #7f93a8 !important;
-  color: #1c2733 !important;
-  text-shadow: none !important;
+/* The pale button ON THE WELCOME SHEET, which is a dark overlay whatever
+   theme you are on, so it wants a fixed light silver rather than the
+   theme's own.
+   It used to be written as a bare `.btn-ghost` with `!important` on every
+   line, which meant the welcome sheet's colours followed the pale button
+   everywhere on the site: eighteen themes and two modes all painted with
+   one hard-coded light gradient and near-black text, and no token could
+   get a word in. Scoping it to the sheet gives every other pale button
+   back to the theme system, and costs the sheet nothing. */
+.welcome-modal-actions .btn-ghost {
+  background: linear-gradient(180deg, #ffffff 0%, #eef2f7 45%, #d7e0ea 55%, #b7c4d2 100%);
+  border-color: #7f93a8;
+  color: #1c2733;
+  text-shadow: none;
 }
 
 /* ---- Live chat ---- */
@@ -6273,10 +6333,13 @@ footer .copy {
 }
 
 /* ---- The Crate ----
-   A record held up in front of you, with the next one just showing
-   behind it. Square, big, and centred: the sleeve is the whole page,
-   because looking at the sleeve is the entire activity. */
-.crate-intro {
+   A wooden box with records standing in it, and the one in your hand
+   lifted out of the front. All of it drawn: the wood, the records and
+   the shadow they sit in are gradients, so it scales with the page and
+   loads nothing. */
+.crate-intro,
+.shelf-intro,
+.shelf-pick {
   font-size: 12px;
   color: var(--muted);
   margin: 0 0 16px;
@@ -6288,28 +6351,135 @@ footer .copy {
   align-items: center;
   gap: 12px;
 }
+
+/* The box. Four boards: two ends, a front and the dark inside. The end
+   grain runs the other way to the front, which is the thing that says
+   "this is joined from planks" rather than "this is a brown rectangle". */
+.crate-box {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 96px;
+  margin-top: -20px;
+  border-radius: 3px 3px 5px 5px;
+  overflow: hidden;
+  /* The dark inside of the box, which the records stand in. */
+  background: linear-gradient(180deg, #2a1a0d 0%, #1a1008 40%, #120b06 100%);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(24, 12, 4, 0.7);
+}
+/* The front board, standing proud of the records behind it. */
+/* The front board. Grain runs ALONG it, the way a board is cut, and at
+   three periods that share no common factor so it does not stripe into
+   corduroy the way a single repeating gradient does. */
+.crate-lip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 46px;
+  border-radius: 0 0 5px 5px;
+  background:
+    repeating-linear-gradient(
+      177deg,
+      rgba(60, 32, 12, 0.42) 0 1px,
+      rgba(0, 0, 0, 0) 1px 5px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      rgba(196, 132, 70, 0.2) 0 2px,
+      rgba(0, 0, 0, 0) 2px 17px
+    ),
+    repeating-linear-gradient(
+      183deg,
+      rgba(30, 14, 4, 0.26) 0 1px,
+      rgba(0, 0, 0, 0) 1px 29px
+    ),
+    linear-gradient(180deg, #a06a33 0%, #855426 46%, #6d4523 54%, #4f3218 100%);
+  box-shadow:
+    0 -4px 8px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 216, 168, 0.4) inset,
+    0 -1px 0 rgba(30, 15, 4, 0.6) inset;
+}
+
+/* The records still in the box, seen end on. Each is a thin slab leaning
+   back, and the format decides how thick it is and what colour its edge
+   reads as: a vinyl sleeve is card, a jewel case is bright plastic, a
+   cassette is a small black box. */
+/* The records still in it, seen end on and leaning back. Their tops show
+   above the front board, which is the whole reason a crate reads as a
+   crate rather than as a closed box. */
+.crate-fill {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 30px;
+  height: 66px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* Packed, not spaced. A gap you can see between every sleeve reads as
+     a row of sticks; records in a crate touch. */
+  gap: 1px;
+}
+.crate-divider {
+  flex: 0 0 auto;
+  border-radius: 2px 2px 0 0;
+  /* Leaning progressively, the way a part empty crate does. */
+  transform: rotate(calc(-3deg + var(--i) * 0.45deg));
+  transform-origin: bottom center;
+  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+.crate-divider.fmt-vinyl {
+  width: 15px;
+  height: 64px;
+  background: linear-gradient(90deg, #e4ddcf 0 2px, #c6bdab 2px 60%, #8d8474);
+}
+.crate-divider.fmt-cd {
+  width: 11px;
+  height: 52px;
+  background: linear-gradient(90deg, #f4f8fb 0 2px, #cbd5df 2px 58%, #8c98a6);
+}
+.crate-divider.fmt-cassette {
+  width: 10px;
+  height: 40px;
+  background: linear-gradient(90deg, #5a5a62 0 2px, #33333a 2px 60%, #17171a);
+}
+.crate-divider.fmt-download {
+  width: 10px;
+  height: 48px;
+  background: linear-gradient(90deg, #cfd6de, #a3adb9 55%, #7e8894);
+}
+
+/* The one in your hand: lifted out, tilted, and casting onto the box. */
 .crate-stack {
   position: relative;
   width: 100%;
-  max-width: 300px;
-}
-/* The rest of the box. Offset and rotated a little, because a stack
-   nobody has straightened is never square to the one in front. */
-.crate-behind {
-  position: absolute;
-  inset: 0;
-  border-radius: 4px;
-  transform: rotate(-2.2deg) translate(5px, 5px);
-  background: linear-gradient(160deg, #4a4a50, #2a2a2e);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  max-width: 236px;
+  margin: 0 auto;
+  z-index: 1;
+  transform: rotate(-1.6deg);
 }
 .crate-sleeve {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
   background: #1d1d21;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.14) inset;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+/* A jewel case is narrower than a sleeve and has a hinge down one side. */
+.crate-stack.fmt-cd .crate-sleeve,
+.crate-stack.fmt-download .crate-sleeve {
+  border-left: 5px solid rgba(226, 232, 238, 0.85);
+  border-radius: 2px 4px 4px 2px;
+}
+/* A cassette is landscape, not square. */
+.crate-stack.fmt-cassette .crate-sleeve {
+  aspect-ratio: 8 / 5;
+  border-radius: 2px;
 }
 .crate-sleeve img {
   width: 100%;
@@ -6317,9 +6487,9 @@ footer .copy {
   object-fit: cover;
   display: block;
 }
-/* A sleeve whose art has not arrived, or has none. Not a spinner: a
-   plain paper sleeve with the hole showing is what a record with no
-   cover actually looks like, and it does not imply something is broken. */
+/* A sleeve whose art has not arrived, or has none: a plain paper sleeve
+   with the record showing through, which is what one actually looks like
+   and does not imply something is broken. */
 .crate-blank {
   width: 100%;
   height: 100%;
@@ -6340,18 +6510,19 @@ footer .copy {
   left: 50%;
   bottom: 12px;
   transform: translateX(-50%);
-  padding: 7px 16px;
-  border: none;
+  padding: 7px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
   border-radius: 999px;
   font-size: 12px;
+  font-weight: 600;
   color: #fff;
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: saturate(160%) blur(8px);
-  -webkit-backdrop-filter: saturate(160%) blur(8px);
+  background-image: var(--glaze), linear-gradient(180deg, #4a4a52, #26262b);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
 }
 .crate-play.playing {
-  background: var(--accent, #d34);
+  background-image: var(--glaze), var(--btn-image);
+  border-color: var(--btn-border);
 }
 .crate-label {
   text-align: center;
@@ -6362,9 +6533,21 @@ footer .copy {
   font-size: 15px;
   line-height: 1.25;
 }
-.crate-label span {
+.crate-by {
+  display: block;
   font-size: 12px;
   color: var(--muted);
+}
+/* The format, said out loud, because the drawing alone is a hint. */
+.crate-format {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 .crate-hands {
   display: flex;
@@ -6375,17 +6558,20 @@ footer .copy {
   padding: 9px 20px;
   border-radius: 999px;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  border: 1px solid var(--panel-border);
+  border: 1px solid var(--btn-ghost-frame, #9b9b9b);
 }
 .crate-pass {
-  background: transparent;
-  color: var(--muted);
+  color: var(--btn-ghost-text, #222);
+  background-image: var(--glaze-pale), var(--btn-ghost-image);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 .crate-keep {
-  border-color: transparent;
-  color: #fff;
-  background: var(--accent, #d34);
+  border-color: var(--btn-border);
+  color: var(--btn-text);
+  background-image: var(--glaze), var(--btn-image);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.24), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 }
 .crate-keep:disabled {
   opacity: 0.6;
@@ -8543,6 +8729,22 @@ button.btn-ghost {
   --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+/* The same silver, unlit.
+   Without this, dark mode on the default theme drew the pale button with
+   its LIGHT gradient and its near-black label, because `:root[data-mode]`
+   and `[data-theme]` carry identical weight and the theme block happens to
+   come second. The segmented control hit this first and lost its labels to
+   white-on-white; the pale button had the milder version of the same bug,
+   a bright silver lozenge sitting in an otherwise dark page. Naming both
+   attributes here puts it beyond the tie. */
+[data-theme="ios-light"][data-mode="dark"] {
+  --btn-ghost-image: linear-gradient(180deg, #64646b 0%, #4c4c53 47%, #3b3b41 53%, #2b2b30 100%);
+  --btn-ghost-frame: #1b1b1e;
+  --btn-ghost-text: #f2f2f4;
+  --btn-ghost-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.7);
+  --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
 /* ---- 3. Cast shadows + stacked cover-art decks ---- */
 /* Artwork should sit ON the page, not sink into it. */
 .track-thumb {
@@ -8693,7 +8895,7 @@ button.btn-ghost {
   border-radius: 100px;
   background-color: #e01b24;
   background-image: linear-gradient(180deg, #ff8080 0%, #ee2b34 45%, #c8121b 55%, #8f0b12 100%);
-  border: 1.5px solid #fff;
+  border: 2px solid #fff;
   color: #fff;
   font-family: var(--font-display);
   font-size: 10px;
@@ -9978,7 +10180,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
   margin-left: -6px;
-  border: 1.5px solid var(--panel-body-bg, #fff);
+  border: 2px solid var(--panel-body-bg, #fff);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 .club-face:first-child {
@@ -15046,6 +15248,119 @@ button.btn,
 .new-post-btn,
 .acct-btn {
   letter-spacing: -0.01em;
+}
+
+/* ================================================================
+   THE OBJECT RECIPE
+   ----------------------------------------------------------------
+   Taken off the Photoshop file on page 9 of the Retina article, which
+   is the most useful thing in it: a real iOS Delete button with its
+   layer stack open. Read from the bottom of the group up, it is
+
+     Outer            a pale shape sitting UNDER the body
+     Inner            the coloured body, carrying
+       Stroke           one dark pixel round the edge
+       Gradient Overlay the light-to-dark paint
+       Inner Shadow     the edge darkening inward
+       Inner Glow       light gathering just inside the edge
+       Drop Shadow      the button sitting on the page
+     Shine            a masked white gradient over the top
+     Delete           the label, letterpressed
+
+   Eight layers for one button. We had four of them: the paint, the
+   stroke, the shine and the letterpress. The two that were missing are
+   the ones that make the difference between a coloured rectangle and
+   an object.
+
+   OUTER is the important one. Look at the "+" button on page 5 and you
+   can see it plainly at 2x: a pale hairline OUTSIDE the dark stroke,
+   all the way round. That is what lifts an iOS control off its bar.
+   Without it a button has one hard edge and reads as a sticker; with
+   it the edge has thickness and reads as something moulded and set
+   into the surface. It cost one shadow layer to add.
+
+   INNER GLOW is the quiet one: a wide, faint light just inside the
+   edge, which stops the middle of a large button looking flat and dead
+   where the specular has already ended.
+
+   Both go in as tokens so all eighteen themes get them without any
+   theme block being touched, and both are pure CSS so they stay sharp
+   at 2x. That last part is the article's whole argument: a bitmap
+   scaled up goes soft, a drawn shape does not, and softness is what
+   the era's UI never had.
+   ================================================================ */
+
+:root {
+  /* Layer "Outer": the pale ring outside the stroke. Drawn as the last
+     shadow in the stack so it sits beneath the body and outside the
+     border, which is exactly where the PSD has it. */
+  --edge-outer: 0 0 0 1px rgba(255, 255, 255, 0.55);
+  /* Layer "Inner Glow": wide, weak, and INSET, gathering just inside
+     the edge. Not a second specular - it is meant to be felt, not
+     seen. */
+  --edge-glow: 0 0 6px rgba(255, 255, 255, 0.22) inset;
+  /* Layer "Drop Shadow": one pixel, hard. The article makes the point
+     that layer styles can only hold integer values, and a 2010 Apple
+     control obeys that - offsets are 1px, never 0.5, and the blur is
+     small enough to read as contact rather than as float. */
+  --edge-drop: 0 1px 1px rgba(0, 0, 0, 0.22);
+}
+:root[data-mode="dark"] {
+  /* On a dark surface the ring is the thing that gives an edge away, so
+     it stays, but at the strength a dark scene actually reflects. A
+     0.55 white ring on near-black paints a visible white outline and
+     the control starts to look like a sticker again. */
+  --edge-outer: 0 0 0 1px rgba(255, 255, 255, 0.14);
+  --edge-glow: 0 0 6px rgba(255, 255, 255, 0.08) inset;
+  --edge-drop: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* The full stack, in the PSD's own order: drop shadow, then the inset
+   lip, then the inner glow, then the outer ring last so nothing paints
+   over it. */
+.btn,
+button.btn,
+.new-post-btn,
+.acct-btn {
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    var(--edge-glow), var(--edge-outer);
+}
+/* Pressed: the object goes into the surface, so the ring that lifted it
+   has to go with it. Keeping the outer ring on a pressed button is the
+   detail that makes a press look like a recolour. */
+.btn:active:not(:disabled),
+button.btn:active:not(:disabled),
+.new-post-btn:active,
+.acct-btn:active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.32) inset;
+}
+.btn-ghost,
+button.btn-ghost {
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    var(--edge-glow), var(--edge-outer);
+}
+
+/* ---- Buttons that are drawn as links ----
+   A handful of places use a <button> because pressing it does something
+   (like it, save it, put it back on the list) but draw it as a link,
+   because that is what the row wants to look like. Their rules each say
+   `background: none; border: none` and stop there, which was fine while
+   an unclassed button had no look of its own.
+
+   It does now, and the properties those rules never thought to unset -
+   the ring, the radius, the letterpress - are exactly the ones that
+   would turn a text link into a small silver pill. Zeroed here, in one
+   place, after every rule that draws them, rather than leaving six
+   rules to each remember three lines. */
+.pf-links button,
+.track-actions button,
+.sk-more-sheet button,
+.swipe-row-action button,
+.queue-actions .inline-form button,
+.work-actions .inline-form button {
+  box-shadow: none;
+  border-radius: 0;
+  text-shadow: none;
 }
 
 /* ================================================================

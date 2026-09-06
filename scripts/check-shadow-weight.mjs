@@ -45,6 +45,15 @@ const FLOATERS = [
   // the skeuomorphic detail rather than an accident of styling.
   "sk-stack", "sk-record", "record-",
   "sk-np-card", "sk-np-art", "track-thumb", "release-cover",
+  // The crate is a wooden box drawn on the page, not a card. Its walls
+  // throw a real shadow onto the paper and its front board throws one
+  // back into the box over the records behind it, which is the only
+  // reason the thing reads as a container you could put a hand into
+  // rather than a rectangle with a picture in it.
+  "crate-box", "crate-lip", "crate-sleeve", "crate-stack", "crate-divider",
+  // Same argument for the shelves: a plank with no shadow under it is a
+  // stripe, and the media standing on it has to cast onto the wood.
+  "shelf-plank", "shelf-item", "shelf-media",
 ];
 
 const raw = readFileSync(CSS, "utf8");
