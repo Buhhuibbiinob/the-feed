@@ -108,9 +108,14 @@ export default async function ShelvesPage({
                 of mind a trip backwards. */}
             <ShelfDividers
               axis={openAxis.id}
-              values={openAxis.values}
+              // Labelled here rather than in the client. Handing it the
+              // labelling function was a 500 on every axis: a function
+              // cannot be serialised across the boundary.
+              dividers={openAxis.values.map((v) => ({
+                value: v,
+                label: shelfTitle(openAxis.id, v),
+              }))}
               open={value}
-              labelFor={(v) => shelfTitle(openAxis.id, v)}
             />
 
             {value ? (

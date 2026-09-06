@@ -14,14 +14,21 @@ import { useEffect, useRef } from "react";
  */
 export function ShelfDividers({
   axis,
-  values,
+  dividers,
   open,
-  labelFor,
 }: {
   axis: string;
-  values: readonly string[];
+  /**
+   * Label and value together, worked out on the server.
+   *
+   * This used to take the values and a labelFor FUNCTION, and a function
+   * cannot cross into a client component: React refuses to serialise it
+   * and the whole route answers 500. Every axis on this page was broken,
+   * not just the two it got reported on, and it never showed up in a
+   * build because it is a runtime boundary error.
+   */
+  dividers: readonly { value: string; label: string }[];
   open: string | null;
-  labelFor: (value: string) => string;
 }) {
   const stripRef = useRef<HTMLDivElement>(null);
 
@@ -39,13 +46,13 @@ export function ShelfDividers({
 
   return (
     <div className="shelf-dividers" ref={stripRef}>
-      {values.map((value) => (
+      {dividers.map((divider) => (
         <Link
-          key={value}
-          href={`/shelves?axis=${axis}&value=${encodeURIComponent(value)}`}
-          className={`shelf-divider${value === open ? " open" : ""}`}
+          key={divider.value}
+          href={`/shelves?axis=${axis}&value=${encodeURIComponent(divider.value)}`}
+          className={`shelf-divider${divider.value === open ? " open" : ""}`}
         >
-          {labelFor(value)}
+          {divider.label}
         </Link>
       ))}
     </div>
