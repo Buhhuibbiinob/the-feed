@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { FindRail } from "@/components/FindRail";
 import { ScreenRail } from "@/components/ScreenRail";
-import { screenFinds } from "@/lib/screenDiscovery";
+import { screenFinds } from "@/lib/trailers";
+import { searchVideos } from "@/lib/youtube";
 import {
   alreadyKnown,
   communitySeeds,
@@ -220,10 +221,11 @@ export default async function RecsPage() {
     // rated enough for it to mean anything.
     lovedSceneFinds(mine, known, { rotateBy }),
     eraFinds(known, { rotateBy }),
-    // Films and shows, the same shape as the music rails. Discover was
-    // music only, which on a site whose second category is film meant
-    // half the members had nothing here to find.
-    screenFinds(mine, known, { rotateBy }),
+    // Films, the same shape as the music rails. This used to come from
+    // TMDB, which wants a paid key for what amounts to a poster and a
+    // title; it comes from film trailers on YouTube now, which are free,
+    // already there for everything worth watching, and move.
+    screenFinds(mine, known, searchVideos, { rotateBy }),
   ]);
   const [personalFinds, sceneRail, eraRail] = await Promise.all([
     enrichFinds(personal),
@@ -292,9 +294,9 @@ export default async function RecsPage() {
             becauseOf={screen.becauseOf}
             finds={screen.finds}
             empty={
-              process.env.TMDB_API_KEY
-                ? "Nothing new to watch here right now - try again shortly."
-                : "Films and shows aren't switched on yet - TMDB_API_KEY is missing."
+              process.env.YOUTUBE_API_KEY
+                ? "No trailers came back for that corner today. Give it another go in a bit."
+                : "Trailers need a YouTube key before they can show up here."
             }
           />
           <FindRail

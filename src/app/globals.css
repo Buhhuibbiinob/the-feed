@@ -6265,42 +6265,70 @@ footer .copy {
 /* ---- Films and shows in a rail ----
    A poster is 2:3, not square, so the card is taller than a record and
    the row has to allow for it. */
+/* A trailer card, not a poster card.
+   The box was 2:3 because TMDB served posters. A YouTube thumbnail is
+   16:9, and a 16:9 picture cropped into a portrait box loses both ends
+   of the frame - which on a trailer thumbnail is usually the title. */
 .screen-card {
-  flex: 0 0 116px;
+  flex: 0 0 176px;
 }
 .screen-poster {
   position: relative;
-  width: 116px;
-  aspect-ratio: 2 / 3;
+  width: 176px;
+  aspect-ratio: 16 / 9;
   border-radius: 6px;
   overflow: hidden;
   background: var(--shelf-bg, rgba(0, 0, 0, 0.05));
+  /* The same stack as everything else: a hairline lift, a lit top edge,
+     and the pale ring outside it. A picture with no edge floats. */
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.35) inset, var(--edge-outer);
 }
 .screen-poster img,
-.screen-poster-blank {
+.screen-poster-blank,
+.screen-poster iframe {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  border: 0;
 }
 .screen-poster-blank {
   background: linear-gradient(160deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.2));
 }
-/* Film or series, said out loud. A rail mixing the two without a label
-   is how somebody starts a "film" that turns out to be six hours. */
-.screen-kind {
+
+/* The play button on a trailer.
+   Drawn as the transport buttons are drawn, because it does the same
+   job: a brushed dome with a highlight arc across the top, sitting over
+   the picture rather than printed on it. Centred rather than tucked in a
+   corner, since the whole thumbnail is the target. */
+.screen-play {
   position: absolute;
-  left: 6px;
-  bottom: 6px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: saturate(160%) blur(8px);
-  -webkit-backdrop-filter: saturate(160%) blur(8px);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 15px;
+  /* Nudged right by a pixel: a triangle's optical centre is left of its
+     bounding box, and centred by the numbers it looks like it is falling
+     over backwards. */
+  text-indent: 2px;
+  color: #2a2a2e;
+  background-image: linear-gradient(180deg, #ffffff 0%, #e6e6e9 44%, #bdbdc3 52%, #8e8e95 100%);
+  border: 1px solid #5f5f66;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 -6px 9px rgba(0, 0, 0, 0.2) inset, var(--edge-outer);
+}
+.screen-play:hover {
+  filter: brightness(1.06);
+}
+.screen-play:active {
+  background-image: linear-gradient(180deg, #8e8e95 0%, #bdbdc3 48%, #e6e6e9 100%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) inset;
+  transform: translate(-50%, -50%) translateY(1px);
 }
 
 /* ---- The three ways in ----
