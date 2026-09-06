@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
-import { FindRail } from "@/components/FindRail";
-import { ScreenRail } from "@/components/ScreenRail";
+import { RecordRack } from "@/components/RecordRack";
+import { DvdRack } from "@/components/DvdRack";
 import { screenFinds } from "@/lib/trailers";
 import { searchVideos } from "@/lib/youtube";
 import {
@@ -273,7 +273,7 @@ export default async function RecsPage() {
             </Link>
           </div>
 
-          <FindRail
+          <RecordRack
             title={
               personalSeeds.length > 0 ? "Out from what you love" : "Somewhere to start"
             }
@@ -285,7 +285,7 @@ export default async function RecsPage() {
             finds={personalFinds}
             empty={railProblem || "Nothing new here just yet. Give it a minute and try again."}
           />
-          <FindRail
+          <RecordRack
             title={scene.tag}
             subtitle={
               scene.fromTaste
@@ -295,7 +295,7 @@ export default async function RecsPage() {
             finds={sceneRail}
             empty={railProblem || "That scene came back empty today."}
           />
-          <ScreenRail
+          <DvdRack
             title="Something to watch"
             becauseOf={screen.becauseOf}
             finds={screen.finds}
@@ -305,7 +305,7 @@ export default async function RecsPage() {
                 : "Trailers need a YouTube key before they can show up here."
             }
           />
-          <FindRail
+          <RecordRack
             title={`Deeper into the ${era.label}`}
             subtitle="Not the songs from the adverts"
             finds={eraRail}
