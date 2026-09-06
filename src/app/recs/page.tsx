@@ -12,11 +12,15 @@ import {
   findsForSeeds,
   lovedSceneFinds,
   seedArtists,
+  shuffleSeed,
   type SeedPost,
 } from "@/lib/musicDiscovery";
 import { selectPosts } from "@/lib/postQuery";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import { OrbyBot } from "@/components/OrbyBot";
+import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
+import { fillFeedTvLineup } from "@/lib/feedTv";
+import { getTrendingTracks } from "@/lib/lastfm";
 import type { MediaType } from "@/lib/media";
 import { guardBuiltinPage } from "@/lib/pages";
 
@@ -36,7 +40,12 @@ type PostRow = {
   profiles: { username: string } | null;
 };
 
-export const metadata = { title: "Recs - Feedback" };
+export const metadata = { title: "Discover - Feedback" };
+
+// Rendered fresh every time. The rails reshuffle per request, and a
+// cached page would hand back the same eight records no matter how many
+// times somebody refreshed - which is exactly the complaint.
+export const dynamic = "force-dynamic";
 
 function toCardData(post: PostRow): PostCardData {
   return {
@@ -171,13 +180,44 @@ export default async function RecsPage() {
   const seeds = personalSeeds.length > 0 ? personalSeeds : communitySeeds(communityPosts);
   const known = alreadyKnown(mine);
 
+  // The Feed TV, at the top. It lived at the foot of the homepage, where
+  // it was the last thing anybody scrolled to; Discover is the page
+  // people arrive at wanting something to play.
+  const tvClips: FeedTvClip[] = [];
+  const seenVideoIds = new Set<string>();
+  for (const post of allPosts) {
+    if (!post.youtube_video_id || seenVideoIds.has(post.youtube_video_id)) continue;
+    seenVideoIds.add(post.youtube_video_id);
+    tvClips.push({
+      id: post.id,
+      title: post.title,
+      artist: post.artist,
+      youtubeVideoId: post.youtube_video_id,
+      username: post.profiles?.username ?? "unknown",
+      postId: post.id,
+    });
+    if (tvClips.length >= 10) break;
+  }
+  // Filled from the charts when members have not posted four videos
+  // between them, so the set is never showing static. This moved here
+  // with the player: the homepage was fetching it for a component that
+  // no longer lives there.
+  const feedTvClips = await fillFeedTvLineup(
+    tvClips,
+    tvClips.length >= 4 ? [] : await getTrendingTracks(50)
+  );
+
+  // A fresh shuffle per request, so refreshing the page genuinely
+  // reshuffles rather than showing the same eight records until midnight.
+  const rotateBy = shuffleSeed();
+
   const [personal, scene, era] = await Promise.all([
-    findsForSeeds(seeds, known),
+    findsForSeeds(seeds, known, { rotateBy }),
     // Seeded by the styles this person keeps rating four and five, not
     // by the day - falling back to the day's scene when they have not
     // rated enough for it to mean anything.
-    lovedSceneFinds(mine, known),
-    eraFinds(known),
+    lovedSceneFinds(mine, known, { rotateBy }),
+    eraFinds(known, { rotateBy }),
   ]);
   const [personalFinds, sceneRail, eraRail] = await Promise.all([
     enrichFinds(personal),
@@ -194,6 +234,12 @@ export default async function RecsPage() {
   return (
     <>
       <OrbyBot />
+
+      {feedTvClips.length > 0 && (
+        <div className="feedtv-top">
+          <FeedTV clips={feedTvClips} />
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-head">Find something new</div>

@@ -147,6 +147,23 @@ export function dayIndex(now: Date = new Date()): number {
   return Math.floor(now.getTime() / 86_400_000);
 }
 
+/**
+ * A fresh number for each page load.
+ *
+ * The rails used to rotate on the day, so refreshing Discover gave you
+ * the same eight records until midnight - which reads as a page that has
+ * not noticed you came back. The Crate holds still on purpose (you are
+ * part-way through a box, and the back button has to return you to it);
+ * Discover is the opposite, a shelf you are meant to be able to shake.
+ *
+ * Random rather than a counter because there is nothing to count on a
+ * server that renders each request independently, and nothing here needs
+ * to be reproducible.
+ */
+export function shuffleSeed(): number {
+  return Math.floor(Math.random() * 1_000_000);
+}
+
 /** The list, starting from a different place each day. */
 export function rotate<T>(items: T[], by: number): T[] {
   if (items.length === 0) return [];
@@ -213,12 +230,20 @@ const TRACKS_PER_ARTIST = 4;
 const NEIGHBOURS_PER_SEED = 2;
 
 /** An artist's catalogue past the hits, as candidates credited to a seed. */
-async function candidatesFromArtist(artist: string, becauseOf: string): Promise<Candidate[]> {
+async function candidatesFromArtist(
+  artist: string,
+  becauseOf: string,
+  rotateBy = 0
+): Promise<Candidate[]> {
   const tracks = await getArtistTopTracks(artist, 30).catch(() => []);
   if (tracks.length === 0) return [];
   const deep = excludeHits(tracks.slice(SKIP_TOP_TRACKS));
   const from = deep.length > 0 ? deep : excludeHits(tracks);
-  return from.slice(0, TRACKS_PER_ARTIST).map((track) => ({ ...track, becauseOf }));
+  // Rotated, not sliced from the front. Choosing different NEIGHBOURS
+  // was not enough on its own: each neighbour then handed back the same
+  // first four tracks every time, so a refresh moved one card and left
+  // the rest of the row exactly where it was.
+  return rotate(from, rotateBy).slice(0, TRACKS_PER_ARTIST).map((track) => ({ ...track, becauseOf }));
 }
 
 /**
@@ -231,10 +256,12 @@ async function candidatesFromArtist(artist: string, becauseOf: string): Promise<
 export async function findsForSeeds(
   seeds: string[],
   known: Known,
-  { limit = 8, now = new Date() }: { limit?: number; now?: Date } = {}
+  { limit = 8, rotateBy }: { limit?: number; rotateBy?: number } = {}
 ): Promise<Find[]> {
   if (seeds.length === 0) return [];
-  const day = dayIndex(now);
+  // A different slice of each artist's neighbours every time the page is
+  // loaded, rather than once a day.
+  const day = rotateBy ?? shuffleSeed();
 
   const perSeed = await Promise.all(
     seeds.map(async (seed) => {
@@ -243,7 +270,11 @@ export async function findsForSeeds(
       // No neighbours means Last.fm has never heard of them - their own
       // deep cuts are still a better answer than dropping the seed.
       const artists = neighbours.length > 0 ? neighbours : [seed];
-      const lists = await Promise.all(artists.map((a) => candidatesFromArtist(a, seed)));
+      const lists = await Promise.all(
+        // A different offset per artist, so two neighbours of the same
+        // seed do not both jump to the same place in their catalogues.
+        artists.map((a, i) => candidatesFromArtist(a, seed, day + i * 7))
+      );
       return lists.flat();
     })
   );
@@ -262,18 +293,18 @@ export async function findsForSeeds(
 export async function lovedSceneFinds(
   posts: SeedPost[],
   known: Known,
-  { limit = 6, now = new Date() }: { limit?: number; now?: Date } = {}
+  { limit = 6, rotateBy }: { limit?: number; rotateBy?: number } = {}
 ): Promise<{ tag: string; fromTaste: boolean; finds: Find[] }> {
   const loved = lovedGenres(posts);
   if (loved.length === 0) {
-    const scene = await sceneFinds(known, { limit, now });
+    const scene = await sceneFinds(known, { limit, rotateBy });
     return { tag: scene.tag, fromTaste: false, finds: scene.finds };
   }
-  // Rotated so somebody with three loved styles sees all three over a
-  // few days rather than the same one forever.
-  const tag = rotate(loved, dayIndex(now))[0];
+  // Rotated so somebody with three loved styles moves between all three
+  // as they refresh, rather than being stuck on one.
+  const tag = rotate(loved, rotateBy ?? shuffleSeed())[0];
   const tracks = await getDeepTracksByTag(tag, 50).catch(() => []);
-  const from = excludeHits(tracks);
+  const from = rotate(excludeHits(tracks), rotateBy ?? shuffleSeed());
   return {
     tag,
     fromTaste: true,
@@ -284,12 +315,13 @@ export async function lovedSceneFinds(
 /** The scene of the day, and the tracks in it that aren't its hits. */
 export async function sceneFinds(
   known: Known,
-  { limit = 6, now = new Date() }: { limit?: number; now?: Date } = {}
+  { limit = 6, rotateBy }: { limit?: number; rotateBy?: number } = {}
 ): Promise<{ tag: string; finds: Find[] }> {
-  const tag = rotate(DISCOVERY_TAGS, dayIndex(now))[0];
+  const spin = rotateBy ?? shuffleSeed();
+  const tag = rotate(DISCOVERY_TAGS, spin)[0];
   const tracks = await getDeepTracksByTag(tag, 50).catch(() => []);
   const deep = excludeHits(tracks);
-  const from = deep.length >= limit ? deep : excludeHits(tracks);
+  const from = rotate(deep.length >= limit ? deep : excludeHits(tracks), spin);
   return {
     tag,
     finds: rankFinds(
@@ -303,18 +335,19 @@ export async function sceneFinds(
 /** The decade of the day, past the songs everybody can already hum. */
 export async function eraFinds(
   known: Known,
-  { limit = 6, now = new Date() }: { limit?: number; now?: Date } = {}
+  { limit = 6, rotateBy }: { limit?: number; rotateBy?: number } = {}
 ): Promise<{ era: MusicEraId; label: string; finds: Find[] }> {
   // "Right now" is the live chart, which is the opposite of a deep cut,
   // so the decade rail only draws from the decades.
   const decades = MUSIC_ERAS.filter((e) => e.tag !== null);
-  const era = rotate([...decades], dayIndex(now))[0];
+  const spin = rotateBy ?? shuffleSeed();
+  const era = rotate([...decades], spin)[0];
   // The decade tag, deep. Page one of "90s" is the twenty songs everybody
   // can hum, which is how Britney and Ace of Base ended up on a shelf
   // headed "Not the songs from the adverts".
   const tracks = await getDeepTracksByTag(era.tag as string, 50).catch(() => []);
   const deep = excludeHits(tracks);
-  const from = deep.length >= limit ? deep : excludeHits(tracks);
+  const from = rotate(deep.length >= limit ? deep : excludeHits(tracks), spin);
   return {
     era: era.id,
     label: era.label,

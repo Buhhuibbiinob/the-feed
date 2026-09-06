@@ -5014,6 +5014,18 @@ footer .copy {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+/* ---- The homepage row, now the player has moved ----
+   The side panels used to flank the Feed TV. With the player on
+   Discover the row is two columns rather than three - and the panels
+   still need a home, which is why the row stays rather than going with
+   it. */
+.feedtv-row.flanks-only {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.paired-hero.solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* ---- The Feed TV, per era ---- */
 /* Deliberately not written as theme-attribute rules. Those are held to
    colour, background and font so the page layout never has to be
