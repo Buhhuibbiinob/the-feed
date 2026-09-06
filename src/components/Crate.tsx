@@ -120,7 +120,7 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
           </ul>
         )}
         <div className="crate-done-actions">
-          {kept.length > 0 && <Link href="/queue" className="btn">See them in Up Next</Link>}
+          {kept.length > 0 && <Link href="/queue" className="btn">Put them on your shelf</Link>}
           {/* A whole page reload, deliberately: the seed is minute-based,
               so this is the only way to genuinely get a different box. */}
           <a href="/crate" className="crate-again">Dig through another crate</a>

@@ -15536,7 +15536,11 @@ button.btn-ghost {
    own padding instead. */
 .woodgrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  /* 132, not 112. At the narrower size three actions under a record ran
+     out of column and spilled sideways into the next one, so the shelf
+     read as "Remove Review Heard it Remove Review" straight across. The
+     third action moved onto the sleeve; the other two need this much. */
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
   grid-auto-rows: var(--wood-row);
   gap: 0;
   padding: 10px 8px 0;
@@ -15558,6 +15562,13 @@ button.btn-ghost {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  /* Hugs the artwork rather than filling the column, so anything pinned
+     to a corner of this box lands on a corner of the RECORD. Stretched
+     to the column, the little remove disc floated in mid air above the
+     short formats - out to the side of a cassette, and nowhere near the
+     film case. */
+  width: fit-content;
+  margin: 0 auto;
 }
 .wooditem img,
 .wooditem .wood-blank {
@@ -15598,10 +15609,16 @@ button.btn-ghost {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  /* Belt and braces after the spill: whatever ends up in here, it stays
+     inside its own column. */
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
   height: calc(var(--wood-row) - var(--wood-item) - var(--wood-board) - var(--wood-label));
   font-size: 10px;
 }
 .woodactions .wood-link,
+.woodactions .wood-remove,
 .woodactions .inline-form button {
   background: none;
   border: 0;
@@ -15808,6 +15825,95 @@ button.btn-ghost {
     rgba(255, 255, 255, 0) 34.1%
   );
   pointer-events: none;
+}
+
+/* ---- The two doors ----
+   Where a record comes from, said as a place rather than as a link. They
+   sit under your own shelf because that is the honest order: this is
+   what you have, and these are the two rooms you got it from. */
+.shelf-doors {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.shelf-door {
+  display: block;
+  padding: 11px 14px;
+  border-radius: 8px;
+  color: var(--text);
+  border: 1px solid var(--btn-ghost-frame);
+  background-image: var(--glaze-pale), var(--btn-ghost-image);
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.75) inset, var(--edge-glow),
+    var(--edge-outer);
+}
+.shelf-door:hover {
+  text-decoration: none;
+  filter: brightness(1.04);
+}
+.shelf-door:active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+  transform: translateY(1px);
+}
+.shelf-door b {
+  display: block;
+  font-size: 12.5px;
+  text-shadow: var(--btn-ghost-letterpress);
+}
+.shelf-door span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Something already listened to, still on the shelf but no longer
+   waiting. Turned down rather than taken away: ticking a thing off is
+   the end of a small story, and clearing the row would mean the site
+   could never say so. */
+.woodslot.played .wooditem img,
+.woodslot.played .wooditem .wood-blank {
+  filter: saturate(0.45) brightness(0.72);
+}
+.woodslot.played .woodlabel b {
+  color: rgba(248, 239, 224, 0.62);
+}
+.played-wall {
+  opacity: 0.92;
+}
+/* Taking something off the shelf.
+   On the sleeve rather than under it, as a small dark disc in the
+   corner, because it is the one action here you press by accident and
+   regret. Quiet until you are over the record, and always reachable by
+   keyboard. */
+.wood-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  background-image: linear-gradient(180deg, #6a6a72 0%, #3a3a40 48%, #232327 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.woodslot:hover .wood-remove,
+.wood-remove:focus-visible {
+  opacity: 1;
+}
+/* No hover on a touch screen, so on one it is simply always there. */
+@media (hover: none) {
+  .wood-remove {
+    opacity: 0.85;
+  }
 }
 
 /* ================================================================

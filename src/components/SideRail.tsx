@@ -68,7 +68,7 @@ export function SideRail({
       heading: "You",
       rows: [
         { href: `/profile/${username}`, label: "My Profile" },
-        { href: "/queue", label: "Up Next" },
+        { href: "/queue", label: "Your Shelf" },
         ...(hidden.has("messages")
           ? []
           : [{ href: "/messages", label: "Messages", badge: unreadDmCount }]),
