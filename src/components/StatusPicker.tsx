@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  MIN_QUERY_LENGTH,
-  SEARCH_DEBOUNCE_MS,
-  searchVideosClient,
-} from "@/lib/videoSearch";
+import { SEARCH_DEBOUNCE_MS, searchVideosClient } from "@/lib/videoSearch";
 
 import { useActionState, useEffect, useState } from "react";
 import { setStatus, clearStatus, type ProfileFormState } from "@/app/actions/profile";

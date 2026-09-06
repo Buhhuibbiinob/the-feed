@@ -10,10 +10,8 @@ import { ObsessedPicker } from "@/components/ObsessedPicker";
 import { FavoritesEditor } from "@/components/FavoritesEditor";
 import { StatusPicker } from "@/components/StatusPicker";
 import { MEDIA_LABELS, MEDIA_TYPES, MEDIA_VERBS, type MediaType } from "@/lib/media";
-import { buildTasteProfile, tasteMatch as computeMatch, workKey } from "@/lib/taste";
-import { earnedBadges, BADGES } from "@/lib/badges";
+import { workKey } from "@/lib/taste";
 import { computeStreak } from "@/lib/streak";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { bannerAspectRatio } from "@/lib/bannerShape";
 import { renderRichBio } from "@/lib/richBio";
 import { fontStack } from "@/lib/profileSkin";
@@ -41,7 +39,6 @@ import {
 } from "@/lib/profileStore";
 import { pageStyle } from "@/lib/pageTheme";
 import { PageAppearanceEditor } from "@/components/PageAppearanceEditor";
-import { ClassicEmoji } from "@/components/ClassicEmoji";
 import { DecorateBar } from "@/components/DecorateBar";
 import { sanitizeProfileCss } from "@/lib/profileCss";
 import { decorStyle } from "@/lib/pageDecor";
@@ -137,11 +134,6 @@ type GuestbookRow = {
   body: string;
   created_at: string;
   author_id: string;
-  profiles: ProfileRef | ProfileRef[] | null;
-};
-type ConnectionRow = {
-  friend_id: string;
-  position: number;
   profiles: ProfileRef | ProfileRef[] | null;
 };
 type PinnedRow = { post_id: string; position: number };
@@ -265,7 +257,6 @@ export default async function ProfilePage({
   const [
     postRows,
     { count: followerCount },
-    { count: followingCount },
     { data: likeRows },
     { data: commentRows },
     { data: clubMembershipRows },
@@ -285,10 +276,10 @@ export default async function ProfilePage({
       .from("follows")
       .select("follower_id", { count: "exact", head: true })
       .eq("followed_id", profile.id),
-    supabase
-      .from("follows")
-      .select("followed_id", { count: "exact", head: true })
-      .eq("follower_id", profile.id),
+    // The count of who this person follows used to sit beside the
+    // follower count in the MySpace sidebar. That sidebar is gone, so the
+    // query went with it rather than being read into a variable nothing
+    // rendered.
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
     supabase
@@ -364,8 +355,6 @@ export default async function ProfilePage({
     profile.id,
     (profile as { is_bot?: boolean }).is_bot ?? false
   );
-  const badges = earnedBadges(posts.length);
-  const nextBadge = BADGES.find((b) => b.threshold > posts.length) ?? null;
   const streak = computeStreak(posts.map((p) => p.created_at));
 
   // One scan of the site's reviews, reused three times over: the visitor's
@@ -390,30 +379,19 @@ export default async function ProfilePage({
   let discoveries = 0;
   for (const [, ownerId] of firstReviewer) if (ownerId === profile.id) discoveries++;
 
+  // The taste-match percentage was computed here for a callout the store
+  // layout no longer has. It cost a club_members read and a pair of taste
+  // profiles per visit to produce a number nothing rendered. The scan
+  // above is still earned - "discoveries" is read from it.
   let isFollowing = false;
-  let tasteMatch: number | null = null;
   if (user && !isOwnProfile) {
-    const [{ data: followRow }, { data: myClubRows }] = await Promise.all([
-      supabase
-        .from("follows")
-        .select("follower_id")
-        .eq("follower_id", user.id)
-        .eq("followed_id", profile.id)
-        .maybeSingle(),
-      supabase.from("club_members").select("club_id").eq("user_id", user.id),
-    ]);
+    const { data: followRow } = await supabase
+      .from("follows")
+      .select("follower_id")
+      .eq("follower_id", user.id)
+      .eq("followed_id", profile.id)
+      .maybeSingle();
     isFollowing = !!followRow;
-
-    const myScanPosts = scan.filter((row) => row.user_id === user.id);
-    const mine = buildTasteProfile({
-      posts: myScanPosts,
-      clubIds: (myClubRows ?? []).map((r) => r.club_id as string),
-    });
-    const theirs = buildTasteProfile({
-      posts: posts.map((p) => ({ title: p.title, artist: p.artist, rating: p.rating })),
-      clubIds: clubs.map((c) => c.id),
-    });
-    tasteMatch = computeMatch(mine, theirs);
   }
 
   const [{ data: twinRow }, { count: viewerCount }, { count: commentsWritten }] =
@@ -594,7 +572,6 @@ export default async function ProfilePage({
     color: custom?.bio_color ?? undefined,
   };
 
-  const moodEmoji = custom?.mood_emoji ?? null;
   const obsessedKind = isObsessedKind(custom?.obsessed_kind) ? custom.obsessed_kind : null;
   const obsessedTitle = custom?.obsessed_title ?? null;
   const songId = custom?.profile_song_youtube_id ?? null;

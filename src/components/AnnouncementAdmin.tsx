@@ -172,7 +172,7 @@ export function AnnouncementAdmin({ announcements }: { announcements: Announceme
             </div>
           </div>
           {state.error && <div className="form-error">{state.error}</div>}
-          {state.ok && <div className="form-message">Published - it's live now.</div>}
+          {state.ok && <div className="form-message">Published - it&apos;s live now.</div>}
           <div className="form-actions">
             <button type="submit" className="btn" disabled={publishing}>
               {publishing ? "Publishing…" : "Publish"}
