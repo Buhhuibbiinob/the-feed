@@ -8,6 +8,8 @@ import { loadReactions } from "@/lib/reactions";
 import { loadAnswered } from "@/lib/duets";
 import { isAdmin } from "@/lib/admin";
 import { PostCard } from "@/components/PostCard";
+import { HandItOver } from "@/components/HandItOver";
+import { getHandCandidates } from "@/lib/handoffs";
 import { NowPlayingHero } from "@/components/NowPlayingHero";
 import { CommentSection, type CommentData } from "@/components/CommentSection";
 import type { MediaType } from "@/lib/media";
@@ -160,6 +162,12 @@ export default async function PostPage({
   const comments = buildCommentTree(commentRows ?? []);
 
   const isAuthor = !!user && user.id === post.user_id;
+
+  // Who this could be handed to. Read here rather than on every feed
+  // card: the post page is where somebody has actually read the review
+  // and decided the record matters, which is the only moment the gesture
+  // means anything.
+  const handCandidates = user ? await getHandCandidates(supabase, user.id, post.user_id) : [];
   let isPinned = false;
   if (isAuthor) {
     const { data: pin } = await supabase
@@ -219,10 +227,13 @@ export default async function PostPage({
         previewId="real-player"
       />
 
-      {isAuthor && (
+      {(isAuthor || handCandidates.length > 0) && (
         <div className="panel">
           <div className="panel-body form-actions">
-            <PinReviewButton postId={post.id} pinned={isPinned} />
+            {isAuthor && <PinReviewButton postId={post.id} pinned={isPinned} />}
+            {handCandidates.length > 0 && (
+              <HandItOver postId={post.id} candidates={handCandidates} />
+            )}
           </div>
         </div>
       )}

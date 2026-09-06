@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getNotifications } from "@/lib/notifications";
 import { markNotificationsSeen } from "@/app/actions/notifications";
 import { AlertsList } from "@/components/AlertsList";
+import { HandedToYou } from "@/components/HandedToYou";
+import { getHandoffsTo } from "@/lib/handoffs";
+import { markHandoffsSeen } from "@/app/actions/handoffs";
 
 export const metadata = { title: "Alerts" };
 
@@ -17,14 +20,24 @@ export default async function AlertsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  const notifications = await getNotifications(supabase, user.id);
+  const [notifications, handoffs] = await Promise.all([
+    getNotifications(supabase, user.id),
+    getHandoffsTo(supabase, user.id),
+  ]);
 
   // Opening the page is the same "I've seen these" signal as opening the
   // dropdown, so the badge clears either way.
   await markNotificationsSeen();
+  await markHandoffsSeen();
 
   return (
-    <div className="panel">
+    <>
+      {/* Above the alerts, not among them. Somebody choosing one record,
+          choosing you, and writing why is not the same kind of event as
+          a like, and it reads wrong at a like's row height. */}
+      <HandedToYou handoffs={handoffs} />
+
+      <div className="panel">
       <div className="panel-head">
         Alerts
         <Link href="/settings" className="see-all">
@@ -34,12 +47,13 @@ export default async function AlertsPage() {
       {notifications.length === 0 ? (
         <div className="panel-body">
           <div className="empty-state">
-            Nothing yet.
+            {handoffs.length > 0 ? "Nothing else yet." : "Nothing yet."}
           </div>
         </div>
       ) : (
         <AlertsList initial={notifications} />
       )}
-    </div>
+      </div>
+    </>
   );
 }
