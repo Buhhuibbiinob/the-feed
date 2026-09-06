@@ -10,7 +10,7 @@ import {
   enrichFinds,
   eraFinds,
   findsForSeeds,
-  sceneFinds,
+  lovedSceneFinds,
   seedArtists,
   type SeedPost,
 } from "@/lib/musicDiscovery";
@@ -150,7 +150,15 @@ export default async function RecsPage() {
   const mine: SeedPost[] = user
     ? allPosts
         .filter((p) => p.user_id === user.id)
-        .map((p) => ({ media_type: p.media_type, title: p.title, artist: p.artist, rating: p.rating }))
+        .map((p) => ({
+          media_type: p.media_type,
+          title: p.title,
+          artist: p.artist,
+          rating: p.rating,
+          // Carried so the scene rail can be seeded by the styles this
+          // person keeps rating highly rather than by the calendar.
+          genre: p.genre,
+        }))
     : [];
   const communityPosts: SeedPost[] = allPosts.map((p) => ({
     media_type: p.media_type,
@@ -165,7 +173,10 @@ export default async function RecsPage() {
 
   const [personal, scene, era] = await Promise.all([
     findsForSeeds(seeds, known),
-    sceneFinds(known),
+    // Seeded by the styles this person keeps rating four and five, not
+    // by the day - falling back to the day's scene when they have not
+    // rated enough for it to mean anything.
+    lovedSceneFinds(mine, known),
     eraFinds(known),
   ]);
   const [personalFinds, sceneRail, eraRail] = await Promise.all([
@@ -201,7 +212,11 @@ export default async function RecsPage() {
           />
           <FindRail
             title={scene.tag}
-            subtitle="The scene of the day, past its greatest hits"
+            subtitle={
+              scene.fromTaste
+                ? "You keep rating this four and five — here's more of it, past the hits"
+                : "The scene of the day, past its greatest hits"
+            }
             finds={sceneRail}
             empty={railProblem || "That scene came back empty today."}
           />

@@ -9,6 +9,7 @@
  * Run: npx tsx scripts/discovery-check.ts
  */
 import {
+  lovedGenres,
   alreadyKnown,
   dayIndex,
   NOTHING_KNOWN,
@@ -158,6 +159,47 @@ check(
 );
 check("rotating keeps everything", rotate(list, 99).slice().sort().join("") === "abcd");
 check("rotating an empty list is not a crash", rotate([], 3).length === 0);
+
+
+// ---- taste as a direction, not just a list of artists ------------------
+//
+// Artists say who somebody already listens to. Genre says which way they
+// lean, which is the thing that survives when three artists run out.
+const rated: SeedPost[] = [
+  { media_type: "music", title: "a", artist: "A", rating: 5, genre: "shoegaze" },
+  { media_type: "music", title: "b", artist: "B", rating: 4, genre: "shoegaze" },
+  { media_type: "music", title: "c", artist: "C", rating: 5, genre: "house" },
+  { media_type: "music", title: "d", artist: "D", rating: 2, genre: "metal" },
+  { media_type: "film", title: "e", artist: "E", rating: 5, genre: "horror" },
+];
+check(
+  "the style rated highest most often comes first",
+  lovedGenres(rated)[0] === "shoegaze",
+  lovedGenres(rated).join(", ")
+);
+check("a two-star review is not a direction", !lovedGenres(rated).includes("metal"));
+check("a film genre is not a music direction", !lovedGenres(rated).includes("horror"));
+check("nothing rated highly is no direction at all", lovedGenres([]).length === 0);
+check(
+  "a review with no genre does not break it",
+  lovedGenres([{ media_type: "music", title: "x", artist: "X", rating: 5 }]).length === 0
+);
+
+// ---- names that are not artists ---------------------------------------
+const vevo: SeedPost[] = [
+  { media_type: "music", title: "No Scrubs", artist: "TLCVEVO", rating: 5 },
+  { media_type: "music", title: "Judas", artist: "Lady Gaga - Topic", rating: 5 },
+];
+check(
+  "a YouTube channel name is cleaned before it is used as a seed",
+  seedArtists(vevo).join(", ") === "TLC, Lady Gaga",
+  seedArtists(vevo).join(", ") + " - otherwise the card reads 'Because you liked TLCVEVO'"
+);
+check(
+  "a cleaned name is what gets excluded too",
+  alreadyKnown(vevo).artists.has("tlc"),
+  "or the same artist comes back as a recommendation under the other spelling"
+);
 
 console.log(failures === 0 ? "\nDiscovery returns finds, not repeats." : `\n${failures} failing.`);
 process.exit(failures === 0 ? 0 : 1);
