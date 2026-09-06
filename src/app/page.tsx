@@ -9,14 +9,11 @@ import { loadReactions } from "@/lib/reactions";
 import { loadAnswered } from "@/lib/duets";
 import { Shelf, type ShelfItem } from "@/components/Shelf";
 import { PostCard } from "@/components/PostCard";
-import { FeedTV, type FeedTvClip } from "@/components/FeedTV";
 import { FollowingToggle } from "@/components/FollowingToggle";
 import { OrbyBot } from "@/components/OrbyBot";
 import { getOrbyWishesLeft } from "@/app/actions/orby";
 import { NewsletterSubscribeForm } from "@/components/NewsletterSubscribeForm";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
-import { getTrendingTracks } from "@/lib/lastfm";
-import { searchVideos } from "@/lib/youtube";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { MEDIA_TYPES, MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
 import { PlaylistWall } from "@/components/PlaylistWall";
@@ -163,44 +160,6 @@ async function fetchFeedPosts(supabase: Awaited<ReturnType<typeof createClient>>
   );
 }
 
-// Feed TV is only worth showing with something on it. Members' own clips
-// come first; anything left over is filled from the tracks currently
-// charting, labelled as such so it never reads as a member's post.
-const FEEDTV_TARGET_CLIPS = 4;
-const FEEDTV_FILL_CACHE_SECONDS = 6 * 60 * 60;
-
-async function fillFeedTvLineup(
-  clips: FeedTvClip[],
-  tracks: { id: string; name: string; artist: string }[]
-): Promise<FeedTvClip[]> {
-  const missing = FEEDTV_TARGET_CLIPS - clips.length;
-  if (missing <= 0) return clips;
-
-  const found = await Promise.all(
-    tracks.slice(0, missing).map(async (track) => {
-      const [video] = await searchVideos(`${track.name} ${track.artist} official video`, 1, {
-        revalidateSeconds: FEEDTV_FILL_CACHE_SECONDS,
-      });
-      if (!video) return null;
-      return {
-        id: `chart-${video.id}`,
-        title: track.name,
-        artist: track.artist,
-        youtubeVideoId: video.id,
-        username: null,
-        postId: null,
-      } satisfies FeedTvClip;
-    })
-  );
-
-  const seen = new Set(clips.map((clip) => clip.youtubeVideoId));
-  for (const clip of found) {
-    if (!clip || seen.has(clip.youtubeVideoId)) continue;
-    seen.add(clip.youtubeVideoId);
-    clips.push(clip);
-  }
-  return clips;
-}
 
 
 export default async function FeedPage({
@@ -281,7 +240,6 @@ export default async function FeedPage({
     postsCount,
     { data: likeRows },
     { data: commentRows },
-    trendingTracks,
     upcomingMovies,
     { data: statusRows },
     { data: clubRows },
@@ -299,7 +257,6 @@ export default async function FeedPage({
     supabase.from("posts").select("id", { count: "exact", head: true }),
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
-    getTrendingTracks(50),
     getUpcomingMoviesAndTv(6),
     supabase
       .from("profiles")
@@ -609,22 +566,6 @@ export default async function FeedPage({
   }, null);
   const newFavePost = allPosts[0] ?? null;
 
-  const memberClips: FeedTvClip[] = [];
-  const seenVideoIds = new Set<string>();
-  for (const post of allPosts) {
-    if (!post.youtube_video_id || seenVideoIds.has(post.youtube_video_id)) continue;
-    seenVideoIds.add(post.youtube_video_id);
-    memberClips.push({
-      id: post.id,
-      title: post.title,
-      artist: post.artist,
-      youtubeVideoId: post.youtube_video_id,
-      username: post.profiles?.username ?? "unknown",
-      postId: post.id,
-    });
-    if (memberClips.length >= 10) break;
-  }
-  const feedTvClips = await fillFeedTvLineup(memberClips, trendingTracks);
 
   // Pulled out of the JSX so the shuffle can reorder them as values. Each is
   // null when its flag is off, which orderBlocks drops.
@@ -1130,14 +1071,18 @@ export default async function FeedPage({
             flanks are lifted out of the sidebar, not duplicated, so nothing
             renders twice. Below the tablet breakpoint the three columns stack
             and the flanks fall back into their old sidebar order. */}
-        {layout === "stack" && feedTvClips.length > 0 && (
-          <div className="feedtv-row">
+        {/* The player used to sit in the middle of this row. It is at the
+            top of Discover now - the page people arrive at wanting
+            something to play - rather than at the foot of the homepage,
+            which was the last thing anybody scrolled to.
+            The row stays, because the side panels live in it: without a
+            middle column it is two columns rather than three, and the
+            condition is no longer tied to whether there were clips. */}
+        {layout === "stack" && (
+          <div className="feedtv-row flanks-only">
             <div className="feedtv-flank">
               <OrbyBot wishesLeft={orbyWishesLeft} />
               {sideTopRated}
-            </div>
-            <div className="feedtv-top">
-              <FeedTV clips={feedTvClips} />
             </div>
             <div className="feedtv-flank">
               {sideMostActive}
@@ -1152,12 +1097,9 @@ export default async function FeedPage({
             with everything secondary moved into a rail below. */}
         {layout === "paired" && (
           <>
-            <div className="paired-hero">
-              {feedTvClips.length > 0 && (
-                <div className="paired-tv">
-                  <FeedTV clips={feedTvClips} />
-                </div>
-              )}
+            {/* Same move: the player is on Discover now, so the paired
+                hero is the reviews on their own. */}
+            <div className="paired-hero solo">
               <div className="paired-reviews">{reviewsPanel}</div>
             </div>
 
