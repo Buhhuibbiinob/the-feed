@@ -122,11 +122,12 @@ export const STICKER_GROUPS = [
  * an arbitrary string into image_url. That is the whole reason ids are
  * posted instead of URLs.
  *
- * The pack came back after being removed with the placement layer. That
- * removal took the wrong half: what made stickers a problem was that
- * they were dragged loose across the page, not that there were sixty of
- * them to choose from. They go into the hub now - a grid, at one size -
- * so choosing one costs nothing and cannot end up on top of anything.
+ * The pack came back first, then the placement layer with it. The hub is
+ * the drawer - a grid at one size, where choosing costs nothing - and
+ * the layer is where a chosen sticker ends up, dragged wherever its
+ * owner wants it. Both, rather than either: picking and placing were
+ * always two different jobs, and removing the second one removed the
+ * customisation people liked.
  *
  * Retired for good: flamingo, whistle and safetypin, none of which were
  * readable at the size a sticker actually renders.

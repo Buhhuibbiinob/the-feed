@@ -37,7 +37,10 @@ const PROFILE_ONLY = [
 ];
 
 /** Components whose CSS prefixes are trusted above, and must stay put. */
-const PROFILE_ONLY_COMPONENTS = ["ProfileStore", "StickerHub", "StoreNowPlaying"];
+// StickerLayer is here because it shares the hub's picker classes: the
+// ".sticker-pack" anchor is only honestly profile-only while every
+// component emitting it stays on the profile, and now two do.
+const PROFILE_ONLY_COMPONENTS = ["ProfileStore", "StickerHub", "StickerLayer", "StoreNowPlaying"];
 
 const css = readFileSync("src/app/globals.css", "utf8");
 let failures = 0;

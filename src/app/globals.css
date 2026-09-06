@@ -4785,6 +4785,198 @@ footer .copy {
   color: #d18f00;
 }
 
+/* ---- Loose stickers, placed anywhere on a profile ----
+   Restored with the placement layer. Removing them took the wrong half:
+   the problem was never that there were sixty to choose from, it was
+   that a badly-placed one could cover something. The tools only appear
+   while decorating, and the layer itself is never interactive - see the
+   note below, which is the bug that taught it. */
+/* Stickers float over the whole profile.
+   The layers themselves are never interactive - only the sticker images
+   inside them are. An interactive layer covers the entire page including
+   the controls underneath, which is what made Remove and the sliders look
+   dead. */
+/* A sticker's position comes from custom properties so a media query can
+   choose between the desktop pair and a phone pair. --mx/--my only exist
+   when somebody has dragged this sticker on a phone, and var()'s fallback
+   handles every sticker that has not been. */
+.sticker {
+  left: var(--sx);
+  top: calc(var(--sy) * 1cqw);
+}
+@media (max-width: 760px) {
+  .sticker {
+    left: var(--mx, var(--sx));
+    top: calc(var(--my, var(--sy)) * 1cqw);
+  }
+}
+
+.sticker-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+/* Painted under the panels; the front layer sits over them. The columns
+   are pinned between the two. */
+.sticker-layer.behind {
+  z-index: 1;
+}
+.sticker-layer.front {
+  z-index: 3;
+}
+.profile-columns {
+  position: relative;
+  z-index: 2;
+}
+.sticker-layer.editing.front {
+  outline: 2px dashed var(--link);
+  outline-offset: -4px;
+}
+/* A sticker sent behind an opaque panel disappears completely, which
+   reads as having deleted it. While editing, the behind layer is lifted
+   over the panels at low opacity so you can still see and grab it. */
+.sticker-layer.ghost {
+  z-index: 4;
+  opacity: 0.45;
+}
+.sticker-layer.ghost .sticker {
+  outline: 1px dashed var(--link);
+  outline-offset: 2px;
+}
+.sticker {
+  position: absolute;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+}
+.sticker-layer.editing .sticker {
+  pointer-events: auto;
+  cursor: grab;
+  /* Stops the browser panning the page mid-drag on a touchscreen. */
+  touch-action: none;
+}
+.sticker.selected {
+  outline: 2px solid var(--link);
+}
+
+/* Picking a sticker from a row of thumbnails, so selecting one never
+   depends on hitting it with a pointer. */
+/* While stickering, the tools float over the page instead of sitting in
+   the flow. In the flow, opening and closing them changed the page height
+   - and anything positioned against that height jumped every time.
+
+   Portaled to <body> by StickerLayer, which is what makes `fixed` mean
+   the viewport here. Inside the page it resolved against the transformed
+   page wrapper, so the panel sat at the foot of the profile and you had
+   to scroll away from your stickers to reach the controls for them.
+
+   Sits directly above the Decorate bar, on the same bottom rhythm as the
+   CSS editor, so everything you use while decorating is in one place. */
+.sticker-tools.floating {
+  position: fixed;
+  left: 14px;
+  bottom: 76px;
+  z-index: 69;
+  width: min(320px, calc(100vw - 28px));
+  max-height: min(60vh, calc(100vh - 160px));
+  overflow-y: auto;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--nav-border);
+  background: var(--panel-body-bg);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  animation: sheet-up 240ms var(--ease-ios) both;
+}
+.sticker-tools-head {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+@media (max-width: 760px) {
+  /* Clear of the tab bar and the Decorate bar above it. */
+  .sticker-tools.floating {
+    bottom: 132px;
+    max-height: min(52vh, calc(100vh - 220px));
+  }
+}
+
+.sticker-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 7px 0;
+}
+.sticker-chip {
+  width: 40px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: var(--panel-body-bg);
+  cursor: pointer;
+}
+.sticker-chip.active {
+  outline: 2px solid var(--link);
+}
+.sticker-chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.sticker-nudge,
+.sticker-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* Visually hidden but still read out, for the labels that would clutter
+   the panel if they were shown. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sticker-tools {
+  margin-top: 7px;
+}
+.sticker-upload {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0;
+  font-size: 11px;
+}
+.sticker-upload input[type="file"] {
+  min-width: 0;
+  flex: 1;
+}
+.sticker-controls {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+}
+.sticker-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sticker-controls input[type="range"] {
+  flex: 1;
+}
+
 /* ---- The Feed TV, per era ---- */
 /* Deliberately not written as theme-attribute rules. Those are held to
    colour, background and font so the page layout never has to be
