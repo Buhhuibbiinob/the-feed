@@ -35,6 +35,7 @@ import {
   genresPresent,
   hasStorefront,
   heroPicks,
+  popularShelf,
   recentShelf,
   favoritesShelf,
 } from "@/lib/profileStore";
@@ -540,6 +541,9 @@ export default async function ProfilePage({
   const storeFavorites = favoritesShelf(
     Object.values(favorites).flat().sort((a, b) => a.position - b.position)
   );
+  // The bottom row is what other people reacted to, not what this
+  // person posted most recently.
+  const storePopular = popularShelf(posts, likeCounts, commentCounts);
   const storeChart = chartRows(posts);
   const storeArtists = featuredArtists(posts);
   const storeGenres = genresPresent(posts);
@@ -550,9 +554,9 @@ export default async function ProfilePage({
     null,
     storeHero[0] ?? null,
     storeHero[1] ?? null,
-    storeRecent[1] ?? null,
-    storeRecent[2] ?? null,
-    storeRecent[3] ?? null,
+    storePopular[0] ?? null,
+    storePopular[1] ?? null,
+    storePopular[2] ?? null,
   ]);
 
   const pinnedPosts = (pinnedRows ?? [])
@@ -1126,7 +1130,7 @@ export default async function ProfilePage({
                 { title: L.store_new, items: storeRecent, seeAllHref: `/profile/${profile.username}#reviews` },
                 { title: L.store_added, items: storeFavorites, seeAllHref: `/profile/${profile.username}#favorites` },
               ]}
-              promos={storeRecent.slice(1, 4)}
+              promos={storePopular}
               chart={storeChart}
               artists={storeArtists}
               genres={storeGenres}

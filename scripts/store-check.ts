@@ -16,6 +16,7 @@ import {
   heroPicks,
   recentShelf,
   favoritesShelf,
+  popularShelf,
   type FavoriteLike,
   type StorePost,
 } from "../src/lib/profileStore";
@@ -93,6 +94,37 @@ check(
       imageUrl: null,
     }))
   ).length <= 8
+);
+
+// ---- the bottom row: what other people reacted to ----
+// The one slot on the page that reports somebody else's opinion. Every
+// other shelf is the owner's own doing, so getting this one wrong makes
+// the whole page a monologue.
+const likes = new Map([["a", 1], ["b", 0], ["c", 9], ["d", 2]]);
+const comments = new Map([["a", 4], ["b", 0], ["c", 0], ["d", 0]]);
+const popular = popularShelf(many, likes, comments);
+check("three tiles", popular.length === 3, popular.map((i) => i.id).join(","));
+// a: 1 like + 4 comments = 9. c: 9 likes + 0 = 9. Tie, and a is older,
+// so c wins on recency - which is the tie-break working, not luck.
+check(
+  "comments count double",
+  popular.slice(0, 2).map((i) => i.id).sort().join(",") === "a,c",
+  "a is 1 like + 4 comments; c is 9 likes; both score 9"
+);
+check(
+  "popularity beats recency",
+  popular[0].id !== "b",
+  "b is the newest with artwork and has no likes or comments"
+);
+check(
+  "no engagement at all still fills the row",
+  popularShelf(many, new Map(), new Map()).length === 3,
+  "ties break on recency, so it shows the newest three rather than nothing"
+);
+check(
+  "a coverless review never reaches a tile",
+  !popularShelf(many, new Map([["h", 99]]), new Map()).some((i) => i.id === "h"),
+  "h is the most liked here and has no artwork"
 );
 
 // ---- the chart ----
