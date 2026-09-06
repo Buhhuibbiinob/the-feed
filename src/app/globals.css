@@ -5909,6 +5909,78 @@ footer .copy {
   border-radius: 999px;
 }
 
+/* ---- Playlists ----
+   Embeds from Spotify and Apple Music. Both services size their player
+   themselves, so the only jobs here are giving each one a height that
+   does not clip its own controls and stopping a wall of twelve from
+   reading as a single scrolling mess. */
+.feed-chips.sub {
+  margin-top: -4px;
+}
+.playlist-add .field {
+  margin-bottom: 12px;
+}
+.playlist-add input[type="text"] {
+  width: 100%;
+}
+.playlist-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  padding: 14px;
+}
+.playlist-card {
+  margin-bottom: 0;
+}
+.playlist-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.playlist-titles {
+  min-width: 0;
+}
+.playlist-titles b {
+  display: block;
+  font-size: 14px;
+  line-height: 1.25;
+}
+.playlist-by {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.playlist-note {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.playlist-embed {
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.playlist-embed iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+}
+/* Spotify's compact player is 152px; its full one needs 380 to show the
+   track list without its own scrollbar fighting the page's. */
+.playlist-embed.spotify iframe {
+  height: 380px;
+}
+/* Apple's is taller: its header alone is about 110px, and below 450 the
+   list is a two-row peephole. */
+.playlist-embed.apple iframe {
+  height: 450px;
+}
+.playlist-open {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11.5px;
+}
+
 /* ---- Shelves ----
    A wall of dividers, then what is behind the one you picked. The
    dividers stay on screen after a pick: browsing is comparing, and

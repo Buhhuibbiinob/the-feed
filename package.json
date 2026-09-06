@@ -16,6 +16,7 @@
     "check:slots": "npx tsx scripts/media-slots-check.ts",
     "check:labels": "npx tsx scripts/profile-labels-check.ts",
     "check:stickers": "npx tsx scripts/sticker-fallback-check.ts",
+    "check:playlists": "npx tsx scripts/playlist-check.ts",
     "check:genrepicker": "npx tsx scripts/genre-picker-check.ts",
     "check:gloss": "npx tsx scripts/gloss-check.ts",
     "check:handoffs": "npx tsx scripts/handoff-check.ts",

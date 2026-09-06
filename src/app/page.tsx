@@ -19,6 +19,8 @@ import { getTrendingTracks } from "@/lib/lastfm";
 import { searchVideos } from "@/lib/youtube";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { MEDIA_TYPES, MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
+import { PlaylistWall } from "@/components/PlaylistWall";
+import { toPlaylists, type Playlist, type PlaylistRow } from "@/lib/playlists";
 import { isGenreFor, genreLabel } from "@/lib/genres";
 import { selectPosts } from "@/lib/postQuery";
 import { highestBadge } from "@/lib/badges";
@@ -204,9 +206,15 @@ async function fillFeedTvLineup(
 export default async function FeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string; type?: string; page?: string; genre?: string }>;
+  searchParams: Promise<{
+    filter?: string;
+    type?: string;
+    page?: string;
+    genre?: string;
+    view?: string;
+  }>;
 }) {
-  const { filter, type, page, genre } = await searchParams;
+  const { filter, type, page, genre, view } = await searchParams;
   const followingOnly = filter === "following";
   // "For You" ranks the same feed by taste rather than cutting it down, so
   // it can never show an emptier page than All - which is what killed the
@@ -220,6 +228,10 @@ export default async function FeedPage({
   // badge - which always carries both. A genre without its category would
   // match "documentary" across film and photography at once.
   const genreFilter = typeFilter && isGenreFor(typeFilter, genre) ? genre : null;
+  // Playlists live inside Music, because that is what they are - not a
+  // fifth category alongside it. Only reachable from there, so the URL
+  // cannot put the tab somewhere it has no meaning.
+  const showPlaylists = typeFilter === "music" && view === "playlists";
 
   // One builder for every feed link so the following filter, the category
   // and the page number always travel together. Page 1 is left out of the
@@ -240,6 +252,21 @@ export default async function FeedPage({
     data: { user },
   } = await supabase.auth.getUser();
   const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
+
+  // Only when the tab is open. Every other homepage load should not pay
+  // for a query it will not render.
+  let playlists: Playlist[] = [];
+  if (showPlaylists) {
+    const { data } = await supabase
+      .from("playlists")
+      .select(
+        "id, user_id, provider, provider_id, storefront, slug, title, note, created_at, profiles!playlists_user_id_fkey(username, avatar_url)"
+      )
+      .order("created_at", { ascending: false })
+      .limit(60)
+      .returns<PlaylistRow[]>();
+    playlists = toPlaylists(data ?? []);
+  }
   // One clock reading for the whole render, shared by the Live Now window
   // and the club activity labels, so "now" can't drift between them.
   // Server component: this runs once per request, not in a render React
@@ -909,8 +936,36 @@ export default async function FeedPage({
             </Link>
           )}
         </div>
+
+        {/* Music has a second row: reviews, and the playlists people
+            already keep somewhere else. Only under Music - a Playlists
+            tab beside Photography would be a tab about nothing. */}
+        {typeFilter === "music" && (
+          <div className="feed-chips sub">
+            <Link
+              href={`${feedHref("music", 1)}`}
+              className={`feed-chip ${showPlaylists ? "" : "active"}`}
+            >
+              Reviews
+            </Link>
+            <Link
+              href={`${feedHref("music", 1)}&view=playlists`}
+              className={`feed-chip ${showPlaylists ? "active" : ""}`}
+            >
+              Playlists
+            </Link>
+          </div>
+        )}
+
         <div className="panel-body flush">
-          {feedPosts.length === 0 ? (
+          {showPlaylists ? (
+            <PlaylistWall
+              playlists={playlists}
+              currentUserId={user?.id ?? null}
+              viewerIsAdmin={viewerIsAdmin}
+              canAdd={!!user}
+            />
+          ) : feedPosts.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
               {genreFilter && typeFilter
                 ? `Nothing tagged ${genreLabel(genreFilter)} yet - be the first to post one.`
