@@ -6032,63 +6032,11 @@ footer .copy {
 .playlist-add input[type="text"] {
   width: 100%;
 }
-.playlist-wall {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 14px;
-  padding: 14px;
-}
-.playlist-card {
-  margin-bottom: 0;
-}
-.playlist-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-.playlist-titles {
-  min-width: 0;
-}
-.playlist-titles b {
-  display: block;
-  font-size: 14px;
-  line-height: 1.25;
-}
-.playlist-by {
-  font-size: 11.5px;
-  color: var(--muted);
-}
-.playlist-note {
-  margin: 6px 0 0;
-  font-size: 12.5px;
-  line-height: 1.4;
-}
-.playlist-embed {
-  margin-top: 10px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.playlist-embed iframe {
-  display: block;
-  width: 100%;
-  border: 0;
-}
-/* Spotify's compact player is 152px; its full one needs 380 to show the
-   track list without its own scrollbar fighting the page's. */
-.playlist-embed.spotify iframe {
-  height: 380px;
-}
-/* Apple's is taller: its header alone is about 110px, and below 450 the
-   list is a two-row peephole. */
-.playlist-embed.apple iframe {
-  height: 450px;
-}
-.playlist-open {
-  display: inline-block;
-  margin-top: 8px;
-  font-size: 11.5px;
-}
+/* The playlist wall used to be a grid of cards with an embed in every
+   one of them. It is a shelf of tapes now, and only the tape you press
+   loads a player, so all of that went with it. The add form above kept
+   its own styling, which is the only part of the old surface that did
+   not change. */
 
 /* ---- Shelves ----
    A wall of dividers, then what is behind the one you picked. The
@@ -16075,6 +16023,222 @@ button.btn-ghost {
   .discover-top .discover-set .feedtv-standalone {
     max-width: var(--feedtv-width);
   }
+}
+
+/* ---- The tape shelf ----
+   A playlist is a mixtape. Not a metaphor reached for to fit the wood:
+   it is the same object doing the same job, which is somebody choosing an
+   order and handing it over, and it is why the copy on the add form
+   already asked "what do you call it" rather than "title".
+
+   So the playlists stand on the same shelf as everything else, as tapes,
+   and only the one you press loads a player. That last part is not
+   decoration either - the old wall rendered twelve embeds at once, and
+   twelve players all connecting on load is a slow tab where eleven of
+   them are below the fold.
+
+   The row is shorter and wider than a record row, because a cassette is.
+   Both numbers are the same tokens the boards are painted from, so the
+   boards follow without anything else being touched. */
+.woodwall.tapes {
+  --wood-item: 82px;
+  --wood-row: 162px;
+  --wood-label: 30px;
+}
+.woodwall.tapes .woodgrid {
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+}
+
+/* The cassette itself.
+   Dark shell, cream label across the top two thirds, two spool windows
+   with the tape showing through, and the little screw dimples in the
+   corners that stop it reading as a plain rectangle. */
+.wood-tape {
+  /* A span, so it can live inside a button without nesting a block in
+     one, which means the display has to be said out loud: an inline
+     element ignores width and height, and the first render was five
+     black slivers standing on a shelf. */
+  display: block;
+  position: relative;
+  width: 138px;
+  height: 82px;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 33.9%,
+      rgba(0, 0, 0, 0.14) 34%, rgba(0, 0, 0, 0.05) 100%),
+    linear-gradient(160deg, #3b3b42 0%, #26262b 55%, #17171b 100%);
+  border: 1px solid #0e0e11;
+  box-shadow: 0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.3) inset;
+}
+/* The paper label, written on. */
+.wood-tape-label {
+  display: block;
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 6px;
+  height: 42px;
+  padding: 4px 6px 0;
+  border-radius: 2px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fbf6e6 0%, #efe6cd 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+/* A coloured stripe down the left of the label, the way a blank tape came
+   with one. It is the only place the service gets named on the object,
+   and it is the right amount: enough to tell two tapes apart on a shelf,
+   not a logo stuck on somebody's mixtape. */
+.wood-tape-label::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--tape-stripe, #8a8a90);
+}
+.wood-tape.spotify {
+  --tape-stripe: #1db954;
+}
+.wood-tape.apple {
+  --tape-stripe: #fa2d48;
+}
+.wood-tape-title {
+  display: block;
+  padding-left: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #2c2417;
+  /* Two lines, then it stops. A title long enough to need three lines is
+     a title nobody hand wrote on a tape. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wood-tape-by {
+  display: block;
+  position: absolute;
+  left: 11px;
+  bottom: 2px;
+  font-size: 8.5px;
+  color: rgba(44, 36, 23, 0.6);
+}
+/* The two spool windows, with the tape wound on behind them. Wound
+   unevenly on purpose: a tape with both spools the same size has either
+   never been played or has been rewound to the exact middle. */
+.wood-tape-spools {
+  position: absolute;
+  box-sizing: border-box;
+  left: 10px;
+  right: 10px;
+  bottom: 6px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #0d0d10, #1a1a1f);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7) inset;
+}
+.wood-tape-spools span {
+  display: block;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #cdc7bb 0 26%, #4a3f30 27% 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.wood-tape-spools span:first-child {
+  width: 19px;
+  height: 19px;
+}
+.wood-tape-spools span:last-child {
+  width: 13px;
+  height: 13px;
+}
+/* Screws. Four dots, and the cheapest dimensionality on the whole page. */
+.wood-tape::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 3px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 2px 2px, rgba(0, 0, 0, 0.55) 0 1px, transparent 1.5px),
+    radial-gradient(circle at calc(100% - 2px) 2px, rgba(0, 0, 0, 0.55) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 2px calc(100% - 2px), rgba(0, 0, 0, 0.55) 0 1px, transparent 1.5px),
+    radial-gradient(circle at calc(100% - 2px) calc(100% - 2px), rgba(0, 0, 0, 0.55) 0 1px, transparent 1.5px);
+}
+
+/* Pressing a tape. The whole object is the button, so it gets the press
+   the buttons get: down a pixel, and the light off it. */
+.wood-tape-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  box-shadow: none;
+  border-radius: 0;
+}
+.wood-tape-btn:active .wood-tape {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px -2px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+/* The one currently in the deck: lifted, and lit along the top. */
+.woodslot.playing .wood-tape {
+  box-shadow: 0 8px 12px -4px rgba(0, 0, 0, 0.9), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 0 0 1px rgba(255, 232, 180, 0.7);
+  transform: translateY(-3px);
+}
+
+/* The deck: one player, under the shelf, for whichever tape is in it. */
+.tape-deck {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2a2a30 0%, #17171b 100%);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) inset, var(--edge-outer);
+}
+.tape-deck-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+  color: #f3ead8;
+  font-size: 12px;
+}
+.tape-deck-head b {
+  font-size: 13px;
+}
+.tape-deck-head a {
+  color: #ffd9a0;
+  font-size: 11px;
+}
+.tape-deck-note {
+  margin: 0 0 9px;
+  font-size: 11.5px;
+  font-style: italic;
+  color: rgba(243, 234, 216, 0.7);
+}
+.tape-deck iframe {
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  display: block;
+  background: #000;
+}
+.tape-deck.spotify iframe {
+  height: 352px;
+}
+.tape-deck.apple iframe {
+  height: 450px;
+}
+.tape-deck-actions {
+  margin-top: 9px;
 }
 
 /* ================================================================

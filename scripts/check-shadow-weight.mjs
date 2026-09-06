@@ -62,6 +62,8 @@ const FLOATERS = [
   // That shadow is the only thing telling you it is standing there
   // rather than printed on the wood.
   "wooditem", "wood-blank", "woodwall", "wood-play",
+  // A cassette standing on a shelf, and the one lifted out into the deck.
+  "wood-tape",
 ];
 
 const raw = readFileSync(CSS, "utf8");
