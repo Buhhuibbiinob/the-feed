@@ -5789,6 +5789,164 @@ footer .copy {
   }
 }
 
+/* ---- The Crate ----
+   A record held up in front of you, with the next one just showing
+   behind it. Square, big, and centred: the sleeve is the whole page,
+   because looking at the sleeve is the entire activity. */
+.crate-intro {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 16px;
+  max-width: 42em;
+}
+.crate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.crate-stack {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+}
+/* The rest of the box. Offset and rotated a little, because a stack
+   nobody has straightened is never square to the one in front. */
+.crate-behind {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  transform: rotate(-2.2deg) translate(5px, 5px);
+  background: linear-gradient(160deg, #4a4a50, #2a2a2e);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+.crate-sleeve {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #1d1d21;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.14) inset;
+}
+.crate-sleeve img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* A sleeve whose art has not arrived, or has none. Not a spinner: a
+   plain paper sleeve with the hole showing is what a record with no
+   cover actually looks like, and it does not imply something is broken. */
+.crate-blank {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #d9d5c9, #b8b3a4);
+}
+.crate-blank span {
+  width: 34%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #fff 0 14%, #2a2a2e 15% 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) inset;
+}
+.crate-play {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  padding: 7px 16px;
+  border: none;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: saturate(160%) blur(8px);
+  -webkit-backdrop-filter: saturate(160%) blur(8px);
+}
+.crate-play.playing {
+  background: var(--accent, #d34);
+}
+.crate-label {
+  text-align: center;
+  max-width: 300px;
+}
+.crate-label b {
+  display: block;
+  font-size: 15px;
+  line-height: 1.25;
+}
+.crate-label span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.crate-hands {
+  display: flex;
+  gap: 10px;
+}
+.crate-pass,
+.crate-keep {
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid var(--panel-border);
+}
+.crate-pass {
+  background: transparent;
+  color: var(--muted);
+}
+.crate-keep {
+  border-color: transparent;
+  color: #fff;
+  background: var(--accent, #d34);
+}
+.crate-keep:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.crate-count {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.crate-empty,
+.crate-done {
+  padding: 20px 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+.crate-done-line {
+  margin: 0 0 12px;
+  color: var(--text);
+}
+.crate-kept {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  font-size: 12px;
+}
+.crate-kept li {
+  padding: 3px 0;
+}
+.crate-kept span {
+  color: var(--muted);
+}
+.crate-done-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.crate-again {
+  font-size: 12px;
+  color: var(--muted);
+}
+
 /* ---- Discovery rails ---- */
 /* Rows of things to listen to on /recs. Sideways rather than wrapped, so
    several directions fit on one screen and none of them is the page. */

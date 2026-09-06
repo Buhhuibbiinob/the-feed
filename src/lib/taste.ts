@@ -28,7 +28,13 @@ export function workKey(title: string, artist: string | null): string {
   const squash = (value: string) =>
     value
       .toLowerCase()
-      .replace(/[^\p{L}\p{N}\s]/gu, "")
+      // Punctuation becomes a SPACE, not nothing. Deleting it welded
+      // words together: "Jay-Z" squashed to "jayz" while "Jay Z" stayed
+      // "jay z", so the two spellings of one artist never matched - and
+      // half the hyphenated names in music are spelled both ways.
+      // Collapsing runs of whitespace afterwards makes them meet in the
+      // middle.
+      .replace(/[^\p{L}\p{N}\s]/gu, " ")
       .replace(/\s+/g, " ")
       .trim();
   const t = squash(title);
