@@ -59,9 +59,9 @@ export function ObsessedPicker({ current, ownerId }: { current: ObsessedDraft; o
 
         <MediaSearchField
           placeholder="Search"
-          onPick={(video) => {
-            setTitle(video.title);
-            setImageUrl(video.thumbnailUrl ?? "");
+          onPick={(track) => {
+            setTitle(track.title);
+            setImageUrl(track.thumbnailUrl ?? "");
           }}
         />
 

@@ -157,3 +157,53 @@ export async function searchItunesArt(trackName: string, artistName: string): Pr
   const { artworkUrl } = await lookupItunesTrack(trackName, artistName);
   return artworkUrl;
 }
+
+/** One row in a song search. */
+export type ItunesSong = {
+  /** Apple's track id. Unique within a result list, and not a YouTube id. */
+  id: string;
+  title: string;
+  artist: string;
+  artworkUrl: string | null;
+  previewUrl: string | null;
+};
+
+type ItunesSongResult = ItunesTrack & { trackId?: number; collectionName?: string };
+
+/**
+ * Songs matching a free-text query.
+ *
+ * This is a general search rather than the exact-match lookup above: the
+ * person typing is browsing, so "close enough" is the right answer and
+ * the confident-wrong-answer problem doesn't apply - they can see the
+ * results and pick.
+ *
+ * Apple charges nothing for this and asks for no key, which is the whole
+ * reason it exists: the same box on YouTube costs 100 units of a
+ * 10,000-a-day quota per keystroke that gets through the debounce.
+ */
+export async function searchItunesSongs(query: string, limit = 10): Promise<ItunesSong[]> {
+  const params = new URLSearchParams({
+    term: query,
+    media: "music",
+    entity: "song",
+    limit: String(limit),
+  });
+  const res = await fetch(`https://itunes.apple.com/search?${params.toString()}`, {
+    next: { revalidate: 3600 },
+  });
+  // Unlike the art backfill, a failure here is worth telling apart from
+  // "no such song" - the box says which.
+  if (!res.ok) throw new Error(`iTunes search failed: ${res.status}`);
+
+  const data = (await res.json()) as { results?: ItunesSongResult[] };
+  return (data.results ?? [])
+    .filter((r) => r.trackName && r.artistName && r.trackId)
+    .map((r) => ({
+      id: String(r.trackId),
+      title: r.trackName!,
+      artist: r.artistName!,
+      artworkUrl: r.artworkUrl100?.replace("100x100bb", "300x300bb") ?? null,
+      previewUrl: r.previewUrl ?? null,
+    }));
+}

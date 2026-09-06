@@ -1,10 +1,14 @@
 "use client";
 
-import { SEARCH_DEBOUNCE_MS, searchVideosClient } from "@/lib/videoSearch";
+import {
+  MIN_QUERY_LENGTH,
+  SEARCH_DEBOUNCE_MS,
+  searchMediaClient,
+  type MediaResult,
+} from "@/lib/trackSearch";
 
 import { useActionState, useEffect, useState } from "react";
 import { setStatus, clearStatus, type ProfileFormState } from "@/app/actions/profile";
-import type { YoutubeVideo } from "@/lib/youtube";
 import { MEDIA_TYPES, MEDIA_VERB_PROMPTS, type MediaType } from "@/lib/media";
 
 const initialState: ProfileFormState = {};
@@ -15,8 +19,8 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
   const [mediaType, setMediaType] = useState<MediaType>("music");
   const [title, setTitle] = useState("");
   const [videoQuery, setVideoQuery] = useState("");
-  const [videoResults, setVideoResults] = useState<YoutubeVideo[]>([]);
-  const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
+  const [videoResults, setVideoResults] = useState<MediaResult[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<MediaResult | null>(null);
   const [videoSearching, setVideoSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
@@ -28,13 +32,16 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
   }
 
   useEffect(() => {
-    if (!videoQuery.trim()) return;
+    // This box had no minimum length at all, so a single letter went
+    // straight to the API - which made it the most expensive of the four
+    // search boxes and the likeliest to trip the rate limit.
+    if (videoQuery.trim().length < MIN_QUERY_LENGTH) return;
     let cancelled = false;
     const timeout = setTimeout(async () => {
       try {
-        const answer = await searchVideosClient(videoQuery);
+        const answer = await searchMediaClient(videoQuery, { music: mediaType === "music" });
         if (!cancelled && answer) {
-          setVideoResults(answer.videos);
+          setVideoResults(answer.results);
           setSearchError(answer.error);
         }
       } finally {
@@ -45,7 +52,7 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [videoQuery]);
+  }, [videoQuery, mediaType]);
 
   if (!open) {
     return (
@@ -82,7 +89,7 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
             {selectedVideo.thumbnailUrl && <img src={selectedVideo.thumbnailUrl} alt="" />}
             <div>
               <b>{selectedVideo.title}</b>
-              <div className="sub">{selectedVideo.channelTitle}</div>
+              <div className="sub">{selectedVideo.subtitle}</div>
             </div>
             <span
               className="clear"
@@ -107,7 +114,9 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
                   setVideoResults([]);
                   setVideoSearching(false);
                 } else {
-                  setVideoSearching(true);
+                  // Matched to the threshold the effect tests, so the
+                  // spinner never runs for a query that is never sent.
+                  setVideoSearching(value.trim().length >= MIN_QUERY_LENGTH);
                 }
               }}
               autoComplete="off"
@@ -119,10 +128,10 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
                 ) : videoResults.length === 0 ? (
                   <div className="track-result">{searchError ?? "No matches."}</div>
                 ) : (
-                  videoResults.map((video) => (
+                  videoResults.map((video, i) => (
                     <div
                       className="track-result"
-                      key={video.id}
+                      key={video.youtubeId || `${video.title}-${i}`}
                       onClick={() => {
                         setSelectedVideo(video);
                         setTitle(video.title);
@@ -133,7 +142,7 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
                       {video.thumbnailUrl && <img src={video.thumbnailUrl} alt="" />}
                       <div>
                         <b>{video.title}</b>
-                        <div className="sub">{video.channelTitle}</div>
+                        <div className="sub">{video.subtitle}</div>
                       </div>
                     </div>
                   ))
@@ -145,7 +154,7 @@ export function StatusPicker({ hasStatus, ownerId }: { hasStatus: boolean; owner
 
         <input type="hidden" name="media_type" value={mediaType} />
         <input type="hidden" name="title" value={title} />
-        <input type="hidden" name="artist" value={selectedVideo?.channelTitle ?? ""} />
+        <input type="hidden" name="artist" value={selectedVideo?.subtitle ?? ""} />
         <input type="hidden" name="cover_url" value={selectedVideo?.thumbnailUrl ?? ""} />
 
         <div className="form-actions">

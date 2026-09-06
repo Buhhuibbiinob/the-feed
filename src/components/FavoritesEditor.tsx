@@ -116,10 +116,10 @@ function KindEditor({
           <input type="hidden" name="kind" value={kind} />
           <MediaSearchField
             placeholder={`Search for ${FAVORITE_SINGULAR[kind] === "artist" ? "an" : "a"} ${FAVORITE_SINGULAR[kind]}…`}
-            onPick={(video) => {
-              setTitle(video.title);
-              setSubtitle(video.channelTitle);
-              setImageUrl(video.thumbnailUrl ?? "");
+            onPick={(track) => {
+              setTitle(track.title);
+              setSubtitle(track.artist);
+              setImageUrl(track.thumbnailUrl ?? "");
             }}
           />
           <input

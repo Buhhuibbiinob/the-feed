@@ -3,7 +3,6 @@
 import { useActionState, useState } from "react";
 import { setProfileSong, clearProfileSong, type ProfileFormState } from "@/app/actions/profile";
 import { MediaSearchField } from "@/components/MediaSearchField";
-import type { YoutubeVideo } from "@/lib/youtube";
 
 const initialState: ProfileFormState = {};
 
@@ -15,14 +14,25 @@ export type ProfileSongDraft = {
   autoplay: boolean;
 };
 
+type PickedSong = {
+  youtubeId: string;
+  title: string;
+  artist: string;
+  thumbnailUrl: string | null;
+};
+
 export function ProfileSongPicker({ current, ownerId }: { current: ProfileSongDraft; ownerId: string }) {
   const [open, setOpen] = useState(false);
-  const [picked, setPicked] = useState<YoutubeVideo | null>(
+  // The song as it will be saved: Apple's words and picture, plus the
+  // YouTube id that actually plays it. The two come from different places
+  // now - the catalogue is searched for free, and the video is looked up
+  // once, on the result that was picked.
+  const [picked, setPicked] = useState<PickedSong | null>(
     current.youtubeId
       ? {
-          id: current.youtubeId,
+          youtubeId: current.youtubeId,
           title: current.title ?? "",
-          channelTitle: current.artist ?? "",
+          artist: current.artist ?? "",
           thumbnailUrl: current.thumbnailUrl,
         }
       : null
@@ -57,19 +67,33 @@ export function ProfileSongPicker({ current, ownerId }: { current: ProfileSongDr
             {picked.thumbnailUrl && <img src={picked.thumbnailUrl} alt="" />}
             <div>
               <b>{picked.title}</b>
-              <div className="sub">{picked.channelTitle}</div>
+              <div className="sub">{picked.artist}</div>
             </div>
             <span className="clear" onClick={() => setPicked(null)}>
               Clear
             </span>
           </div>
         ) : (
-          <MediaSearchField placeholder="Search for a song" onPick={setPicked} />
+          <MediaSearchField
+            placeholder="Search for a song"
+            // The one caller that genuinely needs a video: this is the
+            // song that plays on the profile.
+            needsVideo
+            onPick={(track, video) => {
+              if (!video) return;
+              setPicked({
+                youtubeId: video.id,
+                title: track.title,
+                artist: track.artist,
+                thumbnailUrl: track.thumbnailUrl,
+              });
+            }}
+          />
         )}
 
-        <input type="hidden" name="youtube_id" value={picked?.id ?? ""} />
+        <input type="hidden" name="youtube_id" value={picked?.youtubeId ?? ""} />
         <input type="hidden" name="title" value={picked?.title ?? ""} />
-        <input type="hidden" name="artist" value={picked?.channelTitle ?? ""} />
+        <input type="hidden" name="artist" value={picked?.artist ?? ""} />
         <input type="hidden" name="thumbnail_url" value={picked?.thumbnailUrl ?? ""} />
 
         <label className="checkbox-row">
