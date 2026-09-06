@@ -4785,6 +4785,135 @@ footer .copy {
   color: #d18f00;
 }
 
+/* ---- Discovery rails ---- */
+/* Rows of things to listen to on /recs. Sideways rather than wrapped, so
+   several directions fit on one screen and none of them is the page. */
+.find-rail {
+  padding: 14px 0 18px;
+  border-bottom: 1px solid var(--panel-border);
+}
+.find-rail:last-child {
+  border-bottom: none;
+}
+.find-rail-head {
+  padding: 0 16px 10px;
+}
+.find-rail-head h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.find-rail-head p {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+.find-rail-empty {
+  padding: 0 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.find-row {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding: 2px 16px 6px;
+  /* A snap position aligns with the scrollport edge, not the padding box,
+     so without this the row scrolls 16px on its own the moment it
+     overflows and the first cover sits flush against the screen. */
+  scroll-padding-inline: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.find-card {
+  flex: 0 0 148px;
+  scroll-snap-align: start;
+  min-width: 0;
+}
+.find-art {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--shelf-bg, rgba(0, 0, 0, 0.05));
+}
+.find-art img,
+.find-art-blank {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.find-art-blank {
+  background: linear-gradient(160deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.16));
+}
+/* Sits over the artwork rather than beside it: on a row of covers the
+   only thing worth tapping is the cover itself. */
+.find-play {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 11px;
+  line-height: 1;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: saturate(160%) blur(8px);
+  -webkit-backdrop-filter: saturate(160%) blur(8px);
+  cursor: pointer;
+}
+.find-play.playing {
+  background: var(--accent, #d34);
+}
+.find-name {
+  font-size: 12px;
+  margin-top: 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.find-artist {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.find-why {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.find-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 11px;
+}
+.find-actions .inline-form button,
+.find-review {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.find-review {
+  border: 1px solid var(--panel-border);
+  color: var(--text);
+}
+.find-review:hover {
+  text-decoration: none;
+}
+
 /* ---- Wrapped ---- */
 .wrapped-stats {
   display: grid;

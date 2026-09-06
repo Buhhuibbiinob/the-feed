@@ -81,10 +81,8 @@ export function PostForm({
   const posted = state.posted && state.posted.postId !== dismissedPost ? state.posted : null;
 
   useEffect(() => {
-    if (videoQuery.trim().length < MIN_QUERY_LENGTH) {
-      setVideoSearching(false);
-      return;
-    }
+    // Too short to send. The change handler already left the spinner off.
+    if (videoQuery.trim().length < MIN_QUERY_LENGTH) return;
     let cancelled = false;
     const timeout = setTimeout(async () => {
       try {
@@ -232,12 +230,11 @@ export function PostForm({
                   onChange={(e) => {
                     const value = e.target.value;
                     setVideoQuery(value);
-                    if (!value.trim()) {
-                      setVideoResults([]);
-                      setVideoSearching(false);
-                    } else {
-                      setVideoSearching(true);
-                    }
+                    if (!value.trim()) setVideoResults([]);
+                    // Matched to the threshold the effect uses, so a
+                    // spinner never runs for a query that is too short to
+                    // be sent - and the effect never has to switch it off.
+                    setVideoSearching(value.trim().length >= MIN_QUERY_LENGTH);
                   }}
                   autoComplete="off"
                 />

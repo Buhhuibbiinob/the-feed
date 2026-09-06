@@ -34,19 +34,17 @@ export function MediaSearchField({
   // in its body just costs an extra render pass to show the same spinner.
   function handleChange(value: string) {
     setQuery(value);
-    setSearching(!!value.trim());
+    // Matched to the threshold the effect uses. Anything looser leaves a
+    // spinner running for one or two characters that will never be sent.
+    setSearching(value.trim().length >= MIN_QUERY_LENGTH);
     if (!value.trim()) setResults([]);
   }
 
   useEffect(() => {
     const trimmed = query.trim();
-    if (trimmed.length < MIN_QUERY_LENGTH) {
-
-      setSearching(false);
-
-      return;
-
-    }
+    // Too short to send. handleChange has already left the spinner off,
+    // so there is nothing to undo here.
+    if (trimmed.length < MIN_QUERY_LENGTH) return;
 
     let cancelled = false;
     const timeout = setTimeout(async () => {

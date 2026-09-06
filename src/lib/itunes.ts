@@ -6,7 +6,22 @@ type ItunesTrack = {
   trackName?: string;
   artistName?: string;
   artworkUrl100?: string;
+  /** Apple's own 30-second clip. Public, keyless, and the reason
+   *  discovery can be listened to rather than only read. */
+  previewUrl?: string;
+  trackViewUrl?: string;
 };
+
+/** What a lookup can tell us about one track. Every field is optional
+ *  because the catalogue genuinely doesn't have all of them for
+ *  everything - an obscure record often has art and no preview. */
+export type ItunesTrackInfo = {
+  artworkUrl: string | null;
+  previewUrl: string | null;
+  trackUrl: string | null;
+};
+
+const NO_TRACK_INFO: ItunesTrackInfo = { artworkUrl: null, previewUrl: null, trackUrl: null };
 
 type ItunesArtist = {
   artistId?: number;
@@ -95,7 +110,18 @@ async function getArtistCatalog(artistName: string): Promise<ItunesTrack[]> {
   return promise;
 }
 
-export async function searchItunesArt(trackName: string, artistName: string): Promise<string | null> {
+/**
+ * Everything the catalogue has for one track: art, the 30-second preview,
+ * and a link to the store page.
+ *
+ * Same matching rules as before - a confident-looking wrong answer is
+ * worse than no answer, so a result is only used when its track and
+ * artist actually match what was asked for.
+ */
+export async function lookupItunesTrack(
+  trackName: string,
+  artistName: string
+): Promise<ItunesTrackInfo> {
   try {
     const params = new URLSearchParams({
       term: `${trackName} ${artistName}`,
@@ -113,14 +139,21 @@ export async function searchItunesArt(trackName: string, artistName: string): Pr
       const catalog = await getArtistCatalog(artistName);
       match = findMatch(catalog, trackName, artistName);
     }
+    if (!match) return NO_TRACK_INFO;
 
-    const art = match?.artworkUrl100;
-    if (!art) return null;
-
-    // iTunes serves a 100x100 thumbnail by default - swap the size segment
-    // in the URL for a much larger image.
-    return art.replace("100x100bb", "600x600bb");
+    return {
+      // iTunes serves a 100x100 thumbnail by default - swap the size
+      // segment in the URL for a much larger image.
+      artworkUrl: match.artworkUrl100?.replace("100x100bb", "600x600bb") ?? null,
+      previewUrl: match.previewUrl ?? null,
+      trackUrl: match.trackViewUrl ?? null,
+    };
   } catch {
-    return null;
+    return NO_TRACK_INFO;
   }
+}
+
+export async function searchItunesArt(trackName: string, artistName: string): Promise<string | null> {
+  const { artworkUrl } = await lookupItunesTrack(trackName, artistName);
+  return artworkUrl;
 }

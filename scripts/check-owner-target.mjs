@@ -20,6 +20,11 @@ import { readFileSync } from "node:fs";
 
 // The components rendered inside the Customize card, plus the modules
 // on the page that an owner edits in place.
+//
+// The mood ring, blurbs, top connections and sticker layer used to be
+// here. They went with the MySpace look, and leaving their names behind
+// left this check failing on every run for a file that was deleted on
+// purpose - a red check nobody can fix stops being a check.
 const FILES = [
   "src/components/AvatarPicker.tsx",
   "src/components/ProfileCustomize.tsx",
@@ -27,12 +32,8 @@ const FILES = [
   "src/components/ObsessedPicker.tsx",
   "src/components/ProfileSongPicker.tsx",
   "src/components/FavoritesEditor.tsx",
-  "src/components/MoodRing.tsx",
-  "src/components/BlurbsEditor.tsx",
-  "src/components/TopConnections.tsx",
   "src/components/PageAppearanceEditor.tsx",
   "src/components/PageBackgroundPicker.tsx",
-  "src/components/StickerLayer.tsx",
 ];
 
 const problems = [];

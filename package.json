@@ -15,6 +15,7 @@
     "check:store": "npx tsx scripts/store-check.ts",
     "check:slots": "npx tsx scripts/media-slots-check.ts",
     "check:labels": "npx tsx scripts/profile-labels-check.ts",
+    "check:discovery": "npx tsx scripts/discovery-check.ts",
     "check:search": "npx tsx scripts/video-search-check.ts",
     "check:afterpost": "npx tsx scripts/after-post-check.ts",
     "check:winback": "npx tsx scripts/winback-check.ts",
