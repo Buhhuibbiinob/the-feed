@@ -13341,6 +13341,35 @@ a.issue-link::after {
   background: color-mix(in srgb, var(--link) 16%, transparent);
   font-weight: 600;
 }
+/* The search box under the chips. Below rather than above: the eight
+   common answers are the likely ones, and a search box on top implies
+   you have to type before anything happens. */
+.genre-search {
+  margin-top: 8px;
+  width: 100%;
+  font-size: 12px;
+}
+.genre-chosen {
+  display: flex;
+}
+/* The chosen genre keeps the chip shape, so it is obviously the same
+   object you tapped rather than a new control that appeared. */
+.genre-chosen .genre-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 5px 8px 5px 12px;
+}
+.genre-clear {
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.55;
+}
+.genre-none {
+  font-size: 11.5px;
+  color: var(--muted);
+}
 /* The badge on a card is a link to everything else in that genre. Sized
    and shaped like the category badge beside it, so the pair reads as one
    thing rather than as a badge and a button. */
