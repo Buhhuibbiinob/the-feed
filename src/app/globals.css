@@ -9337,6 +9337,14 @@ button.btn,
 :root[data-mode="dark"] input[type="search"],
 :root[data-mode="dark"] input[type="url"],
 :root[data-mode="dark"] input[type="number"],
+:root[data-mode="dark"] input[type="tel"],
+:root[data-mode="dark"] input[type="date"],
+:root[data-mode="dark"] input[type="datetime-local"],
+/* The default. An <input> with no type IS a text field, and this list
+   did not have it, so seventy five fields across the site stayed white
+   boxes in dark mode - which the comment above calls the single most
+   obvious tell, and it was there the whole time. */
+:root[data-mode="dark"] input:not([type]),
 :root[data-mode="dark"] textarea,
 :root[data-mode="dark"] select {
   background-color: #101117;
@@ -9346,6 +9354,19 @@ button.btn,
 :root[data-mode="dark"] input::placeholder,
 :root[data-mode="dark"] textarea::placeholder {
   color: #6f7078;
+}
+/* The select needs its whole background replaced, not just its colour.
+   It is drawn with a background-IMAGE - a gel gradient plus the two
+   triangles that make the arrow - and setting background-color above
+   does nothing to an image sitting on top of it. So in dark mode the
+   select kept its light gel while the same rule set light text on it,
+   and "A select" was white on white. Exactly the failure the pale button
+   had, in a different place. */
+:root[data-mode="dark"] select {
+  background-image: linear-gradient(180deg, #5a5a61 0%, #45454b 46%, #35353a 50%, #26262a 100%),
+    linear-gradient(45deg, transparent 50%, #d8d8dc 50%),
+    linear-gradient(135deg, #d8d8dc 50%, transparent 50%);
+  border-color: #17171a;
 }
 
 /* Alternating rows read as stripes of white without this. */
@@ -15284,7 +15305,16 @@ input[type="email"],
 input[type="password"],
 input[type="search"],
 input[type="url"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
 input[type="datetime-local"],
+/* And the ones with no type on them at all, which is a text field by
+   definition and was the commonest kind in this codebase: seventy five
+   of them, every one rendering flat on a page where everything else is
+   raised or sunk. Listing every type and forgetting the default is the
+   sort of gap that only shows up next to a field that DID get styled. */
+input:not([type]),
 textarea,
 select {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16) inset, 0 -1px 0 rgba(0, 0, 0, 0.05) inset,

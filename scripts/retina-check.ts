@@ -122,6 +122,26 @@ if (rasterChrome.length === 0) {
   }
 }
 
+// ---- 5. A field with no type is still a field ----
+// `<input name="title" />` is a text input by definition, and it is the
+// commonest shape in this codebase. Every rule that lists the types has
+// to carry the default too, or those fields render flat in light mode
+// and as white boxes in dark mode, which is the one thing that gives a
+// dark page away.
+const typeLists = [...css.matchAll(/((?:[^{}]*input\[type="[a-z-]+"\][^{}]*,\s*){2,}[^{}]*)\{/g)];
+if (typeLists.length === 0) {
+  bad("no rule lists input types any more - if the styling moved somewhere else this check needs to move with it");
+} else {
+  const missing = typeLists.filter((m) => !/input:not\(\[type\]\)/.test(m[1]));
+  if (missing.length === 0) {
+    ok(`all ${typeLists.length} rule(s) that list input types also match a field with no type on it`);
+  } else {
+    for (const m of missing) {
+      bad(`${CSS}:${lineOf(m.index!)} lists input types but not \`input:not([type])\`, so every field written as <input name="..."> misses it`);
+    }
+  }
+}
+
 console.log(
   failed === 0
     ? "\nEight layers, whole numbers, no bitmaps. It would hold up at 2x."
