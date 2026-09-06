@@ -460,6 +460,7 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
                 key={post.id}
                 post={toCardData(post)}
                 currentUserId={user?.id ?? null}
+                viewerIsAdmin={admin}
                 liked={likedByMe.has(post.id)}
                 likeCount={likeCounts.get(post.id) ?? 0}
                 commentCount={commentCounts.get(post.id) ?? 0}

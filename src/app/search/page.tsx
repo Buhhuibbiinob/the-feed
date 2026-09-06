@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/admin";
 import { selectPosts } from "@/lib/postQuery";
 import { PostCard } from "@/components/PostCard";
 import { MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
@@ -66,6 +67,11 @@ export default async function SearchPage({
       </div>
     );
   }
+
+  // Moderation follows the moderator. An admin who can remove a post from
+  // the feed but not from the page they actually found it on has to go
+  // and find it again somewhere else first.
+  const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
 
   const escaped = query.replace(/[%_]/g, (c) => `\\${c}`);
   const pattern = `%${escaped}%`;
@@ -264,6 +270,7 @@ export default async function SearchPage({
                   username: post.profiles?.username ?? "unknown",
                 }}
                 currentUserId={user?.id ?? null}
+                viewerIsAdmin={viewerIsAdmin}
                 liked={likedByMe.has(post.id)}
                 likeCount={likeCounts.get(post.id) ?? 0}
                 commentCount={commentCounts.get(post.id) ?? 0}

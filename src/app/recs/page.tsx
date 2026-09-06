@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/admin";
 import { FindRail } from "@/components/FindRail";
 import {
   alreadyKnown,
@@ -61,6 +62,11 @@ export default async function RecsPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Moderation follows the moderator. An admin who can remove a post from
+  // the feed but not from the page they actually found it on has to go
+  // and find it again somewhere else first.
+  const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
 
   const [posts, { data: likeRows }, { data: commentRows }] = await Promise.all([
     selectPosts<PostRow>(
@@ -227,6 +233,7 @@ export default async function RecsPage() {
                 key={post.id}
                 post={toCardData(post)}
                 currentUserId={user?.id ?? null}
+                viewerIsAdmin={viewerIsAdmin}
                 liked={likedByMe.has(post.id)}
                 likeCount={likeCounts.get(post.id) ?? 0}
                 commentCount={commentCounts.get(post.id) ?? 0}
@@ -249,6 +256,7 @@ export default async function RecsPage() {
                 key={post.id}
                 post={toCardData(post)}
                 currentUserId={user?.id ?? null}
+                viewerIsAdmin={viewerIsAdmin}
                 liked={likedByMe.has(post.id)}
                 likeCount={likeCounts.get(post.id) ?? 0}
                 commentCount={commentCounts.get(post.id) ?? 0}

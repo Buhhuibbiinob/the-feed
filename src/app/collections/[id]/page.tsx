@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/admin";
 import { selectPosts } from "@/lib/postQuery";
 import { PostCard, type PostCardData } from "@/components/PostCard";
 import type { MediaType } from "@/lib/media";
@@ -54,6 +55,11 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Moderation follows the moderator. An admin who can remove a post from
+  // the feed but not from the page they actually found it on has to go
+  // and find it again somewhere else first.
+  const viewerIsAdmin = user ? await isAdmin(supabase, user.id) : false;
 
   const { data: collectionData } = await supabase
     .from("collections")
@@ -137,6 +143,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
                 <PostCard
                   post={toCardData(post)}
                   currentUserId={user?.id ?? null}
+                  viewerIsAdmin={viewerIsAdmin}
                   liked={likedByMe.has(post.id)}
                   likeCount={likeCounts.get(post.id) ?? 0}
                   commentCount={commentCounts.get(post.id) ?? 0}
