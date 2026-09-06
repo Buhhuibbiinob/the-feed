@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { FindRail } from "@/components/FindRail";
+import { ScreenRail } from "@/components/ScreenRail";
+import { screenFinds } from "@/lib/screenDiscovery";
 import {
   alreadyKnown,
   communitySeeds,
@@ -211,13 +213,17 @@ export default async function RecsPage() {
   // reshuffles rather than showing the same eight records until midnight.
   const rotateBy = shuffleSeed();
 
-  const [personal, scene, era] = await Promise.all([
+  const [personal, scene, era, screen] = await Promise.all([
     findsForSeeds(seeds, known, { rotateBy }),
     // Seeded by the styles this person keeps rating four and five, not
     // by the day - falling back to the day's scene when they have not
     // rated enough for it to mean anything.
     lovedSceneFinds(mine, known, { rotateBy }),
     eraFinds(known, { rotateBy }),
+    // Films and shows, the same shape as the music rails. Discover was
+    // music only, which on a site whose second category is film meant
+    // half the members had nothing here to find.
+    screenFinds(mine, known, { rotateBy }),
   ]);
   const [personalFinds, sceneRail, eraRail] = await Promise.all([
     enrichFinds(personal),
@@ -244,6 +250,21 @@ export default async function RecsPage() {
       <div className="panel">
         <div className="panel-head">Find something new</div>
         <div className="panel-body flush">
+          {/* The Crate and Shelves were only reachable from the More
+              menu, which is a place nobody browses - so nobody found
+              them. Discover is the hub for this, so it names the other
+              two doors. */}
+          <div className="discover-doors">
+            <Link href="/crate" className="discover-door">
+              <b>The Crate</b>
+              <span>Thirty records in no order. Hear one, keep it or put it back.</span>
+            </Link>
+            <Link href="/shelves" className="discover-door">
+              <b>Shelves</b>
+              <span>Browse by a year, a scene, a decade or a place.</span>
+            </Link>
+          </div>
+
           <FindRail
             title={
               personalSeeds.length > 0 ? "Out from what you love" : "Somewhere to start"
@@ -265,6 +286,16 @@ export default async function RecsPage() {
             }
             finds={sceneRail}
             empty={railProblem || "That scene came back empty today."}
+          />
+          <ScreenRail
+            title="Something to watch"
+            becauseOf={screen.becauseOf}
+            finds={screen.finds}
+            empty={
+              process.env.TMDB_API_KEY
+                ? "Nothing new to watch here right now - try again shortly."
+                : "Films and shows aren't switched on yet - TMDB_API_KEY is missing."
+            }
           />
           <FindRail
             title={`Deeper into the ${era.label}`}

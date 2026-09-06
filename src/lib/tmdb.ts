@@ -151,6 +151,38 @@ export async function discoverTv(genreId?: number, limit = 20): Promise<TmdbReco
   return (data?.results ?? []).slice(0, limit).map(simplifyShow);
 }
 
+/**
+ * Well-regarded, and not something everybody has already seen.
+ *
+ * discoverMovies sorts by popularity, which is the film equivalent of
+ * page one of a Last.fm tag: the twenty titles anybody could have named
+ * without being asked. This asks for the opposite - a high average vote
+ * with a CEILING on the number of votes, which is exactly how you
+ * describe a film that is good and that most people missed.
+ *
+ * The page offset is what makes a refresh move: TMDB will not shuffle
+ * for you, so the rail asks for a different page each time.
+ */
+export async function discoverDeepCuts(
+  kind: "movie" | "tv",
+  genreId: number | undefined,
+  page = 1,
+  limit = 12
+): Promise<TmdbRecommendation[]> {
+  const genreParam = genreId ? `&with_genres=${genreId}` : "";
+  // Floor as well as a ceiling. Below about 200 votes an average is
+  // noise - a 9.1 from eleven people is not a recommendation - and above
+  // about 4,000 it is a film everybody has seen.
+  const votes = "&vote_count.gte=200&vote_count.lte=4000&vote_average.gte=6.8";
+  const dateKey = kind === "movie" ? "primary_release_date" : "first_air_date";
+  const data = await tmdbFetch<{ results: (RawTmdbMovie & RawTmdbShow)[] }>(
+    `/discover/${kind}?sort_by=vote_average.desc${votes}${genreParam}` +
+      `&page=${Math.max(1, page)}&${dateKey}.lte=${new Date().toISOString().slice(0, 10)}`
+  );
+  const rows = data?.results ?? [];
+  return rows.slice(0, limit).map((row) => (kind === "movie" ? simplifyMovie(row) : simplifyShow(row)));
+}
+
 export async function getUpcomingMoviesAndTv(limit = 20): Promise<TmdbItem[]> {
   const [movies, shows] = await Promise.all([
     tmdbFetch<{ results: RawTmdbMovie[] }>("/movie/upcoming?region=US"),

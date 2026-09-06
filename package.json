@@ -16,6 +16,7 @@
     "check:slots": "npx tsx scripts/media-slots-check.ts",
     "check:labels": "npx tsx scripts/profile-labels-check.ts",
     "check:stickers": "npx tsx scripts/sticker-fallback-check.ts",
+    "check:screen": "npx tsx scripts/screen-check.ts",
     "check:darkmode": "npx tsx scripts/dark-mode-check.ts",
     "check:playlists": "npx tsx scripts/playlist-check.ts",
     "check:genrepicker": "npx tsx scripts/genre-picker-check.ts",

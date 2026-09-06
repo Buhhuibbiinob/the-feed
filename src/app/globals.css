@@ -6202,6 +6202,76 @@ footer .copy {
   color: var(--muted);
 }
 
+/* ---- Films and shows in a rail ----
+   A poster is 2:3, not square, so the card is taller than a record and
+   the row has to allow for it. */
+.screen-card {
+  flex: 0 0 116px;
+}
+.screen-poster {
+  position: relative;
+  width: 116px;
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--shelf-bg, rgba(0, 0, 0, 0.05));
+}
+.screen-poster img,
+.screen-poster-blank {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.screen-poster-blank {
+  background: linear-gradient(160deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.2));
+}
+/* Film or series, said out loud. A rail mixing the two without a label
+   is how somebody starts a "film" that turns out to be six hours. */
+.screen-kind {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: saturate(160%) blur(8px);
+  -webkit-backdrop-filter: saturate(160%) blur(8px);
+}
+
+/* ---- The three ways in ----
+   Discover is the hub, so the other two doors are named on it. Both were
+   only reachable from the More menu, which is a place nobody browses. */
+.discover-doors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 14px;
+}
+.discover-door {
+  flex: 1 1 200px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--panel-border);
+  color: var(--text);
+}
+.discover-door:hover {
+  text-decoration: none;
+  border-color: var(--muted);
+}
+.discover-door b {
+  display: block;
+  font-size: 13px;
+}
+.discover-door span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
 /* ---- The Crate ----
    A record held up in front of you, with the next one just showing
    behind it. Square, big, and centred: the sleeve is the whole page,
