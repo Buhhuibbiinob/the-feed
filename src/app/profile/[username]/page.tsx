@@ -26,6 +26,9 @@ import { ProfileSongPicker } from "@/components/ProfileSongPicker";
 import { StickerHub } from "@/components/StickerHub";
 import { Guestbook, type GuestbookEntry } from "@/components/Guestbook";
 import { fetchStickerHub } from "@/lib/stickerHub";
+import { fetchStickers } from "@/lib/stickerQuery";
+import { StickerLayer } from "@/components/StickerLayer";
+import type { Sticker } from "@/lib/stickers";
 import { getProfileLabels, personalise } from "@/lib/profileLabels";
 import {
   chartRows,
@@ -471,9 +474,6 @@ export default async function ProfilePage({
       : null,
   ].filter((h): h is { label: string; post: PostRow } => h !== null);
 
-  // The guestbook, top-connections and sticker queries were here too.
-  // The tables still hold every row; nothing on the page asks for them
-  // any more, which is three fewer round trips on every profile view.
   const { data: guestbookRows } = await supabase
     .from("guestbook_entries")
     .select("id, body, created_at, author_id, profiles!guestbook_entries_author_id_fkey(username, avatar_url)")
@@ -510,6 +510,24 @@ export default async function ProfilePage({
   // layout instead - a shopfront with one record on it looks broken in a
   // way a list does not.
   const hubStickers = await fetchStickerHub(supabase, profile.id);
+  // Loose stickers, placed anywhere on the page. The hub is the drawer
+  // you pick from; this is where they end up.
+  const stickerRows = await fetchStickers(supabase, profile.id);
+  const stickers: Sticker[] = stickerRows.map((row) => ({
+    id: row.id,
+    imageUrl: row.image_url,
+    x: row.x,
+    y: row.y,
+    // Null for anything placed before these columns existed, in which
+    // case the phone falls back to the position it already has.
+    mobileX: row.mobile_x ?? null,
+    mobileY: row.mobile_y ?? null,
+    scale: row.scale,
+    scaleY: row.scale_y ?? 1,
+    rotation: row.rotation,
+    skew: row.skew ?? 0,
+    z: row.z,
+  }));
   const mediaSlots = await fetchMediaSlots(supabase, profile.id);
   const L = personalise(await getProfileLabels(supabase), profile.username);
   const storeHero = heroPicks(posts);
@@ -1083,6 +1101,7 @@ export default async function ProfilePage({
       {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
       {user && <ProfilePing profileId={profile.id} isOwnProfile={isOwnProfile} />}
       <DecorateBar isOwner={canDecorate} />
+      <StickerLayer stickers={stickers} isOwner={canDecorate} ownerId={profile.id} />
 
       {/* The columns belong to the arranger now: it places each panel and
           lets the owner drag them between the two. The panels themselves
