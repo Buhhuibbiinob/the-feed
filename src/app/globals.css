@@ -5789,6 +5789,178 @@ footer .copy {
   }
 }
 
+/* ---- Shelves ----
+   A wall of dividers, then what is behind the one you picked. The
+   dividers stay on screen after a pick: browsing is comparing, and
+   hiding the wall makes every change of mind a trip backwards. */
+.shelf-intro,
+.shelf-pick {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 16px;
+  max-width: 42em;
+}
+.shelf-axes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.shelf-axis {
+  display: block;
+  padding: 14px;
+  border-radius: 9px;
+  border: 1px solid var(--panel-border);
+  color: var(--text);
+}
+.shelf-axis:hover {
+  text-decoration: none;
+  border-color: var(--muted);
+}
+.shelf-axis b {
+  display: block;
+  font-size: 14px;
+}
+.shelf-axis span {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.shelf-crumbs {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.shelf-crumbs b {
+  color: var(--text);
+}
+/* The dividers themselves. A scrolling strip rather than a wrapping
+   block, because the Year axis has sixty-odd of them and a wrapped
+   sixty-item grid pushes the records off the screen entirely. */
+.shelf-dividers {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scroll-padding-inline: 2px;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  scrollbar-width: thin;
+}
+.shelf-divider {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+}
+.shelf-divider:hover {
+  text-decoration: none;
+  border-color: var(--muted);
+}
+.shelf-divider.open {
+  border-color: transparent;
+  color: #fff;
+  background: var(--accent, #d34);
+}
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 16px 12px;
+}
+.shelf-record {
+  min-width: 0;
+}
+.shelf-art {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--shelf-bg, rgba(0, 0, 0, 0.05));
+}
+.shelf-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Same plain sleeve the Crate uses for a record with no cover: it does
+   not imply anything is loading or broken. */
+.shelf-art-blank {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #d9d5c9, #b8b3a4);
+}
+.shelf-art-blank span {
+  width: 34%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #fff 0 14%, #2a2a2e 15% 100%);
+}
+.shelf-play {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: saturate(160%) blur(8px);
+  -webkit-backdrop-filter: saturate(160%) blur(8px);
+}
+.shelf-play.playing {
+  background: var(--accent, #d34);
+}
+.shelf-name {
+  font-size: 12px;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shelf-artist {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shelf-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 6px;
+  font-size: 11px;
+}
+.shelf-actions .inline-form button,
+.shelf-review {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.shelf-review {
+  border: 1px solid var(--panel-border);
+  color: var(--text);
+}
+.shelf-review:hover {
+  text-decoration: none;
+}
+.shelf-empty {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
 /* ---- The Crate ----
    A record held up in front of you, with the next one just showing
    behind it. Square, big, and centred: the sleeve is the whole page,
@@ -6061,6 +6233,13 @@ footer .copy {
   gap: 8px;
   margin-top: 6px;
   font-size: 11px;
+}
+/* The queue button arrives wrapped in a form. Left inline it sits on
+   the text baseline while the Review link is a flex item, so the two
+   buttons stood at different heights. */
+.find-actions .inline-form,
+.shelf-actions .inline-form {
+  display: flex;
 }
 .find-actions .inline-form button,
 .find-review {
