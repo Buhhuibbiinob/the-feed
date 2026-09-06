@@ -245,8 +245,24 @@ body {
   background: var(--body-scrim), var(--body-image), var(--body-texture), var(--body-bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial,
-    sans-serif);
+  /* Helvetica Neue, not San Francisco.
+     -apple-system is deliberately NOT first here, and that is the whole
+     point: on any modern Apple device it resolves to San Francisco,
+     which shipped with iOS 9 in 2015. The era this site is built around
+     - the iPhone 4 and 5, iOS 4 through 6 - is Helvetica Neue, and the
+     difference is not subtle: SF has a taller x-height, wider apertures
+     and looser default tracking, all of which read as "2016 web app".
+     Helvetica Neue is the face in every screenshot this design comes
+     from, and it is also already --font-display, so the headings and
+     the body finally come from one family. */
+  font-family: var(
+    --font-family,
+    "Helvetica Neue",
+    Helvetica,
+    "Lucida Grande",
+    Arial,
+    sans-serif
+  );
   font-weight: 400;
   font-size: 13px;
   overflow-x: hidden;
@@ -413,6 +429,10 @@ a:hover {
   border-radius: 100px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) inset;
 }
+/* No box behind it. A filled panel floating on a coloured bar reads as
+   a control that was dropped on top of the chrome; a translucent one
+   takes the bar's own colour and reads as part of it - and it does that
+   on a light bar and a dark one without a per-theme fill each. */
 .nav-search input {
   border: none;
   background: none;
@@ -4977,6 +4997,23 @@ footer .copy {
   flex: 1;
 }
 
+/* ---- The search field in the bar ---- */
+.nav-search {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+}
+.nav-search input {
+  color: var(--nav-text, #fff);
+}
+.nav-search input::placeholder {
+  color: rgba(255, 255, 255, 0.62);
+}
+:root[data-mode="dark"] .nav-search {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 /* ---- The Feed TV, per era ---- */
 /* Deliberately not written as theme-attribute rules. Those are held to
    colour, background and font so the page layout never has to be
@@ -7875,26 +7912,64 @@ footer .copy {
   /* The back button is a real arrow, not a rounded rect with a chevron
      glued on - clipped to a point on its left edge the way the artwork
      was drawn. */
+  /* The point is a rotated square tucked behind the body, not a
+     clip-path.
+     clip-path cuts away the border and the shadow along with the
+     shape, so the button had no outline, no bevel and a raw sawn edge -
+     which is exactly what made it look unfinished. Built this way it
+     keeps a real 1px border, a rounded right end and the same glaze as
+     every other button, and the two pieces share one continuous
+     outline. */
   .sk-ios-back {
     position: relative;
     z-index: 1;
     font-size: 13px;
     font-weight: 700;
     color: #fff;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
-    padding: 6px 12px 6px 18px;
-    border: 0;
-    background: repeating-linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.08) 0px,
-        rgba(255, 255, 255, 0.08) 1px,
-        transparent 1px,
-        transparent 2px
-      ),
-      linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
-    clip-path: polygon(9px 0, 100% 0, 100% 100%, 9px 100%, 0 50%);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+    padding: 6px 13px 6px 15px;
+    margin-left: 7px;
+    border: 1px solid #3f4d68;
+    border-radius: 4px;
+    background-image: var(--glaze), var(--sk-back-face);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
     cursor: pointer;
   }
+  /* The point: two clipped rectangles, a dark one for the outline and a
+     gradient one over it for the face.
+     Border triangles were clean but could only be a flat colour, so the
+     point read a shade off the body it joined. clip-path on a
+     pseudo-element has no such limit - and unlike clipping the BUTTON
+     it costs nothing, because a pseudo-element has no border or shadow
+     to be cut away. That was the original fault: clip-path on
+     .sk-ios-back itself removed the outline and the bevel and left a
+     sawn edge.
+     A rotated square is not the answer either - a negative z-index child
+     paints ABOVE its parent's background, so it showed as a diamond
+     sitting on the button. */
+  .sk-ios-back::before,
+  .sk-ios-back::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    clip-path: polygon(100% 0, 100% 100%, 0 50%);
+  }
+  .sk-ios-back::before {
+    left: -10px;
+    margin-top: -10px;
+    width: 10px;
+    height: 20px;
+    background: #3f4d68;
+  }
+  .sk-ios-back::after {
+    left: -9px;
+    margin-top: -9px;
+    width: 9px;
+    height: 18px;
+    /* The same face as the body, so the join is invisible. */
+    background-image: var(--glaze), var(--sk-back-face);
+  }
+
   .sk-ios-back:active,
   .sk-ios-action:active {
     filter: brightness(0.9);
@@ -9276,11 +9351,7 @@ body {
    edge and one pixel of shade inside the top. It was a near-black
    recessed well, which was right when the bar was charcoal - on silver
    it was a black slab, the heaviest thing on the screen. */
-[data-theme="ios-light"] .nav-search {
-  background: #ffffff;
-  border: 1px solid #a8abb2;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.14) inset, 0 1px 0 rgba(255, 255, 255, 0.7);
-}
+
 [data-theme="ios-light"] .nav-search input {
   color: #2a2a2d;
 }
@@ -11669,11 +11740,7 @@ a,
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 1px 1px rgba(0, 0, 0, 0.45);
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
 }
-[data-theme="ios-light"][data-mode="dark"] .nav-search {
-  background: #1c1d20;
-  border: 1px solid #0c0d0e;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) inset, 0 1px 0 rgba(255, 255, 255, 0.1);
-}
+
 [data-theme="ios-light"][data-mode="dark"] .nav-search input {
   color: #eaeaee;
 }
@@ -12606,17 +12673,7 @@ a.issue-link::after {
 
 /* The search well sits IN the bar, so it is recessed slate rather than
    a white pill floating on it. */
-[data-theme="ios-light"] .nav-search {
-  background: rgba(28, 38, 56, 0.42);
-  border: 1px solid #3a4760;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.34) inset, 0 1px 0 rgba(255, 255, 255, 0.24);
-}
-[data-theme="ios-light"] .nav-search input {
-  color: #ffffff;
-}
-[data-theme="ios-light"] .nav-search input::placeholder {
-  color: rgba(255, 255, 255, 0.62);
-}
+
 
 /* ---- Decorate bar -----------------------------------------------------
    Fixed at the foot of your own profile. Decorating is something people
@@ -13825,9 +13882,10 @@ a.issue-link::after {
 
    NO THEME SETS A FONT. Every one of these used to swap --font-family -
    Verdana for the 90s, Trebuchet for the 2000s - and the body falls
-   back to -apple-system when nothing sets it, which is San Francisco.
-   So removing those six declarations is what keeps San Francisco
-   everywhere; adding one back is what would lose it.
+   back to whatever the default stack is when nothing sets it. Removing
+   those six declarations is what keeps ONE face across the whole site;
+   adding one back is what would lose it. (That face is now Helvetica
+   Neue rather than San Francisco - see the note on body above.)
 
    Colours only, as ever: the shapes, spacing and bevels come from the
    site's own defaults, so switching theme recolours the page without
@@ -14681,6 +14739,11 @@ a.issue-link::after {
      it from the top left, so the sweep is diagonal and the specular
      cut is much fainter. A bar with a button's gloss on it looks like
      a very wide button. */
+  /* The back arrow's face. One token because the button and the point
+     that sticks out of it are two elements, and two hard-coded copies of
+     a gradient is two things to forget to change together. */
+  --sk-back-face: linear-gradient(180deg, #7b8eb0 0%, #6d80a4 47%, #5f7396 53%, #506383 100%);
+
   --glaze-bar: linear-gradient(
       104deg,
       rgba(255, 255, 255, 0) 26%,
@@ -14834,6 +14897,12 @@ select {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16) inset, 0 -1px 0 rgba(0, 0, 0, 0.05) inset,
     0 1px 0 rgba(255, 255, 255, 0.9);
 }
+/* Except the one in the bar. It has no box of its own to be recessed
+   into, so the lit bottom lip landed as a stray white line under the
+   placeholder. */
+.nav-search input {
+  box-shadow: none;
+}
 
 /* ---- Cards ----
    A grouped card in that era was not flat white: it had a lit top edge
@@ -14854,6 +14923,47 @@ select {
   .new-post-btn {
     transition: none;
   }
+}
+
+/* ================================================================
+   TYPE
+   ----------------------------------------------------------------
+   The tracking that goes with Helvetica Neue.
+
+   Swapping the family is only half of it. San Francisco is drawn to be
+   set loose and is optically sized by the OS; Helvetica Neue at display
+   sizes needs to be pulled IN or it reads as a word-processor heading.
+   Apple's own material from that era tracks large text tight and small
+   text slightly open, and that contrast is a large part of why the
+   period looks the way it does.
+   ================================================================ */
+
+h1,
+h2,
+.page-header h1,
+.tab-main {
+  letter-spacing: -0.022em;
+}
+h3,
+.panel-head,
+.panel-head-tab {
+  letter-spacing: -0.012em;
+}
+/* Small caps labels go the other way: at 11px, Helvetica Neue set tight
+   turns into a smudge. */
+.field label,
+.ts,
+.sub,
+.field-hint {
+  letter-spacing: 0.005em;
+}
+/* Buttons carry their weight rather than their size in this era: 600 at
+   a small size with tight tracking, not 700 at a large one. */
+.btn,
+button.btn,
+.new-post-btn,
+.acct-btn {
+  letter-spacing: -0.01em;
 }
 
 /* ================================================================
@@ -15632,3 +15742,15 @@ select {
   /* The iframe would otherwise eat the click that the tile is for. */
   pointer-events: none;
 }
+
+/* ----------------------------------------------------------------
+   END OF THE STORE BLOCK, AND OF THE FILE.
+
+   check:profilescope reads everything from the store banner above to
+   here as store CSS, and requires every selector in it to be anchored
+   to a profile-only class. So DO NOT APPEND general rules below this
+   point - they will fail the check, and if the check ever went away
+   they would put the iTunes treatment on the feed.
+
+   New global rules go above that banner.
+   ---------------------------------------------------------------- */
