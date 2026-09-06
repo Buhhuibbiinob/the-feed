@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { TvControls } from "@/components/TvControls";
+import { nextChannel, tvEraForTheme } from "@/lib/tvEra";
 
 export type FeedTvClip = {
   id: string;
@@ -151,6 +153,26 @@ function subscribeSize(onChange: () => void) {
   };
 }
 
+// Which theme the site is wearing, read off <html> rather than passed
+// down.
+//
+// The attribute is already there - layout.tsx sets it - and reading it
+// live means the set changes with the theme instead of only on a reload.
+// Same external-store shape as the size preference above, so the server
+// render and the first client render agree on the default.
+function subscribeTheme(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
+  return () => observer.disconnect();
+}
+
+function readTheme(): string {
+  return document.documentElement.getAttribute("data-theme") ?? "";
+}
+
 export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   const playerElRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -161,6 +183,7 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   const [tab, setTab] = useState<Tab>("playing");
   const [progress, setProgress] = useState({ current: 0, duration: 0 });
   const size = useSyncExternalStore(subscribeSize, readStoredSize, () => DEFAULT_SIZE);
+  const themeId = useSyncExternalStore(subscribeTheme, readTheme, () => "");
   const isFirstRender = useRef(true);
   // Scrub state lives up here with the other hooks: everything below the
   // `clips.length === 0` early return runs conditionally, and a hook there
@@ -245,6 +268,10 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
     setIndex((i) => (i + 1) % clips.length);
   }
 
+  function skipPrevious() {
+    setIndex((i) => nextChannel(i, clips.length, -1));
+  }
+
   const current = clips[index];
   // The scrub bar was painted from progress but had no handlers at all, so
   // it looked like a control and did nothing. Pointer events give it drag,
@@ -297,6 +324,11 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
   const scrubPct = scrubbing !== null ? scrubbing * 100 : livePct;
 
   const width = SIZES.find((s) => s.id === size)!.width;
+  // The chassis. Everything the era changes is markup and a class name -
+  // deliberately not a [data-theme] block, because those are held to
+  // colour, background and font so the page layout never has to be
+  // re-tested against every theme.
+  const era = tvEraForTheme(themeId);
 
   return (
     // width, not just maxWidth: as a full-width block, max-width alone was
@@ -304,14 +336,20 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
     // content, an element with only a max-width has nothing to fill and
     // collapses to its minimum, so XL rendered at 300px. An explicit width
     // capped at 100% behaves correctly in both.
-    <div className="feedtv-standalone" style={{ width, maxWidth: "100%" }}>
+    <div className={`feedtv-standalone tv-set tv-${era.id}`} style={{ width, maxWidth: "100%" }}>
       <div className="yt-shell">
           {/* Brand plate on the left, then a recessed LCD showing what's on,
               the way an iTunes mini-player puts the track in a sunken screen
               rather than printing it on the chrome. */}
           <div className="yt-topbar">
             <span className="yt-brand">
-              The Feed<span className="yt-red">TV</span>
+              {era.id === "modern" ? (
+                <>
+                  The Feed<span className="yt-red">TV</span>
+                </>
+              ) : (
+                era.brand
+              )}
             </span>
             <span className="yt-lcd">
               <span className="yt-lcd-scan" aria-hidden="true" />
@@ -353,6 +391,20 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
             <div ref={playerElRef} className="feedtv-iframe-target" />
             {switching && <div className="feedtv-static" />}
           </div>
+          <TvControls
+            era={era}
+            clips={clips}
+            index={index}
+            paused={paused}
+            muted={muted}
+            actions={{
+              select: setIndex,
+              next: skipNext,
+              previous: skipPrevious,
+              togglePause,
+              toggleMute,
+            }}
+          />
           <div className="yt-scrub-row">
             <div className="time">{formatTime(progress.current)}</div>
             <div
