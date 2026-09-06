@@ -90,7 +90,7 @@ export function StickerHub({
                       <button
                         type="submit"
                         className={`sticker-pack-cell${already ? " owned" : ""}`}
-                        title={already ? `${sticker.label} - already yours` : sticker.label}
+                        title={already ? `${sticker.label}, already yours` : sticker.label}
                         aria-label={sticker.label}
                         disabled={already}
                       >

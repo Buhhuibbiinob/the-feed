@@ -92,7 +92,7 @@ export async function generateMetadata({
   if (!post) return {};
 
   const username = post.profiles?.username ?? "someone";
-  const title = post.artist ? `${post.title} - ${post.artist}` : post.title;
+  const title = post.artist ? `${post.title} by ${post.artist}` : post.title;
   const description = `Reviewed by ${username}: ${post.body}`;
 
   return {

@@ -11,7 +11,7 @@ import { EmailPrefsForm } from "@/components/EmailPrefsForm";
 import { DeleteAccountForm } from "@/components/DeleteAccountForm";
 import { resolveEmailPrefs, resolveNudgePref } from "@/lib/emailPrefs";
 
-export const metadata = { title: "Settings - Feedback" };
+export const metadata = { title: "Settings on Feedback" };
 
 export default async function SettingsPage() {
   const supabase = await createClient();

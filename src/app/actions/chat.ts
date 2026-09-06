@@ -23,6 +23,6 @@ export async function sendChatMessage(body: string, clubId: string | null): Prom
     body: trimmed,
     club_id: clubId,
   });
-  if (error) return { error: "Couldn't send that message - you may be blocked." };
+  if (error) return { error: "That message did not send. You may have been blocked." };
   return {};
 }

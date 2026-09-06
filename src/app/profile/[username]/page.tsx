@@ -747,7 +747,7 @@ export default async function ProfilePage({
               )}
               {isOwnProfile && nextUp && (
                 <div className="profile-badge-next">
-                  Next up: <b>{nextUp.label}</b> - {nextUp.description} (
+                  Next up: <b>{nextUp.label}</b>, {nextUp.description} (
                   {nextUp.progress(achievementContext).current}/
                   {nextUp.progress(achievementContext).target})
                 </div>
@@ -959,7 +959,7 @@ export default async function ProfilePage({
             <div className="panel-head">{L.stats}</div>
             <div className="panel-body flush">
               {/* Three figures across the top, the way a profile states
-                  itself in every one of the references - big number over a
+                  itself in every one of the references: big number over a
                   small grey label, one object rather than three boxes. */}
               <div className="stat-strip">
                 <span className="stat-cell">
@@ -1105,12 +1105,12 @@ export default async function ProfilePage({
 
       {/* The columns belong to the arranger now: it places each panel and
           lets the owner drag them between the two. The panels themselves
-          are still rendered here on the server - the arranger only decides
+          are still rendered here on the server: the arranger only decides
           where they go. */}
       {/* Full width, outside the columns.
           
           It used to live in mainHeader, which is one cell of a
-          two-column grid - so the side column kept its 280px whether or
+          two-column grid: so the side column kept its 280px whether or
           not anything was in it, and the store was squeezed into what
           was left with a strip of wallpaper beside it. The store is the
           page; the columns are what comes after it. */}
@@ -1150,7 +1150,7 @@ export default async function ProfilePage({
                     <>
                       {MEDIA_VERBS[status.status_media_type as MediaType] ?? "Listening to"}{" "}
                       <b>{status.status_title}</b>
-                      {status.status_artist && <> - {status.status_artist}</>}
+                      {status.status_artist && <> · {status.status_artist}</>}
                     </>
                   )}
                   {profile.bio && (
@@ -1239,7 +1239,7 @@ export default async function ProfilePage({
           page with the widgets taken out: same shape, same idea, just
           emptier. Removing the widgets was never going to fix it, so the
           column is gone and each piece went where the store already had
-          a place for it - the links into the Source list, the numbers
+          a place for it: the links into the Source list, the numbers
           into the status bar, the bio onto the photo. Only the editors
           were left, and they belong at the end, after the page they
           edit. */}

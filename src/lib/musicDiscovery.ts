@@ -447,7 +447,7 @@ export function discoveryStatus(railCounts: number[]): DiscoveryStatus {
 export function describeDiscoveryStatus(status: DiscoveryStatus): string {
   switch (status) {
     case "not-configured":
-      return "Music discovery isn't switched on yet - LASTFM_API_KEY is missing.";
+      return "Music discovery isn't switched on yet: LASTFM_API_KEY is missing.";
     case "unavailable":
       return "Couldn't reach Last.fm just now. The picks come back as soon as it does.";
     default:

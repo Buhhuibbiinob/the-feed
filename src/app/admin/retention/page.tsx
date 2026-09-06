@@ -88,7 +88,7 @@ export default async function RetentionPage() {
                 </span>
               </div>
               <p className="field-hint">
-                One-time setup: {edits.oneTime}. Repeat tweaking is the number that matters - it is
+                One-time setup: {edits.oneTime}. Repeat tweaking is the number that matters, because it is
                 the behaviour the whole profile bet rests on.
               </p>
               <div className="metric-bars">
@@ -163,7 +163,7 @@ export default async function RetentionPage() {
             </table>
           )}
           <p className="field-hint">
-            Only activity after a member was bucketed counts - comparing lifetime totals would just
+            Only activity after a member was bucketed counts. Comparing lifetime totals would just
             say which bucket caught the older accounts. Members are split by a hash of their id, so
             each person always sees the same layout. Signed-out visitors all get the current one.
           </p>

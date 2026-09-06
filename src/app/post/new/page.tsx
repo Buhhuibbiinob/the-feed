@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PostForm } from "@/components/PostForm";
 import { isMediaType } from "@/lib/media";
 
-export const metadata = { title: "New Post - Feedback" };
+export const metadata = { title: "New Post on Feedback" };
 
 export default async function NewPostPage({
   searchParams,

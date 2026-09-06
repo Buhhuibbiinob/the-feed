@@ -165,7 +165,7 @@ export function PostCard({
         <div className="track-body">
           <Link href={`/post/${post.id}`} className="track-title">
             <EmojiText>{post.title}</EmojiText>
-            {post.artist && <> - {post.artist}</>}
+            {post.artist && <> · {post.artist}</>}
           </Link>
           <div className="track-actions">
             {/* Built as a list so a pipe only ever appears BETWEEN two real
@@ -205,7 +205,7 @@ export function PostCard({
               <ShareButton
                 key="share"
                 postId={post.id}
-                title={`${post.title}${post.artist ? ` - ${post.artist}` : ""}`}
+                title={`${post.title}${post.artist ? ` by ${post.artist}` : ""}`}
                 asLink
               />,
               canEdit ? (
@@ -255,7 +255,7 @@ export function PostCard({
         )}
         <span className={`badge ${post.mediaType}`}>{MEDIA_LABELS[post.mediaType]}</span>
         {/* A link, not a label. A genre you can't click is a genre nobody
-            has a reason to set - this is the whole payoff for filling the
+            has a reason to set: this is the whole payoff for filling the
             field in, and the only thing that will get it filled in. */}
         {post.genre && (
           <Link href={`/?type=${post.mediaType}&genre=${post.genre}#reviews`} className="badge genre">
@@ -280,7 +280,7 @@ export function PostCard({
           </div>
         )}
         {/* A rating on its own is a whole post now, so the body is only
-            rendered when there is one - otherwise every logged rating
+            rendered when there is one: otherwise every logged rating
             left an empty gap where the words would have been. */}
         {post.body.trim() && <SpoilerText text={post.body} />}
         {reactions && (
@@ -311,7 +311,7 @@ export function PostCard({
           {timeAgo(post.createdAt)}
           {/* Points at the thing itself now, where all of those reviews
               and their average are, rather than at this one review's
-              comments - which was the best available answer before works
+              comments: which was the best available answer before works
               existed. Falls back to the post when the review has not been
               linked to a work yet. */}
           {(post.alsoReviewedCount ?? 0) > 0 && (

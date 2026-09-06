@@ -49,7 +49,7 @@ export async function handRecord(
     // is the difference between a button that explains itself and one
     // that silently does nothing.
     if (isMissingSchema(error.message)) {
-      return { error: "Handing records over isn't set up yet - run migration 012." };
+      return { error: "Handing records over isn't set up yet: run migration 012." };
     }
     return { error: friendlyDbError(error.message) };
   }

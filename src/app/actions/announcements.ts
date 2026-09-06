@@ -72,7 +72,7 @@ export async function createAnnouncement(
     const missingTable = /relation .* does not exist|schema cache/i.test(error.message);
     return {
       error: missingTable
-        ? "The announcements table isn't there yet - run migration 009 in the Supabase SQL editor, then try again."
+        ? "The announcements table isn't there yet: run migration 009 in the Supabase SQL editor, then try again."
         : error.message,
     };
   }

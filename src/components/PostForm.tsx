@@ -295,7 +295,7 @@ export function PostForm({
 
           {/* A photograph comes off a phone, not off a URL bar. Pasting a
               link meant hosting the picture somewhere else first, which
-              is not a thing anybody does from a phone - so the category
+              is not a thing anybody does from a phone: so the category
               existed and could not actually be posted to. */}
           {mediaType === "photography" && !selectedVideo && (
             <div className="field">
@@ -370,7 +370,7 @@ export function PostForm({
           )}
 
           {/* Falls back to the artist the queue item carried. Without
-              this, a prefilled music review posts with no artist - and
+              this, a prefilled music review posts with no artist. And
               the artist is what a music post's club is keyed on, so it
               would quietly land in no club at all. */}
           <input

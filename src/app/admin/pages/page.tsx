@@ -7,7 +7,7 @@ import { SITE_FLAGS, getSiteFlags } from "@/lib/siteFlags";
 import { setBuiltinPageArchived, setCustomPageArchived, deleteCustomPage, setSiteFlag } from "@/app/actions/pages";
 import { CreatePageForm } from "@/components/CreatePageForm";
 
-export const metadata = { title: "Pages - Feedback" };
+export const metadata = { title: "Pages on Feedback" };
 
 export default async function AdminPagesPage({
   searchParams,
@@ -94,7 +94,7 @@ export default async function AdminPagesPage({
         <div className="panel-body flush">
           {customPages.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              No custom pages yet - add one below.
+              No custom pages yet. Add one below.
             </div>
           ) : (
             customPages.map((p) => (

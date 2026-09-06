@@ -33,11 +33,11 @@ function DvdCaseShelf({ items }: { items: ShelfItem[] }) {
           </>
         );
         return item.href ? (
-          <Link href={item.href} className="sk-dvd-spine-case" style={imageStyle} key={item.id} title={`${item.title} - ${item.subtitle}`}>
+          <Link href={item.href} className="sk-dvd-spine-case" style={imageStyle} key={item.id} title={`${item.title} by ${item.subtitle}`}>
             {inner}
           </Link>
         ) : (
-          <div className="sk-dvd-spine-case" style={imageStyle} key={item.id} title={`${item.title} - ${item.subtitle}`}>
+          <div className="sk-dvd-spine-case" style={imageStyle} key={item.id} title={`${item.title} by ${item.subtitle}`}>
             {inner}
           </div>
         );
@@ -49,7 +49,7 @@ function DvdCaseShelf({ items }: { items: ShelfItem[] }) {
 export function Shelf({
   title,
   items,
-  emptyMessage = "Nothing here yet - be the first to post one.",
+  emptyMessage = "Nothing here yet. Be the first to post one.",
   tone,
 }: {
   title: string;
@@ -90,7 +90,7 @@ export function Shelf({
                     onClick={() => setOpenId(open ? null : item.id)}
                     role="button"
                     tabIndex={0}
-                    aria-label={`${item.title} - ${item.subtitle}`}
+                    aria-label={`${item.title} by ${item.subtitle}`}
                   >
                     <div className="sk-stack-sheet sheet-1" />
                     <div className="sk-stack-sheet sheet-2" />

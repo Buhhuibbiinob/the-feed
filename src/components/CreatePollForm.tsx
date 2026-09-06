@@ -41,7 +41,7 @@ export function CreatePollForm() {
       <input
         type="text"
         name="question"
-        placeholder="Ask something (optional) — e.g. which one's better?"
+        placeholder="Ask something if you want. Which one is better?"
         maxLength={MAX_POLL_QUESTION}
       />
 

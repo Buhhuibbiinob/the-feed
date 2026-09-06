@@ -4,6 +4,7 @@ import { guardBuiltinPage } from "@/lib/pages";
 import { ShelfDividers } from "@/components/ShelfDividers";
 import { ShelfRecords } from "@/components/ShelfRecords";
 import { axes, getShelf, isAxis, isShelfValue, shelfTitle } from "@/lib/shelves";
+import { decadeTagForYear } from "@/lib/physicalMedia";
 import {
   alreadyKnown,
   describeDiscoveryStatus,
@@ -11,7 +12,7 @@ import {
   type SeedPost,
 } from "@/lib/musicDiscovery";
 
-export const metadata = { title: "Shelves - Feedback" };
+export const metadata = { title: "Shelves on Feedback" };
 
 /**
  * A wall of dividers.
@@ -116,6 +117,18 @@ export default async function ShelvesPage({
               <ShelfRecords
                 records={records}
                 emptyNote={problem || "Nothing behind that divider. Try one either side of it."}
+                // A decade shelf gets one format for the whole shelf, so
+                // the era is legible from across the room. A year shelf
+                // gets the same treatment from its own decade, since
+                // 1978 and 1974 were sold on the same object. Every
+                // other axis leaves it to the record.
+                decade={
+                  openAxis.id === "decade"
+                    ? value
+                    : openAxis.id === "year"
+                      ? decadeTagForYear(Number(value))
+                      : null
+                }
               />
             ) : (
               <p className="shelf-pick">{openAxis.prompt}</p>

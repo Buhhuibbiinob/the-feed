@@ -7,7 +7,7 @@ import { ORBY_DAILY_LIMIT } from "@/lib/orby";
 
 const SYSTEM_PROMPT_BASE = `You are Orby, a friendly recommendation assistant on Feedback, a music/movie/TV review community site. You ONLY discuss and recommend music, movies, TV shows, underground/indie artists, and short films - nothing else. If asked about anything off-topic, politely redirect back to recommendations in one short sentence and don't answer the off-topic part.
 
-Keep replies conversational but brief (2-4 sentences max, like a chat message, not an essay). For music, prefer picking from the REAL trending tracks and underground artists listed below when they fit what the user asked for - don't invent fake artist names or song titles for those. For movies, TV shows, and short films, there's no live candidate list provided - use your own knowledge to recommend real, well-known titles that fit the request. Never fabricate plot details, release dates, or facts you're not confident about - if you're not sure of a detail, don't state it.`;
+Keep replies conversational but brief (2-4 sentences max, like a chat message, not an essay). For music, prefer picking from the REAL trending tracks and underground artists listed below when they fit what the user asked for - don't invent fake artist names or song titles for those. For movies, TV shows, and short films, there's no live candidate list provided - use your own knowledge to recommend real, well-known titles that fit the request. Never fabricate plot details, release dates, or facts you're not confident about. If you're not sure of a detail, don't state it.`;
 
 // Genie-in-a-bottle rules: 3 wishes (messages) per user, per day.
 // The limit itself lives in @/lib/orby so the client can read it too.
@@ -59,14 +59,14 @@ export async function askOrby(message: string): Promise<OrbyReply> {
   // An empty message must not burn a wish.
   if (!trimmed) {
     return {
-      text: "Ask me for a recommendation - music, a movie, a show, or an underground artist!",
+      text: "Ask me for a recommendation: music, a movie, a show, or an underground artist!",
       wishesLeft: left,
     };
   }
 
   if (usedToday >= DAILY_LIMIT) {
     return {
-      text: `You've used all ${DAILY_LIMIT} of your wishes for today - come back tomorrow for ${DAILY_LIMIT} more!`,
+      text: `You have used all ${DAILY_LIMIT} of your wishes for today. Come back tomorrow for ${DAILY_LIMIT} more!`,
       wishesLeft: 0,
     };
   }
@@ -121,7 +121,7 @@ export async function askOrby(message: string): Promise<OrbyReply> {
 
   const pool = wantsScreen && !wantsMusic ? screenPool : wantsMusic && !wantsScreen ? musicPool : [...screenPool, ...musicPool];
   if (pool.length === 0) {
-    return { text: "I couldn't find anything to recommend right now - try again in a bit!", wishesLeft };
+    return { text: "I could not find anything to recommend just now. Give it a minute and ask again!", wishesLeft };
   }
   const pick = pool[Math.floor(Math.random() * pool.length)];
   return { text: `Orby recommends: **${pick}**.`, wishesLeft };

@@ -4,7 +4,7 @@ import { getPublishedIssues } from "@/lib/newsletter";
 import { NewsletterSubscribeForm } from "@/components/NewsletterSubscribeForm";
 import { guardBuiltinPage } from "@/lib/pages";
 
-export const metadata = { title: "Newsletter - Feedback" };
+export const metadata = { title: "Newsletter on Feedback" };
 
 export default async function NewsletterArchivePage() {
   const supabase = await createClient();
@@ -28,7 +28,7 @@ export default async function NewsletterArchivePage() {
         <div className="panel-head">Subscribe</div>
         <div className="panel-body">
           <p className="field-hint" style={{ marginBottom: 10 }}>
-            Get the weekly issue by email - no account required.
+            Get the weekly issue by email. No account needed.
           </p>
           <NewsletterSubscribeForm />
         </div>
@@ -39,7 +39,7 @@ export default async function NewsletterArchivePage() {
         <div className="panel-body flush">
           {issues.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              No issues published yet - check back soon.
+              No issues published yet: check back soon.
             </div>
           ) : (
             issues.map((issue) => (

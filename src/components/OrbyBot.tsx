@@ -8,7 +8,7 @@ type OrbyMessage = { from: "user" | "orby"; text: string };
 
 const GREETING: OrbyMessage = {
   from: "orby",
-  text: "Hi, I'm Orby! Ask me for a recommendation - music, a movie, a show, or an underground artist - and I'll find one for you. I only do recommendations, so that's the only thing I'll answer! You get 3 wishes a day, so make them count.",
+  text: "Hi, I'm Orby! Ask me for a recommendation and I'll find you one. Music, a film, a show, an underground artist, whatever you fancy. Recommendations are the only thing I do, so it is the only thing I can answer. You get three wishes a day, so make them count.",
 };
 
 // wishesLeft is null for signed-out visitors: they can see what Orby is, but
@@ -72,7 +72,7 @@ export function OrbyBot({ wishesLeft: initialWishes = null }: { wishesLeft?: num
       >
         <input
           type="text"
-          placeholder={spent ? "Out of wishes - back tomorrow" : "Ask Orby for a recommendation…"}
+          placeholder={spent ? "Out of wishes. Back tomorrow" : "Ask Orby for a recommendation…"}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           disabled={pending || spent}

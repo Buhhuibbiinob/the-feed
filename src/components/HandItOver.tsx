@@ -45,7 +45,7 @@ export function HandItOver({
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)}>
+      <button type="button" className="btn btn-ghost" onClick={() => setOpen(true)}>
         Hand it to someone
       </button>
     );
@@ -82,7 +82,7 @@ export function HandItOver({
         type="text"
         name="note"
         maxLength={MAX_NOTE}
-        placeholder="Why them? — “the one I kept going on about”"
+        placeholder="Why them? “The one I kept going on about”"
         className="handover-note"
       />
 
@@ -90,7 +90,7 @@ export function HandItOver({
 
       <div className="handover-actions">
         <button type="submit" className="btn" disabled={pending || !picked}>
-          {pending ? "Handing it over…" : "Hand it over"}
+          {pending ? "Sending it" : "Hand it over"}
         </button>
         <button type="button" className="handover-cancel" onClick={() => setOpen(false)}>
           Never mind

@@ -11,7 +11,7 @@ import {
 } from "@/lib/weeklyPrompt";
 
 export const metadata = {
-  title: "This Week — Feedback",
+  title: "This Week on Feedback",
   description: "One question a week, answered by everybody.",
 };
 

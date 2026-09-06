@@ -210,7 +210,7 @@ export function checkMessageSafety(text: string): SafetyCheck {
 export function checkReviewSafety(text: string): SafetyCheck {
   const trimmed = text.trim();
   if (isLowEffort(trimmed)) {
-    return { allowed: false, reason: "Write a real review - not just a single character or symbols." };
+    return { allowed: false, reason: "Write a real review, not just one character or a row of symbols." };
   }
   if (containsHateSpeech(trimmed)) {
     return { allowed: false, reason: "Reviews can't include hateful language or slurs." };
@@ -224,7 +224,7 @@ export function checkReviewSafety(text: string): SafetyCheck {
 export function checkChatSafety(text: string): SafetyCheck {
   const trimmed = text.trim();
   if (isLowEffort(trimmed)) {
-    return { allowed: false, reason: "Write a real message - not just a single character or symbols." };
+    return { allowed: false, reason: "Write a real message, not just one character or a row of symbols." };
   }
   if (containsHateSpeech(trimmed)) {
     return { allowed: false, reason: "Chat can't include hateful language or slurs." };

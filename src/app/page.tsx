@@ -747,7 +747,7 @@ export default async function FeedPage({
           </Link>
         )}
         <p className="field-hint" style={{ marginTop: latestIssue ? 10 : 0, marginBottom: 10 }}>
-          Weekly picks on new releases and underground artists - no account required.
+          Weekly picks on new releases and underground artists. No account needed.
         </p>
         <NewsletterSubscribeForm />
       </div>
@@ -773,7 +773,7 @@ export default async function FeedPage({
               <b>{row.username}</b>
               <span>
                 {row.status_title}
-                {row.status_artist && <> - {row.status_artist}</>}
+                {row.status_artist && <> · {row.status_artist}</>}
               </span>
             </div>
           </div>
@@ -826,7 +826,7 @@ export default async function FeedPage({
           <div className="chat-row" key={post.id}>
             <b>{post.artist_name}</b>{" "}
             <span className={`badge ${post.platform}`}>{ARTIST_PLATFORM_LABELS[post.platform]}</span>
-            {post.description && <span> - {post.description}</span>}
+            {post.description && <span> · {post.description}</span>}
             <span className="ts">shared by {post.profiles?.username ?? "unknown"}</span>
           </div>
         ))}
@@ -879,7 +879,7 @@ export default async function FeedPage({
         </div>
 
         {/* Music has a second row: reviews, and the playlists people
-            already keep somewhere else. Only under Music - a Playlists
+            already keep somewhere else. Only under Music. A Playlists
             tab beside Photography would be a tab about nothing. */}
         {typeFilter === "music" && (
           <div className="feed-chips sub">
@@ -909,12 +909,12 @@ export default async function FeedPage({
           ) : feedPosts.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
               {genreFilter && typeFilter
-                ? `Nothing tagged ${genreLabel(genreFilter)} yet - be the first to post one.`
+                ? `Nothing tagged ${genreLabel(genreFilter)} yet: be the first to post one.`
                 : typeFilter
-                ? `No ${MEDIA_FILTER_LABELS[typeFilter].toLowerCase()} reviews yet - be the first to post one.`
+                ? `No ${MEDIA_FILTER_LABELS[typeFilter].toLowerCase()} reviews yet: be the first to post one.`
                 : followingOnly
                   ? "No reviews yet from people you follow."
-                  : "No reviews yet - be the first to post one."}
+                  : "No reviews yet. Be the first to post one."}
             </div>
           ) : (
             pagePosts.map((post) => (
@@ -1006,7 +1006,7 @@ export default async function FeedPage({
         <div className="left-col">
           {/* The feed leads. Everything under it is a reason to stay,
               but none of it is a reason to arrive, and on a phone the
-              columns stack - so anything above this is something a new
+              columns stack: so anything above this is something a new
               visitor has to scroll past before reaching the thing the
               site is for. */}
           {layout === "stack" && reviewsPanel}
@@ -1061,7 +1061,7 @@ export default async function FeedPage({
 
       {/* Everything below the feed. On a phone this is a wall of eight
           modules between the reviews and the end of the page, so it is
-          not rendered there - the tab bar and the section list below
+          not rendered there: the tab bar and the section list below
           reach all of it. On a wide screen there is room, so it stays. */}
       <div className="home-extras">
         {/* Feed TV runs down the middle with panels either side, rather than
@@ -1072,8 +1072,8 @@ export default async function FeedPage({
             renders twice. Below the tablet breakpoint the three columns stack
             and the flanks fall back into their old sidebar order. */}
         {/* The player used to sit in the middle of this row. It is at the
-            top of Discover now - the page people arrive at wanting
-            something to play - rather than at the foot of the homepage,
+            top of Discover now: the page people arrive at wanting
+            something to play: rather than at the foot of the homepage,
             which was the last thing anybody scrolled to.
             The row stays, because the side panels live in it: without a
             middle column it is two columns rather than three, and the
@@ -1093,7 +1093,7 @@ export default async function FeedPage({
         )}
 
         {/* The paired layout under test: the two things people actually come
-            for - the clips and the reviews - side by side above the fold,
+            for: the clips and the reviews: side by side above the fold,
             with everything secondary moved into a rail below. */}
         {layout === "paired" && (
           <>
@@ -1119,7 +1119,7 @@ export default async function FeedPage({
         {siteFlags.homepage_wrapped && (
           <Link href="/wrapped" className="wrapped-promo-banner">
             <span className="wrapped-promo-label">Your Wrapped</span>
-            <span className="wrapped-promo-text">See your year in reviews - updates all year, not just December.</span>
+            <span className="wrapped-promo-text">See your year in reviews: updates all year, not just December.</span>
             <span className="wrapped-promo-cta">View Wrapped ▸</span>
           </Link>
         )}

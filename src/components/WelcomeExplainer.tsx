@@ -74,7 +74,7 @@ export function WelcomeExplainer({ signedIn = false }: { signedIn?: boolean }) {
         <div className="welcome-modal-body">
           <p>
             Feedback is a community feed for rating and sharing the music, movies, and TV you&apos;re
-            into - post a quick review and see what everyone else is watching and listening to.
+            into. Post a quick review and see what everybody else is watching and listening to.
           </p>
           {!signedIn && (
             // The feed has never been gated, but nothing said so. A first-time
@@ -82,32 +82,32 @@ export function WelcomeExplainer({ signedIn = false }: { signedIn?: boolean }) {
             // it, which costs the same bounces an actual wall would.
             <p className="welcome-modal-free">
               <b>Have a look around first.</b> Reading the feed, profiles and reviews needs no
-              account - you only need one to post, rate or follow.
+              account. You only need one to post, rate or follow.
             </p>
           )}
           <ul className="welcome-modal-list">
             {/* First, and only once they have an account to hang it on.
                 This modal introduced Clubs, the Leaderboard and Wrapped
-                and never mentioned the profile at all - the one thing
+                and never mentioned the profile at all: the one thing
                 that actually separates the people who stay from the
                 people who post once and go. */}
             {signedIn && (
               <li>
                 <b>Your page</b>
-                {" - a picture, a banner, colours, stickers. It's the difference between a name and a person."}
+                {": a picture, a banner, colours, stickers. It is the difference between a name and a person."}
               </li>
             )}
             <li>
               <b>Clubs</b>
-              {" - fan clubs for specific artists, movies, and shows. One gets proposed automatically the first time someone reviews something new."}
+              {": fan clubs for particular artists, films and shows. One gets proposed automatically the first time somebody reviews something new."}
             </li>
             <li>
               <b>Leaderboard</b>
-              {" - the most active reviewers, ranked by how much they've posted."}
+              {": the most active reviewers, ranked by how much they have posted."}
             </li>
             <li>
               <b>Wrapped</b>
-              {" - your personal year-in-review: top genres, top posts, and stats about what you rated."}
+              {": your own year in reviews, with your top genres, your top posts and what you rated."}
             </li>
           </ul>
         </div>

@@ -107,7 +107,7 @@ export function ThemeTokenForm({
 
         <details style={{ marginBottom: 14 }}>
           <summary className="field-hint" style={{ cursor: "pointer", marginBottom: 8 }}>
-            Advanced - layout, panels, navigation, buttons
+            Advanced: layout, panels, navigation, buttons
           </summary>
           {advanced.map(groupPanel)}
         </details>

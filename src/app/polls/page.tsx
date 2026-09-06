@@ -4,7 +4,7 @@ import { PollCard } from "@/components/PollCard";
 import { CreatePollForm } from "@/components/CreatePollForm";
 
 export const metadata = {
-  title: "Matchups — Feedback",
+  title: "Matchups on Feedback",
   description: "Two options, one tap. Which one's better?",
 };
 

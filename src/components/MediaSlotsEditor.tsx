@@ -89,7 +89,7 @@ function SlotForm({ slot, current, ownerId }: { slot: SlotIndex; current?: Media
           <input type="hidden" name="owner_id" value={ownerId} />
           <input type="hidden" name="slot" value={slot} />
           <button type="submit" className="comment-action">
-            Clear — put the automatic one back
+            Clear it and put the automatic one back
           </button>
         </form>
       )}

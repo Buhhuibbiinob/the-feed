@@ -51,7 +51,7 @@ export function AnnouncementAdmin({ announcements }: { announcements: Announceme
       <div className="panel-head">Announcements</div>
       <div className="panel-body">
         <div className="tagline" style={{ marginBottom: 12 }}>
-          Everyone on the site sees this - members and visitors. An alert
+          Everyone on the site sees this, members and visitors alike. An alert
           interrupts once and has to be closed; a banner sits under the nav
           until it is dismissed or runs out.
         </div>
@@ -121,7 +121,7 @@ export function AnnouncementAdmin({ announcements }: { announcements: Announceme
               onChange={(e) => setBody(e.target.value)}
               maxLength={MAX_BODY}
               rows={3}
-              placeholder="Sporty, swag, Cali and Tumblr packs - go and decorate something."
+              placeholder="Sporty, swag, Cali and Tumblr packs. Go and decorate something."
             />
           </div>
           <div className="field">
@@ -132,8 +132,8 @@ export function AnnouncementAdmin({ announcements }: { announcements: Announceme
               value={style}
               onChange={(e) => setStyle(e.target.value === "banner" ? "banner" : "alert")}
             >
-              <option value="alert">Alert - interrupts once, has to be closed</option>
-              <option value="banner">Banner - a strip under the nav</option>
+              <option value="alert">Alert: interrupts once, has to be closed</option>
+              <option value="banner">Banner. A strip under the nav</option>
             </select>
           </div>
           <div className="field">
@@ -172,7 +172,7 @@ export function AnnouncementAdmin({ announcements }: { announcements: Announceme
             </div>
           </div>
           {state.error && <div className="form-error">{state.error}</div>}
-          {state.ok && <div className="form-message">Published - it&apos;s live now.</div>}
+          {state.ok && <div className="form-message">Published. It&apos;s live now.</div>}
           <div className="form-actions">
             <button type="submit" className="btn" disabled={publishing}>
               {publishing ? "Publishing…" : "Publish"}

@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/admin";
 import { EditPageForm } from "@/components/EditPageForm";
 import type { SitePage } from "@/lib/pages";
 
-export const metadata = { title: "Edit Page - Feedback" };
+export const metadata = { title: "Edit Page on Feedback" };
 
 export default async function AdminEditPagePage({
   params,

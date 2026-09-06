@@ -59,7 +59,7 @@ export function chooseNextStep(facts: AfterPostFacts): NextStep {
       kind: "avatar",
       text:
         facts.reviewCount === 1
-          ? "That's your first one. Your name in the feed is still a blank circle though - give people a face to put to it."
+          ? "That is your first one. Your name in the feed is still a blank circle though, so give people a face to put to it."
           : "Your name in the feed is still a blank circle. Give people a face to put to it.",
       cta: "Pick a picture",
       href: customizeHref(facts.username),

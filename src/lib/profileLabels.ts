@@ -74,7 +74,7 @@ export const PROFILE_LABELS: { key: ProfileLabelKey; label: string; hint: string
   { key: "store_new", label: "Lately", hint: "First shelf: their most recent reviews." },
   { key: "store_added", label: "{name}'s Favorites", hint: "Second shelf: the things they picked themselves." },
   { key: "store_chart", label: "Best Rated", hint: "The numbered chart down the right." },
-  { key: "store_artists", label: "On Repeat", hint: "The artists they review most - worked out, not chosen." },
+  { key: "store_artists", label: "On Repeat", hint: "The artists they review most, worked out rather than chosen." },
   { key: "store_genre", label: "Any genre", hint: "The genre filter." },
   { key: "store_see_all", label: "See all", hint: "The link at the end of every shelf." },
   { key: "store_all_reviews", label: "Every review", hint: "The link under the chart." },

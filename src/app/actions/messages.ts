@@ -50,7 +50,7 @@ export async function sendMessage(
     // The only thing that can reject a send today is the block list, so a
     // rise here means blocking, not a policy nobody can see.
     await logEvent(supabase, user.id, "dm_failed", "insert_rejected");
-    return { error: "Couldn't send that message - you may be blocked by this user." };
+    return { error: "That message did not send. This person may have blocked you." };
   }
 
   revalidatePath(`/messages/${recipientUsername}`);

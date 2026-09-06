@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 /**
  * Pasting a playlist link.
  *
@@ -103,6 +104,36 @@ check(
 // A slug with something odd in it must not break out of the path.
 const odd = parsePlaylistUrl("https://music.apple.com/us/playlist/a%2Fb%3Fc/pl.xyz789");
 check("an awkward slug is escaped, not passed through", !!odd && !embedUrl(odd).includes("a/b?c"), odd ? embedUrl(odd) : "");
+
+// ---- The shelf loads one player, not all of them ----
+//
+// The wall used to render an embed per playlist. Twelve players all
+// connecting on load is a slow tab where eleven of them are below the
+// fold, and it is the sort of thing that creeps back the moment somebody
+// finds the click-to-play step annoying while testing.
+{
+  const wall = readFileSync("src/components/PlaylistWall.tsx", "utf8");
+  const iframes = (wall.match(/<iframe/g) ?? []).length;
+  check(
+    "only the tape somebody presses connects to anything",
+    iframes === 1,
+    iframes === 1 ? "one iframe in the component" : `${iframes} iframes, which is one per playlist again`
+  );
+  // Position, not a lazy regex across the map: `map( ... <iframe` matches
+  // whenever the iframe is anywhere after the map at all, which it always
+  // is. What actually matters is that the player is inside the block that
+  // renders the ONE chosen tape.
+  const deckStart = wall.indexOf("{playing && (");
+  const iframeAt = wall.indexOf("<iframe");
+  check(
+    "the player sits under the shelf rather than inside the list, so adding a playlist does not add a player",
+    deckStart >= 0 && iframeAt > deckStart
+  );
+  check(
+    "nothing plays until somebody picks a tape, because a shelf that starts playing at you has decided for you",
+    /useState<string \| null>\(null\)/.test(wall)
+  );
+}
 
 console.log(failures === 0 ? "\nPaste a link, get the playlist." : `\n${failures} failing.`);
 process.exit(failures === 0 ? 0 : 1);

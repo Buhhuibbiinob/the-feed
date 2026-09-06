@@ -33,6 +33,10 @@ const FLOATERS = [
   // is lifted off the page by definition, which is the one case this
   // guard exists to permit rather than prevent.
   "tabbar", "sheet", "app-shell", "circle-icon-btn", "css-editor",
+  // The play button on a trailer sits ON the thumbnail, the same way the
+  // transport dome sits on the now-playing card. A dome with a hairline
+  // under it is a printed circle.
+  "screen-play",
   // The announcement alert is a UIAlertView: it sits over the whole
   // window and has to be answered. Its BANNER sibling is not listed -
   // that one is bolted under the nav and is held to the hairline, which
@@ -45,6 +49,21 @@ const FLOATERS = [
   // the skeuomorphic detail rather than an accident of styling.
   "sk-stack", "sk-record", "record-",
   "sk-np-card", "sk-np-art", "track-thumb", "release-cover",
+  // The crate is a wooden box drawn on the page, not a card. Its walls
+  // throw a real shadow onto the paper and its front board throws one
+  // back into the box over the records behind it, which is the only
+  // reason the thing reads as a container you could put a hand into
+  // rather than a rectangle with a picture in it.
+  "crate-box", "crate-lip", "crate-sleeve", "crate-stack", "crate-divider",
+  // Same argument for the shelves: a plank with no shadow under it is a
+  // stripe, and the media standing on it has to cast onto the wood.
+  "shelf-plank", "shelf-item", "shelf-media",
+  // A record standing on a shelf casts onto the board it is standing on.
+  // That shadow is the only thing telling you it is standing there
+  // rather than printed on the wood.
+  "wooditem", "wood-blank", "woodwall", "wood-play",
+  // A cassette standing on a shelf, and the one lifted out into the deck.
+  "wood-tape",
 ];
 
 const raw = readFileSync(CSS, "utf8");

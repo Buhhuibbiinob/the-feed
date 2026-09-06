@@ -72,7 +72,7 @@ export function AvatarPicker({ ownerId }: { ownerId: string }) {
         <input type="hidden" name="owner_id" value={ownerId} />
         {/* Avatars used to be a bare file input: whatever you picked got
             dropped into a circle and centre-cropped. A photo that wasn't
-            already square - most phone photos - lost its edges, and a
+            already square: most phone photos: lost its edges, and a
             face off to one side got cut in half. You choose the framing
             now, same as the banner does. Animated GIFs skip the canvas
             and upload untouched, so they keep moving. */}

@@ -30,7 +30,7 @@ import { fetchAnnouncementFor } from "@/lib/announcements";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const title = "Feedback";
-const description = "Post reviews of music, movies, and TV - see what the community's watching and listening to.";
+const description = "Post reviews of music, movies and TV, and see what everybody else is watching and listening to.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

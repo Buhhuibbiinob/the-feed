@@ -29,7 +29,7 @@ export function BackfillWorksButton() {
             ? ` ${state.result.skipped} had no usable title and were left alone.`
             : ""}
           {state.result.remaining
-            ? ` ${state.result.remaining} still to do - run it again.`
+            ? ` ${state.result.remaining} still to do: run it again.`
             : " Nothing left to link."}
           {state.result.errors.length > 0 && ` ${state.result.errors.length} failed.`}
         </div>

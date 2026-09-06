@@ -5,7 +5,7 @@ import { isAdmin } from "@/lib/admin";
 import { getAllIssuesForAdmin } from "@/lib/newsletter";
 import { createNewsletterIssue } from "@/app/actions/newsletter";
 
-export const metadata = { title: "Newsletter - Feedback" };
+export const metadata = { title: "Newsletter on Feedback" };
 
 export default async function AdminNewsletterPage({
   searchParams,
@@ -28,7 +28,7 @@ export default async function AdminNewsletterPage({
     <>
       <div className="page-header">
         <h1>Weekly Newsletter</h1>
-        <div className="tagline">Draft and publish the weekly issue - upcoming releases, spotlights, and more.</div>
+        <div className="tagline">Draft and publish the weekly issue: upcoming releases, spotlights, and more.</div>
       </div>
 
       <div className="panel">
@@ -47,13 +47,13 @@ export default async function AdminNewsletterPage({
         <div className="panel-body flush">
           {issues.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              No issues yet - create your first one above.
+              No issues yet: create your first one above.
             </div>
           ) : (
             issues.map((issue) => (
               <Link href={`/admin/newsletter/${issue.id}`} key={issue.id} className="site-links-link">
                 <span>
-                  {issue.title} - {issue.issue_date}
+                  {issue.title}, {issue.issue_date}
                 </span>
                 <span className="dm-inbox-time">{issue.status}</span>
               </Link>

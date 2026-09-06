@@ -210,7 +210,7 @@ export function ImageCropField({
             }}
           />
           <div className="field-hint">
-            Animated GIF - uploaded whole so it keeps moving. Cropping would flatten it to one frame.
+            Animated GIF: uploaded whole so it keeps moving. Cropping would flatten it to one frame.
           </div>
         </div>
       )}

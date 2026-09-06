@@ -311,6 +311,57 @@ a:hover {
   text-decoration: underline;
 }
 
+/* ---- The floor for a button nobody gave a class to ----
+   Left to itself a <button> renders as raw operating system chrome: the
+   grey rectangle with the thin ring that "Hand it to someone" was, sitting
+   in the middle of a page that spent fifteen thousand lines not looking
+   like that. Every one of those is a bug, but a bug that only shows up
+   when somebody happens to look at the right screen, so this is the floor
+   underneath all of them.
+
+   It borrows the ghost button's tokens rather than picking its own
+   colours, which is what lets it follow all eighteen themes and both
+   modes without knowing a thing about any of them.
+
+   Placed this early on purpose. Its weight ties with `.something button`,
+   so any rule scoped to a parent has to come later in the file to win,
+   and every one of those rules does. Move this block down and the tv
+   softkeys, the alert sheet and the queue rows all quietly turn into
+   silver pills. */
+button:not([class]) {
+  font: inherit;
+  font-weight: 600;
+  font-size: 12.5px;
+  padding: 5px 13px;
+  border-radius: var(--btn-radius, 6px);
+  cursor: pointer;
+  color: var(--btn-ghost-text);
+  border: 1px solid var(--btn-ghost-frame);
+  text-shadow: var(--btn-ghost-letterpress);
+  /* The glaze goes on as a background LAYER, not as a pseudo element
+     floating over the top. A pseudo element here would have to sit above
+     the label, which is how you end up with text under frosted glass. */
+  background-image: var(--glaze-pale), var(--btn-ghost-image);
+  /* The same eight-layer stack every other control wears. Written out
+     with the tokens rather than pointing at --btn-ghost-shadow, because
+     a button that has fallen this far is exactly the one nobody will
+     notice missing an edge. */
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    var(--edge-glow), var(--edge-outer);
+}
+button:not([class]):hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+button:not([class]):active:not(:disabled) {
+  background-image: var(--btn-ghost-image);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+  transform: translateY(1px);
+}
+button:not([class]):disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 /* ---- Top tab bar ---- */
 .apple-nav {
   /* The Alerts and More dropdowns were rendering *behind* the page.
@@ -686,7 +737,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #fff;
+  border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 .nav-bell-menu {
@@ -2433,7 +2484,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #fff;
+  border: 2px solid #fff;
 }
 
 .email-pref-row {
@@ -4292,11 +4343,20 @@ select:focus {
   flex: 1;
   padding: 9px 14px;
 }
-.btn-ghost {
-  background: linear-gradient(180deg, #ffffff 0%, #eef2f7 45%, #d7e0ea 55%, #b7c4d2 100%) !important;
-  border-color: #7f93a8 !important;
-  color: #1c2733 !important;
-  text-shadow: none !important;
+/* The pale button ON THE WELCOME SHEET, which is a dark overlay whatever
+   theme you are on, so it wants a fixed light silver rather than the
+   theme's own.
+   It used to be written as a bare `.btn-ghost` with `!important` on every
+   line, which meant the welcome sheet's colours followed the pale button
+   everywhere on the site: eighteen themes and two modes all painted with
+   one hard-coded light gradient and near-black text, and no token could
+   get a word in. Scoping it to the sheet gives every other pale button
+   back to the theme system, and costs the sheet nothing. */
+.welcome-modal-actions .btn-ghost {
+  background: linear-gradient(180deg, #ffffff 0%, #eef2f7 45%, #d7e0ea 55%, #b7c4d2 100%);
+  border-color: #7f93a8;
+  color: #1c2733;
+  text-shadow: none;
 }
 
 /* ---- Live chat ---- */
@@ -5972,63 +6032,11 @@ footer .copy {
 .playlist-add input[type="text"] {
   width: 100%;
 }
-.playlist-wall {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 14px;
-  padding: 14px;
-}
-.playlist-card {
-  margin-bottom: 0;
-}
-.playlist-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-.playlist-titles {
-  min-width: 0;
-}
-.playlist-titles b {
-  display: block;
-  font-size: 14px;
-  line-height: 1.25;
-}
-.playlist-by {
-  font-size: 11.5px;
-  color: var(--muted);
-}
-.playlist-note {
-  margin: 6px 0 0;
-  font-size: 12.5px;
-  line-height: 1.4;
-}
-.playlist-embed {
-  margin-top: 10px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.playlist-embed iframe {
-  display: block;
-  width: 100%;
-  border: 0;
-}
-/* Spotify's compact player is 152px; its full one needs 380 to show the
-   track list without its own scrollbar fighting the page's. */
-.playlist-embed.spotify iframe {
-  height: 380px;
-}
-/* Apple's is taller: its header alone is about 110px, and below 450 the
-   list is a two-row peephole. */
-.playlist-embed.apple iframe {
-  height: 450px;
-}
-.playlist-open {
-  display: inline-block;
-  margin-top: 8px;
-  font-size: 11.5px;
-}
+/* The playlist wall used to be a grid of cards with an embed in every
+   one of them. It is a shelf of tapes now, and only the tape you press
+   loads a player, so all of that went with it. The add form above kept
+   its own styling, which is the only part of the old surface that did
+   not change. */
 
 /* ---- Shelves ----
    A wall of dividers, then what is behind the one you picked. The
@@ -6205,42 +6213,70 @@ footer .copy {
 /* ---- Films and shows in a rail ----
    A poster is 2:3, not square, so the card is taller than a record and
    the row has to allow for it. */
+/* A trailer card, not a poster card.
+   The box was 2:3 because TMDB served posters. A YouTube thumbnail is
+   16:9, and a 16:9 picture cropped into a portrait box loses both ends
+   of the frame - which on a trailer thumbnail is usually the title. */
 .screen-card {
-  flex: 0 0 116px;
+  flex: 0 0 176px;
 }
 .screen-poster {
   position: relative;
-  width: 116px;
-  aspect-ratio: 2 / 3;
+  width: 176px;
+  aspect-ratio: 16 / 9;
   border-radius: 6px;
   overflow: hidden;
   background: var(--shelf-bg, rgba(0, 0, 0, 0.05));
+  /* The same stack as everything else: a hairline lift, a lit top edge,
+     and the pale ring outside it. A picture with no edge floats. */
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.35) inset, var(--edge-outer);
 }
 .screen-poster img,
-.screen-poster-blank {
+.screen-poster-blank,
+.screen-poster iframe {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  border: 0;
 }
 .screen-poster-blank {
   background: linear-gradient(160deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.2));
 }
-/* Film or series, said out loud. A rail mixing the two without a label
-   is how somebody starts a "film" that turns out to be six hours. */
-.screen-kind {
+
+/* The play button on a trailer.
+   Drawn as the transport buttons are drawn, because it does the same
+   job: a brushed dome with a highlight arc across the top, sitting over
+   the picture rather than printed on it. Centred rather than tucked in a
+   corner, since the whole thumbnail is the target. */
+.screen-play {
   position: absolute;
-  left: 6px;
-  bottom: 6px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: saturate(160%) blur(8px);
-  -webkit-backdrop-filter: saturate(160%) blur(8px);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 15px;
+  /* Nudged right by a pixel: a triangle's optical centre is left of its
+     bounding box, and centred by the numbers it looks like it is falling
+     over backwards. */
+  text-indent: 2px;
+  color: #2a2a2e;
+  background-image: linear-gradient(180deg, #ffffff 0%, #e6e6e9 44%, #bdbdc3 52%, #8e8e95 100%);
+  border: 1px solid #5f5f66;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 -6px 9px rgba(0, 0, 0, 0.2) inset, var(--edge-outer);
+}
+.screen-play:hover {
+  filter: brightness(1.06);
+}
+.screen-play:active {
+  background-image: linear-gradient(180deg, #8e8e95 0%, #bdbdc3 48%, #e6e6e9 100%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) inset;
+  transform: translate(-50%, -50%) translateY(1px);
 }
 
 /* ---- The three ways in ----
@@ -6273,10 +6309,13 @@ footer .copy {
 }
 
 /* ---- The Crate ----
-   A record held up in front of you, with the next one just showing
-   behind it. Square, big, and centred: the sleeve is the whole page,
-   because looking at the sleeve is the entire activity. */
-.crate-intro {
+   A wooden box with records standing in it, and the one in your hand
+   lifted out of the front. All of it drawn: the wood, the records and
+   the shadow they sit in are gradients, so it scales with the page and
+   loads nothing. */
+.crate-intro,
+.shelf-intro,
+.shelf-pick {
   font-size: 12px;
   color: var(--muted);
   margin: 0 0 16px;
@@ -6288,28 +6327,216 @@ footer .copy {
   align-items: center;
   gap: 12px;
 }
+
+/* The box.
+   A record crate, made of the same maple as the shelves, because they
+   are the same room. Four boards: two ends, a front, and the dark inside
+   the records stand in.
+
+   Wider than the sleeve being held up, which is the thing that makes it
+   read as a crate at all. The first pass had a box narrower than the
+   record in front of it, and a container smaller than its contents reads
+   as a picture frame no matter what it is made of. */
+.crate-box {
+  position: relative;
+  width: 100%;
+  max-width: 372px;
+  height: 128px;
+  margin-top: -34px;
+  border-radius: 3px 3px 6px 6px;
+  overflow: hidden;
+  /* The dark inside. */
+  background: linear-gradient(180deg, #2a1a0d 0%, #1a1008 40%, #120b06 100%);
+  box-shadow: 0 6px 14px -4px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(24, 12, 4, 0.8),
+    var(--edge-outer);
+}
+/* The two end boards. Grain runs the other way to the front, which is
+   the detail that says "joined from planks" rather than "brown
+   rectangle". */
+.crate-box::before,
+.crate-box::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 13px;
+  z-index: 3;
+  background:
+    repeating-linear-gradient(
+      1deg,
+      rgba(60, 32, 12, 0.34) 0 1px,
+      rgba(0, 0, 0, 0) 1px 6px
+    ),
+    linear-gradient(90deg, #9a662f 0%, #7d4f24 55%, #5a381a 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 216, 168, 0.3);
+}
+.crate-box::before {
+  left: 0;
+  border-radius: 3px 0 0 6px;
+}
+.crate-box::after {
+  right: 0;
+  border-radius: 0 3px 6px 0;
+  background:
+    repeating-linear-gradient(
+      -1deg,
+      rgba(60, 32, 12, 0.34) 0 1px,
+      rgba(0, 0, 0, 0) 1px 6px
+    ),
+    linear-gradient(270deg, #9a662f 0%, #7d4f24 55%, #5a381a 100%);
+}
+
+/* The front board, standing proud of the records behind it, with the
+   hand hole every crate has cut into it. The hole is what makes the
+   shape legible in one glance: a plain board is a plank, a board with a
+   slot in it is something you carry. */
+.crate-lip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 54px;
+  z-index: 2;
+  border-radius: 0 0 6px 6px;
+  background:
+    repeating-linear-gradient(
+      177deg,
+      rgba(60, 32, 12, 0.42) 0 1px,
+      rgba(0, 0, 0, 0) 1px 5px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      rgba(196, 132, 70, 0.2) 0 2px,
+      rgba(0, 0, 0, 0) 2px 17px
+    ),
+    repeating-linear-gradient(
+      183deg,
+      rgba(30, 14, 4, 0.26) 0 1px,
+      rgba(0, 0, 0, 0) 1px 29px
+    ),
+    linear-gradient(180deg, #a06a33 0%, #855426 46%, #6d4523 54%, #4f3218 100%);
+  box-shadow: 0 -6px 10px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 216, 168, 0.42) inset,
+    0 -1px 0 rgba(30, 15, 4, 0.65) inset;
+}
+/* The hand hole: a dark slot with a lit lower lip, because you are
+   seeing the cut edge of a board from slightly above. */
+.crate-lip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 15px;
+  width: 74px;
+  height: 15px;
+  transform: translateX(-50%);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #1c0f05 0%, #34200f 70%, #56381b 100%);
+  box-shadow: 0 1px 0 rgba(255, 216, 168, 0.35), 0 -1px 2px rgba(0, 0, 0, 0.6) inset;
+}
+
+/* The records still in it, seen end on.
+   Packed, not spaced. A visible gap between every sleeve is what turned
+   the first two attempts into a row of matchsticks - records in a crate
+   touch, and what you actually see is a band of edges with the odd
+   bright one in it. */
+.crate-fill {
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: 26px;
+  height: 92px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+}
+.crate-divider {
+  flex: 0 0 auto;
+  border-radius: 2px 2px 0 0;
+  /* Leaning back a little more with each one, the way a part full crate
+     does once you have taken a few out of the front. */
+  transform: rotate(calc(-4deg + var(--i) * 0.5deg));
+  transform-origin: bottom center;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+}
+/* The format decides how thick a thing is and how tall it stands. */
+.crate-divider.fmt-vinyl {
+  width: 17px;
+  height: 88px;
+}
+.crate-divider.fmt-cd {
+  width: 12px;
+  height: 70px;
+}
+.crate-divider.fmt-cassette {
+  width: 10px;
+  height: 52px;
+}
+.crate-divider.fmt-download {
+  width: 11px;
+  height: 64px;
+}
+/* And the position in the row decides its colour, cycling through five
+   so the band has variety in it without anybody choosing per record. A
+   crate of identically coloured edges is a comb. */
+.crate-divider:nth-child(5n + 1) {
+  background: linear-gradient(90deg, #efe8da 0 2px, #cdc4b1 2px 60%, #918876);
+}
+.crate-divider:nth-child(5n + 2) {
+  background: linear-gradient(90deg, #6d5240 0 2px, #4a382c 2px 60%, #2a2019);
+}
+.crate-divider:nth-child(5n + 3) {
+  background: linear-gradient(90deg, #d8c9a2 0 2px, #ab9974 2px 60%, #6f6249);
+}
+.crate-divider:nth-child(5n + 4) {
+  background: linear-gradient(90deg, #9fb4c2 0 2px, #6f8695 2px 60%, #43535e);
+}
+.crate-divider:nth-child(5n + 5) {
+  background: linear-gradient(90deg, #c2a0a0 0 2px, #8d6a6a 2px 60%, #56403f);
+}
+/* Except the jewel cases, which are plastic whatever is printed inside
+   them, and the cassettes, which are black. Those two read wrong in
+   card colours, so they keep their own. */
+.crate-divider.fmt-cd {
+  background: linear-gradient(90deg, #f6fafd 0 2px, #cdd7e1 2px 58%, #8e9aa8);
+}
+.crate-divider.fmt-cassette {
+  background: linear-gradient(90deg, #5c5c64 0 2px, #34343b 2px 60%, #18181b);
+}
+
+/* The one in your hand: lifted out, tilted, and casting onto the box. */
 .crate-stack {
   position: relative;
   width: 100%;
-  max-width: 300px;
-}
-/* The rest of the box. Offset and rotated a little, because a stack
-   nobody has straightened is never square to the one in front. */
-.crate-behind {
-  position: absolute;
-  inset: 0;
-  border-radius: 4px;
-  transform: rotate(-2.2deg) translate(5px, 5px);
-  background: linear-gradient(160deg, #4a4a50, #2a2a2e);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  /* Smaller than the crate it came out of, deliberately. At 236 the
+     sleeve was wider than the box and covered the records still in it,
+     so the only thing you could see was the one you were holding - which
+     is the opposite of what a crate is for. */
+  max-width: 194px;
+  margin: 0 auto;
+  z-index: 1;
+  transform: rotate(-1.6deg);
 }
 .crate-sleeve {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
   background: #1d1d21;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.14) inset;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+/* A jewel case is narrower than a sleeve and has a hinge down one side. */
+.crate-stack.fmt-cd .crate-sleeve,
+.crate-stack.fmt-download .crate-sleeve {
+  border-left: 5px solid rgba(226, 232, 238, 0.85);
+  border-radius: 2px 4px 4px 2px;
+}
+/* A cassette is landscape, not square. */
+.crate-stack.fmt-cassette .crate-sleeve {
+  aspect-ratio: 8 / 5;
+  border-radius: 2px;
 }
 .crate-sleeve img {
   width: 100%;
@@ -6317,9 +6544,9 @@ footer .copy {
   object-fit: cover;
   display: block;
 }
-/* A sleeve whose art has not arrived, or has none. Not a spinner: a
-   plain paper sleeve with the hole showing is what a record with no
-   cover actually looks like, and it does not imply something is broken. */
+/* A sleeve whose art has not arrived, or has none: a plain paper sleeve
+   with the record showing through, which is what one actually looks like
+   and does not imply something is broken. */
 .crate-blank {
   width: 100%;
   height: 100%;
@@ -6340,18 +6567,19 @@ footer .copy {
   left: 50%;
   bottom: 12px;
   transform: translateX(-50%);
-  padding: 7px 16px;
-  border: none;
+  padding: 7px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
   border-radius: 999px;
   font-size: 12px;
+  font-weight: 600;
   color: #fff;
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: saturate(160%) blur(8px);
-  -webkit-backdrop-filter: saturate(160%) blur(8px);
+  background-image: var(--glaze), linear-gradient(180deg, #4a4a52, #26262b);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
 }
 .crate-play.playing {
-  background: var(--accent, #d34);
+  background-image: var(--glaze), var(--btn-image);
+  border-color: var(--btn-border);
 }
 .crate-label {
   text-align: center;
@@ -6362,9 +6590,21 @@ footer .copy {
   font-size: 15px;
   line-height: 1.25;
 }
-.crate-label span {
+.crate-by {
+  display: block;
   font-size: 12px;
   color: var(--muted);
+}
+/* The format, said out loud, because the drawing alone is a hint. */
+.crate-format {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 .crate-hands {
   display: flex;
@@ -6375,17 +6615,20 @@ footer .copy {
   padding: 9px 20px;
   border-radius: 999px;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  border: 1px solid var(--panel-border);
+  border: 1px solid var(--btn-ghost-frame, #9b9b9b);
 }
 .crate-pass {
-  background: transparent;
-  color: var(--muted);
+  color: var(--btn-ghost-text, #222);
+  background-image: var(--glaze-pale), var(--btn-ghost-image);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 .crate-keep {
-  border-color: transparent;
-  color: #fff;
-  background: var(--accent, #d34);
+  border-color: var(--btn-border);
+  color: var(--btn-text);
+  background-image: var(--glaze), var(--btn-image);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.24), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 }
 .crate-keep:disabled {
   opacity: 0.6;
@@ -8543,6 +8786,22 @@ button.btn-ghost {
   --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+/* The same silver, unlit.
+   Without this, dark mode on the default theme drew the pale button with
+   its LIGHT gradient and its near-black label, because `:root[data-mode]`
+   and `[data-theme]` carry identical weight and the theme block happens to
+   come second. The segmented control hit this first and lost its labels to
+   white-on-white; the pale button had the milder version of the same bug,
+   a bright silver lozenge sitting in an otherwise dark page. Naming both
+   attributes here puts it beyond the tie. */
+[data-theme="ios-light"][data-mode="dark"] {
+  --btn-ghost-image: linear-gradient(180deg, #64646b 0%, #4c4c53 47%, #3b3b41 53%, #2b2b30 100%);
+  --btn-ghost-frame: #1b1b1e;
+  --btn-ghost-text: #f2f2f4;
+  --btn-ghost-letterpress: 0 -1px 0 rgba(0, 0, 0, 0.7);
+  --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
 /* ---- 3. Cast shadows + stacked cover-art decks ---- */
 /* Artwork should sit ON the page, not sink into it. */
 .track-thumb {
@@ -8693,7 +8952,7 @@ button.btn-ghost {
   border-radius: 100px;
   background-color: #e01b24;
   background-image: linear-gradient(180deg, #ff8080 0%, #ee2b34 45%, #c8121b 55%, #8f0b12 100%);
-  border: 1.5px solid #fff;
+  border: 2px solid #fff;
   color: #fff;
   font-family: var(--font-display);
   font-size: 10px;
@@ -9026,6 +9285,14 @@ button.btn,
 :root[data-mode="dark"] input[type="search"],
 :root[data-mode="dark"] input[type="url"],
 :root[data-mode="dark"] input[type="number"],
+:root[data-mode="dark"] input[type="tel"],
+:root[data-mode="dark"] input[type="date"],
+:root[data-mode="dark"] input[type="datetime-local"],
+/* The default. An <input> with no type IS a text field, and this list
+   did not have it, so seventy five fields across the site stayed white
+   boxes in dark mode - which the comment above calls the single most
+   obvious tell, and it was there the whole time. */
+:root[data-mode="dark"] input:not([type]),
 :root[data-mode="dark"] textarea,
 :root[data-mode="dark"] select {
   background-color: #101117;
@@ -9035,6 +9302,19 @@ button.btn,
 :root[data-mode="dark"] input::placeholder,
 :root[data-mode="dark"] textarea::placeholder {
   color: #6f7078;
+}
+/* The select needs its whole background replaced, not just its colour.
+   It is drawn with a background-IMAGE - a gel gradient plus the two
+   triangles that make the arrow - and setting background-color above
+   does nothing to an image sitting on top of it. So in dark mode the
+   select kept its light gel while the same rule set light text on it,
+   and "A select" was white on white. Exactly the failure the pale button
+   had, in a different place. */
+:root[data-mode="dark"] select {
+  background-image: linear-gradient(180deg, #5a5a61 0%, #45454b 46%, #35353a 50%, #26262a 100%),
+    linear-gradient(45deg, transparent 50%, #d8d8dc 50%),
+    linear-gradient(135deg, #d8d8dc 50%, transparent 50%);
+  border-color: #17171a;
 }
 
 /* Alternating rows read as stripes of white without this. */
@@ -9978,7 +10258,7 @@ body {
   border-radius: 50%;
   object-fit: cover;
   margin-left: -6px;
-  border: 1.5px solid var(--panel-body-bg, #fff);
+  border: 2px solid var(--panel-body-bg, #fff);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 .club-face:first-child {
@@ -14973,7 +15253,16 @@ input[type="email"],
 input[type="password"],
 input[type="search"],
 input[type="url"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
 input[type="datetime-local"],
+/* And the ones with no type on them at all, which is a text field by
+   definition and was the commonest kind in this codebase: seventy five
+   of them, every one rendering flat on a page where everything else is
+   raised or sunk. Listing every type and forgetting the default is the
+   sort of gap that only shows up next to a field that DID get styled. */
+input:not([type]),
 textarea,
 select {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16) inset, 0 -1px 0 rgba(0, 0, 0, 0.05) inset,
@@ -15046,6 +15335,1009 @@ button.btn,
 .new-post-btn,
 .acct-btn {
   letter-spacing: -0.01em;
+}
+
+/* ================================================================
+   THE OBJECT RECIPE
+   ----------------------------------------------------------------
+   Taken off the Photoshop file on page 9 of the Retina article, which
+   is the most useful thing in it: a real iOS Delete button with its
+   layer stack open. Read from the bottom of the group up, it is
+
+     Outer            a pale shape sitting UNDER the body
+     Inner            the coloured body, carrying
+       Stroke           one dark pixel round the edge
+       Gradient Overlay the light-to-dark paint
+       Inner Shadow     the edge darkening inward
+       Inner Glow       light gathering just inside the edge
+       Drop Shadow      the button sitting on the page
+     Shine            a masked white gradient over the top
+     Delete           the label, letterpressed
+
+   Eight layers for one button. We had four of them: the paint, the
+   stroke, the shine and the letterpress. The two that were missing are
+   the ones that make the difference between a coloured rectangle and
+   an object.
+
+   OUTER is the important one. Look at the "+" button on page 5 and you
+   can see it plainly at 2x: a pale hairline OUTSIDE the dark stroke,
+   all the way round. That is what lifts an iOS control off its bar.
+   Without it a button has one hard edge and reads as a sticker; with
+   it the edge has thickness and reads as something moulded and set
+   into the surface. It cost one shadow layer to add.
+
+   INNER GLOW is the quiet one: a wide, faint light just inside the
+   edge, which stops the middle of a large button looking flat and dead
+   where the specular has already ended.
+
+   Both go in as tokens so all eighteen themes get them without any
+   theme block being touched, and both are pure CSS so they stay sharp
+   at 2x. That last part is the article's whole argument: a bitmap
+   scaled up goes soft, a drawn shape does not, and softness is what
+   the era's UI never had.
+   ================================================================ */
+
+:root {
+  /* Layer "Outer": the pale ring outside the stroke. Drawn as the last
+     shadow in the stack so it sits beneath the body and outside the
+     border, which is exactly where the PSD has it. */
+  --edge-outer: 0 0 0 1px rgba(255, 255, 255, 0.55);
+  /* Layer "Inner Glow": wide, weak, and INSET, gathering just inside
+     the edge. Not a second specular - it is meant to be felt, not
+     seen. */
+  --edge-glow: 0 0 6px rgba(255, 255, 255, 0.22) inset;
+  /* Layer "Drop Shadow": one pixel, hard. The article makes the point
+     that layer styles can only hold integer values, and a 2010 Apple
+     control obeys that - offsets are 1px, never 0.5, and the blur is
+     small enough to read as contact rather than as float. */
+  --edge-drop: 0 1px 1px rgba(0, 0, 0, 0.22);
+}
+:root[data-mode="dark"] {
+  /* On a dark surface the ring is the thing that gives an edge away, so
+     it stays, but at the strength a dark scene actually reflects. A
+     0.55 white ring on near-black paints a visible white outline and
+     the control starts to look like a sticker again. */
+  --edge-outer: 0 0 0 1px rgba(255, 255, 255, 0.14);
+  --edge-glow: 0 0 6px rgba(255, 255, 255, 0.08) inset;
+  --edge-drop: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* The full stack, in the PSD's own order: drop shadow, then the inset
+   lip, then the inner glow, then the outer ring last so nothing paints
+   over it. */
+.btn,
+button.btn,
+.new-post-btn,
+.acct-btn {
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    var(--edge-glow), var(--edge-outer);
+}
+/* Pressed: the object goes into the surface, so the ring that lifted it
+   has to go with it. Keeping the outer ring on a pressed button is the
+   detail that makes a press look like a recolour. */
+.btn:active:not(:disabled),
+button.btn:active:not(:disabled),
+.new-post-btn:active,
+.acct-btn:active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.32) inset;
+}
+.btn-ghost,
+button.btn-ghost {
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    var(--edge-glow), var(--edge-outer);
+}
+
+/* ---- Buttons that are drawn as links ----
+   A handful of places use a <button> because pressing it does something
+   (like it, save it, put it back on the list) but draw it as a link,
+   because that is what the row wants to look like. Their rules each say
+   `background: none; border: none` and stop there, which was fine while
+   an unclassed button had no look of its own.
+
+   It does now, and the properties those rules never thought to unset -
+   the ring, the radius, the letterpress - are exactly the ones that
+   would turn a text link into a small silver pill. Zeroed here, in one
+   place, after every rule that draws them, rather than leaving six
+   rules to each remember three lines. */
+.pf-links button,
+.track-actions button,
+.sk-more-sheet button,
+.swipe-row-action button,
+.queue-actions .inline-form button,
+.work-actions .inline-form button {
+  box-shadow: none;
+  border-radius: 0;
+  text-shadow: none;
+}
+
+/* ================================================================
+   THE WOOD
+   ----------------------------------------------------------------
+   Newsstand, essentially. One shared vocabulary for every surface on
+   this site where things get put away: the Shelves, and the collection
+   that used to be a list called Up Next.
+
+   Measured off the reference rather than guessed. Reading straight down
+   an empty column of the iOS shelf, a single unit is:
+
+     dark back wall            ~195px
+     contact shadow            7px, #391C0A at the base, gone by the top
+     lit top edge of the board 2px, #E8C186
+     the board's front face    17px, #E2BC7D at the top to #C7A26D
+     a dark line under it      1px, #5E3716
+     the next back wall
+
+   and across the width there is a vignette worth 13%: the middle of the
+   board samples #EACB8B where the ends sample #CFA668. That last one is
+   what stops it looking like a stripe. A board lit evenly end to end is
+   a rectangle of brown; a board with a hot spot in the middle is a board
+   with a lamp above it.
+
+   Drawn as a REPEATING BACKGROUND on the wall rather than as an element
+   per row, for the reason the rows have no elements: how many items fit
+   on a shelf is decided by the viewport, so the shelf cannot be markup
+   without fixing the column count at every width. Locking the grid to a
+   fixed row height and giving the wall a background whose period is that
+   same height puts a board under every row at any width, and puts one
+   under a half empty row too, which is the detail that would give the
+   trick away if it were missing.
+   ================================================================ */
+
+:root {
+  /* Blonde maple, measured off the empty iBooks shelf rather than off the
+     Newsstand screenshot, because the empty one shows the timber with
+     nothing standing on it.
+
+     The first version got the structure backwards. I had a DARK back wall
+     with a lit board in front of it, and that is not what is there: the
+     back panel is the same pale maple as the boards and it is lit. What
+     reads as darkness is one hard shadow, about fourteen pixels of it,
+     thrown by each board onto the panel directly below. Take that shadow
+     away and the whole thing flattens; make it into a dark wall instead
+     and you get a cave with a gold stripe in it, which is what I built.
+
+     Straight down an empty column, one shelf is:
+
+       #FDD99B  2px   the lit top edge of the board
+       #EFCE8B        the board's face, ten pixels of it
+       #E5C27E
+       #73481B  1px   the board's underside
+       #3E1900        hard shadow on the panel below
+       #916A3F  14px  ramping out of that shadow
+       #D3A567        the panel, lit, all the way to the next board  */
+  --wood-lit-edge: #fdd99b;
+  --wood-face-top: #efce8b;
+  --wood-face-bottom: #e5c27e;
+  --wood-under: #73481b;
+  /* The shadow the board throws. The darkest thing on the surface, and
+     the only dark thing on it. */
+  --wood-cast: #3e1900;
+  --wood-back-top: #916a3f;
+  --wood-back-bottom: #d3a567;
+  /* Used by the record standing on the board, not by the board. */
+  --wood-contact: rgba(62, 25, 0, 0.9);
+  /* One row: the panel, the object standing on the board, the board, and
+     the card below it. The row total and the background's period are the
+     same number by construction - if they ever drift apart, every board
+     slides out from under the records standing on it. */
+  --wood-row: 189px;
+  --wood-item: 96px;
+  --wood-board: 21px;
+  --wood-label: 40px;
+  /* How far the board's shadow reaches down the panel below it. Read by
+     the card too, which starts below it rather than in it. */
+  --wood-cast-depth: 12px;
+  /* Where the groove above a board starts, and how far past the cast
+     shadow the panel takes to come back to full light. Tokens rather than
+     numbers written into the gradient for the same reason everything else
+     here is: a bare offset in there is a number that has to be kept in
+     step with the row by hand, and the guard cannot tell a structural one
+     from a hairline. */
+  --wood-groove: 12px;
+  --wood-cast-fade: 9px;
+}
+/* Dark mode does not turn the wood into a different tree. A room with the
+   lights off has the same shelf in it, so the timber keeps its hue and
+   loses its lamp: everything darkens by about the same amount, and the
+   cast shadow goes nearly to black because there is less light around to
+   fill it. Recolouring it grey was the obvious move and the wrong one,
+   since the whole point of the surface is that it is made of something. */
+:root[data-mode="dark"] {
+  --wood-lit-edge: #a58a5c;
+  --wood-face-top: #93794f;
+  --wood-face-bottom: #866d46;
+  --wood-under: #33200c;
+  --wood-cast: #150800;
+  --wood-back-top: #4a3620;
+  --wood-back-bottom: #74593a;
+  --wood-contact: rgba(0, 0, 0, 0.92);
+}
+
+/* The wall. One background stack, painted in this order: grain, the side
+   vignette, then the boards. */
+.woodwall {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 0;
+  background-color: var(--wood-back-bottom);
+  background-image:
+    /* Grain. Three periods sharing no common factor, so the streaks never
+       line up into corduroy - the same trick the era-television veneer
+       needed. Tilted a degree off true, because sawn timber is.
+
+       Measured at about seven per cent on the reference: the red channel
+       across a lit panel runs 185 to 214. My first pass ran these at
+       under two per cent trying not to repeat an earlier corduroy
+       mistake, and overcorrected into a surface with no timber in it at
+       all. You should be able to see the grain without hunting for it. */
+    repeating-linear-gradient(
+      89deg,
+      rgba(255, 255, 255, 0.07) 0px,
+      rgba(255, 255, 255, 0.07) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 7px
+    ),
+    repeating-linear-gradient(
+      91deg,
+      rgba(88, 48, 12, 0.08) 0px,
+      rgba(88, 48, 12, 0.08) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 19px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(120, 70, 20, 0.06) 0px,
+      rgba(120, 70, 20, 0.06) 2px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0) 31px
+    ),
+    /* The sides of the case, in shadow. Stronger than a vignette: the
+       reference samples #764F26 at the extreme edge against #CC9B5A in
+       the middle, which is a third of the light gone. */
+    linear-gradient(
+      90deg,
+      rgba(50, 24, 4, 0.55) 0%,
+      rgba(50, 24, 4, 0) 7%,
+      rgba(50, 24, 4, 0) 93%,
+      rgba(50, 24, 4, 0.55) 100%
+    ),
+    /* The lamp above it. */
+    radial-gradient(ellipse 62% 108% at 50% 42%, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0) 72%),
+    /* The boards, one per row.
+       Read from the top of a row: the panel, lit, all the way down to the
+       board; the contact shadow of whatever is standing on it; the lit
+       edge; the face; the underside; the hard cast shadow; and then the
+       ramp back out to a lit panel, which is where the card under the
+       board sits. */
+    repeating-linear-gradient(
+      180deg,
+      var(--wood-back-bottom) 0px,
+      /* A dark groove just above the lit edge, and this is what makes a
+         board look like a board rather than a bright line.
+         On the reference the panel goes DARK about eight pixels before
+         the board - #73481B - and then lightens into the edge, which is
+         the underside of the lip seen from slightly above. Without it the
+         board's highlight sits against a lit panel and has nothing to
+         push off.
+         The painted contact shadow that used to be here is gone: a
+         standing record casts its own, so the background drawing one too
+         meant an EMPTY shelf had a shadow on it with nothing making it. */
+      var(--wood-back-bottom) calc(var(--wood-item) - var(--wood-groove)),
+      var(--wood-under) calc(var(--wood-item) - var(--wood-groove) + 5px),
+      var(--wood-lit-edge) var(--wood-item),
+      var(--wood-face-top) calc(var(--wood-item) + 2px),
+      var(--wood-face-bottom) calc(var(--wood-item) + var(--wood-board) - 1px),
+      var(--wood-under) calc(var(--wood-item) + var(--wood-board)),
+      var(--wood-cast) calc(var(--wood-item) + var(--wood-board) + 1px),
+      var(--wood-back-top) calc(var(--wood-item) + var(--wood-board) + var(--wood-cast-depth)),
+      /* Out of the shadow and back to lit maple quickly, then flat for the
+         rest of the row. The first pass ramped from the shadow all the
+         way to the bottom of the row, which meant a third of the surface
+         was permanently mid-brown and the whole shelf read dark even
+         though the panel colour matched the reference to a few points.
+         On the reference the light panel is about three quarters of a
+         row. Here it is now about seventy per cent. */
+      var(--wood-back-bottom)
+        calc(var(--wood-item) + var(--wood-board) + var(--wood-cast-depth) + var(--wood-cast-fade)),
+      var(--wood-back-bottom) var(--wood-row)
+    );
+  /* The case has a top edge, and it is in shadow. Light: at the weight
+     the sides carry it swallowed the first row. */
+  box-shadow: inset 0 7px 10px -8px rgba(40, 18, 2, 0.55), var(--edge-drop), var(--edge-outer);
+}
+
+/* The items, laid into rows the same height as the background's period.
+   gap: 0 is load-bearing - a gap would slide every row out of step with
+   the boards painted behind them. Space between items comes from their
+   own padding instead. */
+.woodgrid {
+  display: grid;
+  /* 132, not 112. At the narrower size three actions under a record ran
+     out of column and spilled sideways into the next one, so the shelf
+     read as "Remove Review Heard it Remove Review" straight across. The
+     third action moved onto the sleeve; the other two need this much. */
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-auto-rows: var(--wood-row);
+  gap: 0;
+  padding: 10px 8px 0;
+}
+.woodslot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: var(--wood-row);
+}
+
+/* A thing standing on a board.
+   Bottom-aligned inside the space above the board, so a square sleeve
+   and a tall movie case both sit ON the shelf rather than floating at
+   different heights the way a centred item would. */
+.wooditem {
+  position: relative;
+  height: var(--wood-item);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* Hugs the artwork rather than filling the column, so anything pinned
+     to a corner of this box lands on a corner of the RECORD. Stretched
+     to the column, the little remove disc floated in mid air above the
+     short formats - out to the side of a cassette, and nowhere near the
+     film case. */
+  width: fit-content;
+  margin: 0 auto;
+}
+.wooditem img,
+.wooditem .wood-blank {
+  display: block;
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  /* Sitting on wood, lit from above and slightly in front: a hard
+     contact shadow at the foot, a soft one behind, and one lit pixel
+     along the top edge where the lamp catches the sleeve. */
+  box-shadow: 0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+.wooditem .wood-blank {
+  width: var(--wood-item);
+  height: var(--wood-item);
+  background: linear-gradient(160deg, #3a3a3f, #17171a);
+}
+
+/* The card under the shelf.
+   Light type on the back wall, directly below the board the record is
+   standing on, which is where a shop puts the card that tells you what
+   section you are looking at. */
+.woodlabel {
+  height: var(--wood-label);
+  width: 100%;
+  /* Cleared past the board's cast shadow, rather than sitting in it. The
+     card lines up with the top of its box and the box starts the moment
+     the board ends, so the text was landing in the darkest twelve pixels
+     on the whole surface and the shelf looked like it had unreadable
+     labels. Reading the same token the shadow is drawn with means the two
+     cannot drift. */
+  padding: calc(var(--wood-cast-depth) + var(--wood-cast-fade)) 6px 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* The two things you can do with a record you are looking at, on the
+   shaded board under it. Small and quiet: the shelf is for looking
+   along, and a row of loud buttons under every sleeve turns it back into
+   a list of products. */
+.woodactions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  /* Belt and braces after the spill: whatever ends up in here, it stays
+     inside its own column. */
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  height: calc(var(--wood-row) - var(--wood-item) - var(--wood-board) - var(--wood-label));
+  font-size: 10px;
+}
+.woodactions .wood-link,
+.woodactions .wood-remove,
+.woodactions .inline-form button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: none;
+  border-radius: 0;
+  color: #5c3d14;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.woodactions .wood-link:hover,
+.woodactions .inline-form button:hover {
+  color: #2f1e08;
+}
+.woodactions .inline-form button:disabled {
+  color: rgba(92, 61, 20, 0.5);
+  text-decoration: none;
+  cursor: default;
+}
+
+/* The play button on a sleeve.
+   Sits on the artwork rather than under it, because pressing a record is
+   how you hear it. Same brushed dome as everywhere else that plays
+   something, at the size a 92px sleeve can carry. */
+.wood-play {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 10px;
+  text-indent: 1px;
+  color: #26262a;
+  background-image: linear-gradient(180deg, #ffffff 0%, #e6e6e9 44%, #bdbdc3 52%, #8e8e95 100%);
+  border: 1px solid #5f5f66;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 1) inset,
+    var(--edge-outer);
+}
+.wood-play.playing {
+  background-image: linear-gradient(180deg, #8e8e95 0%, #bdbdc3 48%, #e6e6e9 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45) inset;
+}
+.woodlabel b {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.15;
+  /* Dark, pressed into the wood.
+     This went back and forth twice and the reference settled it. The card
+     sits under the board, and while the first fourteen pixels down there
+     are the board's cast shadow, the panel is lit maple by the time the
+     text starts. Light type on it was unreadable; dark type with one
+     white pixel under it reads as printed on the wood, which is what a
+     shelf label is. */
+  color: #3d2a12;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.woodlabel span {
+  display: block;
+  font-size: 9.5px;
+  line-height: 1.2;
+  color: rgba(61, 42, 18, 0.72);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* On unlit timber the label turns over.
+   Dark type with a white highlight under it is how you print on pale
+   maple; on the same wood with the lights off it is mud, and the
+   highlight is the part that muddies it. So in dark mode the card is
+   cream and the letterpress goes the other way, above the letterform,
+   because that is where a shadow falls when the light is weak and coming
+   from overhead. Same rule the buttons already follow. */
+:root[data-mode="dark"] .woodlabel b {
+  color: #f6ecdb;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+:root[data-mode="dark"] .woodlabel span {
+  color: rgba(246, 236, 219, 0.66);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.75);
+}
+:root[data-mode="dark"] .woodactions .wood-link,
+:root[data-mode="dark"] .woodactions .wood-remove,
+:root[data-mode="dark"] .woodactions .inline-form button {
+  color: #ffd9a4;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+:root[data-mode="dark"] .woodactions .wood-link:hover,
+:root[data-mode="dark"] .woodactions .inline-form button:hover {
+  color: #fff0d6;
+}
+:root[data-mode="dark"] .wood-quiet {
+  color: rgba(255, 217, 164, 0.6);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.75);
+}
+:root[data-mode="dark"] .woodslot.played .woodlabel b {
+  color: rgba(246, 236, 219, 0.55);
+}
+
+/* ---- The four objects ----
+   A shelf of identical squares is a grid with wood behind it. What makes
+   a shelf read as a shelf is that the things on it are different sizes
+   and different shapes, and that those shapes are the right ones for
+   what they hold: a twelve inch sleeve is square and tall, a cassette is
+   small and landscape, a jewel case is square and thicker than it looks,
+   a film is a tall case with a spine.
+
+   Which object a record gets is decided in src/lib/physicalMedia.ts by
+   the year it came out, so a 1974 album is not standing there on a CD. */
+
+/* Vinyl: full height, square, with the disc showing past the open edge.
+   The sleeve is the widest thing on the shelf, which is right - it is
+   the only twelve inch object here. */
+.wooditem.fmt-vinyl img,
+.wooditem.fmt-vinyl .wood-blank {
+  width: 92px;
+  height: 92px;
+}
+/* The record itself, sticking out of the right hand side of its sleeve.
+   Drawn as a circle clipped by the sleeve's own overflow, with the
+   label as a second ring - which at this size is three gradients and
+   reads instantly. */
+.wooditem.fmt-vinyl::before {
+  content: "";
+  position: absolute;
+  /* Measured off the sleeve rather than off the column. The sleeve is
+     92px and centred, so its right edge sits at `50% - 46px` from the
+     right; another 14px past that is how far a twelve inch record sticks
+     out of a sleeve it is only half in. */
+  right: calc(50% - 60px);
+  bottom: 3px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #b8912f 0 9%, #1a1a1c 9.5% 100%),
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.055) 0 1px,
+      rgba(0, 0, 0, 0) 1px 3px
+    );
+  box-shadow: 0 3px 5px -2px rgba(0, 0, 0, 0.7);
+}
+/* The sleeve has to be lifted over the disc. Both are children of the
+   same box, and an absolutely positioned pseudo element paints above an
+   in-flow sibling however the source is ordered - which is why the first
+   pass had a record sitting neatly on top of its own cover. Not done
+   with a negative z-index on the disc: that would put it behind the
+   parent's background too, and the wood is the parent's background. */
+.wooditem.fmt-vinyl img,
+.wooditem.fmt-vinyl .wood-blank {
+  position: relative;
+  z-index: 1;
+}
+
+/* CD: a jewel case, a shade smaller than a sleeve and squarer, with the
+   hinge down the left as a bright vertical line. */
+.wooditem.fmt-cd img,
+.wooditem.fmt-cd .wood-blank {
+  width: 78px;
+  height: 78px;
+}
+.wooditem.fmt-cd::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 39px);
+  bottom: 0;
+  width: 5px;
+  height: 78px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.12) 55%,
+    rgba(0, 0, 0, 0.35)
+  );
+  pointer-events: none;
+}
+
+/* Cassette: small, landscape, and sitting low on the board, because a
+   cassette case is the shortest thing anybody ever shelved. */
+.wooditem.fmt-cassette img,
+.wooditem.fmt-cassette .wood-blank {
+  width: 68px;
+  height: 43px;
+  object-position: center 30%;
+}
+
+/* A film. Taller than it is wide, with the spine catching light down the
+   left, which is the shape of every video shelf there has ever been. */
+.wooditem.fmt-case img,
+.wooditem.fmt-case .wood-blank {
+  width: 62px;
+  height: 92px;
+}
+.wooditem.fmt-case::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 31px);
+  bottom: 0;
+  width: 7px;
+  height: 92px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.32), rgba(0, 0, 0, 0.4));
+  pointer-events: none;
+}
+
+/* Digital. There is no object, and pretending otherwise is the failure
+   this whole file exists to avoid - a 2019 single does not come in a
+   case. So it is drawn as what it actually is: artwork on a screen, with
+   the glass over it. */
+.wooditem.fmt-download img,
+.wooditem.fmt-download .wood-blank {
+  width: 74px;
+  height: 74px;
+  border-radius: 9px;
+}
+.wooditem.fmt-download::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 37px);
+  bottom: 0;
+  width: 74px;
+  height: 74px;
+  border-radius: 9px;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 34%,
+    rgba(255, 255, 255, 0) 34.1%
+  );
+  pointer-events: none;
+}
+
+/* ---- The two doors ----
+   Where a record comes from, said as a place rather than as a link. They
+   sit under your own shelf because that is the honest order: this is
+   what you have, and these are the two rooms you got it from. */
+.shelf-doors {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.shelf-door {
+  display: block;
+  padding: 11px 14px;
+  border-radius: 8px;
+  color: var(--text);
+  border: 1px solid var(--btn-ghost-frame);
+  background-image: var(--glaze-pale), var(--btn-ghost-image);
+  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.75) inset, var(--edge-glow),
+    var(--edge-outer);
+}
+.shelf-door:hover {
+  text-decoration: none;
+  filter: brightness(1.04);
+}
+.shelf-door:active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+  transform: translateY(1px);
+}
+.shelf-door b {
+  display: block;
+  font-size: 12.5px;
+  text-shadow: var(--btn-ghost-letterpress);
+}
+.shelf-door span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Something already listened to, still on the shelf but no longer
+   waiting. Turned down rather than taken away: ticking a thing off is
+   the end of a small story, and clearing the row would mean the site
+   could never say so. */
+.woodslot.played .wooditem img,
+.woodslot.played .wooditem .wood-blank {
+  filter: saturate(0.45) brightness(0.72);
+}
+.woodslot.played .woodlabel b {
+  color: rgba(61, 42, 18, 0.55);
+}
+.played-wall {
+  opacity: 0.92;
+}
+/* Taking something off the shelf.
+   On the sleeve rather than under it, as a small dark disc in the
+   corner, because it is the one action here you press by accident and
+   regret. Quiet until you are over the record, and always reachable by
+   keyboard. */
+.wood-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  background-image: linear-gradient(180deg, #6a6a72 0%, #3a3a40 48%, #232327 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.woodslot:hover .wood-remove,
+.wood-remove:focus-visible {
+  opacity: 1;
+}
+/* No hover on a touch screen, so on one it is simply always there. */
+@media (hover: none) {
+  .wood-remove {
+    opacity: 0.85;
+  }
+}
+
+/* ---- Discover's top: the set beside the records ----
+   The Feed TV ran the full width of the page on its own, with dead space
+   to its left and right, and that band cost most of a screen before
+   anybody reached a single recommendation. The set is a nice thing to
+   have at the top; it was not worth a whole screen of it.
+
+   So it moves into a column of its own with the rails alongside, and the
+   reviews below get the full width they actually need. The set column is
+   `auto`, not a fraction, because the player's size is a per person
+   choice stored on their own device - the grid has to take whatever
+   somebody picked and give the rails the rest, rather than deciding for
+   them. The rails get a 320px floor so they never squeeze to the point
+   of showing one and a half sleeves. */
+.discover-top {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(320px, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.discover-top .discover-set {
+  margin-bottom: 0;
+}
+.discover-top .discover-rails {
+  margin-bottom: 0;
+  min-width: 0;
+}
+/* The set is the smaller of the two here. Its own S/M/L/XL setting still
+   applies underneath this, so somebody who wants it big gets it big; this
+   only stops XL from taking the rails' half of the row. */
+.discover-top .discover-set .feedtv-standalone {
+  max-width: min(var(--feedtv-width), 380px);
+}
+
+/* Below about a tablet there is no room for two columns of anything, so
+   the set goes back on top and the rails underneath it. Stacked in that
+   order rather than the reverse: the set is the thing that says what
+   this page is. */
+@media (max-width: 900px) {
+  .discover-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .discover-top .discover-set {
+    margin-bottom: 16px;
+  }
+  .discover-top .discover-set .feedtv-standalone {
+    max-width: var(--feedtv-width);
+  }
+}
+
+/* ---- The tape shelf ----
+   A playlist is a mixtape. Not a metaphor reached for to fit the wood:
+   it is the same object doing the same job, which is somebody choosing an
+   order and handing it over, and it is why the copy on the add form
+   already asked "what do you call it" rather than "title".
+
+   So the playlists stand on the same shelf as everything else, as tapes,
+   and only the one you press loads a player. That last part is not
+   decoration either - the old wall rendered twelve embeds at once, and
+   twelve players all connecting on load is a slow tab where eleven of
+   them are below the fold.
+
+   The row is shorter and wider than a record row, because a cassette is.
+   Both numbers are the same tokens the boards are painted from, so the
+   boards follow without anything else being touched. */
+.woodwall.tapes {
+  --wood-item: 82px;
+  --wood-row: 162px;
+  --wood-label: 30px;
+}
+.woodwall.tapes .woodgrid {
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+}
+
+/* The cassette itself.
+   Dark shell, cream label across the top two thirds, two spool windows
+   with the tape showing through, and the little screw dimples in the
+   corners that stop it reading as a plain rectangle. */
+.wood-tape {
+  /* A span, so it can live inside a button without nesting a block in
+     one, which means the display has to be said out loud: an inline
+     element ignores width and height, and the first render was five
+     black slivers standing on a shelf. */
+  display: block;
+  position: relative;
+  width: 138px;
+  height: 82px;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 33.9%,
+      rgba(0, 0, 0, 0.14) 34%, rgba(0, 0, 0, 0.05) 100%),
+    linear-gradient(160deg, #3b3b42 0%, #26262b 55%, #17171b 100%);
+  border: 1px solid #0e0e11;
+  box-shadow: 0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.3) inset;
+}
+/* The paper label, written on. */
+.wood-tape-label {
+  display: block;
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 6px;
+  height: 42px;
+  padding: 4px 6px 0;
+  border-radius: 2px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fbf6e6 0%, #efe6cd 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+/* A coloured stripe down the left of the label, the way a blank tape came
+   with one. It is the only place the service gets named on the object,
+   and it is the right amount: enough to tell two tapes apart on a shelf,
+   not a logo stuck on somebody's mixtape. */
+.wood-tape-label::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--tape-stripe, #8a8a90);
+}
+.wood-tape.spotify {
+  --tape-stripe: #1db954;
+}
+.wood-tape.apple {
+  --tape-stripe: #fa2d48;
+}
+.wood-tape-title {
+  display: block;
+  padding-left: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #2c2417;
+  /* Two lines, then it stops. A title long enough to need three lines is
+     a title nobody hand wrote on a tape. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wood-tape-by {
+  display: block;
+  position: absolute;
+  left: 11px;
+  bottom: 2px;
+  font-size: 8.5px;
+  color: rgba(44, 36, 23, 0.6);
+}
+/* The two spool windows, with the tape wound on behind them. Wound
+   unevenly on purpose: a tape with both spools the same size has either
+   never been played or has been rewound to the exact middle. */
+.wood-tape-spools {
+  position: absolute;
+  box-sizing: border-box;
+  left: 10px;
+  right: 10px;
+  bottom: 6px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #0d0d10, #1a1a1f);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7) inset;
+}
+.wood-tape-spools span {
+  display: block;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #cdc7bb 0 26%, #4a3f30 27% 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.wood-tape-spools span:first-child {
+  width: 19px;
+  height: 19px;
+}
+.wood-tape-spools span:last-child {
+  width: 13px;
+  height: 13px;
+}
+/* Screws. Four dots, and the cheapest dimensionality on the whole page. */
+.wood-tape::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 3px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 2px 2px, rgba(0, 0, 0, 0.55) 0 1px, transparent 1.5px),
+    radial-gradient(circle at calc(100% - 2px) 2px, rgba(0, 0, 0, 0.55) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 2px calc(100% - 2px), rgba(0, 0, 0, 0.55) 0 1px, transparent 1.5px),
+    radial-gradient(circle at calc(100% - 2px) calc(100% - 2px), rgba(0, 0, 0, 0.55) 0 1px, transparent 1.5px);
+}
+
+/* Pressing a tape. The whole object is the button, so it gets the press
+   the buttons get: down a pixel, and the light off it. */
+.wood-tape-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  box-shadow: none;
+  border-radius: 0;
+}
+.wood-tape-btn:active .wood-tape {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px -2px rgba(0, 0, 0, 0.85), 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+/* The one currently in the deck: lifted, and lit along the top. */
+.woodslot.playing .wood-tape {
+  box-shadow: 0 8px 12px -4px rgba(0, 0, 0, 0.9), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 0 0 1px rgba(255, 232, 180, 0.7);
+  transform: translateY(-3px);
+}
+
+/* The deck: one player, under the shelf, for whichever tape is in it. */
+.tape-deck {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2a2a30 0%, #17171b 100%);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) inset, var(--edge-outer);
+}
+.tape-deck-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+  color: #f3ead8;
+  font-size: 12px;
+}
+.tape-deck-head b {
+  font-size: 13px;
+}
+.tape-deck-head a {
+  color: #ffd9a0;
+  font-size: 11px;
+}
+.tape-deck-note {
+  margin: 0 0 9px;
+  font-size: 11.5px;
+  font-style: italic;
+  color: rgba(243, 234, 216, 0.7);
+}
+.tape-deck iframe {
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  display: block;
+  background: #000;
+}
+.tape-deck.spotify iframe {
+  height: 352px;
+}
+.tape-deck.apple iframe {
+  height: 450px;
+}
+.tape-deck-actions {
+  margin-top: 9px;
 }
 
 /* ================================================================

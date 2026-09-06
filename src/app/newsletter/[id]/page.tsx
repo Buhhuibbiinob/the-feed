@@ -29,7 +29,7 @@ export default async function NewsletterIssuePage({
           <h1 className="newsletter-masthead-title">FEEDBACK</h1>
           <div className="newsletter-masthead-sub">
             The Weekly Wrap-Up &middot; {issue.issue_date}
-            {issue.status === "draft" && " - draft preview"}
+            {issue.status === "draft" && " (draft preview)"}
           </div>
         </div>
         <hr className="newsletter-rule" />

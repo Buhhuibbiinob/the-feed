@@ -52,60 +52,9 @@ async function tmdbFetch<T>(path: string): Promise<T | null> {
 // bundled into "Action & Adventure"). Used to turn a free-text request like
 // "something scary" or "a good comedy series" into a real genre filter
 // instead of blindly guessing from a static seed list.
-export const MOVIE_GENRE_WORDS: Record<string, number> = {
-  action: 28,
-  adventure: 12,
-  animated: 16,
-  animation: 16,
-  cartoon: 16,
-  comedy: 35,
-  funny: 35,
-  crime: 80,
-  documentary: 99,
-  drama: 18,
-  family: 10751,
-  fantasy: 14,
-  history: 36,
-  historical: 36,
-  horror: 27,
-  scary: 27,
-  spooky: 27,
-  musical: 10402,
-  mystery: 9648,
-  romance: 10749,
-  romantic: 10749,
-  "sci-fi": 878,
-  scifi: 878,
-  "science fiction": 878,
-  thriller: 53,
-  war: 10752,
-  western: 37,
-};
 
-export const TV_GENRE_WORDS: Record<string, number> = {
-  action: 10759,
-  adventure: 10759,
-  animated: 16,
-  animation: 16,
-  cartoon: 16,
-  comedy: 35,
-  funny: 35,
-  crime: 80,
-  documentary: 99,
-  drama: 18,
-  family: 10751,
-  kids: 10762,
-  mystery: 9648,
-  reality: 10764,
-  romance: 10766,
-  romantic: 10766,
-  "sci-fi": 10765,
-  scifi: 10765,
-  "science fiction": 10765,
-  fantasy: 10765,
-  war: 10768,
-  western: 37,
-};
+
+
 
 function simplifyMovie(m: RawTmdbMovie): TmdbRecommendation {
   return {
@@ -151,37 +100,14 @@ export async function discoverTv(genreId?: number, limit = 20): Promise<TmdbReco
   return (data?.results ?? []).slice(0, limit).map(simplifyShow);
 }
 
-/**
- * Well-regarded, and not something everybody has already seen.
- *
- * discoverMovies sorts by popularity, which is the film equivalent of
- * page one of a Last.fm tag: the twenty titles anybody could have named
- * without being asked. This asks for the opposite - a high average vote
- * with a CEILING on the number of votes, which is exactly how you
- * describe a film that is good and that most people missed.
- *
- * The page offset is what makes a refresh move: TMDB will not shuffle
- * for you, so the rail asks for a different page each time.
- */
-export async function discoverDeepCuts(
-  kind: "movie" | "tv",
-  genreId: number | undefined,
-  page = 1,
-  limit = 12
-): Promise<TmdbRecommendation[]> {
-  const genreParam = genreId ? `&with_genres=${genreId}` : "";
-  // Floor as well as a ceiling. Below about 200 votes an average is
-  // noise - a 9.1 from eleven people is not a recommendation - and above
-  // about 4,000 it is a film everybody has seen.
-  const votes = "&vote_count.gte=200&vote_count.lte=4000&vote_average.gte=6.8";
-  const dateKey = kind === "movie" ? "primary_release_date" : "first_air_date";
-  const data = await tmdbFetch<{ results: (RawTmdbMovie & RawTmdbShow)[] }>(
-    `/discover/${kind}?sort_by=vote_average.desc${votes}${genreParam}` +
-      `&page=${Math.max(1, page)}&${dateKey}.lte=${new Date().toISOString().slice(0, 10)}`
-  );
-  const rows = data?.results ?? [];
-  return rows.slice(0, limit).map((row) => (kind === "movie" ? simplifyMovie(row) : simplifyShow(row)));
-}
+/* discoverDeepCuts lived here, and the two genre word maps with it. They
+   were written for Discover's film rail, which does not use TMDB any
+   more: the rail is YouTube trailers now, so that nobody has to pay for
+   a key to see it. Removed rather than left in place, because a helper
+   nobody calls reads as a helper somebody might, and the next person
+   would have had to work out which of the two film paths was live.
+   The rest of this file is still used by the newsletter and the release
+   calendar. */
 
 export async function getUpcomingMoviesAndTv(limit = 20): Promise<TmdbItem[]> {
   const [movies, shows] = await Promise.all([

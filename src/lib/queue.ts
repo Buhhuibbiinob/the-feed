@@ -1,6 +1,11 @@
 import type { MediaType } from "@/lib/media";
 
-// "Up Next" - the things somebody means to get to.
+// Your shelf: the things somebody means to get to.
+//
+// Called Up Next until the Crate and the Shelves arrived and made it
+// obvious that a list of rows with thumbnails was the odd one out. Same
+// table, same rows, same private list; it is drawn as a shelf now,
+// because that is what it always was.
 //
 // Not the same object as a collection, and worth being clear about why,
 // because the two look alike from a distance. A collection is a public,

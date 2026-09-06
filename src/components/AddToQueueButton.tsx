@@ -42,7 +42,7 @@ export function AddToQueueButton({
       <input type="hidden" name="image_url" value={coverUrl ?? ""} />
       <input type="hidden" name="from_post_id" value={postId ?? ""} />
       <button type="submit" disabled={pending || state.ok}>
-        {state.ok ? "On your list" : pending ? "Adding…" : "Up next"}
+        {state.ok ? "On your shelf" : pending ? "Adding" : "Shelve it"}
       </button>
     </form>
   );

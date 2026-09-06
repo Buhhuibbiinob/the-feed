@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { FindRail } from "@/components/FindRail";
 import { ScreenRail } from "@/components/ScreenRail";
-import { screenFinds } from "@/lib/screenDiscovery";
+import { screenFinds } from "@/lib/trailers";
+import { searchVideos } from "@/lib/youtube";
 import {
   alreadyKnown,
   communitySeeds,
@@ -42,7 +43,7 @@ type PostRow = {
   profiles: { username: string } | null;
 };
 
-export const metadata = { title: "Discover - Feedback" };
+export const metadata = { title: "Discover on Feedback" };
 
 // Rendered fresh every time. The rails reshuffle per request, and a
 // cached page would hand back the same eight records no matter how many
@@ -220,10 +221,11 @@ export default async function RecsPage() {
     // rated enough for it to mean anything.
     lovedSceneFinds(mine, known, { rotateBy }),
     eraFinds(known, { rotateBy }),
-    // Films and shows, the same shape as the music rails. Discover was
-    // music only, which on a site whose second category is film meant
-    // half the members had nothing here to find.
-    screenFinds(mine, known, { rotateBy }),
+    // Films, the same shape as the music rails. This used to come from
+    // TMDB, which wants a paid key for what amounts to a poster and a
+    // title; it comes from film trailers on YouTube now, which are free,
+    // already there for everything worth watching, and move.
+    screenFinds(mine, known, searchVideos, { rotateBy }),
   ]);
   const [personalFinds, sceneRail, eraRail] = await Promise.all([
     enrichFinds(personal),
@@ -241,17 +243,23 @@ export default async function RecsPage() {
     <>
       <OrbyBot />
 
-      {feedTvClips.length > 0 && (
-        <div className="feedtv-top">
-          <FeedTV clips={feedTvClips} />
-        </div>
-      )}
+      {/* The set and the records beside it, then the reviews across the
+          bottom. The player used to run the full width on its own with
+          dead space either side of it, which cost most of a screen before
+          anybody saw a single recommendation. Sat next to the rails it
+          earns its space, and the shelf below gets the width it wants. */}
+      <div className={feedTvClips.length > 0 ? "discover-top" : ""}>
+        {feedTvClips.length > 0 && (
+          <div className="feedtv-top discover-set">
+            <FeedTV clips={feedTvClips} />
+          </div>
+        )}
 
-      <div className="panel">
+      <div className="panel discover-rails">
         <div className="panel-head">Find something new</div>
         <div className="panel-body flush">
           {/* The Crate and Shelves were only reachable from the More
-              menu, which is a place nobody browses - so nobody found
+              menu, which is a place nobody browses: so nobody found
               them. Discover is the hub for this, so it names the other
               two doors. */}
           <div className="discover-doors">
@@ -275,13 +283,13 @@ export default async function RecsPage() {
                 : "Rate a few records four or five stars and this row becomes yours"
             }
             finds={personalFinds}
-            empty={railProblem || "Nothing new to show here yet - try again shortly."}
+            empty={railProblem || "Nothing new here just yet. Give it a minute and try again."}
           />
           <FindRail
             title={scene.tag}
             subtitle={
               scene.fromTaste
-                ? "You keep rating this four and five — here's more of it, past the hits"
+                ? "You keep giving this four and five stars, so here is more of it, past the hits"
                 : "The scene of the day, past its greatest hits"
             }
             finds={sceneRail}
@@ -292,9 +300,9 @@ export default async function RecsPage() {
             becauseOf={screen.becauseOf}
             finds={screen.finds}
             empty={
-              process.env.TMDB_API_KEY
-                ? "Nothing new to watch here right now - try again shortly."
-                : "Films and shows aren't switched on yet - TMDB_API_KEY is missing."
+              process.env.YOUTUBE_API_KEY
+                ? "No trailers came back for that corner today. Give it another go in a bit."
+                : "Trailers need a YouTube key before they can show up here."
             }
           />
           <FindRail
@@ -304,6 +312,7 @@ export default async function RecsPage() {
             empty={railProblem || "That decade came back empty today."}
           />
         </div>
+      </div>
       </div>
 
       <div className="panel">

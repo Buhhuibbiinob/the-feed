@@ -16,13 +16,21 @@ import {
 const initialState: PlaylistState = {};
 
 /**
- * Playlists, embedded.
+ * Playlists, as a shelf of tapes.
+ *
+ * A playlist is a mixtape. Not a metaphor reached for to match the
+ * furniture: it is the same object doing the same job, somebody choosing
+ * an order and handing it over, which is why the add form already asked
+ * "what do you call it" rather than "title".
  *
  * Both services will play a playlist for anybody with the link, no key
- * and no account, which is why this works at all. The iframes are lazy:
- * a wall of twelve players all connecting on load is a slow tab, and
- * most of them are below the fold anyway.
+ * and no account, which is why this works at all. Only the tape you press
+ * loads a player, and that is not decoration either: the old wall
+ * rendered every embed at once, and twelve players all connecting on load
+ * is a slow tab where eleven of them are below the fold.
  */
+
+/** Pasting a link, and being told whether it is one before you submit. */
 function AddPlaylist() {
   const [state, formAction, pending] = useActionState(addPlaylist, initialState);
   const [url, setUrl] = useState("");
@@ -51,7 +59,7 @@ function AddPlaylist() {
         />
         <div className="field-hint">
           {url.trim() && !parsed
-            ? "Not a playlist link yet — an album or track link won't work."
+            ? "That is not a playlist link. An album or a single track will not work here."
             : parsed
             ? `${PROVIDER_LABELS[parsed.provider]} playlist. Give it a name and it's up.`
             : APPLE_MUSIC_CONNECT_NOTE}
@@ -86,10 +94,115 @@ function AddPlaylist() {
 
       <div className="form-actions">
         <button type="submit" className="btn" disabled={pending || !parsed}>
-          {pending ? "Putting it up…" : "Put it up"}
+          {pending ? "Putting it up" : "Put it up"}
         </button>
       </div>
     </form>
+  );
+}
+
+/**
+ * The shelf, and the one tape in the deck.
+ *
+ * Nothing is playing to begin with, deliberately. A shelf that starts
+ * playing at you is a shelf that decided for you, and the whole point of
+ * a wall of other people's tapes is that you pick one.
+ */
+function TapeShelf({
+  playlists,
+  currentUserId,
+  viewerIsAdmin,
+}: {
+  playlists: Playlist[];
+  currentUserId: string | null;
+  viewerIsAdmin: boolean;
+}) {
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const playing = playlists.find((p) => p.id === playingId) ?? null;
+
+  return (
+    <>
+      <div className="woodwall tapes">
+        <div className="woodgrid">
+          {playlists.map((playlist) => (
+            <article
+              className={playlist.id === playingId ? "woodslot playing" : "woodslot"}
+              key={playlist.id}
+            >
+              <div className="wooditem">
+                <button
+                  type="button"
+                  className="wood-tape-btn"
+                  aria-pressed={playlist.id === playingId}
+                  onClick={() =>
+                    setPlayingId(playlist.id === playingId ? null : playlist.id)
+                  }
+                >
+                  <span className={`wood-tape ${playlist.provider}`}>
+                    <span className="wood-tape-label">
+                      <span className="wood-tape-title">{playlist.title}</span>
+                      <span className="wood-tape-by">{playlist.username}</span>
+                    </span>
+                    {/* Wound unevenly on purpose. Two spools the same size
+                        is a tape nobody has played. */}
+                    <span className="wood-tape-spools" aria-hidden="true">
+                      <span />
+                      <span />
+                    </span>
+                  </span>
+                </button>
+              </div>
+              {/* The title is written on the tape, so the card under the
+                  board says the thing the tape has no room for. Repeating
+                  the title here just made every playlist say its own name
+                  twice. */}
+              <div className="woodlabel">
+                <b title={playlist.note ?? playlist.title}>
+                  {playlist.note || `${playlist.username}'s tape`}
+                </b>
+                <span>{PROVIDER_LABELS[playlist.provider]}</span>
+              </div>
+              <div className="woodactions">
+                <Link href={`/profile/${playlist.username}`} className="wood-link">
+                  {playlist.username}
+                </Link>
+                {(currentUserId === playlist.userId || viewerIsAdmin) && (
+                  <form action={removePlaylist} className="inline-form">
+                    <input type="hidden" name="playlist_id" value={playlist.id} />
+                    <button type="submit">
+                      {currentUserId === playlist.userId ? "Take down" : "Remove"}
+                    </button>
+                  </form>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      {playing && (
+        <div className={`tape-deck ${playing.provider}`}>
+          <div className="tape-deck-head">
+            <b>{playing.title}</b>
+            <a href={openUrl(playing)} target="_blank" rel="noreferrer">
+              Open in {PROVIDER_LABELS[playing.provider]}
+            </a>
+          </div>
+          {playing.note && <p className="tape-deck-note">{playing.note}</p>}
+          <iframe
+            src={embedUrl(playing)}
+            title={`${playing.title} on ${PROVIDER_LABELS[playing.provider]}`}
+            loading="lazy"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          />
+          <div className="tape-deck-actions">
+            <button type="button" className="btn btn-ghost" onClick={() => setPlayingId(null)}>
+              Put it back
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -127,59 +240,20 @@ export function PlaylistWall({
         <div className="panel">
           <div className="panel-body">
             <p className="empty-state">
-              Nobody&apos;s put a playlist up yet. Paste a link to one you actually listen to.
+              Nobody has put a playlist up yet. Paste a link to one you actually listen to.
             </p>
           </div>
         </div>
       ) : (
-        <div className="playlist-wall">
-          {playlists.map((playlist) => {
-            const mine = currentUserId === playlist.userId;
-            return (
-              <article className="panel playlist-card" key={playlist.id}>
-                <div className="panel-body">
-                  <div className="playlist-head">
-                    <div className="playlist-titles">
-                      <b>{playlist.title}</b>
-                      <span className="playlist-by">
-                        <Link href={`/profile/${playlist.username}`}>{playlist.username}</Link>
-                        {" · "}
-                        {PROVIDER_LABELS[playlist.provider]}
-                      </span>
-                    </div>
-                    {(mine || viewerIsAdmin) && (
-                      <form action={removePlaylist} className="inline-form">
-                        <input type="hidden" name="playlist_id" value={playlist.id} />
-                        <button type="submit" className="comment-action danger">
-                          {mine ? "Take down" : "Remove (admin)"}
-                        </button>
-                      </form>
-                    )}
-                  </div>
-
-                  {playlist.note && <p className="playlist-note">{playlist.note}</p>}
-
-                  <div className={`playlist-embed ${playlist.provider}`}>
-                    <iframe
-                      src={embedUrl(playlist)}
-                      title={`${playlist.title} on ${PROVIDER_LABELS[playlist.provider]}`}
-                      loading="lazy"
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    />
-                  </div>
-
-                  <a
-                    className="playlist-open"
-                    href={openUrl(playlist)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open in {PROVIDER_LABELS[playlist.provider]} →
-                  </a>
-                </div>
-              </article>
-            );
-          })}
+        <div className="panel">
+          <div className="panel-head">On the shelf</div>
+          <div className="panel-body">
+            <TapeShelf
+              playlists={playlists}
+              currentUserId={currentUserId}
+              viewerIsAdmin={viewerIsAdmin}
+            />
+          </div>
         </div>
       )}
     </>

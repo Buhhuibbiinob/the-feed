@@ -106,7 +106,7 @@ export async function adminCreateBot(_prev: BotState, formData: FormData): Promi
   if (!/^[a-zA-Z0-9._]{3,20}$/.test(username)) {
     return { error: "Username must be 3-20 characters, letters/numbers/period/underscore only." };
   }
-  if (!persona) return { error: "Give the bot a persona - it's what shapes everything it writes." };
+  if (!persona) return { error: "Give the bot a persona. It's what shapes everything it writes." };
 
   const adminClient = createAdminClient();
 
@@ -665,7 +665,7 @@ export async function runBotRound(requestedId = ""): Promise<BotState> {
   }
 
   const bots = (await listBots()).filter((b) => b.bot_active);
-  if (bots.length === 0) return { error: "No active bots yet - create one below." };
+  if (bots.length === 0) return { error: "No active bots yet. Create one below." };
 
   // A specific bot when one was asked for, otherwise any active bot.
   const requested = requestedId ? bots.find((b) => b.id === requestedId) : null;
@@ -689,7 +689,7 @@ export async function runBotRound(requestedId = ""): Promise<BotState> {
   //    is a coin flip, so the feed doesn't fill up with only music.
   const subject = await pickReviewSubject(adminClient);
   if (!subject) {
-    skipped.push("couldn't find anything to review - Last.fm may be unreachable");
+    skipped.push("couldn't find anything to review: Last.fm may be unreachable");
   } else {
     const { data: already } = await adminClient
       .from("posts")

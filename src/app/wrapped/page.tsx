@@ -19,7 +19,7 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-export const metadata = { title: "Wrapped - Feedback" };
+export const metadata = { title: "Wrapped on Feedback" };
 
 export default async function WrappedPage() {
   const supabase = await createClient();
@@ -100,7 +100,7 @@ export default async function WrappedPage() {
         <div className="panel-body">
           {myPosts.length === 0 ? (
             <div className="empty-state">
-              No reviews yet in {year} - post something and check back for your Wrapped recap.
+              Nothing reviewed in {year} yet. Post something and come back for your Wrapped.
             </div>
           ) : (
             <div className="wrapped-stats">

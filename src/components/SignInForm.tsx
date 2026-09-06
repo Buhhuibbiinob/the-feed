@@ -24,7 +24,7 @@ export function SignInForm({ justReset, linkError }: { justReset: boolean; linkE
       <div className="panel-head">Sign In</div>
       <div className="panel-body">
         {justReset && !state.error && (
-          <div className="form-message">Password updated - sign in with your new password.</div>
+          <div className="form-message">Password updated. Sign in with your new password.</div>
         )}
         {linkError && !state.error && <div className="form-error">{linkError}</div>}
         {state.error && (

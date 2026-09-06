@@ -200,7 +200,7 @@ export function ProfileStore({
                   child rather than absolutely beside it. Positioning it
                   absolutely meant offsetting the text with a
                   padding-left, and .store-hero-text sets `padding`
-                  shorthand - so the two fought and the name rendered
+                  shorthand: so the two fought and the name rendered
                   underneath the photo. A row that lays itself out cannot
                   have that argument. */}
               <span className="store-hero-text">

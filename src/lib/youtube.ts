@@ -119,7 +119,7 @@ export type SearchResult = { videos: YoutubeVideo[]; failure?: SearchFailure };
 export function describeSearchFailure(failure: SearchFailure): string {
   switch (failure.reason) {
     case "not-configured":
-      return "Song search isn't set up yet - YOUTUBE_API_KEY is missing.";
+      return "Song search isn't set up yet: YOUTUBE_API_KEY is missing.";
     case "quota":
       return "Song search has used up today's YouTube quota. It comes back tomorrow.";
     case "rate-limited":

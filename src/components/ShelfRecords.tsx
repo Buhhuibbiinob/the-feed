@@ -4,12 +4,19 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Sleeve } from "@/lib/crate";
+import { formatForDecadeTag, formatForKey, type MediaFormat } from "@/lib/physicalMedia";
 
-// The records on a shelf.
+// The records on a shelf, which is a wooden shelf.
 //
-// A grid rather than a rail, because a shelf is a thing you scan across
-// and down - and unlike the Discover rails, none of these is here for a
-// reason worth printing on it. The order is the tag chart's, trimmed.
+// Newsstand, essentially: the covers stand on a board with a contact
+// shadow at the foot, and the card telling you what each one is sits in
+// the shade under the board, which is where a shop puts it.
+//
+// Each record is drawn as the object it would actually have been. A
+// shelf of 1974 albums is sleeves with the vinyl showing past the open
+// edge; a shelf of 1996 is jewel cases. When the shelf IS a decade the
+// decade decides, since that is a better answer than any single track's
+// own year - the shelf is about the era, so the objects should be too.
 
 type SleeveInfo = { artworkUrl: string | null; previewUrl: string | null; trackUrl: string | null };
 
@@ -48,7 +55,21 @@ function toggle(key: string, url: string) {
   void audio.play().catch(stop);
 }
 
-export function ShelfRecords({ records, emptyNote }: { records: Sleeve[]; emptyNote: string }) {
+export function ShelfRecords({
+  records,
+  emptyNote,
+  decade,
+}: {
+  records: Sleeve[];
+  emptyNote: string;
+  /** The decade this shelf is about, when it is about one. */
+  decade?: string | null;
+}) {
+  // One format for a decade shelf, so the era reads at a glance. On any
+  // other shelf each record gets its own, hashed off its key rather than
+  // rolled, because a record that is a cassette on one render and a CD
+  // on the next is a shelf that flickers.
+  const shelfFormat: MediaFormat | null = decade ? formatForDecadeTag(decade) : null;
   const [info, setInfo] = useState<Record<string, SleeveInfo>>({});
   const playing = useSyncExternalStore(
     subscribe,
@@ -90,7 +111,8 @@ export function ShelfRecords({ records, emptyNote }: { records: Sleeve[]; emptyN
   }
 
   return (
-    <div className="shelf-grid">
+    <div className="woodwall">
+      <div className="woodgrid">
       {records.map((record) => {
         const art = info[record.key]?.artworkUrl ?? record.imageUrl;
         const clip = info[record.key]?.previewUrl ?? null;
@@ -99,35 +121,33 @@ export function ShelfRecords({ records, emptyNote }: { records: Sleeve[]; emptyN
           record.name
         )}&artist=${encodeURIComponent(record.artist)}`;
 
+        const format = shelfFormat ?? formatForKey(record.key);
+
         return (
-          <article className="shelf-record" key={record.key}>
-            <div className="shelf-art">
+          <article className="woodslot" key={record.key}>
+            <div className={`wooditem fmt-${format}`}>
               {art ? (
                 <img src={art} alt="" loading="lazy" />
               ) : (
-                <div className="shelf-art-blank" aria-hidden="true">
-                  <span />
-                </div>
+                <div className="wood-blank" aria-hidden="true" />
               )}
               {clip && (
                 <button
                   type="button"
-                  className={`shelf-play${isPlaying ? " playing" : ""}`}
+                  className={`wood-play${isPlaying ? " playing" : ""}`}
                   aria-label={isPlaying ? `Stop ${record.name}` : `Hear ${record.name}`}
                   onClick={() => toggle(record.key, clip)}
                 >
-                  <span aria-hidden="true">{isPlaying ? "■" : "▶"}</span>
+                  <span aria-hidden="true">{isPlaying ? "\u25A0" : "\u25B6"}</span>
                 </button>
               )}
             </div>
-            <div className="shelf-name" title={record.name}>
-              {record.name}
+            <div className="woodlabel">
+              <b title={record.name}>{record.name}</b>
+              <span title={record.artist}>{record.artist}</span>
             </div>
-            <div className="shelf-artist" title={record.artist}>
-              {record.artist}
-            </div>
-            <div className="shelf-actions">
-              <Link href={reviewHref} className="shelf-review">
+            <div className="woodactions">
+              <Link href={reviewHref} className="wood-link">
                 Review
               </Link>
               <AddToQueueButton
@@ -139,7 +159,8 @@ export function ShelfRecords({ records, emptyNote }: { records: Sleeve[]; emptyN
             </div>
           </article>
         );
-      })}
+        })}
+      </div>
     </div>
   );
 }

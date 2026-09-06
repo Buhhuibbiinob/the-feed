@@ -47,7 +47,7 @@ export function GenrePicker({
               setQuery("");
               setSearching(false);
             }}
-            aria-label={`${genreLabel(value)} - tap to change`}
+            aria-label={`${genreLabel(value)}, tap to change`}
           >
             {genreLabel(value)}
             <span className="genre-clear" aria-hidden="true">×</span>
@@ -63,11 +63,11 @@ export function GenrePicker({
   return (
     <div className="field">
       {/* Not "(optional)". It IS optional, and saying so as the label is
-          an instruction to skip it - which is what people did, leaving
+          an instruction to skip it: which is what people did, leaving
           the one field that makes genre filters and recommendations
           possible empty on most reviews. Saying what it is for asks for
           the same second of effort with a reason attached. */}
-      <label htmlFor="genre-search">Genre — helps people find this later</label>
+      <label htmlFor="genre-search">Genre, so people can find this later</label>
 
       <div className="genre-chips">
         {results.map((slug) => (
@@ -89,7 +89,7 @@ export function GenrePicker({
         id="genre-search"
         type="text"
         className="genre-search"
-        placeholder="Search genres — try “rap”, “shoegaze”, “true crime”"
+        placeholder="Search genres. Try “rap”, “shoegaze”, “true crime”"
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
