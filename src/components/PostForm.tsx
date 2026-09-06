@@ -3,20 +3,23 @@
 import {
   MIN_QUERY_LENGTH,
   SEARCH_DEBOUNCE_MS,
-  searchVideosClient,
-} from "@/lib/videoSearch";
+  resolveTrackVideo,
+  searchMediaClient,
+  type MediaResult,
+} from "@/lib/trackSearch";
 
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { createPost, type PostFormState } from "@/app/actions/posts";
 import { closeComposeSheet } from "@/components/ComposeSheet";
-import type { YoutubeVideo } from "@/lib/youtube";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 import { MAX_PHOTO_BYTES, megabytes } from "@/lib/uploads";
 import { shrinkImage } from "@/lib/shrinkImage";
 import { GenrePicker } from "@/components/GenrePicker";
 
 const initialState: PostFormState = {};
+
+
 
 export function PostForm({
   answering = null,
@@ -49,10 +52,14 @@ export function PostForm({
   const [shrinking, setShrinking] = useState(false);
   const [posterUrl, setPosterUrl] = useState("");
   const [videoQuery, setVideoQuery] = useState("");
-  const [videoResults, setVideoResults] = useState<YoutubeVideo[]>([]);
-  const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
+  // Music comes from Apple's catalogue, everything else from YouTube, so
+  // the result list holds whichever of the two this category searched.
+  const [videoResults, setVideoResults] = useState<MediaResult[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<MediaResult | null>(null);
+  const [resolving, setResolving] = useState(false);
   const [videoSearching, setVideoSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const isMusic = mediaType === "music";
 
   // The fields are cleared on success as before, but the form is no
   // longer what gets shown: `posted` swaps it for the confirmation, and
@@ -86,9 +93,9 @@ export function PostForm({
     let cancelled = false;
     const timeout = setTimeout(async () => {
       try {
-        const answer = await searchVideosClient(videoQuery);
+        const answer = await searchMediaClient(videoQuery, { music: isMusic });
         if (!cancelled && answer) {
-          setVideoResults(answer.videos);
+          setVideoResults(answer.results);
           setSearchError(answer.error);
         }
       } finally {
@@ -99,7 +106,7 @@ export function PostForm({
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [videoQuery]);
+  }, [videoQuery, isMusic]);
 
   // The form renders inside the compose sheet as well as on its own
   // page, and a link followed from inside the sheet would otherwise
@@ -108,9 +115,28 @@ export function PostForm({
     closeComposeSheet();
   }
 
-  function selectVideo(video: YoutubeVideo) {
-    setSelectedVideo(video);
-    setTitle(video.title);
+  async function selectVideo(picked: MediaResult) {
+    // A song came from Apple and has no video attached yet. This is the
+    // one YouTube request the whole flow makes - a review still gets a
+    // player, but the browsing that led here cost nothing.
+    let chosen = picked;
+    if (isMusic && !picked.youtubeId) {
+      setResolving(true);
+      const { video } = await resolveTrackVideo({
+        id: "",
+        title: picked.title,
+        artist: picked.subtitle,
+        thumbnailUrl: picked.thumbnailUrl,
+        previewUrl: null,
+      });
+      setResolving(false);
+      // No video found is not a reason to refuse the review. The post
+      // keeps Apple's title and artwork and simply has no player.
+      if (video) chosen = { ...picked, youtubeId: video.id };
+    }
+
+    setSelectedVideo(chosen);
+    setTitle(chosen.title);
     setVideoQuery("");
     setVideoResults([]);
   }
@@ -212,7 +238,7 @@ export function PostForm({
                 {selectedVideo.thumbnailUrl && <img src={selectedVideo.thumbnailUrl} alt="" />}
                 <div>
                   <b>{selectedVideo.title}</b>
-                  <div className="sub">{selectedVideo.channelTitle}</div>
+                  <div className="sub">{selectedVideo.subtitle}</div>
                 </div>
                 <span className="clear" onClick={clearSelectedVideo}>
                   Clear
@@ -240,17 +266,23 @@ export function PostForm({
                 />
                 {videoQuery.trim() && (
                   <div className="track-results">
-                    {videoSearching ? (
+                    {resolving ? (
+                      <div className="track-result">Getting it ready…</div>
+                    ) : videoSearching ? (
                       <div className="track-result">Searching…</div>
                     ) : videoResults.length === 0 ? (
                       <div className="track-result">{searchError ?? "No matches."}</div>
                     ) : (
-                      videoResults.map((video) => (
-                        <div className="track-result" key={video.id} onClick={() => selectVideo(video)}>
-                          {video.thumbnailUrl && <img src={video.thumbnailUrl} alt="" />}
+                      videoResults.map((result, i) => (
+                        <div
+                          className="track-result"
+                          key={result.youtubeId || `${result.title}-${i}`}
+                          onClick={() => selectVideo(result)}
+                        >
+                          {result.thumbnailUrl && <img src={result.thumbnailUrl} alt="" />}
                           <div>
-                            <b>{video.title}</b>
-                            <div className="sub">{video.channelTitle}</div>
+                            <b>{result.title}</b>
+                            <div className="sub">{result.subtitle}</div>
                           </div>
                         </div>
                       ))
@@ -345,11 +377,11 @@ export function PostForm({
             type="hidden"
             name="artist"
             value={
-              mediaType === "music" ? selectedVideo?.channelTitle ?? prefill?.artist ?? "" : ""
+              mediaType === "music" ? selectedVideo?.subtitle ?? prefill?.artist ?? "" : ""
             }
           />
           <input type="hidden" name="cover_url" value={selectedVideo?.thumbnailUrl ?? posterUrl} />
-          <input type="hidden" name="youtube_video_id" value={selectedVideo?.id ?? ""} />
+          <input type="hidden" name="youtube_video_id" value={selectedVideo?.youtubeId ?? ""} />
 
           <div className="field">
             <label htmlFor="title">Title</label>

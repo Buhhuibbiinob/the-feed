@@ -58,10 +58,10 @@ export function QueueAddForm() {
       {mediaType !== "photography" && (
         <MediaSearchField
           placeholder="Search for it, or just type the name below…"
-          onPick={(video) => {
-            setTitle(video.title);
-            setSubtitle(video.channelTitle);
-            setImageUrl(video.thumbnailUrl ?? "");
+          onPick={(track) => {
+            setTitle(track.title);
+            setSubtitle(track.artist);
+            setImageUrl(track.thumbnailUrl ?? "");
           }}
         />
       )}
