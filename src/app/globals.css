@@ -14507,6 +14507,203 @@ a.issue-link::after {
 }
 
 /* ================================================================
+   GLASS PASS
+   ----------------------------------------------------------------
+   Making it shine, the way an iPhone 5 running iOS 6 shone.
+
+   The base gradients here were already right: a light upper half, a
+   hard step at the midpoint, a saturated lower half. That is the
+   MILLING. What was missing is the GLAZE - the layer of light sitting
+   on top of the paint, which is what your eye reads as "this is under
+   glass" rather than "this is a coloured rectangle".
+
+   Three things make it, and all three are one background stack rather
+   than extra elements:
+
+     1. A bulge of light spilling in from above the top edge. Real
+        moulded plastic is domed, so the brightest point sits off the
+        surface, not on it.
+     2. A hard specular cut at the midline. Hard, not blurred - a
+        blurred one reads as a web gradient, and the single most
+        recognisable thing about that era's chrome is the seam you
+        could put a ruler against.
+     3. A faint bounce coming back up off the base, because a glossy
+        thing sitting on a surface catches light twice.
+
+   Deliberately NOT a separate inset element. An earlier pass drew the
+   gloss as a floating pill inside the button and it never lined up
+   with the button's own corners - you could see a bright shape with a
+   gap all round it. Layered into the element's own background, the
+   glaze follows every radius exactly and there is nothing to misalign.
+   ================================================================ */
+
+:root {
+  /* The glaze for a coloured control - white light on saturated paint. */
+  /* The specular band sits in the TOP THIRD, not the top half.
+     Centred text on a 46% cut lands with its cap-height on the bright
+     side, and white on that measured 2.1:1 - unreadable, and invisible
+     to a contrast check that only reads theme tokens. Cutting at 34%
+     puts the whole label on the saturated half while keeping the dome
+     that makes it look like glass. Look at a real iOS 6 button: the
+     shine IS the top third. */
+  --glaze: radial-gradient(
+      ellipse 124% 62% at 50% -26%,
+      rgba(255, 255, 255, 0.62),
+      rgba(255, 255, 255, 0.1) 52%,
+      rgba(255, 255, 255, 0) 64%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.44) 0%,
+      rgba(255, 255, 255, 0.14) 33.9%,
+      rgba(0, 0, 0, 0.05) 34%,
+      rgba(255, 255, 255, 0.16) 100%
+    );
+
+  /* Lighter, for a control that is already pale. The same amount of
+     white on white just makes it look washed out rather than glossy,
+     so the pale glaze leans on the SHADE below the midline instead. */
+  --glaze-pale: radial-gradient(
+      ellipse 130% 80% at 50% -28%,
+      rgba(255, 255, 255, 0.75),
+      rgba(255, 255, 255, 0) 58%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.6) 0%,
+      rgba(255, 255, 255, 0.16) 33.9%,
+      rgba(0, 0, 0, 0.05) 34%,
+      rgba(0, 0, 0, 0.03) 100%
+    );
+
+  /* For a long bar rather than a small control: the light falls across
+     it from the top left, so the sweep is diagonal and the specular
+     cut is much fainter. A bar with a button's gloss on it looks like
+     a very wide button. */
+  --glaze-bar: linear-gradient(
+      104deg,
+      rgba(255, 255, 255, 0) 26%,
+      rgba(255, 255, 255, 0.16) 44%,
+      rgba(255, 255, 255, 0.02) 52%,
+      rgba(255, 255, 255, 0) 64%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.26) 0%,
+      rgba(255, 255, 255, 0.06) 47%,
+      rgba(255, 255, 255, 0) 47.1%,
+      rgba(255, 255, 255, 0.07) 100%
+    );
+}
+
+/* ---- Coloured controls ---- */
+/* background-image rather than background, so the theme's own gradient
+   stays underneath and every theme gets the glaze for free instead of
+   seventeen theme blocks needing to be edited. */
+.btn,
+button.btn,
+.new-post-btn {
+  background-image: var(--glaze), var(--btn-image);
+}
+.btn:hover,
+button.btn:hover,
+.new-post-btn:hover {
+  background-image: var(--glaze), var(--btn-image-hover);
+}
+/* Pressed, the light source is below: the glaze flips so the bright
+   half is at the BOTTOM, which is what a real dome does when you push
+   the top of it in. Flipping it is a far stronger "pressed" than
+   darkening the whole thing. */
+.btn:active,
+button.btn:active,
+.new-post-btn:active {
+  background-image: linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.04) 48%,
+      rgba(0, 0, 0, 0.06) 48.1%,
+      rgba(0, 0, 0, 0.12) 100%
+    ),
+    var(--btn-image-active);
+}
+
+/* ---- Pale controls ---- */
+.btn-ghost,
+button.btn-ghost {
+  background-image: var(--glaze-pale), var(--btn-ghost-image);
+}
+
+/* ---- Bars ---- */
+/* Not .panel-head. On the default theme that is deliberately a quiet
+   label sitting on the linen - "TOP SONGS ›" - not a title bar across
+   the top of a box, and glazing it put a bar back that somebody had
+   removed on purpose. background-image beats an earlier `background:
+   none` shorthand, so this went unnoticed until it was rendered.
+   Themes that DO draw a bar there already carry their own gradient. */
+.site-nav,
+.tab-bar {
+  background-image: var(--glaze-bar), var(--nav-bg);
+}
+
+/* ---- Segmented controls ---- */
+/* The whole control is one moulded strip, so the glaze runs across all
+   of it and the selected segment is a colour change underneath - not a
+   separate glossy button sitting in a trough. */
+.seg-item {
+  background-image: var(--glaze-pale), var(--btn-ghost-image);
+}
+.seg-item.active,
+.seg-item[aria-pressed="true"] {
+  background-image: var(--glaze), var(--btn-image);
+}
+
+/* ---- Small buttons ---- */
+/* Bar buttons only. .comment-action and the buttons inside inline forms
+   are styled as plain text links - "Reply", "Delete" - and giving them a
+   background turns a link into a button, which is a different thing
+   being said about what happens when you press it. */
+.acct-btn {
+  background-image: var(--glaze-pale), var(--acct-btn-bg);
+}
+
+/* ---- Recessed things ----
+   Glass only reads as raised if something on the page is sunk. Inputs
+   are the counterweight: a harder inner shadow at the top, a lit lip
+   along the bottom, and no glaze at all. */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="datetime-local"],
+textarea,
+select {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16) inset, 0 -1px 0 rgba(0, 0, 0, 0.05) inset,
+    0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* ---- Cards ----
+   A grouped card in that era was not flat white: it had a lit top edge
+   where the light caught the rounded corner, and a hairline of shade
+   along the bottom. One pixel each, which is all it takes.
+
+   On .panel-body, not .panel. The card is the white part; on the default
+   theme the panel's own top is a transparent strip holding a section
+   label, so a top-edge highlight there drew a white hairline floating
+   across the linen above every card. */
+.panel-body {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 -1px 0 rgba(0, 0, 0, 0.05) inset;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  button.btn,
+  .new-post-btn {
+    transition: none;
+  }
+}
+
+/* ================================================================
    The profile page as the iTunes Music Store
    ================================================================
    The reference is the 2003 Music Store: a Source column down the left,
