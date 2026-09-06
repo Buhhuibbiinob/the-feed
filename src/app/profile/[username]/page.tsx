@@ -777,6 +777,7 @@ export default async function ProfilePage({
                       username: profile.username,
                     }}
                     currentUserId={user?.id ?? null}
+                    viewerIsAdmin={viewerRow?.is_admin ?? false}
                     liked={likedByMe.has(post.id)}
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}
@@ -1039,6 +1040,7 @@ export default async function ProfilePage({
                       username: profile.username,
                     }}
                     currentUserId={user?.id ?? null}
+                    viewerIsAdmin={viewerRow?.is_admin ?? false}
                     liked={likedByMe.has(post.id)}
                     likeCount={likeCounts.get(post.id) ?? 0}
                     commentCount={commentCounts.get(post.id) ?? 0}
