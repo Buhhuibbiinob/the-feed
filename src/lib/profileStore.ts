@@ -105,6 +105,40 @@ export function favoritesShelf(favorites: FavoriteLike[], slots = SHELF_SLOTS * 
 }
 
 /**
+ * The three wide tiles along the bottom: their most popular reviews.
+ *
+ * Popular means other people did something about it - a like or a
+ * comment - not that the author rated it highly. A profile already says
+ * what its owner thinks in two other places (the banners are their
+ * best-rated, the chart is their best-rated numbered); this is the one
+ * slot that reports what everybody ELSE thought, which is the only
+ * reason it is worth a third of the width.
+ *
+ * Comments count double. A like is a tap; a comment is somebody stopping
+ * to write something, and on a site this size that is a much stronger
+ * signal that a review landed.
+ *
+ * Ties break on recency, so a profile whose reviews all have one like
+ * still shows its newest three rather than the same three forever.
+ */
+export const COMMENT_WEIGHT = 2;
+
+export function popularShelf(
+  posts: StorePost[],
+  likes: Map<string, number>,
+  comments: Map<string, number>,
+  slots = 3
+): StoreItem[] {
+  const score = (p: StorePost) =>
+    (likes.get(p.id) ?? 0) + (comments.get(p.id) ?? 0) * COMMENT_WEIGHT;
+  return withArt(posts)
+    .slice()
+    .sort((a, b) => score(b) - score(a) || newest(a, b))
+    .slice(0, slots)
+    .map(toItem);
+}
+
+/**
  * The chart down the right: their highest-rated, numbered.
  *
  * No cover needed - the chart is a text list in the reference, which is
