@@ -78,6 +78,21 @@ check(
 );
 check("what is left is the actual find", filtered.length === 1 && filtered[0].artist === "Wisp");
 
+// The hyphen case, which is most of the names in music spelled two ways.
+// Deleting punctuation instead of spacing it welded "Jay-Z" into "jayz"
+// while "Jay Z" stayed "jay z", so a recommender happily handed back the
+// record you reviewed last week under the other spelling.
+const spellings = rankFinds(
+  [track("99 Problems", "Jay Z", "seed")],
+  alreadyKnown([{ media_type: "music", title: "99 Problems", artist: "Jay-Z", rating: 5 }]),
+  5
+);
+check(
+  "one artist spelled two ways is one artist",
+  spellings.length === 0,
+  "'Jay-Z' and 'Jay Z' must not be two different people"
+);
+
 const deduped = rankFinds(
   [track("Same Song", "Wisp", "a"), track("same  song ", "Wisp", "b")],
   NOTHING_KNOWN,
