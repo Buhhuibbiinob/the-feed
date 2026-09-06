@@ -79,7 +79,7 @@ export type MusicEraId = (typeof MUSIC_ERAS)[number]["id"];
  * Tag charts move slowly, so these are cached for a day rather than the
  * hour the live chart uses.
  */
-export async function getTracksByTag(tag: string, limit = 50): Promise<LastfmTrack[]> {
+export async function getTracksByTag(tag: string, limit = 50, page = 1): Promise<LastfmTrack[]> {
   const apiKey = process.env.LASTFM_API_KEY;
   if (!apiKey) return [];
 
@@ -87,7 +87,7 @@ export async function getTracksByTag(tag: string, limit = 50): Promise<LastfmTra
     const res = await fetch(
       `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${encodeURIComponent(
         tag
-      )}&api_key=${apiKey}&format=json&limit=${limit}`,
+      )}&api_key=${apiKey}&format=json&limit=${limit}&page=${page}`,
       { next: { revalidate: 86400 } }
     );
     if (!res.ok) return [];
@@ -242,12 +242,64 @@ const HIT_LISTENER_CEILING = 400_000;
 
 /** Drops tracks big enough that surfacing them isn't a discovery. Tracks
  *  with no listener data are kept, since the endpoint not reporting it is
- *  not evidence of popularity. */
+ *  not evidence of popularity.
+ *
+ *  IMPORTANT: tag.getTopTracks does not report listeners at all, so this
+ *  filters NOTHING on a scene or decade chart - which is how "...Baby One
+ *  More Time" and "The Sign" ended up under "Deeper into the 90s".
+ *  Rank is the only popularity signal those charts carry, so callers use
+ *  DEEP_PAGE below instead of relying on this. */
 export function excludeHits(tracks: LastfmTrack[]): LastfmTrack[] {
   const found = tracks.filter((t) => t.listeners === undefined || t.listeners < HIT_LISTENER_CEILING);
   // If filtering wiped everything, the artist simply has no obscure tracks -
   // better to return their catalogue than nothing at all.
   return found.length > 0 ? found : tracks;
+}
+
+/**
+ * How far into a tag chart the deep cuts start.
+ *
+ * A tag chart is ordered by play count and reports nothing else, so rank
+ * IS the popularity signal - and page one of "90s" is precisely the
+ * twenty songs everybody can already hum. Page four is rank 150-200:
+ * still well-played enough to be good, far enough down that somebody
+ * choosing to browse that shelf probably has not heard them.
+ */
+export const DEEP_PAGE = 4;
+
+/** A tag's deep cuts: far enough down the chart to be a find. */
+export async function getDeepTracksByTag(tag: string, limit = 50): Promise<LastfmTrack[]> {
+  const deep = await getTracksByTag(tag, limit, DEEP_PAGE);
+  // A small tag runs out before page four. Falling back one page at a
+  // time keeps a niche scene usable instead of returning nothing.
+  if (deep.length >= 10) return deep;
+  const middle = await getTracksByTag(tag, limit, 2);
+  return middle.length > 0 ? middle : getTracksByTag(tag, limit, 1);
+}
+
+/**
+ * Names that are not artists.
+ *
+ * Reviews posted before song search moved to Apple stored whatever
+ * YouTube called the channel, so the artist on an old review is often
+ * "TheFugeesVEVO", "Lady Gaga - Topic" or "Ne-Yo - Topic". Seeding
+ * discovery from those produces "Because you liked TLCVEVO", and looking
+ * them up in Apple's catalogue finds nothing - which is also why some
+ * cards had no artwork and no play button.
+ */
+export function cleanArtistName(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const cleaned = raw
+    .replace(/\s*[-–—]\s*Topic\s*$/i, "")
+    .replace(/VEVO\s*$/i, "")
+    .replace(/\s*-\s*Official(\s+(Channel|Music|Video|Audio))?\s*$/i, "")
+    .replace(/\s*\bOfficial\b\s*$/i, "")
+    .replace(/\s*[-–—]\s*Records\s*$/i, "")
+    .replace(/^The(?=[A-Z])/, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  // A name that was ONLY the suffix is not a name.
+  return cleaned.length >= 2 ? cleaned : null;
 }
 
 /**

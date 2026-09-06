@@ -3,11 +3,11 @@ import {
   DISCOVERY_TAGS,
   MUSIC_ERAS,
   SEED_ARTISTS,
+  cleanArtistName,
   excludeHits,
   getArtistTopTracks,
+  getDeepTracksByTag,
   getSimilarArtists,
-  getTracksByTag,
-  getTracksForEra,
   type LastfmTrack,
   type MusicEraId,
 } from "@/lib/lastfm";
@@ -56,7 +56,33 @@ export type SeedPost = {
   title: string;
   artist: string | null;
   rating: number | null;
+  genre?: string | null;
 };
+
+/**
+ * The styles somebody keeps rating four and five.
+ *
+ * Artists say who you already listen to; genre says what DIRECTION you
+ * lean, which is the thing that survives when the artist list runs out.
+ * Somebody with three five-star shoegaze reviews wants more shoegaze,
+ * and no similar-artist walk from three artists says that as plainly as
+ * the genre they picked three times.
+ *
+ * Ordered by how often it was rated highly, so a style reviewed once is
+ * not treated as a taste.
+ */
+export function lovedGenres(posts: SeedPost[], limit = 3): string[] {
+  const tally = new Map<string, number>();
+  for (const post of posts) {
+    if ((post.media_type ?? "music") !== "music") continue;
+    if ((post.rating ?? 0) < 4 || !post.genre) continue;
+    tally.set(post.genre, (tally.get(post.genre) ?? 0) + 1);
+  }
+  return [...tally.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([genre]) => genre)
+    .slice(0, limit);
+}
 
 function squashArtist(name: string): string {
   return name.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -78,7 +104,12 @@ export function seedArtists(posts: SeedPost[], limit = 5): string[] {
     const seen = new Set<string>();
     const out: string[] = [];
     for (const row of rows) {
-      const artist = row.artist!.trim();
+      // Cleaned first. Reviews posted before song search moved to Apple
+      // stored YouTube's channel name, so the artist is often
+      // "TLCVEVO" or "Ne-Yo - Topic" - which seeds nothing useful, says
+      // "Because you liked TLCVEVO" on the card, and finds no artwork.
+      const artist = cleanArtistName(row.artist);
+      if (!artist) continue;
       const key = squashArtist(artist);
       if (!key || seen.has(key)) continue;
       seen.add(key);
@@ -99,7 +130,8 @@ export function alreadyKnown(posts: SeedPost[]): Known {
   const artists = new Set<string>();
   for (const post of posts) {
     if (post.title) works.add(workKey(post.title, post.artist));
-    if (post.artist?.trim()) artists.add(squashArtist(post.artist));
+    const artist = cleanArtistName(post.artist);
+    if (artist) artists.add(squashArtist(artist));
   }
   return { works, artists };
 }
@@ -219,14 +251,44 @@ export async function findsForSeeds(
   return rankFinds(perSeed.flat(), known, limit);
 }
 
+/**
+ * A scene they keep rating highly, deep.
+ *
+ * The taste-shaped half of the scene rail: rather than the tag of the
+ * day, the style this person has given four and five stars to most
+ * often. Falls back to the day's scene when they have not rated enough
+ * for it to mean anything - one five-star review is not a direction.
+ */
+export async function lovedSceneFinds(
+  posts: SeedPost[],
+  known: Known,
+  { limit = 6, now = new Date() }: { limit?: number; now?: Date } = {}
+): Promise<{ tag: string; fromTaste: boolean; finds: Find[] }> {
+  const loved = lovedGenres(posts);
+  if (loved.length === 0) {
+    const scene = await sceneFinds(known, { limit, now });
+    return { tag: scene.tag, fromTaste: false, finds: scene.finds };
+  }
+  // Rotated so somebody with three loved styles sees all three over a
+  // few days rather than the same one forever.
+  const tag = rotate(loved, dayIndex(now))[0];
+  const tracks = await getDeepTracksByTag(tag, 50).catch(() => []);
+  const from = excludeHits(tracks);
+  return {
+    tag,
+    fromTaste: true,
+    finds: rankFinds(from.map((track) => ({ ...track, becauseOf: null })), known, limit),
+  };
+}
+
 /** The scene of the day, and the tracks in it that aren't its hits. */
 export async function sceneFinds(
   known: Known,
   { limit = 6, now = new Date() }: { limit?: number; now?: Date } = {}
 ): Promise<{ tag: string; finds: Find[] }> {
   const tag = rotate(DISCOVERY_TAGS, dayIndex(now))[0];
-  const tracks = await getTracksByTag(tag, 50).catch(() => []);
-  const deep = excludeHits(tracks.slice(5));
+  const tracks = await getDeepTracksByTag(tag, 50).catch(() => []);
+  const deep = excludeHits(tracks);
   const from = deep.length >= limit ? deep : excludeHits(tracks);
   return {
     tag,
@@ -247,8 +309,11 @@ export async function eraFinds(
   // so the decade rail only draws from the decades.
   const decades = MUSIC_ERAS.filter((e) => e.tag !== null);
   const era = rotate([...decades], dayIndex(now))[0];
-  const tracks = await getTracksForEra(era.id, 50).catch(() => []);
-  const deep = excludeHits(tracks.slice(5));
+  // The decade tag, deep. Page one of "90s" is the twenty songs everybody
+  // can hum, which is how Britney and Ace of Base ended up on a shelf
+  // headed "Not the songs from the adverts".
+  const tracks = await getDeepTracksByTag(era.tag as string, 50).catch(() => []);
+  const deep = excludeHits(tracks);
   const from = deep.length >= limit ? deep : excludeHits(tracks);
   return {
     era: era.id,
@@ -274,6 +339,31 @@ const LOOKUP_CONCURRENCY = 4;
  * hearing the thing immediately, but the other half is knowing it exists,
  * and the catalogue simply has no clip for some records.
  */
+/**
+ * Apple's catalogue, tried more than once.
+ *
+ * Some cards had no artwork and no play button, and the reason was the
+ * name rather than the catalogue: "TheFugeesVEVO" matches nothing, and
+ * neither does "Helmet (Official Video)". So the artist is cleaned, and
+ * a title carrying video furniture is tried again without it.
+ */
+async function lookupFind(find: Find) {
+  const artist = cleanArtistName(find.artist) ?? find.artist;
+  const first = await lookupItunesTrack(find.name, artist);
+  if (first.previewUrl || first.artworkUrl) return first;
+
+  // "Song (Official Video)", "Song [Official Audio]", "Artist - Song".
+  const bare = find.name
+    .replace(/[([][^)\]]*(?:official|video|audio|lyric|hd|remaster)[^)\]]*[)\]]/gi, "")
+    .replace(/^.*?\s[-–]\s/, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (bare && bare.toLowerCase() !== find.name.toLowerCase()) {
+    return lookupItunesTrack(bare, artist);
+  }
+  return first;
+}
+
 export async function enrichFinds(finds: Find[]): Promise<Find[]> {
   const out = [...finds];
   let cursor = 0;
@@ -282,7 +372,7 @@ export async function enrichFinds(finds: Find[]): Promise<Find[]> {
     while (cursor < out.length) {
       const index = cursor++;
       const find = out[index];
-      const info = await lookupItunesTrack(find.name, find.artist).catch(() => null);
+      const info = await lookupFind(find).catch(() => null);
       if (!info) continue;
       out[index] = {
         ...find,
