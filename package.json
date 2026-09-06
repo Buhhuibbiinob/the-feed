@@ -16,6 +16,7 @@
     "check:slots": "npx tsx scripts/media-slots-check.ts",
     "check:labels": "npx tsx scripts/profile-labels-check.ts",
     "check:stickers": "npx tsx scripts/sticker-fallback-check.ts",
+    "check:shelves": "npx tsx scripts/shelves-check.ts",
     "check:crate": "npx tsx scripts/crate-check.ts",
     "check:tv": "npx tsx scripts/tv-era-check.ts",
     "check:moderation": "npx tsx scripts/moderation-check.ts",
