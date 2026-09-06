@@ -101,7 +101,7 @@ export const BUILTIN_ANNOUNCEMENT: Announcement = {
   title: "Profiles have a new look",
   body:
     "We've been working on this one for a while, and you all saw the archive demo. " +
-    "The crowded MySpace look is gone - profiles now present your reviews properly " +
+    "The crowded MySpace look is gone. Profiles now present your reviews properly " +
     "instead of burying them under widgets.",
   style: "alert",
   button_label: "Take a look",

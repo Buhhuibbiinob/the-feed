@@ -28,7 +28,7 @@ export async function addPlaylist(
   // somebody who pasted an ALBUM link with no idea what went wrong.
   if (!parsed) {
     return {
-      error: "That doesn't look like a playlist link. Paste the link to a playlist on Spotify or Apple Music - an album or track link won't work.",
+      error: "That doesn't look like a playlist link. Paste the link to a playlist on Spotify or Apple Music. An album or track link won't work.",
     };
   }
 
@@ -56,7 +56,7 @@ export async function addPlaylist(
   // 23505: they already added it. That is the state they wanted.
   if (error && error.code !== "23505") {
     if (isMissingSchema(error.message)) {
-      return { error: "Playlists aren't set up yet - run migration 013." };
+      return { error: "Playlists aren't set up yet: run migration 013." };
     }
     return { error: friendlyDbError(error.message) };
   }

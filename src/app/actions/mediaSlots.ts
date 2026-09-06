@@ -105,6 +105,6 @@ export async function clearMediaSlot(formData: FormData) {
 
 function describe(message: string): string {
   return /relation .* does not exist|schema cache/i.test(message)
-    ? "Custom boxes aren't set up yet - run migration 011 in the Supabase SQL editor."
+    ? "Custom boxes aren't set up yet: run migration 011 in the Supabase SQL editor."
     : message;
 }

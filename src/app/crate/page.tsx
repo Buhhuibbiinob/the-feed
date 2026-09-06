@@ -4,7 +4,7 @@ import { Crate } from "@/components/Crate";
 import { crateSeed, crateSources, fillCrate } from "@/lib/crate";
 import { alreadyKnown, describeDiscoveryStatus, discoveryStatus, type SeedPost } from "@/lib/musicDiscovery";
 
-export const metadata = { title: "The Crate - Feedback" };
+export const metadata = { title: "The Crate on Feedback" };
 
 /**
  * A box of records to go through.

@@ -88,7 +88,7 @@ export function NowPlayingHero({
         <span>--:--</span>
       </div>
       <div className="sk-np-share-row">
-        <ShareButton postId={postId} title={artist ? `${title} - ${artist}` : title} />
+        <ShareButton postId={postId} title={artist ? `${title} by ${artist}` : title} />
       </div>
     </div>
   );

@@ -63,7 +63,7 @@ export function setSoundEnabled(on: boolean) {
    A narrow bandpass throws away most of a noise burst's energy, so the
    gain here is nothing like the level you hear. Rendered offline and
    measured: at gain 0.16 the tick peaked at 0.055, which on a phone at
-   normal volume is inaudible - I would have shipped a feature that did
+   normal volume is inaudible. I would have shipped a feature that did
    nothing and been told it was broken.
 
    Calibrated by measurement rather than guesswork, each variant peaks

@@ -15997,6 +15997,56 @@ button.btn-ghost {
   }
 }
 
+/* ---- Discover's top: the set beside the records ----
+   The Feed TV ran the full width of the page on its own, with dead space
+   to its left and right, and that band cost most of a screen before
+   anybody reached a single recommendation. The set is a nice thing to
+   have at the top; it was not worth a whole screen of it.
+
+   So it moves into a column of its own with the rails alongside, and the
+   reviews below get the full width they actually need. The set column is
+   `auto`, not a fraction, because the player's size is a per person
+   choice stored on their own device - the grid has to take whatever
+   somebody picked and give the rails the rest, rather than deciding for
+   them. The rails get a 320px floor so they never squeeze to the point
+   of showing one and a half sleeves. */
+.discover-top {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(320px, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.discover-top .discover-set {
+  margin-bottom: 0;
+}
+.discover-top .discover-rails {
+  margin-bottom: 0;
+  min-width: 0;
+}
+/* The set is the smaller of the two here. Its own S/M/L/XL setting still
+   applies underneath this, so somebody who wants it big gets it big; this
+   only stops XL from taking the rails' half of the row. */
+.discover-top .discover-set .feedtv-standalone {
+  max-width: min(var(--feedtv-width), 380px);
+}
+
+/* Below about a tablet there is no room for two columns of anything, so
+   the set goes back on top and the rails underneath it. Stacked in that
+   order rather than the reverse: the set is the thing that says what
+   this page is. */
+@media (max-width: 900px) {
+  .discover-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .discover-top .discover-set {
+    margin-bottom: 16px;
+  }
+  .discover-top .discover-set .feedtv-standalone {
+    max-width: var(--feedtv-width);
+  }
+}
+
 /* ================================================================
    The profile page as the iTunes Music Store
    ================================================================

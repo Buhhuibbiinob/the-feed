@@ -15,7 +15,7 @@ export function AdvertiseForm() {
   if (state.ok) {
     return (
       <div className="form-message">
-        Thanks! Your banner request is in for review - we&apos;ll reach out once it&apos;s approved.
+        Thanks, your banner request is in. We&apos;ll get in touch once it is approved.
       </div>
     );
   }
@@ -28,7 +28,7 @@ export function AdvertiseForm() {
         <input id="artist_name" name="artist_name" type="text" required />
       </div>
       <div className="field">
-        <label htmlFor="link_url">Link (your music, site, or socials - optional)</label>
+        <label htmlFor="link_url">Link (your music, site, or socials: optional)</label>
         <input id="link_url" name="link_url" type="url" placeholder="https://…" />
       </div>
       <div className="field">
@@ -41,7 +41,7 @@ export function AdvertiseForm() {
         >
           {BANNER_SLOTS.map((s) => (
             <option key={s.value} value={s.value}>
-              {s.label} - {s.width} × {s.height}px
+              {s.label}, {s.width} × {s.height}px
             </option>
           ))}
         </select>

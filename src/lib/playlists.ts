@@ -163,6 +163,6 @@ export const PROVIDER_LABELS: Record<PlaylistProvider, string> = {
  * least reuse the client id this site already has.
  */
 export const APPLE_MUSIC_CONNECT_NOTE =
-  "Paste a link and it works - no account needed, on either service. " +
+  "Paste a link and it works. No account needed on either service. " +
   "Pulling your playlists in automatically needs an Apple Developer key, " +
   "which the site doesn't have yet.";

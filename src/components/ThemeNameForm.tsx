@@ -43,7 +43,7 @@ export function ThemeNameForm({
             <p className="field-hint">
               What people see in Settings. Leave it empty to go back to{" "}
               <b>{shippedName}</b>.
-              {renamed && " Renaming changes the label only - nobody's theme moves."}
+              {renamed && " Renaming changes the label only. Nobody's theme moves."}
             </p>
           </div>
           <div className="form-actions">

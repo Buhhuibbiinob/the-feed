@@ -41,7 +41,7 @@ export function describeAlert(item: AlertItem): string {
         ? `reacted ${item.emoji ?? ""} to your pick "${item.subject}"`.trim()
         : "reacted to one of your picks";
     case "twin":
-      return item.subject ? `is your taste twin - ${item.subject} match` : "is your taste twin";
+      return item.subject ? `is your taste twin, ${item.subject} match` : "is your taste twin";
     case "duet":
       return item.postTitle
         ? `answered your review of "${item.postTitle}" with their own`

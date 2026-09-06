@@ -17,7 +17,7 @@ type PostRow = {
   profiles: { username: string } | null;
 };
 
-export const metadata = { title: "New Releases - Feedback" };
+export const metadata = { title: "New Releases on Feedback" };
 
 export default async function NewReleasesPage() {
   const supabase = await createClient();
@@ -94,7 +94,7 @@ export default async function NewReleasesPage() {
         <div className="release-grid">
           {reviews.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              No music reviews yet - be the first to post one.
+              No music reviews yet: be the first to post one.
             </div>
           ) : (
             reviews.map((post) => (

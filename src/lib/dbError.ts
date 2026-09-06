@@ -18,7 +18,7 @@ const MISSING_COLUMN = /Could not find the .* column|column .* does not exist/i;
 export function friendlyDbError(message: string | null | undefined): string {
   if (!message) return "Something went wrong. Try again.";
   if (MISSING_TABLE.test(message) || MISSING_COLUMN.test(message)) {
-    return "This feature isn't switched on yet - the database is missing a table it needs. Whoever runs the site needs to apply supabase/migrations.";
+    return "This feature isn't switched on yet: the database is missing a table it needs. Whoever runs the site needs to apply supabase/migrations.";
   }
   return message;
 }

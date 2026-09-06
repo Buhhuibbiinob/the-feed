@@ -53,7 +53,7 @@ export function HandedToYou({ handoffs }: { handoffs: Handoff[] }) {
               </div>
               <Link href={`/post/${handoff.postId}`} className="handed-title">
                 {handoff.postTitle}
-                {handoff.postArtist && <span> — {handoff.postArtist}</span>}
+                {handoff.postArtist && <span> by {handoff.postArtist}</span>}
               </Link>
               {/* The note in their words, in quotes, because it is the
                   part a machine could never have produced. */}

@@ -111,7 +111,7 @@ type BannerRow = {
   profiles: { username: string } | null;
 };
 
-export const metadata = { title: "Admin - Feedback" };
+export const metadata = { title: "Admin on Feedback" };
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -206,7 +206,7 @@ export default async function AdminPage() {
     <>
       <div className="page-header">
         <h1>Admin</h1>
-        <div className="tagline">Moderation tools - reported messages, users, bans.</div>
+        <div className="tagline">Moderation tools: reported messages, users, bans.</div>
       </div>
 
       <div className="panel">
@@ -460,7 +460,7 @@ export default async function AdminPage() {
                 ) : (
                   <i>club deleted</i>
                 )}
-                {r.reason && <span> - {r.reason}</span>}
+                {r.reason && <span>: {r.reason}</span>}
                 <span className="chat-msg-actions">
                   <span className="comment-action">reported by {r.profiles?.username ?? "unknown"}</span>
                   {r.clubs && (
@@ -497,7 +497,7 @@ export default async function AdminPage() {
                 ) : (
                   <i>post deleted</i>
                 )}
-                {r.reason && <span> - {r.reason}</span>}
+                {r.reason && <span>: {r.reason}</span>}
                 <span className="chat-msg-actions">
                   <span className="comment-action">reported by {r.profiles?.username ?? "unknown"}</span>
                   {r.artist_posts && (
@@ -596,7 +596,7 @@ export default async function AdminPage() {
                     · <a href={b.link_url} target="_blank" rel="noreferrer">{b.link_url}</a>
                   </>
                 )}
-                {b.message && <span> - {b.message}</span>}
+                {b.message && <span>: {b.message}</span>}
                 <span> (submitted by {b.profiles?.username ?? "unknown"})</span>
                 <span className="chat-msg-actions">
                   <form action={adminApproveBanner} className="inline-form">
@@ -624,8 +624,8 @@ export default async function AdminPage() {
         <div className="panel-body">
           <p className="field-hint" style={{ marginBottom: 12 }}>
             Personas that post reviews, chat, and like real members&apos; posts so the site isn&apos;t empty
-            while the community is still small. They appear everywhere a normal account does - feed,
-            leaderboard, chat - and are indistinguishable from real members to visitors. Only this
+            while the community is still small. They appear everywhere a normal account does: feed,
+            leaderboard and chat, and are indistinguishable from real members to visitors. Only this
             panel shows which accounts are bots.
           </p>
           <BotAdminPanel bots={bots} enabled={siteFlags.bots_enabled} />

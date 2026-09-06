@@ -69,7 +69,7 @@ export async function selectPosts<T>(
   }
 
   console.error(
-    `[posts] database is behind on ${optional.join(", ")} - serving without. Apply supabase/migrations.`
+    `[posts] database is behind on ${optional.join(", ")}, serving without. Apply supabase/migrations.`
   );
   const fallback = await build(withoutColumns(columns, optional));
   if (fallback.error) {

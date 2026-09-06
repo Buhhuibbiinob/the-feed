@@ -209,7 +209,7 @@ function DiscDeck({
             }}
             onDragEnd={() => setDragging(null)}
             onClick={() => load(i)}
-            title={clip.artist ? `${clip.title} - ${clip.artist}` : clip.title}
+            title={clip.artist ? `${clip.title} by ${clip.artist}` : clip.title}
           >
             <img src={`https://img.youtube.com/vi/${clip.youtubeVideoId}/mqdefault.jpg`} alt="" />
             <span className="tv-case-spine">{clip.title}</span>

@@ -441,7 +441,7 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
           {tab === "playing" && (
             <div className="yt-tab-panel">
               <b>{current.title}</b>
-              {current.artist && <span> - {current.artist}</span>}
+              {current.artist && <span> · {current.artist}</span>}
               <span className="yt-tab-sub">
                 {current.username ? `posted by ${current.username}` : "charting right now"}
               </span>
@@ -469,7 +469,7 @@ export function FeedTV({ clips }: { clips: FeedTvClip[] }) {
               {current.postId ? (
                 <Link href={`/post/${current.postId}`}>View the full review &amp; comments &rarr;</Link>
               ) : (
-                <Link href="/post/new">Nobody&apos;s reviewed this yet - be the first &rarr;</Link>
+                <Link href="/post/new">Nobody&apos;s reviewed this yet. Be the first &rarr;</Link>
               )}
             </div>
           )}

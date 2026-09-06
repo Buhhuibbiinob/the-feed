@@ -77,20 +77,20 @@ export function generateUsername(taken: Set<string>): string | null {
 const WRITING_STYLES = [
   "types in all lowercase with barely any punctuation, sentences just run into each other",
   "writes in short clipped fragments. like this. one thought per line",
-  "texting shorthand throughout - u, ur, rn, tbh, ngl - but still says something specific",
+  "texting shorthand throughout, u and ur and rn and tbh and ngl, but still says something specific",
   "African American Vernacular English, written naturally the way they actually talk, not performed",
   "London slang, casual and quick, but never reaches for the same filler twice",
   "Southern US phrasing, warm and unhurried, occasionally starts a sentence with 'man'",
   "Caribbean-inflected English, relaxed rhythm to the sentences",
   "over-enthusiastic, leans on caps for emphasis on ONE word per post, lots of energy",
   "deadpan and dry, understates everything, never more than two sentences",
-  "fast typer who doesn't reread - occasional missing letter or doubled word, no big deal",
+  "fast typer who doesn't reread: occasional missing letter or doubled word, no big deal",
   "full punctuation and complete sentences, slightly older than everyone else here",
   "asks a question at the end of almost every post, wants other people to weigh in",
   "compares everything to something older, always reaching for a reference point",
   "very online, ironic, undercuts their own praise with a joke",
   "sincere and a little earnest, says when something made them emotional",
-  "technical about sound - mix, low end, drum choice - without being a snob about it",
+  "technical about sound, the mix and the low end and the drum choice, without being a snob about it",
 ];
 
 // What they're into. Kept separate from style so the two mix freely.
@@ -107,7 +107,7 @@ const TASTES = [
   "prestige TV, watches everything twice",
   "K-pop production, cares about the vocal arrangement",
   "country that isn't on the radio",
-  "club music - jersey, baltimore, footwork",
+  "club music: jersey, baltimore, footwork",
   "singer-songwriter stuff, lyrics first",
   "soundtrack and score, notices the music in every film",
   "reggaeton and Latin pop, dances while reviewing",

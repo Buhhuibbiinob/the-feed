@@ -8,7 +8,7 @@ export function createAdminClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY is not set - add it to .env.local (Supabase Project Settings > API) to enable admin actions."
+      "SUPABASE_SERVICE_ROLE_KEY is not set. Add it to .env.local (Supabase Project Settings > API) to enable admin actions."
     );
   }
   return createSupabaseClient(url, serviceKey, {

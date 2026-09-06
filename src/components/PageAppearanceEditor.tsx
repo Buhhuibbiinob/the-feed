@@ -240,7 +240,7 @@ export function PageAppearanceEditor({
 
           {/* Each name is drawn in its own typeface, which is the only
               way to choose a font. A dropdown listing fifteen names in
-              one face asks people to imagine the answer - so nobody
+              one face asks people to imagine the answer: so nobody
               browses it, they pick the first one and leave. */}
           <div className="favorites-kind-head">Font</div>
           <div className="font-grid">

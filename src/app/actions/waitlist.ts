@@ -22,8 +22,8 @@ export async function joinWaitlist(
     if (error.code === "23505") {
       return { message: "You're already on the list!" };
     }
-    return { error: "Something went wrong - try again in a bit." };
+    return { error: "Something went wrong. Give it a minute and try again." };
   }
 
-  return { message: "You're on the list - we'll email you when there's news." };
+  return { message: "You are on the list. We will email you when there is news." };
 }

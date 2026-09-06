@@ -7,7 +7,7 @@ import { isMissingSchema } from "@/lib/dbError";
 import { formatForKey, type MediaFormat } from "@/lib/physicalMedia";
 import { QUEUE_DONE_LABEL, reviewHref, toQueueItem, type QueueItem, type QueueRow } from "@/lib/queue";
 
-export const metadata = { title: "Your shelf - Feedback" };
+export const metadata = { title: "Your shelf on Feedback" };
 
 const COLUMNS = "id, media_type, title, subtitle, image_url, from_post_id, done_at, created_at";
 

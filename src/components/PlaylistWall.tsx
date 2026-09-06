@@ -51,7 +51,7 @@ function AddPlaylist() {
         />
         <div className="field-hint">
           {url.trim() && !parsed
-            ? "Not a playlist link yet — an album or track link won't work."
+            ? "That is not a playlist link. An album or a single track will not work here."
             : parsed
             ? `${PROVIDER_LABELS[parsed.provider]} playlist. Give it a name and it's up.`
             : APPLE_MUSIC_CONNECT_NOTE}

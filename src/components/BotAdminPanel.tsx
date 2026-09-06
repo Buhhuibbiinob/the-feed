@@ -52,7 +52,7 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
         {runState.error && <div className="form-error">{runState.error}</div>}
         {runState.ok && <div className="form-message">{runState.summary}</div>}
         <p className="field-hint" style={{ marginBottom: 8 }}>
-          Runs one round: a random active bot reviews something real - a song from any era, 70s
+          Runs one round: a random active bot reviews something real. A song from any era, 70s
           through now, or a film or show that&apos;s actually out - posts one chat message, and likes a
           recent post from a real member. Open a bot below to make that specific one post instead.
           Bots never review something they&apos;ve already reviewed, never invent releases, and never
@@ -82,7 +82,7 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
       <div className="panel-body flush" style={{ marginBottom: 16 }}>
         {bots.length === 0 ? (
           <div className="empty-state" style={{ padding: 12 }}>
-            No bots yet - create one below.
+            No bots yet: create one below.
           </div>
         ) : (
           bots.map((bot) => (
@@ -136,14 +136,14 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
               <form action={adminUpdateBot} style={{ marginTop: 10 }}>
                 <input type="hidden" name="bot_id" value={bot.id} />
                 <label className="field-hint" htmlFor={`persona-${bot.id}`}>
-                  Persona - taste and typing voice, which shapes everything it writes
+                  Persona: taste and typing voice, which shapes everything it writes
                 </label>
                 <textarea
                   id={`persona-${bot.id}`}
                   name="persona"
                   rows={2}
                   defaultValue={bot.bot_persona ?? ""}
-                  placeholder="How this bot writes - taste, tone, what they care about"
+                  placeholder="How this bot writes: taste, tone, what they care about"
                 />
                 <div className="form-actions" style={{ marginTop: 6 }}>
                   <button className="btn" type="submit" name="active" value={bot.bot_active ? "true" : "true"}>
@@ -182,7 +182,7 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
                   <textarea id={`bio-${bot.id}`} name="bio" rows={2} defaultValue={bot.bio ?? ""} />
                 </div>
                 <div className="field">
-                  <label htmlFor={`status-title-${bot.id}`}>Status - what they&apos;re currently on</label>
+                  <label htmlFor={`status-title-${bot.id}`}>Status: what they&apos;re currently on</label>
                   <select
                     name="status_media_type"
                     defaultValue={bot.status_media_type ?? "music"}
@@ -240,7 +240,7 @@ export function BotAdminPanel({ bots, enabled }: { bots: BotProfile[]; enabled: 
           <label htmlFor="bot-count">Create bots in bulk</label>
           <input id="bot-count" name="count" type="number" min={1} max={25} defaultValue={10} />
           <span className="field-hint">
-            Each one gets its own handle, taste and typing voice - dialect, punctuation habits, post
+            Each one gets its own handle, taste and typing voice: dialect, punctuation habits, post
             length. Edit any of them individually above afterwards.
           </span>
         </div>

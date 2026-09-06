@@ -63,7 +63,7 @@ export default async function MessageThreadPage({
       <div className="panel-body flush dm-thread-body">
         {messages.length === 0 ? (
           <div className="empty-state" style={{ padding: 16 }}>
-            No messages yet - say hello.
+            No messages yet: say hello.
           </div>
         ) : (
           messages.map((m) => (

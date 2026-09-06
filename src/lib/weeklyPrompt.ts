@@ -131,7 +131,7 @@ export function weekLabel(weekStartDate: string): string {
       timeZone: "UTC",
     });
   const sameMonth = start.getUTCMonth() === end.getUTCMonth();
-  return `${fmt(start, !sameMonth)} – ${fmt(end, true)}`;
+  return `${fmt(start, !sameMonth)} to ${fmt(end, true)}`;
 }
 
 export const MAX_ANSWER_NOTE = 280;

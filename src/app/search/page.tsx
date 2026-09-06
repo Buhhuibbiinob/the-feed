@@ -248,7 +248,7 @@ export default async function SearchPage({
             <div className="empty-state" style={{ padding: 16 }}>
               {nothingElse
                 ? `No results for "${query}".`
-                : `No reviews match "${query}" - but see above.`}
+                : `Nothing matches "${query}" down here, but have a look above.`}
             </div>
           ) : (
             posts.map((post) => (

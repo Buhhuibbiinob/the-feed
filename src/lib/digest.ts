@@ -96,7 +96,7 @@ export async function sendDigests(
 
   const emails = await emailsByUserId();
   if (emails.size === 0) {
-    result.errors.push("No account emails available - is SUPABASE_SERVICE_ROLE_KEY set?");
+    result.errors.push("No account emails available. Is SUPABASE_SERVICE_ROLE_KEY set?");
     return result;
   }
 

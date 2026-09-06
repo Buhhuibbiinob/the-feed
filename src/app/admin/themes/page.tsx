@@ -10,7 +10,7 @@ import { ThemeTokenForm } from "@/components/ThemeTokenForm";
 import { getSiteTheme } from "@/lib/siteSettings";
 import { setSiteTheme } from "@/app/actions/themeTokens";
 
-export const metadata = { title: "Themes - Feedback" };
+export const metadata = { title: "Themes on Feedback" };
 
 export default async function AdminThemesPage({
   searchParams,
@@ -54,7 +54,7 @@ export default async function AdminThemesPage({
               ? siteTheme.forced
                 ? `Everyone sees ${themeNames[siteTheme.theme] ?? siteTheme.theme}. Their own theme setting is ignored while this is on.`
                 : `New accounts and anyone who hasn't picked start on ${THEMES.find((t) => t.id === siteTheme.theme)?.label ?? siteTheme.theme}. People who've chosen keep their own.`
-              : "No site theme set - everyone gets their own choice, defaulting to Default."}
+              : "No site theme set, so everyone gets their own choice and lands on Default."}
           </p>
           <form action={setSiteTheme}>
             <div className="field">

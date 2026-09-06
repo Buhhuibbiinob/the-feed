@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AdvertiseForm } from "@/components/AdvertiseForm";
 
-export const metadata = { title: "Advertise - Feedback" };
+export const metadata = { title: "Advertise on Feedback" };
 
 export default async function AdvertisePage() {
   const supabase = await createClient();
@@ -21,8 +21,8 @@ export default async function AdvertisePage() {
         <div className="panel-head">Request a Banner</div>
         <div className="panel-body">
           <p className="field-hint" style={{ marginBottom: 12 }}>
-            Free for now. Pick which spot you want - the big hero banner at the top of the feed, a
-            sidebar square, a wide in-feed banner, or a small Artist Spotlight card - and crop your
+            Free for now. Pick the spot you want: the big hero banner at the top of the feed, a
+            sidebar square, a wide in-feed banner or a small Artist Spotlight card, then crop your
             image to fit before submitting. Submissions are reviewed before going live and
             aren&apos;t guaranteed to be approved.
           </p>

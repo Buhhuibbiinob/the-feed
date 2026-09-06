@@ -24,7 +24,7 @@ export default async function CustomPage({
     <>
       <div className="page-header">
         <h1>{page.label}</h1>
-        {page.archived && <div className="tagline">Archived - only visible to admins</div>}
+        {page.archived && <div className="tagline">Archived. Only visible to admins</div>}
       </div>
 
       <div className="panel">

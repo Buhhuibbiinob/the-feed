@@ -12,7 +12,7 @@ import {
   type SeedPost,
 } from "@/lib/musicDiscovery";
 
-export const metadata = { title: "Shelves - Feedback" };
+export const metadata = { title: "Shelves on Feedback" };
 
 /**
  * A wall of dividers.

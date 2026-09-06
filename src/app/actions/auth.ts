@@ -169,7 +169,7 @@ async function signUpInner(formData: FormData): Promise<AuthFormState> {
   );
   if (!welcomeSend.ok) console.error(`[signUp] welcome email failed: ${welcomeSend.error}`);
 
-  return { message: "Check your email to confirm your account - the link signs you straight in." };
+  return { message: "Check your email to confirm your account. The link signs you straight in." };
 }
 
 export async function signIn(

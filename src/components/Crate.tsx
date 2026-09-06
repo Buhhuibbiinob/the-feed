@@ -107,7 +107,7 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
       <div className="crate-done">
         <p className="crate-done-line">
           That&apos;s the whole crate. {kept.length === 0
-            ? "Nothing took your fancy - the next one is a different box."
+            ? "Nothing took your fancy. The next one is a different box."
             : `You pulled ${kept.length} out.`}
         </p>
         {kept.length > 0 && (

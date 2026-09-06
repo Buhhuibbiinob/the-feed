@@ -101,7 +101,7 @@ export function ProfileSongPicker({ current, ownerId }: { current: ProfileSongDr
           Start playing when someone opens my profile
         </label>
         <div className="field-hint">
-          Starts muted, then turns itself up the moment the visitor taps anything - browsers will
+          Starts muted, then turns itself up the moment the visitor taps anything, since browsers will
           not let a page make noise before that, on any of them. Loops until they leave.
         </div>
 

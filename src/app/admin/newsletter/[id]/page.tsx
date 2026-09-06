@@ -9,7 +9,7 @@ import { NewsletterGenerateButton } from "@/components/NewsletterGenerateButton"
 import { getNewsletterRecipients } from "@/lib/newsletterRecipients";
 import { publishNewsletterIssue, unpublishNewsletterIssue, deleteNewsletterIssue } from "@/app/actions/newsletter";
 
-export const metadata = { title: "Edit Issue - Feedback" };
+export const metadata = { title: "Edit Issue on Feedback" };
 
 const ISSUE_COLUMNS =
   "id, issue_date, status, title, created_at, published_at, cover_image_url, image_urls, " +
@@ -65,7 +65,7 @@ export default async function AdminNewsletterEditPage({
       <div className="page-header">
         <h1>{issue.title}</h1>
         <div className="tagline">
-          {issue.status === "published" ? "Published" : "Draft"} - {issue.issue_date}
+          {issue.status === "published" ? "Published" : "Draft"} · {issue.issue_date}
         </div>
       </div>
 
@@ -73,8 +73,8 @@ export default async function AdminNewsletterEditPage({
         <div className="panel-head">Generate with AI</div>
         <div className="panel-body">
           <p>
-            Pulls real data from this week - TMDB upcoming releases, underground creator posts, and
-            top-rated reviews on Feedback - and drafts each section below from it. Grounded in that real
+            Pulls real data from this week: TMDB upcoming releases, underground creator posts, and
+            top-rated reviews on Feedback, and drafts each section below from it. Grounded in that real
             data only (won&apos;t invent titles or facts), with sources cited inline. Fills the draft in
             place - review and edit before publishing or sending. Requires a{" "}
             <code>GEMINI_API_KEY</code> environment variable.
@@ -130,7 +130,7 @@ export default async function AdminNewsletterEditPage({
         <div className="panel-body">
           <p>
             Emails every account holder plus anyone who subscribed through the sign-up page or the public newsletter page. Addresses that can’t receive mail (leftover test addresses) are skipped automatically.
-            Requires a <code>RESEND_API_KEY</code> environment variable - without it, sending will show an
+            Requires a <code>RESEND_API_KEY</code> environment variable. Without it, sending will show an
             error explaining what to add.
           </p>
           <NewsletterSendButton issueId={issue.id} subscriberCount={subscriberCount} />

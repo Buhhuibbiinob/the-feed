@@ -22,7 +22,7 @@ export function HouseAdForm() {
   return (
     <form action={formAction} key={formKey}>
       {state.error && <div className="form-error">{state.error}</div>}
-      {state.ok && <div className="form-message">Added - it&apos;s live and in the rotation now.</div>}
+      {state.ok && <div className="form-message">Added. It&apos;s live and in the rotation now.</div>}
       <div className="field">
         <label htmlFor="house-ad-name">Name</label>
         <input id="house-ad-name" name="artist_name" type="text" required />
@@ -41,7 +41,7 @@ export function HouseAdForm() {
         >
           {BANNER_SLOTS.map((s) => (
             <option key={s.value} value={s.value}>
-              {s.label} - {s.width} × {s.height}px
+              {s.label}, {s.width} × {s.height}px
             </option>
           ))}
         </select>

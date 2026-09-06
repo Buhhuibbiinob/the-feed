@@ -45,7 +45,7 @@ function LabelRow({
       </div>
       <div className="field-hint">
         {hint}
-        {value.trim() && value.trim() !== shipped && ` Shipped as "${shipped}" - clear to restore.`}
+        {value.trim() && value.trim() !== shipped && ` Shipped as "${shipped}". Clear it to put that back.`}
         {state.error && <b> {state.error}</b>}
         {state.ok && <b> Saved.</b>}
       </div>

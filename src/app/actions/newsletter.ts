@@ -40,7 +40,7 @@ export async function createNewsletterIssue() {
   revalidatePath("/admin/newsletter");
   if (error || !data) {
     console.error(`[newsletter] createNewsletterIssue failed: ${error?.message ?? "no data returned"}`);
-    redirect(`/admin/newsletter?error=${encodeURIComponent(error?.message ?? "Could not create issue - no data returned.")}`);
+    redirect(`/admin/newsletter?error=${encodeURIComponent(error?.message ?? "Could not create the issue, nothing came back.")}`);
   }
   redirect(`/admin/newsletter/${data.id}`);
 }
@@ -66,11 +66,11 @@ Every section should draw on whichever of those sources fits it, not only on sit
 
 Only write exactly "Nothing new to report this week." when a section genuinely has no usable data from ANY source above and search turns up nothing inside the window. Do not use it as a default. If a source list is non-empty, that section has something to write about.
 
-You have Google Search available - use it to pull in real, verifiable info from inside the date window above, especially where the provided data is thin. Prefer searches that name the current month and year. When you use something you found via search, end that section with a new line reading exactly "Source: <the real URL>" - only include a Source line when you actually have a real URL from search, never a made-up one.
+You have Google Search available. Use it to pull in real, verifiable info from inside the date window above, especially where the provided data is thin. Prefer searches that name the current month and year. When you use something you found via search, end that section with a new line reading exactly "Source: <the real URL>". Only include a Source line when you actually have a real URL from search, never a made-up one.
 
-For data that came from the provided site/TMDB data instead of search, mention the source inline - e.g. "(via TMDB)" for movie/TV data, or "posted by @username" for site content.
+For data that came from the provided site/TMDB data instead of search, mention the source inline, for example "(via TMDB)" for movie and TV data, or "posted by @username" for site content.
 
-Keep each section to 2-4 short sentences, friendly and punchy, not corporate. Do not use em dashes - use a comma or period instead. Do not use emojis. Respond with JSON matching this exact shape: { "title": string, "upcoming_releases": string, "underground_releases": string, "upcoming_artists": string, "upcoming_actors": string, "upcoming_short_films": string, "short_film_releases": string, "artist_of_week": string, "filmmaker_of_week": string }`;
+Keep each section to 2-4 short sentences, friendly and punchy, not corporate. Never use a dash of any kind. Use a comma, a colon or a full stop instead. Do not use emojis. Respond with JSON matching this exact shape: { "title": string, "upcoming_releases": string, "underground_releases": string, "upcoming_artists": string, "upcoming_actors": string, "upcoming_short_films": string, "short_film_releases": string, "artist_of_week": string, "filmmaker_of_week": string }`;
 }
 
 // The week is a real Monday-to-Sunday calendar week in the site's own
@@ -109,11 +109,17 @@ function localMidnightUtc(dateStr: string, tz: string): Date {
   return new Date(utcMidnight.getTime() + (asUtc.getTime() - shifted.getTime()));
 }
 
-// Safety net in case the model doesn't follow the em dash / emoji
+// Safety net in case the model does not follow the punctuation and emoji
 // instructions perfectly.
+//
+// The em dash used to become " - ", which swapped one dash for another
+// and missed the point: the house style has no dashes in it at all. A
+// comma does the job an em dash was doing nine times in ten, and the
+// tenth wanted a full stop, which is a bigger edit than a sanitiser
+// should be making on its own.
 function sanitizeCopy(text: string): string {
   return text
-    .replace(/—/g, " - ")
+    .replace(/\s*[—–―‒]\s*/g, ", ")
     .replace(/\p{Extended_Pictographic}/gu, "")
     .replace(/[\u{1F3FB}-\u{1F3FF}\u{FE0F}\u{200D}]/gu, "")
     .trim();
@@ -278,7 +284,7 @@ export async function generateNewsletterDraft(
   if (filledSections.length === 0) {
     return {
       error:
-        "Gemini replied but every section came back empty. Try again - if it keeps happening the model may be returning a different JSON shape than expected.",
+        "Gemini replied but every section came back empty. Try again. If it keeps happening the model may be returning a different JSON shape than expected.",
     };
   }
 

@@ -260,7 +260,7 @@ export function SiteHeader({
                 )}
                 {/* Admin, Settings and Sign Out used to sit out here and
                     drag the bar past its own width. They live behind the
-                    account menu now - the bar keeps a fixed set of
+                    account menu now: the bar keeps a fixed set of
                     actions no matter who is signed in. */}
                 <AccountMenu username={username} isAdmin={isAdmin} />
               </>

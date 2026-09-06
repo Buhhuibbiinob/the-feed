@@ -173,7 +173,7 @@ const FACES: Record<string, Face> = {
         <path d="M38 24c4-3 9-3 12 1" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
         <path d="M20 42c6-3 12-3 17 1" stroke={BLACK} strokeWidth="4" fill="none" strokeLinecap="round" />
         {/* The hand at the chin, which is the whole joke of this one.
-            Drawn low and to the right with the knuckles showing - as one
+            Drawn low and to the right with the knuckles showing. As one
             rounded blob under the mouth it read as a tongue, which is a
             different emoji entirely. */}
         <path d="M34 48c2-4 9-6 14-3 5 3 5 9 1 12-5 3-17 1-15-4z" fill="#f2bd77" stroke="#a86a24" strokeWidth="2.5" />
@@ -339,7 +339,7 @@ const SPRITES: Record<string, string> = {
   "\u{1F97E}": "boot",
   /* Sporty and swag. These ten had SVGs sitting in public/stickers from
      the day the packs landed and no entry here, so they were placeable
-     as stickers and unreachable as reactions - which is not a thing
+     as stickers and unreachable as reactions: which is not a thing
      anybody could have guessed from looking at the site. The keyboard
      and the sticker pack are meant to be two doors onto one set of
      drawings; check:emoji now fails the build if they drift apart
@@ -566,7 +566,7 @@ export const EMOJI_GROUPS: { name: string; chars: string[] }[] = [
      They were the tail of Vibes: twenty-two hearts and sparkles, then
      California, then everything else forty keys down a grid you scroll
      with a thumb. The report was "I'm just seeing California", which is
-     precisely what that list looks like from the top - the swag was
+     precisely what that list looks like from the top: the swag was
      there and unreachable, which is the same as not being there.
      
      Sporty and swag lead, because those are the ones that were missing
