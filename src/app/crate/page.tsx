@@ -44,10 +44,21 @@ export default async function CratePage() {
     // record before it, which is most of why digging through one is
     // worth doing. One lane's worth, rotated by the same seed as the
     // records so the whole box changes together.
-    screenFinds(myPosts ?? [], known, searchVideosDetailed, {
-      limit: FILMS_PER_CRATE,
-      rotateBy: seed,
-    }).catch(() => null),
+    // Films, but not at the cost of the crate.
+    //
+    // The box is records; the films are the surprise in it. This used to
+    // be awaited flat alongside the records, so a slow or throttled
+    // YouTube held up the whole crate - and on a cold cache screenFinds
+    // can try three lanes one after another. Whatever has not arrived in
+    // two and a half seconds is a crate of records instead of a crate of
+    // records and films, which is a far better answer than a spinner.
+    Promise.race([
+      screenFinds(myPosts ?? [], known, searchVideosDetailed, {
+        limit: FILMS_PER_CRATE,
+        rotateBy: seed,
+      }).catch(() => null),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500)),
+    ]),
   ]);
   const records = fillCrate(pools, known, { seed });
   const films: Sleeve[] = (screen?.finds ?? []).map((find) => ({

@@ -98,17 +98,17 @@ check("a decade keeps its decade", shelfTitle("decade", "90s") === "The 90s");
 // whole chart including the front five, and all three checks below went
 // red - the cap, the trim and the order. They had been red ever since,
 // unnoticed, because check:shelves was not in npm run lint. It is now.
-const chart = Array.from({ length: SHELF_SIZE + 10 }, (_, i) => track(`t${i}`, `a${i}`));
+const chart = Array.from({ length: SHELF_SIZE + 40 }, (_, i) => track(`t${i}`, `a${i}`));
 const shelf = fillShelf(chart, NOTHING_KNOWN);
 check("a shelf is capped", shelf.length === SHELF_SIZE, `${shelf.length} records`);
 check(
   "the chart's front is trimmed",
-  shelf[0].name === "t5",
-  "the top of a tag is that scene's greatest hits, which is what somebody browsing it has heard"
+  shelf[0].name === "t30",
+  "the top thirty of a tag is the part that is on every playlist about it, and rank is the only popularity signal these charts carry - they report no listener counts, so trimming the front is the ONLY thing standing between a shelf and the famous ones"
 );
 check(
   "the order is the chart's, not a new one",
-  shelf.slice(0, 4).map((s) => s.name).join(",") === "t5,t6,t7,t8",
+  shelf.slice(0, 4).map((s) => s.name).join(",") === "t30,t31,t32,t33",
   "re-sorting would be this page having an opinion"
 );
 

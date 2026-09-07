@@ -1,6 +1,6 @@
 import { GENRES } from "@/lib/genres";
 import { excludeHits, getTracksByTag, tagText, type LastfmTrack } from "@/lib/lastfm";
-import { enrichFinds, rotate } from "@/lib/musicDiscovery";
+import { rotate } from "@/lib/musicDiscovery";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
 import { belongsOnShelf, type ShelfSpan } from "@/lib/shelfSpan";
@@ -47,11 +47,33 @@ export function isMedium(value: unknown): value is Medium {
   return value === "music" || value === "film" || value === "photography";
 }
 
-export const MEDIA: { id: Medium; label: string; blurb: string }[] = [
+export const MEDIA: { id: Medium; label: string; blurb: string; comingSoon?: boolean }[] = [
   { id: "music", label: "Music", blurb: "Records, by when or where or what they are." },
   { id: "film", label: "Film", blurb: "Trailers, by decade and by kind." },
-  { id: "photography", label: "Photography", blurb: "What people here have shot, by subject." },
+  {
+    id: "photography",
+    label: "Photography",
+    blurb: "Coming soon, once uploading a photograph works.",
+    comingSoon: true,
+  },
 ];
+
+/**
+ * Whether a wall is real yet.
+ *
+ * The photography wall reads the site's own posts, which is the right
+ * source and the only honest one - and it means the wall cannot show
+ * anything until people can actually put photographs up, which they
+ * cannot. A wall of empty subjects is not a quiet feature, it is a
+ * feature that looks broken, and every subject on it says "nobody has
+ * shelved one yet" as though thirty-nine people had all declined to.
+ *
+ * So it says what it is. It stays on the page rather than being deleted,
+ * because it is coming and the wall is built.
+ */
+export function isComingSoon(medium: Medium): boolean {
+  return MEDIA.find((m) => m.id === medium)?.comingSoon === true;
+}
 
 export type Axis = {
   id: AxisId;
@@ -89,7 +111,7 @@ const SCENES: readonly string[] = GENRES.music;
  * is a wall about the two scenes everybody already knows, and it is one
  * of the reasons the same artists kept coming round.
  *
- * A hundred and thirty-nine now, on every inhabited continent. Cities where a scene really
+ * Well over two hundred now, on every inhabited continent. Cities where a scene really
  * did happen, and regions where the scene is the region rather than any
  * one city - a Last.fm tag for "mali" returns more, and better, than a
  * tag for Bamako would.
@@ -103,11 +125,31 @@ const PLACES = [
   // Britain and Ireland
   "london", "manchester", "bristol", "sheffield", "leeds", "liverpool",
   "glasgow", "birmingham", "coventry", "belfast", "dublin", "cardiff",
-  // The United States
-  "new york", "brooklyn", "los angeles", "detroit", "chicago", "memphis",
-  "atlanta", "new orleans", "houston", "philadelphia", "seattle", "portland",
-  "san francisco", "oakland", "miami", "baltimore", "washington dc", "minneapolis",
-  "austin", "nashville", "muscle shoals", "bakersfield",
+  // The United States, cities
+  "new york", "brooklyn", "queens", "the bronx", "harlem", "staten island",
+  "long island", "newark", "boston", "providence", "philadelphia", "pittsburgh",
+  "baltimore", "washington dc", "richmond", "virginia beach", "norfolk",
+  "atlanta", "miami", "orlando", "new orleans", "memphis", "nashville",
+  "muscle shoals", "louisville", "houston", "dallas", "austin", "san antonio",
+  "oklahoma city", "tulsa", "kansas city", "st louis", "chicago", "detroit",
+  "flint", "ann arbor", "gary", "indianapolis", "columbus", "cleveland",
+  "dayton", "akron", "milwaukee", "minneapolis", "omaha", "denver",
+  "albuquerque", "phoenix", "las vegas", "salt lake city", "boise",
+  "seattle", "portland", "sacramento", "san francisco", "oakland", "vallejo",
+  "los angeles", "compton", "long beach", "inglewood", "san diego", "bakersfield",
+  "athens georgia", "chapel hill", "asbury park", "laurel canyon", "honolulu",
+  // The United States, states and regions
+  //
+  // Named because whole scenes here are a state rather than a city, and
+  // a wall of only cities loses them. Virginia is Pharrell, Timbaland,
+  // Missy and Clipse; Indiana is the Jackson 5 and Mellencamp; the delta
+  // and Appalachia are where two whole musics come from. Both of the
+  // ones that got reported missing are on this line.
+  "virginia", "indiana", "ohio", "michigan", "georgia", "tennessee",
+  "kentucky", "north carolina", "south carolina", "alabama", "mississippi",
+  "louisiana", "arkansas", "missouri", "texas", "oklahoma", "kansas",
+  "iowa", "nebraska", "wisconsin", "minnesota", "colorado", "california",
+  "florida", "new jersey", "delta blues country", "appalachia", "the dmv",
   // The rest of the Americas
   "toronto", "montreal", "vancouver", "mexico city", "monterrey", "havana",
   "kingston", "port of spain", "san juan", "medellin", "bogota", "lima",
@@ -129,8 +171,7 @@ const PLACES = [
   "kuala lumpur", "mumbai", "delhi", "chennai", "kolkata", "lahore", "karachi",
   "dhaka", "colombo", "kathmandu", "tel aviv", "beirut", "tehran", "dubai",
   // Oceania
-  "melbourne", "sydney", "brisbane", "perth", "auckland", "wellington",
-  "honolulu", "suva",
+  "melbourne", "sydney", "brisbane", "perth", "auckland", "wellington", "suva",
 ] as const;
 
 /**
@@ -182,7 +223,30 @@ export function decadeFor(tag: string): Decade | null {
  * nobody could afford to walk along. These are also the five that
  * actually have archive uploads behind them.
  */
-const FILM_KINDS = ["horror", "sci-fi", "thriller", "comedy", "crime"] as const;
+const FILM_KINDS = [
+  "horror",
+  "sci-fi",
+  "thriller",
+  "comedy",
+  "crime",
+  // Television and cartoons belong on the same wall rather than on one
+  // of their own. Nobody browsing for something to watch is sorting by
+  // whether it was made for a cinema, and the archive uploads these
+  // share are the same shape: a trailer or an opening.
+  "anime",
+  "cartoon",
+  "animation",
+  "documentary",
+  "action",
+  "romance",
+  "fantasy",
+  "western",
+  "musical",
+  "noir",
+  "martial-arts",
+  "sitcom",
+  "miniseries",
+] as const;
 
 /**
  * What a photography shelf can be about.
@@ -439,9 +503,23 @@ export function shelfYears(axis: AxisId, value: string): ShelfSpan | null {
  */
 export const SHELF_SIZE = 50;
 
-// How far into a tag chart to start. The top is the scene's greatest
-// hits, and somebody who chose to browse this shelf has heard those.
-const SKIP_TOP = 5;
+/**
+ * How far into a tag chart to start.
+ *
+ * Five was nowhere near enough, and the reason is written in lastfm.ts:
+ * tag.getTopTracks does not report listener counts at all, so excludeHits
+ * filters NOTHING on a scene, decade or place chart. Rank is the only
+ * popularity signal those charts carry. Skipping five of a hundred and
+ * twenty and calling it "past the greatest hits" was skipping the top
+ * five songs of a scene and then serving the next hundred and fifteen in
+ * order of fame - which is why a shelf keeps handing over the one track
+ * by that artist everybody already knows.
+ *
+ * Thirty. The top thirty of a tag is the part that is on every playlist
+ * about that tag, and somebody who chose to open this shelf has heard
+ * them.
+ */
+const SKIP_TOP = 30;
 
 /**
  * The records on one shelf.
@@ -514,30 +592,45 @@ export async function getShelf(
   // back empty and reports it as a thin corner of the catalogue. Year,
   // decade and place are already tag text and pass through unchanged.
   const tag = axis === "scene" ? tagText(value) : value;
-  const tracks = await getTracksByTag(tag, 120).catch(() => []);
+
+  // Two pages, in parallel, and the second one moves.
+  //
+  // One page of a tag chart is the same hundred and twenty records
+  // forever, so rotating within it only ever changes where the shelf
+  // STARTS - come back tomorrow and it is the same records in a
+  // different order, which is what "I keep seeing the same thing" is.
+  // A second page chosen by the spin is genuinely different records, and
+  // it is deeper into the chart, which is where the deep cuts are.
+  //
+  // Costs nothing in time: two requests going out together take as long
+  // as the slower one, and Last.fm answers both from the same cache
+  // shelf anybody else on that tag today has already warmed.
+  const deepPage = 2 + (Math.abs(rotateBy) % 4);
+  const [front, deeper] = await Promise.all([
+    getTracksByTag(tag, 120).catch(() => []),
+    getTracksByTag(tag, 120, deepPage).catch(() => []),
+  ]);
+  // The deeper page leads. Page one of a tag chart is that scene's
+  // greatest hits however far into it you start, so a shelf built front
+  // first is a shelf of the famous ones with the finds underneath. This
+  // way round the finds are what you see and page one is the backstop
+  // that keeps the shelf full.
+  const tracks = [...deeper, ...front];
   const shelf = fillShelf(tracks, known, SHELF_SIZE, rotateBy);
 
-  // The first screenful, looked up here rather than in the browser.
+  // Nothing is enriched here any more, and that is the whole speed fix.
   //
-  // The client fills in the rest a couple at a time, which is right for
-  // fifty records but means the top of the page spends several seconds
-  // as blank squares filling in one by one while somebody watches. The
-  // rows anybody sees first arrive with their covers and their clips
-  // already attached, and the shelf below them catches up quietly.
-  const AHEAD = 12;
-  const span = shelfYears(axis, value);
-  const front = await enrichFinds(
-    shelf.slice(0, AHEAD).map((sleeve) => ({ ...sleeve, becauseOf: null }))
-  ).catch(() => null);
-  if (!front) return shelf;
-
-  // The lookup came back with a release year on it, so the front of the
-  // shelf can be checked rather than taken on the tag's word. Anything
-  // that does not belong comes off and the shelf closes up behind it
-  // from the records below, which are checked in turn in the browser as
-  // they are looked up.
-  const checked = front
-    .filter((find) => belongsOnShelf(find.year, span))
-    .map(({ becauseOf: _drop, ...sleeve }) => sleeve);
-  return [...checked, ...shelf.slice(AHEAD)];
+  // This used to look up the first twelve records' artwork and clips
+  // before the page was allowed to render: twelve iTunes calls, four at
+  // a time, each able to back off for two and a half seconds when Apple
+  // throttles. On a cold cache that is most of a minute during which the
+  // shelf shows nothing at all - not a slow shelf, a blank page.
+  //
+  // The browser already does this better. ShelfRecords asks only for the
+  // records that scroll into view and batches them into one request, so
+  // the twelve visible ones arrive together a moment after the boards
+  // do, and the thirty-eight below them are never fetched unless
+  // somebody scrolls. Doing it twice was not belt and braces, it was
+  // paying the slow way first and the fast way second.
+  return shelf;
 }

@@ -464,7 +464,15 @@ export function filmShelfQuery(
   // rather than from the slug, because for most countries they differ.
   if (axis === "place") parts.push(value);
   if (axis === "genre") parts.push(value);
-  parts.push("movie original theatrical trailer");
+  // Television and cartoons are not films and must not be searched for
+  // as one: "sitcom movie original theatrical trailer" finds nothing,
+  // where "sitcom opening titles" finds the thing somebody asked for.
+  const onTelevision = ["sitcom", "miniseries", "cartoon", "anime"].includes(value);
+  parts.push(
+    axis === "genre" && onTelevision
+      ? "opening titles intro"
+      : "movie original theatrical trailer"
+  );
   if (axis === "decade") {
     const start = decadeStartYearForTag(value);
     if (start !== null) parts.push(`${start}s`);
