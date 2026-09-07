@@ -20,6 +20,14 @@ import { useOnScreen, useSleeves } from "@/lib/useSleeves";
 // decade decides, since that is a better answer than any single track's
 // own year - the shelf is about the era, so the objects should be too.
 
+/**
+ * How many records stand on the boards.
+ *
+ * The server sends ninety and this shows fifty; the other forty are
+ * replacements for whatever turns out to be unplayable.
+ */
+const SHOW = 50;
+
 // One player for the page, same as everywhere else that plays a clip.
 let audio: HTMLAudioElement | null = null;
 let playingKey: string | null = null;
@@ -79,7 +87,7 @@ export function ShelfRecords({
   // known year falls back to a hash of its key - which is stable, so a
   // record is not a cassette on one render and a CD on the next.
   const shelfFormat: MediaFormat | null = decade ? formatForDecadeTag(decade) : null;
-  const { want, get } = useSleeves();
+  const { want, get, pending } = useSleeves();
   const playing = useSyncExternalStore(
     subscribe,
     () => playingKey,
@@ -90,16 +98,43 @@ export function ShelfRecords({
     return <p className="shelf-empty">{emptyNote}</p>;
   }
 
+  // What actually goes on the boards.
+  //
+  // The server sends more records than the shelf shows. A record the
+  // catalogue has no cover and no clip for is a blank sleeve with
+  // nothing to press, so as soon as a lookup says that, it is dropped
+  // and the next record down takes its place - which is why the extra
+  // ones are fetched at all.
+  //
+  // Only records we have actually heard back about are dropped. One
+  // still in flight keeps its place and shows that it is working,
+  // because moving a record out from under somebody while they are
+  // looking at it is worse than a moment of not knowing.
+  const shown: Sleeve[] = [];
+  for (const record of records) {
+    if (shown.length >= SHOW) break;
+    const info = get(record.key);
+    const dead =
+      info !== undefined &&
+      !info.artworkUrl &&
+      !info.previewUrl &&
+      !record.imageUrl &&
+      !record.previewUrl;
+    if (dead) continue;
+    shown.push(record);
+  }
+
   return (
     <div className="woodwall">
       <div className="woodgrid">
-        {records.map((record) => (
+        {shown.map((record) => (
           <ShelfRecord
             key={record.key}
             record={record}
             shelfFormat={shelfFormat}
             span={span ?? null}
             info={get(record.key)}
+            waiting={pending(record.key)}
             want={want}
             playing={playing === record.key}
           />
@@ -123,6 +158,7 @@ function ShelfRecord({
   shelfFormat,
   span,
   info,
+  waiting,
   want,
   playing,
 }: {
@@ -130,6 +166,8 @@ function ShelfRecord({
   shelfFormat: MediaFormat | null;
   span: ShelfSpan | null;
   info: ReturnType<ReturnType<typeof useSleeves>["get"]>;
+  /** Asked for, not answered yet. Drawn as working rather than as blank. */
+  waiting: boolean;
   want: ReturnType<typeof useSleeves>["want"];
   playing: boolean;
 }) {
@@ -164,7 +202,15 @@ function ShelfRecord({
         {art ? (
           <img src={art} alt="" loading="lazy" decoding="async" />
         ) : (
-          <div className="wood-blank" aria-hidden="true" />
+          // Three states, not two. A cover on its way and a record the
+          // catalogue does not have looked identical, so a shelf that
+          // had finished looked exactly like one still working and the
+          // only way to tell was to keep staring at it.
+          <div
+            className={`wood-blank${waiting ? " waiting" : ""}`}
+            aria-label={waiting ? `Finding the cover for ${record.name}` : undefined}
+            aria-busy={waiting || undefined}
+          />
         )}
         {clip && (
           <button
