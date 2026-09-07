@@ -64,6 +64,10 @@ const FLOATERS = [
   "wooditem", "wood-blank", "woodwall", "wood-play",
   // A cassette standing on a shelf, and the one lifted out into the deck.
   "wood-tape",
+  // A record pulled out of the rack and held, and the cases in the DVD
+  // stack. Both are objects lifted off a surface, which is the case this
+  // list exists to allow.
+  "rack-held-art", "rack-spine", "dvd-spine", "dvd-open",
 ];
 
 const raw = readFileSync(CSS, "utf8");

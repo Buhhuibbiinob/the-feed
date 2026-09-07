@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
-import { FindRail } from "@/components/FindRail";
-import { ScreenRail } from "@/components/ScreenRail";
+import { RecordRack } from "@/components/RecordRack";
+import { DvdRack } from "@/components/DvdRack";
 import { screenFinds } from "@/lib/trailers";
 import { searchVideos } from "@/lib/youtube";
 import {
@@ -14,6 +14,7 @@ import {
   eraFinds,
   findsForSeeds,
   lovedSceneFinds,
+  sceneFinds,
   seedArtists,
   shuffleSeed,
   type SeedPost,
@@ -227,8 +228,27 @@ export default async function RecsPage() {
     // already there for everything worth watching, and move.
     screenFinds(mine, known, searchVideos, { rotateBy }),
   ]);
+  // Nobody arrives at an empty rail.
+  //
+  // On a fresh account seedArtists finds nothing, so the seeds fall back
+  // to what the community has posted - and on a quiet week that comes
+  // back short too, which is how somebody signing up got a heading called
+  // "Somewhere to start" with nothing under it. The point of that rail is
+  // that it is the one thing a stranger CAN look at.
+  //
+  // So if it comes back thin, it is topped up from a random scene rather
+  // than left half full. A different scene each request, so refreshing
+  // moves it, and never the day's scene: the rail below is already that
+  // one and two rails of the same records is worse than one short one.
+  const topUp =
+    personal.length >= 4
+      ? []
+      : (await sceneFinds(known, { rotateBy: rotateBy + 977, limit: 8 }).catch(() => null))
+          ?.finds ?? [];
+  const startHere = personal.length >= 4 ? personal : [...personal, ...topUp].slice(0, 8);
+
   const [personalFinds, sceneRail, eraRail] = await Promise.all([
-    enrichFinds(personal),
+    enrichFinds(startHere),
     enrichFinds(scene.finds),
     enrichFinds(era.finds),
   ]);
@@ -273,7 +293,7 @@ export default async function RecsPage() {
             </Link>
           </div>
 
-          <FindRail
+          <RecordRack
             title={
               personalSeeds.length > 0 ? "Out from what you love" : "Somewhere to start"
             }
@@ -285,7 +305,7 @@ export default async function RecsPage() {
             finds={personalFinds}
             empty={railProblem || "Nothing new here just yet. Give it a minute and try again."}
           />
-          <FindRail
+          <RecordRack
             title={scene.tag}
             subtitle={
               scene.fromTaste
@@ -295,7 +315,7 @@ export default async function RecsPage() {
             finds={sceneRail}
             empty={railProblem || "That scene came back empty today."}
           />
-          <ScreenRail
+          <DvdRack
             title="Something to watch"
             becauseOf={screen.becauseOf}
             finds={screen.finds}
@@ -305,7 +325,7 @@ export default async function RecsPage() {
                 : "Trailers need a YouTube key before they can show up here."
             }
           />
-          <FindRail
+          <RecordRack
             title={`Deeper into the ${era.label}`}
             subtitle="Not the songs from the adverts"
             finds={eraRail}

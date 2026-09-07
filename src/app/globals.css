@@ -6217,68 +6217,11 @@ footer .copy {
    The box was 2:3 because TMDB served posters. A YouTube thumbnail is
    16:9, and a 16:9 picture cropped into a portrait box loses both ends
    of the frame - which on a trailer thumbnail is usually the title. */
-.screen-card {
-  flex: 0 0 176px;
-}
-.screen-poster {
-  position: relative;
-  width: 176px;
-  aspect-ratio: 16 / 9;
-  border-radius: 6px;
-  overflow: hidden;
-  background: var(--shelf-bg, rgba(0, 0, 0, 0.05));
-  /* The same stack as everything else: a hairline lift, a lit top edge,
-     and the pale ring outside it. A picture with no edge floats. */
-  box-shadow: var(--edge-drop), 0 1px 0 rgba(255, 255, 255, 0.35) inset, var(--edge-outer);
-}
-.screen-poster img,
-.screen-poster-blank,
-.screen-poster iframe {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  border: 0;
-}
-.screen-poster-blank {
-  background: linear-gradient(160deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.2));
-}
-
 /* The play button on a trailer.
    Drawn as the transport buttons are drawn, because it does the same
    job: a brushed dome with a highlight arc across the top, sitting over
    the picture rather than printed on it. Centred rather than tucked in a
    corner, since the whole thumbnail is the target. */
-.screen-play {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 15px;
-  /* Nudged right by a pixel: a triangle's optical centre is left of its
-     bounding box, and centred by the numbers it looks like it is falling
-     over backwards. */
-  text-indent: 2px;
-  color: #2a2a2e;
-  background-image: linear-gradient(180deg, #ffffff 0%, #e6e6e9 44%, #bdbdc3 52%, #8e8e95 100%);
-  border: 1px solid #5f5f66;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 1) inset,
-    0 -6px 9px rgba(0, 0, 0, 0.2) inset, var(--edge-outer);
-}
-.screen-play:hover {
-  filter: brightness(1.06);
-}
-.screen-play:active {
-  background-image: linear-gradient(180deg, #8e8e95 0%, #bdbdc3 48%, #e6e6e9 100%);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) inset;
-  transform: translate(-50%, -50%) translateY(1px);
-}
-
 /* ---- The three ways in ----
    Discover is the hub, so the other two doors are named on it. Both were
    only reachable from the More menu, which is a place nobody browses. */
@@ -6521,28 +6464,301 @@ footer .copy {
   aspect-ratio: 1;
   border-radius: 3px;
   overflow: hidden;
+  box-sizing: border-box;
   background: #1d1d21;
   box-shadow:
     0 3px 6px rgba(0, 0, 0, 0.5),
     0 1px 0 rgba(255, 255, 255, 0.22) inset,
     0 0 0 1px rgba(0, 0, 0, 0.5);
 }
-/* A jewel case is narrower than a sleeve and has a hinge down one side. */
+/* ---- The record in your hand, as the object it actually is ----
+   These were a one-line lie each: the jewel case was a square with a
+   pale left border and the cassette was the artwork squashed to
+   landscape. At the size the Crate shows them that reads as artwork
+   with something wrong with it rather than as a thing you could pick
+   up, which is the whole job of this page. */
+
+/* A jewel case. The point of one is that it is CLEAR: you are not
+   looking at a printed surface, you are looking at the booklet THROUGH
+   a piece of scratched polystyrene, which is why the art sits inset with
+   a plastic edge round it and the whole thing carries a hard diagonal
+   sweep that belongs to the lid rather than to the picture. */
 .crate-stack.fmt-cd .crate-sleeve,
 .crate-stack.fmt-download .crate-sleeve {
-  border-left: 5px solid rgba(226, 232, 238, 0.85);
-  border-radius: 2px 4px 4px 2px;
+  border-radius: 2px 5px 5px 2px;
+  background: linear-gradient(115deg, #cfd8e2 0%, #eef3f8 40%, #b9c4d0 100%);
+  padding: 3px 3px 3px 9px;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(90, 105, 120, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
-/* A cassette is landscape, not square. */
+.crate-stack.fmt-cd .crate-sleeve img,
+.crate-stack.fmt-download .crate-sleeve img {
+  border-radius: 1px;
+}
+/* The hinge: the row of teeth down the spine that every case has, and
+   the single most recognisable thing about one. */
+.crate-stack.fmt-cd .crate-sleeve::before,
+.crate-stack.fmt-download .crate-sleeve::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  z-index: 2;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.85) 0 3px,
+      rgba(120, 135, 150, 0.55) 3px 7px
+    ),
+    linear-gradient(90deg, #f2f6fa, #aab6c4);
+  box-shadow: 1px 0 0 rgba(90, 105, 120, 0.5);
+}
+/* The lid. A hard specular running corner to corner, because that is how
+   light comes off flat polystyrene: not a soft sheen, a straight bright
+   band with an edge you could put a ruler against. */
+.crate-stack.fmt-cd .crate-sleeve::after,
+.crate-stack.fmt-download .crate-sleeve::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0) 26%,
+    rgba(255, 255, 255, 0.42) 27%,
+    rgba(255, 255, 255, 0.16) 38%,
+    rgba(255, 255, 255, 0) 39%,
+    rgba(255, 255, 255, 0) 62%,
+    rgba(255, 255, 255, 0.22) 63%,
+    rgba(255, 255, 255, 0) 71%
+  );
+}
+
+/* A cassette, built off the reference rather than off a memory of one.
+   ------------------------------------------------------------------
+   Everything about the last version was the wrong way round. It was a
+   dark shell with the artwork shrunk onto it, and a real tape is a CREAM
+   shell whose whole front is the label - so the artwork is not a picture
+   sitting on the object, it IS the coloured panel, which is also what
+   "base it on the colour of the album cover" means in practice.
+
+   Reading the reference from the outside in: ivory plastic, rounded
+   about six pixels, five screws sunk into it; a label filling the top
+   two thirds with its own rounded corners and a hairline of shell
+   showing all round; two toothed hubs with the tape wound on them; a
+   window between the hubs; and a trapezoid cut out of the bottom edge
+   with the four holes the deck's pins go through. */
 .crate-stack.fmt-cassette .crate-sleeve {
   aspect-ratio: 8 / 5;
-  border-radius: 2px;
+  border-radius: 6px;
+  /* The label is the artwork, inset to leave a rim of shell round it and
+     stopping well short of the bottom, where the hubs and the cut-out
+     live. */
+  padding: 9% 9% 40%;
+  background:
+    /* The screws. Four in the corners, sunk: a dark ring with a lit lower
+       lip, which is what a countersunk head looks like from above. */
+    radial-gradient(circle at 6% 11%, #6f6353 0 1.6px, rgba(0, 0, 0, 0) 2.2px),
+    radial-gradient(circle at 94% 11%, #6f6353 0 1.6px, rgba(0, 0, 0, 0) 2.2px),
+    radial-gradient(circle at 6% 89%, #6f6353 0 1.6px, rgba(0, 0, 0, 0) 2.2px),
+    radial-gradient(circle at 94% 89%, #6f6353 0 1.6px, rgba(0, 0, 0, 0) 2.2px),
+    /* The shell. Ivory, lit from above, with the moulding line down it. */
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 33.9%,
+      rgba(0, 0, 0, 0.05) 34%, rgba(0, 0, 0, 0.02) 100%),
+    linear-gradient(165deg, #f6ecd7 0%, #e8dabd 52%, #d6c5a4 100%);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(120, 104, 78, 0.85),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
+/* The label: the album art, with the printed border a blank tape has. */
+.crate-stack.fmt-cassette .crate-sleeve img {
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(120, 104, 78, 0.55), 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+/* The mechanism: two toothed hubs with the tape wound on them, and the
+   window between.
+   The trick is the MASK. A conic gradient fills its whole background box,
+   so on the first pass each hub came out as a starburst fanning right
+   across the window. Painting an opaque disc-with-a-hole ON TOP of each
+   one, in the same box, cuts the fan down to a circle: everything outside
+   the hole is the window colour, so only the middle of the fan survives
+   and that middle is a sprocket. Each hub gets its own 30 per cent wide
+   background box so its mask cannot reach the other one. */
+.crate-stack.fmt-cassette .crate-sleeve::before {
+  content: "";
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 26%;
+  height: 26%;
+  z-index: 2;
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 7px, #241d18 7.5px 100%),
+    repeating-conic-gradient(from 0deg at 50% 50%, #9c968a 0deg 11deg, #d6d1c6 11deg 22deg),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 5px, #241d18 5.5px 100%),
+    repeating-conic-gradient(from 7deg at 50% 50%, #9c968a 0deg 13deg, #d6d1c6 13deg 26deg),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 45%),
+    linear-gradient(180deg, #3a3129 0%, #241d18 100%);
+  background-repeat: no-repeat;
+  background-size: 34% 100%, 34% 100%, 34% 100%, 34% 100%, 100% 100%, 100% 100%;
+  background-position: 4% 0, 4% 0, 96% 0, 96% 0, 0 0, 0 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7) inset, 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* The bottom edge: the trapezoid cut out of the shell, with the holes
+   the deck's pins go through. The angled sides are what stop the whole
+   thing reading as a rectangle with a stripe on it. */
+.crate-stack.fmt-cassette .crate-sleeve::after {
+  content: "";
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 0;
+  height: 22%;
+  z-index: 2;
+  clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%);
+  background:
+    radial-gradient(circle at 26% 46%, #4a4237 0 1.8px, rgba(0, 0, 0, 0) 2.4px),
+    radial-gradient(circle at 40% 46%, #4a4237 0 1.8px, rgba(0, 0, 0, 0) 2.4px),
+    radial-gradient(circle at 60% 46%, #4a4237 0 1.8px, rgba(0, 0, 0, 0) 2.4px),
+    radial-gradient(circle at 74% 46%, #4a4237 0 1.8px, rgba(0, 0, 0, 0) 2.4px),
+    linear-gradient(180deg, #efe4cd 0%, #dccbaa 100%);
+}
+
+/* A film in the crate: a case, taller than it is wide, with the spine
+   catching light down the left. Same object the DVD stack on Discover
+   uses, at the size a hand holds. */
+.crate-stack.fmt-case .crate-sleeve {
+  aspect-ratio: 5 / 7;
+  border-radius: 2px 5px 5px 2px;
+  background: linear-gradient(115deg, #2a2a30 0%, #3a3a42 45%, #1c1c21 100%);
+  padding-left: 8px;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(10, 10, 12, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.22) inset;
+}
+.crate-stack.fmt-case .crate-sleeve::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  z-index: 2;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.4), rgba(0, 0, 0, 0.5));
+}
+.crate-stack.fmt-case .crate-sleeve iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #000;
+}
+
+/* The one in your hand: lifted out, tilted, and casting onto the box. */
+.crate-stack {
+  position: relative;
+  width: 100%;
+  /* Smaller than the crate it came out of, deliberately. At 236 the
+     sleeve was wider than the box and covered the records still in it,
+     so the only thing you could see was the one you were holding - which
+     is the opposite of what a crate is for. */
+  max-width: 194px;
+  margin: 0 auto;
+  z-index: 1;
+  transform: rotate(-1.6deg);
+}
+.crate-sleeve {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #1d1d21;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+/* ---- The record in your hand, as the object it actually is ----
+   These were a one-line lie each: the jewel case was a square with a
+   pale left border and the cassette was the artwork squashed to
+   landscape. At the size the Crate shows them that reads as artwork
+   with something wrong with it rather than as a thing you could pick
+   up, which is the whole job of this page. */
+
+/* A jewel case. The point of one is that it is CLEAR: you are not
+   looking at a printed surface, you are looking at the booklet THROUGH
+   a piece of scratched polystyrene, which is why the art sits inset with
+   a plastic edge round it and the whole thing carries a hard diagonal
+   sweep that belongs to the lid rather than to the picture. */
+.crate-stack.fmt-cd .crate-sleeve,
+.crate-stack.fmt-download .crate-sleeve {
+  border-radius: 2px 5px 5px 2px;
+  background: linear-gradient(115deg, #cfd8e2 0%, #eef3f8 40%, #b9c4d0 100%);
+  padding: 3px 3px 3px 9px;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(90, 105, 120, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+.crate-stack.fmt-cd .crate-sleeve img,
+.crate-stack.fmt-download .crate-sleeve img {
+  border-radius: 1px;
+}
+/* The hinge: the row of teeth down the spine that every case has, and
+   the single most recognisable thing about one. */
+.crate-stack.fmt-cd .crate-sleeve::before,
+.crate-stack.fmt-download .crate-sleeve::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  z-index: 2;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.85) 0 3px,
+      rgba(120, 135, 150, 0.55) 3px 7px
+    ),
+    linear-gradient(90deg, #f2f6fa, #aab6c4);
+  box-shadow: 1px 0 0 rgba(90, 105, 120, 0.5);
+}
+/* The lid. A hard specular running corner to corner, because that is how
+   light comes off flat polystyrene: not a soft sheen, a straight bright
+   band with an edge you could put a ruler against. */
+.crate-stack.fmt-cd .crate-sleeve::after,
+.crate-stack.fmt-download .crate-sleeve::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0) 26%,
+    rgba(255, 255, 255, 0.42) 27%,
+    rgba(255, 255, 255, 0.16) 38%,
+    rgba(255, 255, 255, 0) 39%,
+    rgba(255, 255, 255, 0) 62%,
+    rgba(255, 255, 255, 0.22) 63%,
+    rgba(255, 255, 255, 0) 71%
+  );
+}
+
 .crate-sleeve img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  /* The plain sleeve has no padding, so this fills it. The jewel case
+     and the cassette DO have padding, and box-sizing keeps the art
+     inside it rather than pushing the object bigger than its own box. */
+  box-sizing: border-box;
 }
 /* A sleeve whose art has not arrived, or has none: a plain paper sleeve
    with the record showing through, which is what one actually looks like
@@ -6674,141 +6890,15 @@ footer .copy {
 }
 
 /* ---- Discovery rails ---- */
-/* Rows of things to listen to on /recs. Sideways rather than wrapped, so
-   several directions fit on one screen and none of them is the page. */
-.find-rail {
-  padding: 14px 0 18px;
-  border-bottom: 1px solid var(--panel-border);
-}
-.find-rail:last-child {
-  border-bottom: none;
-}
-.find-rail-head {
-  padding: 0 16px 10px;
-}
-.find-rail-head h2 {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-.find-rail-head p {
-  font-size: 11px;
-  color: var(--muted);
-  margin: 2px 0 0;
-}
-.find-rail-empty {
-  padding: 0 16px;
-  font-size: 12px;
-  color: var(--muted);
-}
-.find-row {
-  display: flex;
-  gap: 14px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  padding: 2px 16px 6px;
-  /* A snap position aligns with the scrollport edge, not the padding box,
-     so without this the row scrolls 16px on its own the moment it
-     overflows and the first cover sits flush against the screen. */
-  scroll-padding-inline: 16px;
-  -webkit-overflow-scrolling: touch;
-}
-.find-card {
-  flex: 0 0 148px;
-  scroll-snap-align: start;
-  min-width: 0;
-}
-.find-art {
-  position: relative;
-  width: 148px;
-  height: 148px;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--shelf-bg, rgba(0, 0, 0, 0.05));
-}
-.find-art img,
-.find-art-blank {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.find-art-blank {
-  background: linear-gradient(160deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.16));
-}
-/* Sits over the artwork rather than beside it: on a row of covers the
-   only thing worth tapping is the cover itself. */
-.find-play {
-  position: absolute;
-  right: 7px;
-  bottom: 7px;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  font-size: 11px;
-  line-height: 1;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: saturate(160%) blur(8px);
-  -webkit-backdrop-filter: saturate(160%) blur(8px);
-  cursor: pointer;
-}
-.find-play.playing {
-  background: var(--accent, #d34);
-}
-.find-name {
-  font-size: 12px;
-  margin-top: 7px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.find-artist {
-  font-size: 11px;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.find-why {
-  font-size: 10px;
-  color: var(--muted);
-  margin-top: 3px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.find-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  font-size: 11px;
-}
-/* The queue button arrives wrapped in a form. Left inline it sits on
-   the text baseline while the Review link is a flex item, so the two
-   buttons stood at different heights. */
-.find-actions .inline-form,
+/* The queue button arrives wrapped in a form. Left inline it sits on the
+   text baseline while the Review link is a flex item, so the two stood at
+   different heights.
+   The rows of cover art this was written for are gone: Discover files its
+   records on their spines now, and what is left of that section is the
+   comments above it, which went with the rules they described. */
 .shelf-actions .inline-form {
   display: flex;
 }
-.find-actions .inline-form button,
-.find-review {
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 999px;
-}
-.find-review {
-  border: 1px solid var(--panel-border);
-  color: var(--text);
-}
-.find-review:hover {
-  text-decoration: none;
-}
-
 /* ---- Wrapped ---- */
 .wrapped-stats {
   display: grid;
@@ -15985,6 +16075,45 @@ button.btn-ghost {
   pointer-events: none;
 }
 
+/* The axis picker, standing on the wood.
+   No boards behind it: this wall is one shelf with four cards leaning on
+   it, so the repeating gradient is switched off and only the timber and
+   the case shadow are kept. Done by overriding the background rather
+   than by writing a second wall, so it follows every change to the
+   wood. */
+.woodwall.axes {
+  background-image:
+    repeating-linear-gradient(
+      89deg,
+      rgba(255, 255, 255, 0.07) 0px,
+      rgba(255, 255, 255, 0.07) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 7px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(50, 24, 4, 0.5) 0%,
+      rgba(50, 24, 4, 0) 7%,
+      rgba(50, 24, 4, 0) 93%,
+      rgba(50, 24, 4, 0.5) 100%
+    ),
+    radial-gradient(ellipse 62% 108% at 50% 42%, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0) 72%);
+}
+.woodwall.axes .shelf-axes {
+  padding: 14px;
+  margin: 0;
+}
+/* A card leaning on a shelf: paper, not a panel. */
+.woodwall.axes .shelf-axis {
+  background: linear-gradient(180deg, #fbf6e6 0%, #eee4c9 100%);
+  border: 0;
+  color: #2f2413;
+  box-shadow: 0 3px 5px -1px rgba(40, 18, 2, 0.55), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+.woodwall.axes .shelf-axis span {
+  color: rgba(47, 36, 19, 0.72);
+}
+
 /* ---- The two doors ----
    Where a record comes from, said as a place rather than as a link. They
    sit under your own shelf because that is the honest order: this is
@@ -16338,6 +16467,402 @@ button.btn-ghost {
 }
 .tape-deck-actions {
   margin-top: 9px;
+}
+
+/* ================================================================
+   THE RACKS
+   ----------------------------------------------------------------
+   Discover as a record shop rather than as rows of cards.
+
+   In a shop nothing is face on. Records are filed on their spines,
+   packed tight, and you walk along pushing them over with two fingers
+   until one stops you. The card face you see in every streaming app is
+   a shop where somebody has taken four hundred records out of the rack
+   and laid them all on the floor, which is not a nicer version of
+   digging - it is the thing digging is instead of.
+
+   So: spines you scroll through, and the one you press comes out.
+
+   Two racks, because the two objects file differently. Records stand
+   upright and you go along them; DVD cases lie flat and you go DOWN a
+   stack, reading the titles sideways. Anybody who has owned either
+   knows which way round they go, and getting it backwards would be the
+   loudest wrong note on the page.
+   ================================================================ */
+
+/* ---- The rack itself ---- */
+.rack {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--wood-back-bottom);
+  background-image:
+    repeating-linear-gradient(
+      89deg,
+      rgba(255, 255, 255, 0.07) 0px,
+      rgba(255, 255, 255, 0.07) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 7px
+    ),
+    repeating-linear-gradient(
+      91deg,
+      rgba(88, 48, 12, 0.08) 0px,
+      rgba(88, 48, 12, 0.08) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 19px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(50, 24, 4, 0.5) 0%,
+      rgba(50, 24, 4, 0) 6%,
+      rgba(50, 24, 4, 0) 94%,
+      rgba(50, 24, 4, 0.5) 100%
+    ),
+    linear-gradient(180deg, var(--wood-back-top) 0%, var(--wood-back-bottom) 22%);
+  box-shadow: inset 0 10px 14px -8px rgba(40, 18, 2, 0.75), var(--edge-drop), var(--edge-outer);
+}
+
+/* The row of filed records. Scrolls sideways, because a rack is longer
+   than the wall it is on. */
+.rack-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  padding: 14px 16px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+/* The base board the records stand on, and the front lip that stops
+   them sliding out. Drawn on the rack rather than per record, because
+   there is one board under all of them. */
+.rack-base {
+  height: 26px;
+  background:
+    linear-gradient(180deg, var(--wood-lit-edge) 0px, var(--wood-face-top) 2px,
+      var(--wood-face-bottom) 14px, var(--wood-under) 15px, var(--wood-cast) 16px,
+      var(--wood-back-top) 26px);
+}
+
+/* ---- One record, filed ----
+   A sleeve seen edge on: a narrow strip of the cover, because the art
+   wraps round most sleeves and the edge is the colour of the record
+   rather than a neutral grey. The title runs up it, which is how you
+   read a spine.
+
+   Widths vary by a pixel or two down the row so the rack does not read
+   as a comb. Done with nth-child rather than a random number, so the
+   same rack looks the same on every render. */
+.rack-spine {
+  flex: 0 0 auto;
+  position: relative;
+  width: 26px;
+  height: 152px;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  scroll-snap-align: start;
+  border-radius: 2px 2px 1px 1px;
+  background-size: cover;
+  background-position: center;
+  /* Leaning back a degree, the way a rack that is not quite full does,
+     and pivoting on the foot so the bottoms stay in a line on the board. */
+  transform-origin: bottom center;
+  transform: rotate(-0.6deg);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.45), inset 1px 0 0 rgba(255, 255, 255, 0.32),
+    inset -2px 0 3px rgba(0, 0, 0, 0.4);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.rack-spine:nth-child(3n) {
+  width: 23px;
+}
+.rack-spine:nth-child(5n) {
+  width: 29px;
+  transform: rotate(-1.3deg);
+}
+.rack-spine:nth-child(7n) {
+  width: 21px;
+  transform: rotate(0.4deg);
+}
+/* The gloss down a sleeve edge: light along the leading corner, shade
+   into the one behind it. This is the layer that makes a row of these
+   read as objects with thickness rather than as coloured bars. */
+.rack-spine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.12) 18%,
+    rgba(0, 0, 0, 0.1) 55%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+  pointer-events: none;
+}
+/* The title, running up the spine. */
+.rack-spine-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-bottom: 10px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #fff;
+  /* Readable over whatever colour the sleeve happens to be. A spine you
+     cannot read is a spine you have to pull out to identify, which is
+     the one thing filing them is supposed to save you. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+/* Pushing one over with two fingers. */
+.rack-spine:hover,
+.rack-spine:focus-visible {
+  transform: rotate(-3.4deg) translateY(-4px);
+  box-shadow: 3px 0 8px rgba(0, 0, 0, 0.55), inset 1px 0 0 rgba(255, 255, 255, 0.45);
+}
+/* The one you have pulled: right out of the rack and turned face on. */
+.rack-spine.pulled {
+  width: 62px;
+  transform: rotate(-7deg) translateY(-12px);
+  box-shadow: 6px 2px 14px rgba(0, 0, 0, 0.6), inset 1px 0 0 rgba(255, 255, 255, 0.5);
+}
+
+/* ---- The record in your hands ----
+   Under the rack, because that is where you look at one: out of the
+   rack, held, with the sleeve facing you. */
+.rack-held {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, rgba(40, 18, 2, 0.28), rgba(40, 18, 2, 0.06));
+  border-top: 1px solid rgba(40, 18, 2, 0.4);
+}
+.rack-held-art {
+  position: relative;
+  flex: 0 0 auto;
+  width: 108px;
+  height: 108px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #1d1d21;
+  box-shadow: 0 8px 14px -5px rgba(0, 0, 0, 0.75), 0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.rack-held-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.rack-held-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.rack-held-body b {
+  display: block;
+  font-size: 14px;
+  color: #fdf3e2;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+.rack-held-body .by {
+  display: block;
+  font-size: 12px;
+  color: rgba(253, 243, 226, 0.75);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.75);
+}
+.rack-held-body .why {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  font-style: italic;
+  color: rgba(253, 243, 226, 0.6);
+}
+.rack-held-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+}
+.rack-held-actions .inline-form button,
+.rack-held-actions .rack-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  box-shadow: none;
+  border-radius: 0;
+  color: #ffd9a4;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+}
+.rack-held-actions .inline-form button:disabled {
+  color: rgba(255, 217, 164, 0.55);
+  text-decoration: none;
+}
+
+/* The divider card that names a section, the way a shop labels a rack. */
+.rack-card {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 8px;
+  padding: 7px 11px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #fbf6e6 0%, #eee4c9 100%);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+.rack-card h2 {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #2f2413;
+}
+.rack-card p {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(47, 36, 19, 0.7);
+}
+.rack-empty {
+  padding: 16px;
+  font-size: 12px;
+  color: #fdf3e2;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7);
+}
+.rack-section {
+  margin-bottom: 16px;
+}
+
+/* ---- The DVD stack ----
+   Cases lie flat and you read down them, which is why this one stacks
+   rather than scrolls sideways. Each spine is the width of the rack and
+   about a case thick. */
+.dvd-stack {
+  padding: 12px 14px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.dvd-spine {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 27px;
+  margin-bottom: 2px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  background-size: cover;
+  background-position: center;
+  /* A case is plastic: a hard light along the top edge, shade at the
+     bottom, and a hairline of black where it meets the one below. */
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.4);
+}
+.dvd-spine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.34) 0%,
+    rgba(255, 255, 255, 0.06) 34%,
+    rgba(0, 0, 0, 0.18) 35%,
+    rgba(0, 0, 0, 0.34) 100%
+  );
+  pointer-events: none;
+}
+.dvd-spine:hover,
+.dvd-spine:focus-visible {
+  transform: translateX(4px);
+}
+.dvd-spine.pulled {
+  transform: translateX(10px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.dvd-title {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dvd-year {
+  position: relative;
+  flex: 0 0 auto;
+  font-size: 9.5px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+/* The case you pulled, opened. */
+.dvd-open {
+  margin: 8px 0 10px;
+  padding: 10px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #22222a 0%, #131318 100%);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55) inset, var(--edge-outer);
+}
+.dvd-open iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 4px;
+  display: block;
+  background: #000;
+}
+.dvd-open-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: #f3ead8;
+  font-size: 12px;
+}
+.dvd-open-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 9px;
+}
+.dvd-open-actions a,
+.dvd-open-actions .inline-form button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  box-shadow: none;
+  border-radius: 0;
+  color: #ffd9a4;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ================================================================

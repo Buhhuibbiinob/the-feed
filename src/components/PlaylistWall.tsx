@@ -211,12 +211,28 @@ export function PlaylistWall({
   currentUserId,
   viewerIsAdmin,
   canAdd,
+  notSetUp = false,
 }: {
   playlists: Playlist[];
   currentUserId: string | null;
   viewerIsAdmin: boolean;
   canAdd: boolean;
+  /** The table is not in the database yet, so nothing here can work. */
+  notSetUp?: boolean;
 }) {
+  if (notSetUp) {
+    return (
+      <div className="panel">
+        <div className="panel-body">
+          <p className="empty-state">
+            Playlists need a table that is not in the database yet. Whoever runs the site needs to
+            apply <code>supabase/migrations/013-playlists.sql</code> in the Supabase SQL editor.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {canAdd ? (

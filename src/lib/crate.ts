@@ -29,7 +29,53 @@ import type { Find, Known } from "@/lib/musicDiscovery";
 // already been through is not a crate.
 
 /** A sleeve in the crate. Same shape as a Find, minus the reasoning. */
-export type Sleeve = Omit<Find, "becauseOf">;
+export type Sleeve = Omit<Find, "becauseOf"> & {
+  /**
+   * What kind of thing this is.
+   *
+   * A crate in a shop is not sorted by medium. There are films in the
+   * box, and the moment you hit one it is a different decision from the
+   * record before it, which is most of why digging through one is worth
+   * doing at all. Optional so every existing caller keeps working and
+   * anything without it is a record, which everything was.
+   */
+  kind?: "record" | "film";
+  /** For a film: the trailer, which is that object's version of a clip. */
+  videoId?: string;
+};
+
+/**
+ * One record for every this many films.
+ *
+ * Films are the surprise in the box, not half of it. One in six is often
+ * enough that you know they are in there and rare enough that hitting one
+ * still registers.
+ */
+export const FILMS_PER_CRATE = 5;
+
+/**
+ * Films dropped into a crate of records, evenly but not on a beat.
+ *
+ * Spaced by division rather than shuffled in: a shuffle clumps, and two
+ * films back to back in a box of thirty reads as a bug rather than as
+ * chance. The offset moves with the seed so they are not in the same
+ * slots every visit.
+ */
+export function mixInFilms(records: Sleeve[], films: Sleeve[], seed: number): Sleeve[] {
+  if (films.length === 0) return records;
+  const out: Sleeve[] = [];
+  const gap = Math.max(2, Math.floor(records.length / (films.length + 1)));
+  const offset = Math.abs(seed) % gap;
+  let next = 0;
+  records.forEach((record, i) => {
+    out.push(record);
+    if (next < films.length && i >= offset && (i - offset) % gap === gap - 1) {
+      out.push(films[next++]);
+    }
+  });
+  // Anything that did not fit goes on the end rather than being dropped.
+  return [...out, ...films.slice(next)];
+}
 
 /** How many sleeves one visit gets. Enough to dig, few enough to finish. */
 export const CRATE_SIZE = 30;

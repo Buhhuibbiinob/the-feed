@@ -1,0 +1,177 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { markQueueDone, markQueueUndone, removeFromQueue } from "@/app/actions/queue";
+import { formatForKey, type MediaFormat } from "@/lib/physicalMedia";
+import { QUEUE_DONE_LABEL, reviewHref, type QueueItem } from "@/lib/queue";
+
+// Your shelf, with the records playable.
+//
+// A shelf of things you mean to listen to that you cannot listen to is a
+// list of homework. The clip is thirty seconds and it is the difference
+// between "I should get to that" and getting to it, so the same lookup
+// the Crate and the Shelves use runs here too.
+//
+// Only music. A film case and a photograph have nothing to play, and a
+// dead play button on them would be worse than none.
+
+type Info = { previewUrl: string | null };
+
+// One player for the page, same as everywhere else that plays a clip.
+let audio: HTMLAudioElement | null = null;
+let playingId: string | null = null;
+const listeners = new Set<() => void>();
+function emit() {
+  for (const listener of listeners) listener();
+}
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+function stop() {
+  playingId = null;
+  emit();
+}
+function toggle(id: string, url: string) {
+  if (!audio) {
+    audio = new Audio();
+    audio.addEventListener("ended", stop);
+    audio.addEventListener("error", stop);
+  }
+  if (playingId === id) {
+    audio.pause();
+    stop();
+    return;
+  }
+  audio.src = url;
+  playingId = id;
+  emit();
+  void audio.play().catch(stop);
+}
+
+/** What a queued thing would sit on a shelf as. */
+function shelfFormat(item: QueueItem): MediaFormat | "case" {
+  // A film is a tall case with a spine whatever year it is from, and a
+  // photograph has no object either, so it gets the glass a download
+  // gets. Music is the only one with a real answer, and with no year on a
+  // queue row that answer comes from the title.
+  if (item.mediaType === "movie_tv") return "case";
+  if (item.mediaType === "photography") return "download";
+  return formatForKey(`${item.title} ${item.subtitle ?? ""}`);
+}
+
+export function YourShelf({ items, done }: { items: QueueItem[]; done: boolean }) {
+  const [info, setInfo] = useState<Record<string, Info>>({});
+  const playing = useSyncExternalStore(
+    subscribe,
+    () => playingId,
+    () => null
+  );
+
+  // Looked up a few at a time. Twenty-four parallel requests to one
+  // address is the shape Apple rate-limits; four fills a shelf in a
+  // couple of seconds and never trips it.
+  const started = useRef(false);
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    const music = items.filter((i) => i.mediaType === "music");
+    let cancelled = false;
+    let cursor = 0;
+
+    async function worker() {
+      while (cursor < music.length && !cancelled) {
+        const item = music[cursor++];
+        const params = new URLSearchParams({
+          title: item.title,
+          artist: item.subtitle ?? "",
+        });
+        const data: Info = await fetch(`/api/crate/sleeve?${params.toString()}`)
+          .then((res) => res.json())
+          // A record with no clip is still on the shelf.
+          .catch(() => ({ previewUrl: null }));
+        if (!cancelled) setInfo((prev) => ({ ...prev, [item.id]: data }));
+      }
+    }
+
+    void Promise.all(Array.from({ length: Math.min(4, music.length) }, worker));
+    return () => {
+      cancelled = true;
+    };
+  }, [items]);
+
+  return (
+    <div className={done ? "woodwall played-wall" : "woodwall"}>
+      <div className="woodgrid">
+        {items.map((item) => {
+          const clip = info[item.id]?.previewUrl ?? null;
+          const isPlaying = playing === item.id;
+          return (
+            <article className={done ? "woodslot played" : "woodslot"} key={item.id}>
+              <div className={`wooditem fmt-${shelfFormat(item)}`}>
+                {item.imageUrl ? (
+                  <img src={item.imageUrl} alt="" loading="lazy" />
+                ) : (
+                  <div className="wood-blank" aria-hidden="true" />
+                )}
+                {clip && (
+                  <button
+                    type="button"
+                    className={`wood-play${isPlaying ? " playing" : ""}`}
+                    aria-label={isPlaying ? `Stop ${item.title}` : `Hear ${item.title}`}
+                    onClick={() => toggle(item.id, clip)}
+                  >
+                    <span aria-hidden="true">{isPlaying ? "■" : "▶"}</span>
+                  </button>
+                )}
+                {/* Taking it off the shelf lives on the record itself.
+                    Under it, beside the other two, it was a third link in
+                    a column with room for two. */}
+                <form action={removeFromQueue} className="inline-form">
+                  <input type="hidden" name="id" value={item.id} />
+                  <button
+                    type="submit"
+                    className="wood-remove"
+                    aria-label={`Take ${item.title} off the shelf`}
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </form>
+              </div>
+              <div className="woodlabel">
+                <b title={item.title}>{item.title}</b>
+                <span title={item.subtitle ?? ""}>
+                  {item.subtitle || (item.fromPostId ? "someone talked you into it" : " ")}
+                </span>
+              </div>
+              <div className="woodactions">
+                {done ? (
+                  <form action={markQueueUndone} className="inline-form">
+                    <input type="hidden" name="id" value={item.id} />
+                    <button type="submit">Put it back</button>
+                  </form>
+                ) : (
+                  <>
+                    {/* Still the point of the page: the shelf is a stack
+                        of reviews waiting to be written, and starting one
+                        is a press with the fields already filled in. */}
+                    <Link href={reviewHref(item)} className="wood-link">
+                      Review
+                    </Link>
+                    <form action={markQueueDone} className="inline-form">
+                      <input type="hidden" name="id" value={item.id} />
+                      <button type="submit">{QUEUE_DONE_LABEL[item.mediaType]}</button>
+                    </form>
+                  </>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

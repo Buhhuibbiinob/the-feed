@@ -88,25 +88,58 @@ const DECADES: { tag: string; label: string; from: number }[] = [
  */
 const LANE_GENRES = ["horror", "sci-fi", "thriller", "comedy", "crime"] as const;
 
-function laneFor(genre: string | null, decade: (typeof DECADES)[number]): Lane {
+/**
+ * Words that push a lane off the beaten track.
+ *
+ * A lane on its own returns the twenty films anybody could have named.
+ * These are the words the archive channels and the cult uploaders
+ * actually use, and adding one to a query is the difference between
+ * being shown Alien and being shown something you have to look up.
+ *
+ * They multiply the lane count, which is why there are five rather than
+ * twenty: every one of these is another query against a budget the
+ * search boxes are also spending. Six of them came to 3,600 units a day
+ * against a 3,500 allowance and failed the build, which is exactly what
+ * that check is for.
+ */
+const DEEP_WORDS = ["cult", "obscure", "forgotten", "arthouse", "underrated"] as const;
+
+function laneFor(
+  genre: string | null,
+  decade: (typeof DECADES)[number],
+  deep: (typeof DEEP_WORDS)[number] | null = null
+): Lane {
   // "trailer" alone returns fan edits and game footage; "original
   // theatrical trailer" is what the archive channels actually title
   // their uploads, and those are the ones with real films behind them.
-  const words = genre
-    ? `${genre} movie original theatrical trailer ${decade.from}s`
-    : `movie original theatrical trailer ${decade.from}s`;
+  const parts = [deep, genre, "movie original theatrical trailer", `${decade.from}s`].filter(
+    Boolean
+  );
   return {
     genre,
     decade: decade.tag,
-    query: words,
-    label: genre ? `${genre} from ${decade.label}` : `films from ${decade.label}`,
+    query: parts.join(" "),
+    label: deep
+      ? `${deep} ${genre ?? "film"} from ${decade.label}`
+      : genre
+        ? `${genre} from ${decade.label}`
+        : `films from ${decade.label}`,
   };
 }
 
-/** Every query this feature is capable of making. */
+/**
+ * Every query this feature is capable of making.
+ *
+ * The deep lanes are paired one to one with a decade rather than crossed
+ * with every genre, which would be a hundred and eighty queries and about
+ * six times the budget. Pairing keeps the count at forty and still means
+ * a third of what anybody lands on is a lane with "cult" or "forgotten"
+ * in it.
+ */
 export const LANES: Lane[] = [
   ...DECADES.map((d) => laneFor(null, d)),
   ...LANE_GENRES.flatMap((g) => DECADES.map((d) => laneFor(g, d))),
+  ...DEEP_WORDS.map((w, i) => laneFor(LANE_GENRES[i % LANE_GENRES.length], DECADES[i % DECADES.length], w)),
 ];
 
 /** What Discover's trailer rail costs YouTube in a worst-case day. */
@@ -320,8 +353,19 @@ export async function screenFinds(
   // Asked for more than the rail shows: parsing throws some away, and a
   // rail that renders four cards because four uploads were compilations
   // looks broken rather than selective.
-  const videos = await search(lane.query, limit * 3, {
+  // Asked for far more than the rail shows, and then rotated.
+  //
+  // A lane's answer is cached for the day, so without this everybody in
+  // the same lane sees the same eight films in the same order until
+  // tomorrow. Rotating the list costs nothing, uses the results already
+  // paid for, and is the only way a shared cache and a rail that
+  // reshuffles on every load can both be true.
+  const videos = await search(lane.query, limit * 5, {
     revalidateSeconds: TRAILER_TTL_SECONDS,
   }).catch(() => []);
-  return { becauseOf: lane.label, lane, finds: rankTrailers(videos, known, lane.label, limit) };
+  return {
+    becauseOf: lane.label,
+    lane,
+    finds: rankTrailers(rotate(videos, spin), known, lane.label, limit),
+  };
 }

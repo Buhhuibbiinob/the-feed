@@ -2,10 +2,9 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { guardBuiltinPage } from "@/lib/pages";
 import { QueueAddForm } from "@/components/QueueAddForm";
-import { markQueueDone, markQueueUndone, removeFromQueue } from "@/app/actions/queue";
 import { isMissingSchema } from "@/lib/dbError";
-import { formatForKey, type MediaFormat } from "@/lib/physicalMedia";
-import { QUEUE_DONE_LABEL, reviewHref, toQueueItem, type QueueItem, type QueueRow } from "@/lib/queue";
+import { YourShelf } from "@/components/YourShelf";
+import { toQueueItem, type QueueRow } from "@/lib/queue";
 
 export const metadata = { title: "Your shelf on Feedback" };
 
@@ -26,69 +25,6 @@ const COLUMNS = "id, media_type, title, subtitle, image_url, from_post_id, done_
  * is gone. Nothing is lost by that: everything the rows said is still
  * here, on the card under each record.
  */
-
-/** What a queued thing would sit on a shelf as. */
-function shelfFormat(item: QueueItem): MediaFormat | "case" {
-  // A film is a tall case with a spine, whatever year it is from. A
-  // photograph has no object either, so it gets the same glass a
-  // download gets. Music is the only one with a real answer, and with no
-  // year on a queue row the answer comes from the title.
-  if (item.mediaType === "movie_tv") return "case";
-  if (item.mediaType === "photography") return "download";
-  return formatForKey(`${item.title} ${item.subtitle ?? ""}`);
-}
-
-function ShelfThing({ item, done }: { item: QueueItem; done: boolean }) {
-  return (
-    <article className={done ? "woodslot played" : "woodslot"}>
-      <div className={`wooditem fmt-${shelfFormat(item)}`}>
-        {item.imageUrl ? (
-          <img src={item.imageUrl} alt="" loading="lazy" />
-        ) : (
-          <div className="wood-blank" aria-hidden="true" />
-        )}
-        {/* Taking it off the shelf lives on the record itself. Under it,
-            beside the other two, it was a third link in a column that
-            only ever had room for two, and the three ran together across
-            the whole shelf. */}
-        <form action={removeFromQueue} className="inline-form">
-          <input type="hidden" name="id" value={item.id} />
-          <button type="submit" className="wood-remove" aria-label={`Take ${item.title} off the shelf`}>
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </form>
-      </div>
-      <div className="woodlabel">
-        <b title={item.title}>{item.title}</b>
-        <span title={item.subtitle ?? ""}>
-          {item.subtitle ||
-            (item.fromPostId ? "someone talked you into it" : " ")}
-        </span>
-      </div>
-      <div className="woodactions">
-        {done ? (
-          <form action={markQueueUndone} className="inline-form">
-            <input type="hidden" name="id" value={item.id} />
-            <button type="submit">Put it back</button>
-          </form>
-        ) : (
-          <>
-            {/* Still the point of the page: the shelf is a stack of
-                reviews waiting to be written, and starting one is a
-                single press with the fields already filled in. */}
-            <Link href={reviewHref(item)} className="wood-link">
-              Review
-            </Link>
-            <form action={markQueueDone} className="inline-form">
-              <input type="hidden" name="id" value={item.id} />
-              <button type="submit">{QUEUE_DONE_LABEL[item.mediaType]}</button>
-            </form>
-          </>
-        )}
-      </div>
-    </article>
-  );
-}
 
 /** The two places a record comes from, said as doors rather than links. */
 function Doors() {
@@ -170,13 +106,7 @@ export default async function ShelfPage() {
             </>
           ) : (
             <>
-              <div className="woodwall">
-                <div className="woodgrid">
-                  {pending.map((item) => (
-                    <ShelfThing key={item.id} item={item} done={false} />
-                  ))}
-                </div>
-              </div>
+              <YourShelf items={pending} done={false} />
               <Doors />
             </>
           )}
@@ -194,13 +124,7 @@ export default async function ShelfPage() {
         <div className="panel">
           <div className="panel-head">Been through these</div>
           <div className="panel-body">
-            <div className="woodwall played-wall">
-              <div className="woodgrid">
-                {done.map((item) => (
-                  <ShelfThing key={item.id} item={item} done />
-                ))}
-              </div>
-            </div>
+            <YourShelf items={done} done />
           </div>
         </div>
       )}
