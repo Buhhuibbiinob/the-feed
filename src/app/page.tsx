@@ -197,7 +197,24 @@ export default async function FeedPage({
   // One builder for every feed link so the following filter, the category
   // and the page number always travel together. Page 1 is left out of the
   // URL so the plain "/" stays the canonical first page.
-  const feedHref = (nextType: MediaType | null, nextPage: number) => {
+  //
+  // The view is a parameter here rather than something callers tack on
+  // the end, and that is the whole bug this signature exists to prevent:
+  // this returns a URL ENDING IN "#reviews", so the Playlists tab, which
+  // was written as `${feedHref("music", 1)}&view=playlists`, produced
+  //
+  //   /?type=music#reviews&view=playlists
+  //
+  // where view sits inside the fragment. Fragments are never sent to the
+  // server, so the page read no view at all, decided the tab was not
+  // open, and rendered the reviews feed - which is exactly what clicking
+  // Playlists did: nothing. Anything that has to be in the query has to
+  // go in before the "#", so it goes in here.
+  const feedHref = (
+    nextType: MediaType | null,
+    nextPage: number,
+    nextView?: "playlists"
+  ) => {
     const params = new URLSearchParams();
     if (followingOnly) params.set("filter", "following");
     if (forYouOnly) params.set("filter", "foryou");
@@ -205,6 +222,7 @@ export default async function FeedPage({
     // Dropped when the category changes, since it belongs to the old one.
     if (genreFilter && nextType === typeFilter) params.set("genre", genreFilter);
     if (nextPage > 1) params.set("page", String(nextPage));
+    if (nextView) params.set("view", nextView);
     const qs = params.toString();
     return qs ? `/?${qs}#reviews` : "/#reviews";
   };
@@ -909,13 +927,13 @@ export default async function FeedPage({
         {typeFilter === "music" && (
           <div className="feed-chips sub">
             <Link
-              href={`${feedHref("music", 1)}`}
+              href={feedHref("music", 1)}
               className={`feed-chip ${showPlaylists ? "" : "active"}`}
             >
               Reviews
             </Link>
             <Link
-              href={`${feedHref("music", 1)}&view=playlists`}
+              href={feedHref("music", 1, "playlists")}
               className={`feed-chip ${showPlaylists ? "active" : ""}`}
             >
               Playlists

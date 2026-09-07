@@ -1,0 +1,25 @@
+-- Run this once in the Supabase SQL editor.
+--
+-- Somewhere to remember a song's video.
+--
+-- Apple's catalogue has a thirty second clip for most records and none
+-- at all for some, and "some" is not random: it is the obscure ones,
+-- which on this site is most of them. A record with no clip had nothing
+-- to press, so the one thing somebody actually wanted to hear was the
+-- one thing they could not.
+--
+-- YouTube has those records. It is not used for this in the background,
+-- ever, because a search costs 100 units of a 10,000-a-day allowance
+-- shared with the film trailers - a hundred searches for the whole site
+-- for a whole day. So it is asked only when a person presses play on a
+-- record with no clip, and the answer is kept here so that record never
+-- costs anything again, for anybody.
+--
+-- One column on the table that already remembers covers, because it is
+-- the same fact about the same record.
+--
+-- Safe to run more than once. Everything works without it - the site
+-- just re-asks YouTube instead of remembering, which is exactly what it
+-- did before this column existed.
+
+alter table public.track_covers add column if not exists youtube_id text;
