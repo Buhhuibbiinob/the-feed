@@ -16638,6 +16638,10 @@ button.btn-ghost {
    Padded on the left so the first record has room to lean into. */
 .rack-row {
   display: flex;
+  /* Feet on the board, not middles in a line. Anything standing on a
+     shelf shares a baseline and differs at the top, which is the single
+     strongest cue that these are objects on a surface rather than
+     pictures in a row. */
   align-items: flex-end;
   gap: 0;
   padding: 18px 20px 0 26px;
@@ -16705,33 +16709,93 @@ button.btn-ghost {
   background-size: cover;
   background-position: center;
 }
+/* A sleeve the catalogue has no picture for.
+   Not the box's own background colour, which is what it used to be: a
+   dark square, and on a twelve inch sleeve with the disc drawn behind it
+   that came out as a black slab in the middle of a row of covers. A
+   record with no artwork is a white label, so that is what it draws as -
+   printed board with a plate on it, and the name goes on the plate,
+   which is the one case where text on a sleeve is right rather than a
+   caption on somebody else's photograph. */
+.rack-spine-ink.blank {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.22)),
+    repeating-linear-gradient(94deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 5px),
+    linear-gradient(155deg, #ded6c6, #b9ae99 60%, #a2977f);
+}
+/* The plate. Centred, inset, and only on a blank one. */
+.rack-spine.blank .rack-spine-text {
+  position: absolute;
+  inset: 22% 12%;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  overflow: hidden;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #fdfbf5, #ece5d6);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  font-size: 8px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  color: #2c2620;
+}
+.rack-spine.blank .rack-spine-text b {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+/* A cassette is too small for a plate and too small for two lines. */
+.rack-spine.fmt-cassette.blank .rack-spine-text {
+  inset: 30% 10%;
+  font-size: 7px;
+}
 /* Format decides the shape, the way it does everywhere else here. A
    twelve inch sleeve is the biggest thing in the rack; a jewel case is
    smaller and squarer; a cassette is small and landscape and sits low; a
    film case is tall and narrow. */
+/* The sizes, and how far each one tucks behind the last.
+   Held closer together than they were. A rack whose objects ran from 52
+   to 112 pixels, each with its own overlap, came out as a jumble rather
+   than a rack - the eye reads a row of things as ordered when their feet
+   line up and their tops step in a pattern, and neither was true. The
+   spread is narrower now and every overlap hides about the same
+   fraction of each item - a bit over half - so the exposed strip is one
+   rhythm across a mix of formats. Half rather than two thirds because
+   at two thirds you are looking at a row of edges: enough to know
+   something is there and not enough to know what, which is the opposite
+   of what a rack is for. */
 .rack-spine.fmt-vinyl {
-  width: 112px;
-  height: 112px;
+  width: 108px;
+  height: 108px;
+  margin-left: -58px;
 }
 .rack-spine.fmt-cd {
-  width: 92px;
-  height: 92px;
-  margin-left: -62px;
-}
-.rack-spine.fmt-cassette {
-  width: 82px;
-  height: 52px;
-  margin-left: -54px;
-}
-.rack-spine.fmt-case {
-  width: 78px;
-  height: 108px;
+  width: 96px;
+  height: 96px;
   margin-left: -52px;
 }
+.rack-spine.fmt-cassette {
+  width: 90px;
+  height: 58px;
+  margin-left: -48px;
+}
+.rack-spine.fmt-case {
+  width: 84px;
+  height: 112px;
+  margin-left: -45px;
+}
 .rack-spine.fmt-download {
-  width: 88px;
-  height: 88px;
-  margin-left: -58px;
+  width: 96px;
+  height: 96px;
+  margin-left: -52px;
   border-radius: 9px;
 }
 /* ---- The objects themselves ----
@@ -17405,6 +17469,138 @@ button.btn-ghost {
   --edge-outer: 0 0 0 1px rgba(255, 255, 255, 0.16);
   --edge-glow: 0 1px 0 rgba(255, 255, 255, 0.14) inset;
   --edge-drop: 0 8px 22px -10px rgba(0, 0, 0, 0.8);
+}
+
+/* ---- A shelf item you can press ----
+   The films are buttons: pressing one opens its trailer under the
+   shelf. A button carries a browser's own chrome - a border, padding, a
+   grey face, a centred label - none of which belongs on a thing meant to
+   read as a plastic case standing on wood, so it is taken off and the
+   item's own layout put back. .wooditem is a flex row, so display has to
+   be restored explicitly or the button default flattens the artwork. */
+.wooditem.as-button {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: transform 0.14s ease;
+}
+.wooditem.as-button img,
+.wooditem.as-button .wood-blank {
+  display: block;
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+}
+/* Coming off the shelf: up and forward, the way you tip a case out with
+   a finger before it clears the board. */
+.wooditem.as-button:hover,
+.wooditem.as-button:focus-visible {
+  transform: translateY(-4px);
+}
+.wooditem.as-button.pulled {
+  transform: translateY(-8px);
+}
+.wooditem.as-button.pulled img,
+.wooditem.as-button.pulled .wood-blank {
+  outline: 2px solid rgba(255, 232, 180, 0.9);
+}
+
+/* ---- Which wall you are in front of ----
+   Music, film and photography. Above the axes rather than beside them,
+   because the medium decides what the axes even are. */
+.shelf-media {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.shelf-medium {
+  display: block;
+  padding: 9px 11px;
+  border-radius: 7px;
+  text-decoration: none;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(238, 238, 240, 0.95) 33.9%,
+    rgba(224, 224, 228, 0.95));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 2px rgba(0, 0, 0, 0.16);
+}
+.shelf-medium b {
+  display: block;
+  font-size: 13px;
+}
+.shelf-medium span {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  opacity: 0.72;
+}
+/* The one you are on is pressed in, which is the same language every
+   other control here uses for "this is the state you are in". */
+.shelf-medium.on {
+  background: linear-gradient(180deg, rgba(198, 202, 210, 0.95), rgba(224, 226, 232, 0.95) 33.9%,
+    rgba(242, 243, 246, 0.95));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) inset;
+}
+
+/* ---- Photographs, framed ----
+   A photograph on a shelf is a framed print standing on the board. Not a
+   sleeve: drawing one as a record would be the same mistake the racks
+   made twice, reaching for the object we already had rather than the one
+   the thing actually is.
+
+   Frame, mount, print. The frame is what makes a picture read as an
+   object rather than an image dropped on a page, and the mount is what
+   makes the frame read as a frame - a photograph pressed straight
+   against a moulding is a poster. */
+.woodgrid.prints {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.wooditem.framed {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  text-decoration: none;
+  transition: transform 0.14s ease;
+}
+.wooditem.framed:hover,
+.wooditem.framed:focus-visible {
+  transform: translateY(-3px);
+}
+/* The moulding, and the card mount inside it. Two rings rather than a
+   border and a padding, so the mount keeps its own colour against
+   whatever theme the page is on. */
+.frame-mount {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 7px;
+  background: linear-gradient(150deg, #f6f3ea, #e6e1d4);
+  border: 3px solid #3a2b20;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 7px 10px -5px rgba(0, 0, 0, 0.85),
+    0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.35) inset;
+}
+.frame-mount img {
+  display: block;
+  max-width: 100%;
+  /* Room for the mount and the label under the board. */
+  max-height: calc(var(--wood-item) - 22px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.print-by {
+  text-decoration: none;
 }
 
 /* ================================================================

@@ -3,7 +3,22 @@ import { createClient } from "@/lib/supabase/server";
 import { guardBuiltinPage } from "@/lib/pages";
 import { ShelfDividers } from "@/components/ShelfDividers";
 import { ShelfRecords } from "@/components/ShelfRecords";
-import { axes, getShelf, isAxis, isShelfValue, shelfTitle, shelfYears } from "@/lib/shelves";
+import { FilmShelf } from "@/components/FilmShelf";
+import { PhotoShelf } from "@/components/PhotoShelf";
+import {
+  MEDIA,
+  axes,
+  getShelf,
+  isAxis,
+  isMedium,
+  isShelfValue,
+  shelfTitle,
+  shelfYears,
+  type Medium,
+} from "@/lib/shelves";
+import { filmShelf } from "@/lib/trailers";
+import { getPrints } from "@/lib/photoShelf";
+import { describeSearchFailure, searchVideosDetailed } from "@/lib/youtube";
 import { decadeTagForYear } from "@/lib/physicalMedia";
 import {
   alreadyKnown,
@@ -31,7 +46,7 @@ export const metadata = { title: "Shelves on Feedback" };
 export default async function ShelvesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ axis?: string; value?: string }>;
+  searchParams: Promise<{ medium?: string; axis?: string; value?: string }>;
 }) {
   const supabase = await createClient();
   await guardBuiltinPage(supabase, "shelves");
@@ -39,14 +54,20 @@ export default async function ShelvesPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { axis: rawAxis, value: rawValue } = await searchParams;
+  const { medium: rawMedium, axis: rawAxis, value: rawValue } = await searchParams;
   const now = new Date();
-  const wall = axes(now);
+  // Music by default, so every link written before there were three
+  // media still lands where it used to.
+  const medium: Medium = isMedium(rawMedium) ? rawMedium : "music";
+  const wall = axes(now, medium);
 
-  const axis = isAxis(rawAxis) ? rawAxis : null;
-  // The value goes into a tag query, so it is checked against its own
-  // axis rather than trusted from the URL.
-  const value = axis && isShelfValue(axis, rawValue, now) ? rawValue : null;
+  // Checked against THIS medium's axes: "decade" exists for music and
+  // for film and they are not the same wall, and "subject" exists only
+  // for photography. An axis borrowed from another medium is no axis.
+  const axis = isAxis(rawAxis) && wall.some((a) => a.id === rawAxis) ? rawAxis : null;
+  // The value goes into a tag query and a search, so it is checked
+  // against its own axis rather than trusted from the URL.
+  const value = axis && isShelfValue(axis, rawValue, now, medium) ? rawValue : null;
 
   // Same as the Crate: the only thing read about the person browsing is
   // what they have already written about, and only so it can come off
@@ -63,8 +84,25 @@ export default async function ShelvesPage({
   // A fresh spin per request, so coming back to a shelf is a different
   // set of records rather than the one you have already read.
   const spin = shuffleSeed();
-  const records = axis && value ? await getShelf(axis, value, known, spin) : [];
-  const problem = axis && value ? describeDiscoveryStatus(discoveryStatus([records.length])) : "";
+
+  // Only the medium being looked at is fetched. Asking all three would
+  // be a Last.fm call and a hundred YouTube units spent on two walls
+  // nobody opened.
+  const records =
+    medium === "music" && axis && value ? await getShelf(axis, value, known, spin) : [];
+  const screen =
+    medium === "film" && value && (axis === "decade" || axis === "genre")
+      ? await filmShelf(axis, value, known, searchVideosDetailed, { rotateBy: spin })
+      : null;
+  const prints =
+    medium === "photography" && axis === "subject" && value
+      ? await getPrints(supabase, value)
+      : [];
+
+  const problem =
+    medium === "music" && axis && value
+      ? describeDiscoveryStatus(discoveryStatus([records.length]))
+      : "";
 
   const openAxis = axis ? wall.find((a) => a.id === axis) ?? null : null;
 
@@ -80,14 +118,35 @@ export default async function ShelvesPage({
               Pick what you&apos;re in the mood for, not who you are. Nothing on the other side of
               these is ranked for you.
             </p>
-            {/* The four ways in, standing on a shelf like everything else
-                on this page. They used to be flat cards on the panel,
-                which meant the page announced itself as a shelving unit
-                and then opened with four rectangles. */}
+            {/* Which wall you are standing in front of. Above the axes
+                rather than beside them, because the medium decides what
+                the axes even are: a place means something for a record
+                and nothing for somebody's photograph. */}
+            <div className="shelf-media" role="tablist" aria-label="What to browse">
+              {MEDIA.map((m) => (
+                <Link
+                  key={m.id}
+                  href={`/shelves?medium=${m.id}`}
+                  className={`shelf-medium${m.id === medium ? " on" : ""}`}
+                  aria-current={m.id === medium ? "page" : undefined}
+                >
+                  <b>{m.label}</b>
+                  <span>{m.blurb}</span>
+                </Link>
+              ))}
+            </div>
+            {/* The ways in, standing on a shelf like everything else on
+                this page. They used to be flat cards on the panel, which
+                meant the page announced itself as a shelving unit and
+                then opened with rectangles. */}
             <div className="woodwall axes">
               <div className="shelf-axes">
                 {wall.map((a) => (
-                  <Link key={a.id} href={`/shelves?axis=${a.id}`} className="shelf-axis">
+                  <Link
+                    key={a.id}
+                    href={`/shelves?medium=${medium}&axis=${a.id}`}
+                    className="shelf-axis"
+                  >
                     <b>{a.label}</b>
                     <span>{a.prompt}</span>
                   </Link>
@@ -100,8 +159,12 @@ export default async function ShelvesPage({
             <div className="shelf-crumbs">
               <Link href="/shelves">Shelves</Link>
               <span aria-hidden="true">/</span>
+              <Link href={`/shelves?medium=${medium}`}>
+                {MEDIA.find((m) => m.id === medium)?.label ?? "Music"}
+              </Link>
+              <span aria-hidden="true">/</span>
               {value ? (
-                <Link href={`/shelves?axis=${openAxis.id}`}>{openAxis.label}</Link>
+                <Link href={`/shelves?medium=${medium}&axis=${openAxis.id}`}>{openAxis.label}</Link>
               ) : (
                 <b>{openAxis.label}</b>
               )}
@@ -117,6 +180,7 @@ export default async function ShelvesPage({
                 is comparing, and hiding the wall would make every change
                 of mind a trip backwards. */}
             <ShelfDividers
+              medium={medium}
               axis={openAxis.id}
               // Labelled here rather than in the client. Handing it the
               // labelling function was a 500 on every axis: a function
@@ -128,7 +192,33 @@ export default async function ShelvesPage({
               open={value}
             />
 
-            {value ? (
+            {!value ? (
+              <p className="shelf-pick">{openAxis.prompt}</p>
+            ) : medium === "film" ? (
+              <FilmShelf
+                finds={screen?.finds ?? []}
+                // What actually went wrong, rather than one sentence for
+                // every kind of empty. A missing key, a spent daily
+                // quota and a genuinely thin corner of the archive are
+                // three different things and only one of them means
+                // "try another divider".
+                emptyNote={
+                  screen?.failure
+                    ? describeSearchFailure(screen.failure)
+                    : "Nothing behind that divider today. There is a different set tomorrow."
+                }
+              />
+            ) : medium === "photography" ? (
+              <PhotoShelf
+                prints={prints}
+                // Said as what it is. This wall is built out of what
+                // people here have posted rather than out of a
+                // catalogue, so an empty subject is not a failure, it is
+                // an opening - and the shelf should say so instead of
+                // apologising.
+                emptyNote={`Nobody has shelved a ${shelfTitle(openAxis.id, value).toLowerCase()} shot yet. Yours would be the first.`}
+              />
+            ) : (
               <ShelfRecords
                 records={records}
                 emptyNote={problem || "Nothing behind that divider. Try one either side of it."}
@@ -149,8 +239,6 @@ export default async function ShelvesPage({
                 // back. Scene and Place claim no date and get no span.
                 span={shelfYears(openAxis.id, value)}
               />
-            ) : (
-              <p className="shelf-pick">{openAxis.prompt}</p>
             )}
           </>
         )}

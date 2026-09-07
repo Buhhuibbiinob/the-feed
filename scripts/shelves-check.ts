@@ -19,6 +19,7 @@ import {
   shelfTitle,
   shelfYears,
   yearValues,
+  isMedium,
 } from "../src/lib/shelves";
 import { belongsOnShelf } from "../src/lib/shelfSpan";
 import { NOTHING_KNOWN, alreadyKnown, type SeedPost } from "../src/lib/musicDiscovery";
@@ -194,6 +195,57 @@ check(
   "a shelf that claims no years keeps everything",
   belongsOnShelf(2013, null) && belongsOnShelf(null, null)
 );
+
+// ---- three walls, not one ------------------------------------------------
+//
+// The page was only ever music, and its axes were built for music. Film
+// and photography want different ones: a place is a real thing to ask of
+// a record and a tagging argument to ask of a film, and a year is a fact
+// about a release and not about somebody's own photograph.
+
+check("music is a medium", isMedium("music") && isMedium("film") && isMedium("photography"));
+check("anything else is not", !isMedium("books") && !isMedium("") && !isMedium(7));
+
+const filmWall = axes(now, "film").map((a) => a.id);
+const photoWall = axes(now, "photography").map((a) => a.id);
+const musicWall = axes(now, "music").map((a) => a.id);
+check("music keeps the four it had", musicWall.join(",") === "scene,year,decade,place", musicWall.join(","));
+check("film is decade and kind", filmWall.join(",") === "decade,genre", filmWall.join(","));
+check("photography is subject", photoWall.join(",") === "subject", photoWall.join(","));
+check(
+  "the default is still music, so every link written before this lands where it did",
+  axes(now).map((a) => a.id).join(",") === musicWall.join(",")
+);
+
+// The guard is per medium now, because "decade" names two different
+// walls and "subject" names one that only exists on the third.
+check("a film decade is allowed on the film wall", isShelfValue("decade", "70s", now, "film"));
+check(
+  "the film wall carries the same decades as the music one",
+  isShelfValue("decade", "2020s", now, "film") && isShelfValue("decade", "60s", now, "film"),
+  "films have trailers in every one of them, so there is no reason to hold any back"
+);
+check("a film kind is allowed", isShelfValue("genre", "horror", now, "film"));
+check("a made-up kind is not", !isShelfValue("genre", "mumblecore", now, "film"));
+check("a subject is allowed on the photography wall", isShelfValue("subject", "street", now, "photography"));
+check(
+  "a subject is not a music axis",
+  !isShelfValue("subject", "street", now, "music"),
+  "the value goes into a query, so it is checked against the wall it is on"
+);
+check(
+  "a scene cannot be borrowed onto the film wall",
+  !isShelfValue("scene", "shoegaze", now, "film")
+);
+
+// A slug is what the database calls it; a divider card says the words.
+check("a hyphenated subject is spelled out", shelfTitle("subject", "still-life") === "Still Life");
+check(
+  "and so is a long one",
+  shelfTitle("subject", "black-and-white") === "Black And White",
+  shelfTitle("subject", "black-and-white")
+);
+check("a film kind is capitalised", shelfTitle("genre", "sci-fi") === "Sci Fi");
 
 console.log(failures === 0 ? "\nYou pick the shelf; it does not pick for you." : `\n${failures} failing.`);
 process.exit(failures === 0 ? 0 : 1);
