@@ -14,6 +14,7 @@ import {
   isShelfValue,
   shelfTitle,
   shelfYears,
+  filmPlaceTerm,
   type Medium,
 } from "@/lib/shelves";
 import { filmShelf } from "@/lib/trailers";
@@ -91,8 +92,16 @@ export default async function ShelvesPage({
   const records =
     medium === "music" && axis && value ? await getShelf(axis, value, known, spin) : [];
   const screen =
-    medium === "film" && value && (axis === "decade" || axis === "genre")
-      ? await filmShelf(axis, value, known, searchVideosDetailed, { rotateBy: spin })
+    medium === "film" && value && (axis === "decade" || axis === "genre" || axis === "place")
+      ? await filmShelf(
+          axis,
+          // A place is asked for by the word a search uses, not by its
+          // slug: Nigeria's cinema is found as "nollywood".
+          axis === "place" ? filmPlaceTerm(value) ?? value : value,
+          known,
+          searchVideosDetailed,
+          { rotateBy: spin }
+        )
       : null;
   const prints =
     medium === "photography" && axis === "subject" && value
