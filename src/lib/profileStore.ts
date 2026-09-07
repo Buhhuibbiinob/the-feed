@@ -48,9 +48,26 @@ function toItem(p: StorePost): StoreItem {
 const newest = (a: StorePost, b: StorePost) =>
   new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
 
-/** Art is the whole point of a shelf, so anything without a cover is out. */
-function withArt(posts: StorePost[]): StorePost[] {
-  return posts.filter((p) => !!p.cover_url);
+/**
+ * Covered reviews first, then the rest.
+ *
+ * This used to drop everything without a cover outright, on the grounds
+ * that art is the whole point of a shelf. That is true right up until it
+ * is all somebody has: a member whose reviews carry no artwork got every
+ * shelf filtered down to nothing, an empty store, and - because of the
+ * threshold that used to sit under this - a completely different page
+ * from everyone else's.
+ *
+ * Preferring is the honest version of that rule. A profile with plenty
+ * of artwork still shows artwork, because the covered ones sort to the
+ * front and the shelf fills up before it reaches the rest; a profile
+ * with none still gets its records, drawn as the lettered blank sleeve
+ * that Art has been rendering for cases exactly like this all along.
+ */
+function artFirst(posts: StorePost[]): StorePost[] {
+  const covered = posts.filter((p) => !!p.cover_url);
+  const bare = posts.filter((p) => !p.cover_url);
+  return [...covered, ...bare];
 }
 
 /**
@@ -60,16 +77,27 @@ function withArt(posts: StorePost[]): StorePost[] {
  * newest thing they posted is already the first shelf underneath.
  */
 export function heroPicks(posts: StorePost[]): StoreItem[] {
-  return withArt(posts)
+  return posts
     .slice()
-    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || newest(a, b))
+    // Artwork first, then rating. A banner is mostly a picture, so a
+    // covered four star beats a bare five, but a bare five still gets on
+    // the banner rather than leaving the slot empty.
+    .sort(
+      (a, b) =>
+        Number(!!b.cover_url) - Number(!!a.cover_url) ||
+        (b.rating ?? 0) - (a.rating ?? 0) ||
+        newest(a, b)
+    )
     .slice(0, HERO_SLOTS)
     .map(toItem);
 }
 
 /** "New Releases": what they posted most recently. */
 export function recentShelf(posts: StorePost[], slots = SHELF_SLOTS): StoreItem[] {
-  return withArt(posts).slice().sort(newest).slice(0, slots).map(toItem);
+  // Newest first, and only the artwork preference where two are level -
+  // a shelf called "lately" that reorders itself around cover art is not
+  // reporting what happened lately.
+  return posts.slice().sort(newest).slice(0, slots).map(toItem);
 }
 
 /**
@@ -131,7 +159,7 @@ export function popularShelf(
 ): StoreItem[] {
   const score = (p: StorePost) =>
     (likes.get(p.id) ?? 0) + (comments.get(p.id) ?? 0) * COMMENT_WEIGHT;
-  return withArt(posts)
+  return artFirst(posts)
     .slice()
     .sort((a, b) => score(b) - score(a) || newest(a, b))
     .slice(0, slots)
@@ -181,11 +209,27 @@ export function genresPresent(posts: StorePost[]): string[] {
 }
 
 /**
- * Whether there is enough here to be a store at all.
+ * Whether there is enough here to be a store at all. There always is.
  *
- * A shopfront with one record on it looks broken in a way a plain list
- * does not, so a profile below the threshold keeps the ordinary layout.
+ * This used to want four reviews with cover art before a profile got the
+ * store, and everyone under that line got a stack of plain boxes
+ * instead. The reasoning was that a shopfront with one record on it
+ * looks broken - but what it actually produced was two different
+ * websites, where the people most likely to leave were the ones shown
+ * the emptier one. Somebody who has posted once is exactly who needs to
+ * see what their page is going to be.
+ *
+ * So the threshold is gone and the store handles its own thin cases,
+ * which is where that work belonged: every shelf, the chart, the promo
+ * row and both side panels already return nothing when they hold
+ * nothing, and the banner row lays itself out for however many tiles it
+ * has rather than assuming three. One review gives a full width photo
+ * with their name on it, a shelf with one record, a chart with one line.
+ * That is a quiet page, not a broken one.
+ *
+ * Kept as a function rather than deleted at the call site so there is
+ * one obvious place to put a rule back if one is ever wanted.
  */
-export function hasStorefront(posts: StorePost[]): boolean {
-  return withArt(posts).length >= HERO_SLOTS + 1;
+export function hasStorefront(_posts: StorePost[]): boolean {
+  return true;
 }

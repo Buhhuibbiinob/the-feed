@@ -86,7 +86,14 @@ check("a decade keeps its decade", shelfTitle("decade", "90s") === "The 90s");
 
 // ---- the shelf ---------------------------------------------------------
 
-const chart = Array.from({ length: 40 }, (_, i) => track(`t${i}`, `a${i}`));
+// More than a shelf holds, plus the five the trim takes off the front.
+// This was forty, from back when a shelf was twenty four, and nobody
+// grew it when SHELF_SIZE became fifty: forty tracks cannot fill a fifty
+// record shelf, so fillShelf took its short-chart fallback, kept the
+// whole chart including the front five, and all three checks below went
+// red - the cap, the trim and the order. They had been red ever since,
+// unnoticed, because check:shelves was not in npm run lint. It is now.
+const chart = Array.from({ length: SHELF_SIZE + 10 }, (_, i) => track(`t${i}`, `a${i}`));
 const shelf = fillShelf(chart, NOTHING_KNOWN);
 check("a shelf is capped", shelf.length === SHELF_SIZE, `${shelf.length} records`);
 check(
