@@ -9,6 +9,7 @@
  */
 import {
   decadeStartYear,
+  formatFor,
   formatForDecadeTag,
   formatForKey,
   formatForYear,
@@ -68,6 +69,22 @@ check(
 check(
   "different records are not all the same object",
   new Set(["a", "b", "c", "d", "e", "f", "g", "h"].map(formatForKey)).size > 1
+);
+
+// ---- a known year beats the hash ----
+//
+// formatForKey is a hash of the title: stable, so the crate does not
+// flicker between formats as you flip, and varied, so a rack is not a
+// rack of one thing. It is the right answer for a record whose year
+// nobody knows and the wrong one the moment a real date turns up - a
+// 1968 soul record drawn as a jewel case is the same complaint as a
+// record filed under the wrong decade.
+check("a known year decides the object", formatFor("anything at all", 1968) === "vinyl");
+check("and a known recent year too", formatFor("anything at all", 2015) === "download");
+check(
+  "no year falls back to the hash",
+  formatFor("some record", null) === formatForKey("some record") &&
+    formatFor("some record", undefined) === formatForKey("some record")
 );
 
 console.log(failures === 0 ? "\nThe right object for the year." : `\n${failures} failing.`);

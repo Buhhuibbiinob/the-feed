@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Sleeve } from "@/lib/crate";
-import { formatForDecadeTag, formatForKey, type MediaFormat } from "@/lib/physicalMedia";
+import { formatFor, formatForDecadeTag, type MediaFormat } from "@/lib/physicalMedia";
+import { belongsOnShelf, type ShelfSpan } from "@/lib/shelfSpan";
 
 // The records on a shelf, which is a wooden shelf.
 //
@@ -18,7 +19,14 @@ import { formatForDecadeTag, formatForKey, type MediaFormat } from "@/lib/physic
 // decade decides, since that is a better answer than any single track's
 // own year - the shelf is about the era, so the objects should be too.
 
-type SleeveInfo = { artworkUrl: string | null; previewUrl: string | null; trackUrl: string | null };
+type SleeveInfo = {
+  artworkUrl: string | null;
+  previewUrl: string | null;
+  trackUrl: string | null;
+  /** What the catalogue says the record came out. Null when it does not
+   *  know, which is not the same as the record being from another year. */
+  year?: number | null;
+};
 
 // One player for the page, same as everywhere else that plays a clip.
 let audio: HTMLAudioElement | null = null;
@@ -59,11 +67,21 @@ export function ShelfRecords({
   records,
   emptyNote,
   decade,
+  span,
 }: {
   records: Sleeve[];
   emptyNote: string;
   /** The decade this shelf is about, when it is about one. */
   decade?: string | null;
+  /**
+   * The years this shelf claims, on the two axes that claim any.
+   *
+   * The shelf checks the rows it looked up on the server; these are the
+   * rest, checked here as their own lookups land. Without it a shelf
+   * headed 1994 shows whatever people happened to tag "1994", which is
+   * how a 2013 record ends up on it.
+   */
+  span?: ShelfSpan | null;
 }) {
   // One format for a decade shelf, so the era reads at a glance. On any
   // other shelf each record gets its own, hashed off its key rather than
@@ -138,6 +156,15 @@ export function ShelfRecords({
     };
   }, [records, shelfId]);
 
+  // Records that turned out not to be from this shelf's years come off
+  // it. Only ones we have actually looked up and actually disagree
+  // with: an unknown year keeps its place, because a shelf that hid
+  // everything it could not verify would empty itself the moment Apple
+  // started throttling and call that "nothing was made that year".
+  const shown = span
+    ? records.filter((record) => belongsOnShelf(info[record.key]?.year ?? record.year, span))
+    : records;
+
   if (records.length === 0) {
     return <p className="shelf-empty">{emptyNote}</p>;
   }
@@ -145,7 +172,7 @@ export function ShelfRecords({
   return (
     <div className="woodwall">
       <div className="woodgrid">
-      {records.map((record) => {
+      {shown.map((record) => {
         const art = info[record.key]?.artworkUrl ?? record.imageUrl;
         const clip = info[record.key]?.previewUrl ?? null;
         const isPlaying = playing === record.key;
@@ -153,7 +180,10 @@ export function ShelfRecords({
           record.name
         )}&artist=${encodeURIComponent(record.artist)}`;
 
-        const format = shelfFormat ?? formatForKey(record.key);
+        // A decade shelf answers for the whole shelf; otherwise the
+        // record's own year answers, and only a record with no known
+        // year falls back to the hash.
+        const format = shelfFormat ?? formatFor(record.key, info[record.key]?.year ?? record.year);
 
         return (
           <article className="woodslot" key={record.key}>

@@ -98,3 +98,18 @@ export function formatForKey(key: string): MediaFormat {
   const order: MediaFormat[] = ["vinyl", "cd", "cassette", "vinyl", "cd"];
   return order[Math.abs(hash) % order.length];
 }
+
+/**
+ * The object for a record, using its year when the catalogue gave us one.
+ *
+ * formatForKey is a hash, which is the right answer for something whose
+ * year nobody knows: stable, so the crate does not flicker between
+ * formats as you flip through it, and varied, so a rack is not a rack of
+ * one thing. It is the wrong answer the moment a real date turns up. A
+ * 1968 soul record drawn as a jewel case is the same complaint as a
+ * record on the wrong decade shelf - the object is the era, so a known
+ * year outranks a hash of the title every time.
+ */
+export function formatFor(key: string, year: number | null | undefined): MediaFormat {
+  return year ? formatForYear(year) : formatForKey(key);
+}

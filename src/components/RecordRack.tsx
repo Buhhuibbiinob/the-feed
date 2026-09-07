@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Find } from "@/lib/musicDiscovery";
-import { formatForKey } from "@/lib/physicalMedia";
+import { formatFor } from "@/lib/physicalMedia";
 
 // A rack of records you flick through.
 //
@@ -138,7 +138,7 @@ export function RecordRack({
                 <button
                   key={find.key}
                   type="button"
-                  className={`rack-spine fmt-${formatForKey(find.key)}${
+                  className={`rack-spine fmt-${formatFor(find.key, find.year)}${
                     find.key === heldKey ? " pulled" : ""
                   }`}
                   aria-pressed={find.key === heldKey}

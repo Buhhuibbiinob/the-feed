@@ -44,6 +44,16 @@ export type Find = {
    * the rail's own title.
    */
   becauseOf: string | null;
+  /**
+   * The year the recording came out, once the catalogue has been asked.
+   *
+   * Undefined means nobody has looked yet and null means we looked and
+   * the catalogue did not know, and the difference matters: a shelf that
+   * treats "unknown" as "wrong decade" empties itself the moment Apple
+   * starts throttling, which is the same silent failure that once put
+   * artwork on two records out of twenty four.
+   */
+  year?: number | null;
 };
 
 type Candidate = LastfmTrack & { becauseOf: string | null };
@@ -428,6 +438,7 @@ export async function enrichFinds(finds: Find[]): Promise<Find[]> {
         imageUrl: find.imageUrl ?? info.artworkUrl,
         previewUrl: info.previewUrl,
         storeUrl: info.trackUrl,
+        year: info.year,
       };
     }
   }

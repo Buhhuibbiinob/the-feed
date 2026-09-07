@@ -2,6 +2,7 @@ import { excludeHits, getTracksByTag, type LastfmTrack } from "@/lib/lastfm";
 import { enrichFinds, rotate } from "@/lib/musicDiscovery";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
+import { belongsOnShelf, type ShelfSpan } from "@/lib/shelfSpan";
 import type { Sleeve } from "@/lib/crate";
 
 // Browsing, rather than being served.
@@ -174,6 +175,25 @@ export function shelfTitle(axis: AxisId, value: string): string {
 }
 
 /**
+ * The years a shelf is actually claiming, when it claims any.
+ *
+ * Scene and Place make no falsifiable claim about a date, so they get
+ * none. Year and Decade do, in the panel heading, in enormous type, and
+ * that is the whole reason this exists.
+ */
+export function shelfYears(axis: AxisId, value: string): ShelfSpan | null {
+  if (axis === "year") {
+    const year = Number(value);
+    return Number.isFinite(year) ? { from: year, to: year } : null;
+  }
+  if (axis === "decade") {
+    const decade = decadeFor(value);
+    return decade ? { from: decade.startYear, to: decade.startYear + 9 } : null;
+  }
+  return null;
+}
+
+/**
  * How many records a shelf holds.
  *
  * Fifty, not twenty four. Filed on their spines a record takes about a
@@ -265,9 +285,19 @@ export async function getShelf(
   // rows anybody sees first arrive with their covers and their clips
   // already attached, and the shelf below them catches up quietly.
   const AHEAD = 12;
+  const span = shelfYears(axis, value);
   const front = await enrichFinds(
     shelf.slice(0, AHEAD).map((sleeve) => ({ ...sleeve, becauseOf: null }))
   ).catch(() => null);
   if (!front) return shelf;
-  return [...front.map(({ becauseOf: _drop, ...sleeve }) => sleeve), ...shelf.slice(AHEAD)];
+
+  // The lookup came back with a release year on it, so the front of the
+  // shelf can be checked rather than taken on the tag's word. Anything
+  // that does not belong comes off and the shelf closes up behind it
+  // from the records below, which are checked in turn in the browser as
+  // they are looked up.
+  const checked = front
+    .filter((find) => belongsOnShelf(find.year, span))
+    .map(({ becauseOf: _drop, ...sleeve }) => sleeve);
+  return [...checked, ...shelf.slice(AHEAD)];
 }

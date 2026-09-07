@@ -17,8 +17,10 @@ import {
   isAxis,
   isShelfValue,
   shelfTitle,
+  shelfYears,
   yearValues,
 } from "../src/lib/shelves";
+import { belongsOnShelf } from "../src/lib/shelfSpan";
 import { NOTHING_KNOWN, alreadyKnown, type SeedPost } from "../src/lib/musicDiscovery";
 import type { LastfmTrack } from "../src/lib/lastfm";
 
@@ -148,6 +150,49 @@ check(
   "nothing is re-sorted",
   !/\.sort\(/.test(src),
   "the shelf is the tag chart trimmed; sorting it would be a ranking"
+);
+
+// ---- is it actually from that year? --------------------------------------
+//
+// Every axis here is a Last.fm user tag, and a tag is a folksonomy. People
+// tag a record "90s" because it sounds like the nineties, "1994" because
+// that is when they first heard it, or because the reissue they own is
+// dated that way. The page printed the tag's word in the heading as
+// though it were a fact, and the reason it can stop doing that is that
+// the sleeve lookup comes back with a release year on it now.
+
+check("a year shelf claims one year", JSON.stringify(shelfYears("year", "1994")) === '{"from":1994,"to":1994}');
+check(
+  "a decade shelf claims ten",
+  JSON.stringify(shelfYears("decade", "90s")) === '{"from":1990,"to":1999}'
+);
+check(
+  "the 2020s claims the right ten",
+  JSON.stringify(shelfYears("decade", "2020s")) === '{"from":2020,"to":2029}'
+);
+check("a scene claims no years at all", shelfYears("scene", "shoegaze") === null);
+check("nor does a place", shelfYears("place", "detroit") === null);
+
+const nineties = shelfYears("decade", "90s");
+check("a 1994 record is on the 90s shelf", belongsOnShelf(1994, nineties));
+check("a 2013 record is not", !belongsOnShelf(2013, nineties));
+check("nor is a 1974 one", !belongsOnShelf(1974, nineties));
+check(
+  "December 1989 counts as the 90s",
+  belongsOnShelf(1989, nineties),
+  "a record out that December was a 1990 record to everybody who bought it, and single and album dates disagree by months as a matter of course"
+);
+check("but 1988 does not", !belongsOnShelf(1988, nineties));
+
+// The rule the whole thing turns on.
+check(
+  "a record whose year nobody knows stays on the shelf",
+  belongsOnShelf(null, nineties) && belongsOnShelf(undefined, nineties),
+  "unknown is not wrong - Apple answers null for everything while it is throttling, and dropping those would empty the shelf and call it 'nothing was made that year'"
+);
+check(
+  "a shelf that claims no years keeps everything",
+  belongsOnShelf(2013, null) && belongsOnShelf(null, null)
 );
 
 console.log(failures === 0 ? "\nYou pick the shelf; it does not pick for you." : `\n${failures} failing.`);
