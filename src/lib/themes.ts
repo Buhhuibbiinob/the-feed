@@ -38,6 +38,10 @@ export type Theme = {
 
 export const THEMES: Theme[] = [
   { id: "ios-light", label: "Default", category: "color" },
+  // The other end of the site's own timeline. Everything else here is
+  // 2012 chrome; this is the current language, which is the opposite of
+  // it in all four of the ways that matter.
+  { id: "apple-2026", label: "Liquid Glass", category: "color" },
   { id: "decade-70s", label: "The 70s", category: "color" },
   { id: "decade-80s", label: "The 80s", category: "color" },
   { id: "decade-90s", label: "The 90s", category: "color" },
