@@ -1,5 +1,6 @@
 "use client";
 
+import { CoverFlow } from "@/components/CoverFlow";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { addPlaylist, removePlaylist, type PlaylistState } from "@/app/actions/playlists";
@@ -54,12 +55,12 @@ function AddPlaylist() {
           type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="open.spotify.com/playlist/… or music.apple.com/…/playlist/…"
+          placeholder="Spotify, Apple Music, YouTube, SoundCloud, Deezer or Tidal"
           autoComplete="off"
         />
         <div className="field-hint">
           {url.trim() && !parsed
-            ? "That is not a playlist link. An album or a single track will not work here."
+            ? "That is not a playlist link. Spotify, Apple Music, YouTube, SoundCloud, Deezer and Tidal all work - but it has to be a playlist, not an album, a track or a single video."
             : parsed
             ? `${PROVIDER_LABELS[parsed.provider]} playlist. Give it a name and it's up.`
             : APPLE_MUSIC_CONNECT_NOTE}
@@ -261,16 +262,29 @@ export function PlaylistWall({
           </div>
         </div>
       ) : (
-        <div className="panel">
-          <div className="panel-head">On the shelf</div>
-          <div className="panel-body">
-            <TapeShelf
-              playlists={playlists}
-              currentUserId={currentUserId}
-              viewerIsAdmin={viewerIsAdmin}
-            />
+        <>
+          {/* Cover Flow first, because it is the one that answers "what
+              is here" in a glance. The shelf underneath is the same
+              playlists as objects you can take down and remove, which
+              Cover Flow deliberately does not do - a deck you flick
+              through is a bad place to put a delete button. */}
+          <div className="panel">
+            <div className="panel-head">Flick through</div>
+            <div className="panel-body flush">
+              <CoverFlow playlists={playlists} />
+            </div>
           </div>
-        </div>
+          <div className="panel">
+            <div className="panel-head">On the shelf</div>
+            <div className="panel-body">
+              <TapeShelf
+                playlists={playlists}
+                currentUserId={currentUserId}
+                viewerIsAdmin={viewerIsAdmin}
+              />
+            </div>
+          </div>
+        </>
       )}
     </>
   );

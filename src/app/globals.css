@@ -17686,6 +17686,233 @@ button.btn-ghost {
 }
 
 /* ================================================================
+   Cover Flow
+   ================================================================
+   The iPod's answer to a list, and it was never decoration: a list of
+   forty playlists is forty rows of text you read, and this is one cover
+   you are looking AT with the next few waiting at an angle. The same
+   argument the crate and the rack make - a thing you flick through
+   rather than a directory you scan.
+
+   All of it is one transform per cover, on --side and --depth, so a move
+   along the deck is a compositor job and not a layout. */
+.cflow {
+  padding: 18px 12px 14px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.06), transparent 60%),
+    linear-gradient(180deg, #2b2f36, #14161a 58%, #0b0c0e);
+  border-radius: 8px;
+}
+/* The stage. A perspective on the parent is what turns the rotation into
+   a turn away from you rather than a squash. */
+.cflow-deck {
+  position: relative;
+  height: 232px;
+  perspective: 900px;
+  perspective-origin: 50% 45%;
+  outline: none;
+}
+.cflow-deck:focus-visible {
+  box-shadow: 0 0 0 2px rgba(120, 180, 255, 0.7);
+  border-radius: 6px;
+}
+/* One cover. Centred by default and moved from there, so the front one
+   needs no offset of its own and lands exactly in the middle. */
+.cflow-cover {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 148px;
+  height: 148px;
+  margin-left: -74px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: #101216;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  /* Slide out by depth, push back, and turn away. The front cover has
+     --depth 0, so every term collapses and it sits square on. */
+  transform:
+    translateX(calc(var(--side) * (62px + var(--depth) * 34px)))
+    translateZ(calc(var(--depth) * -76px))
+    rotateY(calc(var(--side) * -58deg));
+  transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1), filter 0.32s ease;
+  filter: brightness(calc(1 - var(--depth) * 0.16));
+  box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.9);
+}
+.cflow-cover.front {
+  filter: none;
+  box-shadow: 0 18px 28px -12px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+.cflow-cover img,
+.cflow-blank {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+/* A playlist whose service gave us no picture: the same printed board
+   and paper label a record with no cover gets everywhere else here,
+   rather than a grey hole in the deck. */
+.cflow-blank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  font-weight: 700;
+  color: #4a4034;
+  background:
+    repeating-linear-gradient(94deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 5px),
+    linear-gradient(160deg, #d9d5c9, #b8b3a4);
+}
+/* The floor. Cover Flow without a reflection under it is just covers at
+   an angle - this is the part that says they are standing on glass. */
+/* A real mirror, not a light pool: the cover again, upside down and
+   fading out.
+
+   The first version flipped about its own TOP edge, which sent it back
+   up over the artwork instead of down onto the floor, so there was no
+   reflection at all - it was hidden behind the thing it was reflecting.
+   Flipping about the centre keeps the box where it was put.
+
+   The image comes in as a background set per cover, so this costs no
+   extra element and no second request: the browser already has the
+   picture. */
+.cflow-shine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 52px;
+  background-image: var(--reflect, none);
+  background-size: cover;
+  background-position: center top;
+  transform: scaleY(-1);
+  opacity: 0.4;
+  /* Faded from the floor down, so it dissolves rather than stopping at
+     a hard line. Masked rather than overlaid with a gradient, which
+     would need the page background to be a known colour. */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 92%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 92%);
+  pointer-events: none;
+}
+/* No artwork, no mirror - just the faintest pool so the cover still
+   reads as standing on something. */
+.cflow-cover:not([style*="--reflect"]) .cflow-shine {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 70%);
+  transform: none;
+}
+
+.cflow-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.cflow-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
+  color: #f2f3f5;
+  line-height: 1.3;
+}
+.cflow-label b {
+  display: block;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cflow-label span {
+  display: block;
+  font-size: 11px;
+  opacity: 0.66;
+}
+.cflow-label em {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The two arrows, as the click surface for people who do not swipe and
+   do not reach for the keyboard - which is most people. */
+.cflow-arrow {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06) 33.9%,
+    rgba(255, 255, 255, 0.02));
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.cflow-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.cflow-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.cflow-play,
+.cflow-open {
+  padding: 6px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.07) 33.9%,
+    rgba(255, 255, 255, 0.02));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+/* One player, for the one in front, once somebody asks. An iframe per
+   playlist would be forty third-party players loading at once. */
+.cflow-player {
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+.cflow-player iframe {
+  display: block;
+  width: 100%;
+  height: 352px;
+  border: 0;
+}
+
+@media (max-width: 560px) {
+  .cflow-deck {
+    height: 196px;
+  }
+  .cflow-cover {
+    width: 118px;
+    height: 118px;
+    margin-left: -59px;
+    transform:
+      translateX(calc(var(--side) * (48px + var(--depth) * 26px)))
+      translateZ(calc(var(--depth) * -60px))
+      rotateY(calc(var(--side) * -56deg));
+  }
+  .cflow-player iframe {
+    height: 300px;
+  }
+}
+
+/* ================================================================
    The guestbook
    ================================================================
    This had no styles at all. Not "the wrong styles" - none: no rule in
