@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Sleeve } from "@/lib/crate";
 import { formatFor, formatForDecadeTag, type MediaFormat } from "@/lib/physicalMedia";
 import { belongsOnShelf, type ShelfSpan } from "@/lib/shelfSpan";
+import { useOnScreen, useSleeves } from "@/lib/useSleeves";
 
 // The records on a shelf, which is a wooden shelf.
 //
@@ -18,15 +19,6 @@ import { belongsOnShelf, type ShelfSpan } from "@/lib/shelfSpan";
 // edge; a shelf of 1996 is jewel cases. When the shelf IS a decade the
 // decade decides, since that is a better answer than any single track's
 // own year - the shelf is about the era, so the objects should be too.
-
-type SleeveInfo = {
-  artworkUrl: string | null;
-  previewUrl: string | null;
-  trackUrl: string | null;
-  /** What the catalogue says the record came out. Null when it does not
-   *  know, which is not the same as the record being from another year. */
-  year?: number | null;
-};
 
 // One player for the page, same as everywhere else that plays a clip.
 let audio: HTMLAudioElement | null = null;
@@ -76,94 +68,23 @@ export function ShelfRecords({
   /**
    * The years this shelf claims, on the two axes that claim any.
    *
-   * The shelf checks the rows it looked up on the server; these are the
-   * rest, checked here as their own lookups land. Without it a shelf
-   * headed 1994 shows whatever people happened to tag "1994", which is
-   * how a 2013 record ends up on it.
+   * Every axis here is a Last.fm user tag, and a tag is a folksonomy.
+   * Without this a shelf headed 1994 shows whatever people happened to
+   * tag "1994", which is how a 2013 record ends up on it.
    */
   span?: ShelfSpan | null;
 }) {
   // One format for a decade shelf, so the era reads at a glance. On any
-  // other shelf each record gets its own, hashed off its key rather than
-  // rolled, because a record that is a cassette on one render and a CD
-  // on the next is a shelf that flickers.
+  // other shelf the record's own year decides, and only a record with no
+  // known year falls back to a hash of its key - which is stable, so a
+  // record is not a cassette on one render and a CD on the next.
   const shelfFormat: MediaFormat | null = decade ? formatForDecadeTag(decade) : null;
-  const [info, setInfo] = useState<Record<string, SleeveInfo>>({});
+  const { want, get } = useSleeves();
   const playing = useSyncExternalStore(
     subscribe,
     () => playingKey,
     () => null
   );
-
-  // Art and clips are fetched for the whole shelf, but a few at a time.
-  // This said four at a time "never trips it", and that was simply
-  // wrong: a shelf of twenty four came back with artwork on two. Apple
-  // allows roughly twenty calls a minute and answers 403 above that, and
-  // a 403 was being read as "no such track", so twenty two records
-  // reported confidently and permanently that they were not in the
-  // catalogue. Two at a time with a gap between them stays under the
-  // limit, and lib/itunes retries the throttle now rather than believing
-  // it.
-  // Keyed on the shelf itself, not on "has this ever run".
-  //
-  // This used to be a plain `started` ref, which is right for a component
-  // that mounts once and wrong for this one: switching from Scene to
-  // Decade is a client navigation, React keeps the same instance because
-  // it is in the same place in the tree, and the ref was still true. So
-  // the new shelf never looked anything up and arrived with no covers and
-  // no previews, while the first tab somebody opened worked perfectly.
-  // Comparing the records instead means a new shelf is a new fetch and
-  // the same shelf re-rendering is not.
-  const shelfId = records.map((r) => r.key).join("|");
-  const fetchedFor = useRef<string | null>(null);
-  useEffect(() => {
-    if (fetchedFor.current === shelfId) return;
-    fetchedFor.current = shelfId;
-    let cancelled = false;
-    let cursor = 0;
-
-    async function worker() {
-      while (cursor < records.length && !cancelled) {
-        const record = records[cursor++];
-        // The first rows arrive from the server with their cover and clip
-        // already on them, so asking again for those is a request that
-        // can only return what we have.
-        if (record.previewUrl || record.imageUrl) {
-          setInfo((prev) => ({
-            ...prev,
-            [record.key]: {
-              artworkUrl: record.imageUrl,
-              previewUrl: record.previewUrl,
-              trackUrl: record.storeUrl,
-            },
-          }));
-          if (record.previewUrl) continue;
-        }
-        const params = new URLSearchParams({ title: record.name, artist: record.artist });
-        const data: SleeveInfo = await fetch(`/api/crate/sleeve?${params.toString()}`)
-          .then((res) => res.json())
-          // A record with no cover still belongs on the shelf.
-          .catch(() => ({ artworkUrl: null, previewUrl: null, trackUrl: null }));
-        if (!cancelled) setInfo((prev) => ({ ...prev, [record.key]: data }));
-        // A gap, so a long shelf arrives as a queue rather than a burst.
-        await new Promise((r) => setTimeout(r, 160));
-      }
-    }
-
-    void Promise.all(Array.from({ length: Math.min(2, records.length) }, worker));
-    return () => {
-      cancelled = true;
-    };
-  }, [records, shelfId]);
-
-  // Records that turned out not to be from this shelf's years come off
-  // it. Only ones we have actually looked up and actually disagree
-  // with: an unknown year keeps its place, because a shelf that hid
-  // everything it could not verify would empty itself the moment Apple
-  // started throttling and call that "nothing was made that year".
-  const shown = span
-    ? records.filter((record) => belongsOnShelf(info[record.key]?.year ?? record.year, span))
-    : records;
 
   if (records.length === 0) {
     return <p className="shelf-empty">{emptyNote}</p>;
@@ -172,57 +93,105 @@ export function ShelfRecords({
   return (
     <div className="woodwall">
       <div className="woodgrid">
-      {shown.map((record) => {
-        const art = info[record.key]?.artworkUrl ?? record.imageUrl;
-        const clip = info[record.key]?.previewUrl ?? null;
-        const isPlaying = playing === record.key;
-        const reviewHref = `/post/new?type=music&title=${encodeURIComponent(
-          record.name
-        )}&artist=${encodeURIComponent(record.artist)}`;
-
-        // A decade shelf answers for the whole shelf; otherwise the
-        // record's own year answers, and only a record with no known
-        // year falls back to the hash.
-        const format = shelfFormat ?? formatFor(record.key, info[record.key]?.year ?? record.year);
-
-        return (
-          <article className="woodslot" key={record.key}>
-            <div className={`wooditem fmt-${format}`}>
-              {art ? (
-                <img src={art} alt="" loading="lazy" />
-              ) : (
-                <div className="wood-blank" aria-hidden="true" />
-              )}
-              {clip && (
-                <button
-                  type="button"
-                  className={`wood-play${isPlaying ? " playing" : ""}`}
-                  aria-label={isPlaying ? `Stop ${record.name}` : `Hear ${record.name}`}
-                  onClick={() => toggle(record.key, clip)}
-                >
-                  <span aria-hidden="true">{isPlaying ? "\u25A0" : "\u25B6"}</span>
-                </button>
-              )}
-            </div>
-            <div className="woodlabel">
-              <b title={record.name}>{record.name}</b>
-              <span title={record.artist}>{record.artist}</span>
-            </div>
-            <div className="woodactions">
-              <Link href={reviewHref} className="wood-link">
-                Review
-              </Link>
-              <AddToQueueButton
-                mediaType="music"
-                title={record.name}
-                artist={record.artist}
-                coverUrl={art}
-              />
-            </div>
-          </article>
-        );
-        })}
+        {records.map((record) => (
+          <ShelfRecord
+            key={record.key}
+            record={record}
+            shelfFormat={shelfFormat}
+            span={span ?? null}
+            info={get(record.key)}
+            want={want}
+            playing={playing === record.key}
+          />
+        ))}
       </div>
     </div>
+  );
+}
+
+/**
+ * One record on the board.
+ *
+ * Its own component so it can have its own element to watch: the lookup
+ * happens when this record scrolls near the screen rather than when the
+ * shelf mounts. A fifty record shelf costs a screenful of lookups, not
+ * fifty, and the ones somebody is actually looking at are no longer
+ * queued behind forty they are not.
+ */
+function ShelfRecord({
+  record,
+  shelfFormat,
+  span,
+  info,
+  want,
+  playing,
+}: {
+  record: Sleeve;
+  shelfFormat: MediaFormat | null;
+  span: ShelfSpan | null;
+  info: ReturnType<ReturnType<typeof useSleeves>["get"]>;
+  want: ReturnType<typeof useSleeves>["want"];
+  playing: boolean;
+}) {
+  // Rows that arrived from the server with their cover and clip already
+  // on them are asked for nothing: that request could only return what
+  // we have.
+  const settled = !!record.previewUrl && !!record.imageUrl;
+  const ref = useOnScreen(
+    () => want({ key: record.key, title: record.name, artist: record.artist }),
+    !settled
+  );
+
+  const art = info?.artworkUrl ?? record.imageUrl;
+  const clip = info?.previewUrl ?? record.previewUrl;
+  const year = info?.year ?? record.year;
+
+  // A record that turned out not to be from this shelf's years comes off
+  // it. Only one we have actually looked up and actually disagree with:
+  // an unknown year keeps its place, because a shelf that hid everything
+  // it could not verify would empty itself the moment Apple started
+  // throttling and call that "nothing was made that year".
+  if (!belongsOnShelf(year, span)) return null;
+
+  const format = shelfFormat ?? formatFor(record.key, year);
+  const reviewHref = `/post/new?type=music&title=${encodeURIComponent(
+    record.name
+  )}&artist=${encodeURIComponent(record.artist)}`;
+
+  return (
+    <article className="woodslot" ref={ref as React.Ref<HTMLElement>}>
+      <div className={`wooditem fmt-${format}`}>
+        {art ? (
+          <img src={art} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <div className="wood-blank" aria-hidden="true" />
+        )}
+        {clip && (
+          <button
+            type="button"
+            className={`wood-play${playing ? " playing" : ""}`}
+            aria-label={playing ? `Stop ${record.name}` : `Hear ${record.name}`}
+            onClick={() => toggle(record.key, clip)}
+          >
+            <span aria-hidden="true">{playing ? "■" : "▶"}</span>
+          </button>
+        )}
+      </div>
+      <div className="woodlabel">
+        <b title={record.name}>{record.name}</b>
+        <span title={record.artist}>{record.artist}</span>
+      </div>
+      <div className="woodactions">
+        <Link href={reviewHref} className="wood-link">
+          Review
+        </Link>
+        <AddToQueueButton
+          mediaType="music"
+          title={record.name}
+          artist={record.artist}
+          coverUrl={art}
+        />
+      </div>
+    </article>
   );
 }

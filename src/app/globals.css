@@ -16734,6 +16734,132 @@ button.btn-ghost {
   margin-left: -58px;
   border-radius: 9px;
 }
+/* ---- The objects themselves ----
+   Up to here every record in the rack was the same rectangle with a
+   different picture on it, sized per format. Size alone does not say
+   "vinyl" or "cassette": a small square and a big square are two
+   squares. What tells you which is which in a real shop is the
+   hardware - the black disc showing at the mouth of a sleeve, the
+   plastic hinge down a jewel case, the two spool windows on a tape, the
+   moulded spine on a film case.
+
+   All of it is drawn INSIDE the box. Every one of these could be done
+   more easily by letting a shape hang off the edge, and every one of
+   them would then be clipped, because .rack-spine is overflow:hidden so
+   the artwork keeps the object's own corners. Working inside the box is
+   the constraint that makes it look moulded rather than stuck on.
+
+   ::before is already the edge shading, so this is all ::after, which
+   means one layered background per format. */
+.rack-spine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ---- Vinyl: a card sleeve with the record showing ----
+   A twelve inch sleeve is board, not plastic: no gloss to speak of, one
+   open edge, and a sliver of the disc itself standing proud of the
+   mouth. The disc is a very dark ring rather than flat black, because a
+   record catches the light in a band around its circumference and that
+   band is the only reason it reads as round. */
+.rack-spine.fmt-vinyl::after {
+  background:
+    /* The disc, standing a few millimetres proud of the mouth.
+       Sized in pixels off a circle whose centre is outside the sleeve,
+       so what lands inside the box is a thin crescent - which is all you
+       ever see of a record in a sleeve. The first version set the radii
+       as percentages of the box and put the centre only just outside it,
+       so a third of the circle came in and the sleeve had a black swoosh
+       across it rather than a record behind it.
+       112 wide, centre at 160, radius 60: the crescent is twelve pixels,
+       and the light band at r56 to r58 falls on its outer edge, which is
+       the part of a record that actually catches a lamp. */
+    radial-gradient(
+        circle 60px at 143% 50%,
+        rgba(20, 20, 23, 0.97) 0 56px,
+        rgba(158, 158, 166, 0.7) 56px 58px,
+        rgba(20, 20, 23, 0.97) 58px 60px,
+        transparent 60px
+      )
+      no-repeat,
+    /* the seam where the sleeve opens, just inside the disc */
+    linear-gradient(90deg, transparent calc(100% - 17px), rgba(0, 0, 0, 0.3) calc(100% - 16px),
+      rgba(255, 255, 255, 0.18) calc(100% - 15px), transparent calc(100% - 14px));
+}
+
+/* ---- CD: a jewel case ----
+   Clear polystyrene over the booklet. Three things say so and none of
+   them is the picture: a hard specular streak across the face, the
+   hinge column down the leading edge with its two moulded lugs, and a
+   bright rim where the light runs round the moulding. */
+.rack-spine.fmt-cd::after {
+  background:
+    /* the two lugs on the hinge */
+    linear-gradient(180deg, transparent 20%, rgba(255, 255, 255, 0.5) 20%, rgba(255, 255, 255, 0.5) 30%,
+      transparent 30%, transparent 70%, rgba(255, 255, 255, 0.5) 70%, rgba(255, 255, 255, 0.5) 80%,
+      transparent 80%) left / 7px 100% no-repeat,
+    /* the hinge column */
+    linear-gradient(90deg, rgba(255, 255, 255, 0.42) 0 3px, rgba(0, 0, 0, 0.3) 3px 5px,
+      rgba(255, 255, 255, 0.12) 5px 7px) left / 7px 100% no-repeat,
+    /* the specular streak, hard edged the way a flat plastic face
+       reflects a window - a soft one reads as an airbrush */
+    linear-gradient(112deg, transparent 30%, rgba(255, 255, 255, 0.34) 30%,
+      rgba(255, 255, 255, 0.34) 41%, transparent 41%, transparent 47%,
+      rgba(255, 255, 255, 0.16) 47%, rgba(255, 255, 255, 0.16) 51%, transparent 51%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+/* ---- Cassette ----
+   The one format nobody mistakes for anything else, and only because of
+   the two windows. The shell is translucent over a printed label, so
+   the artwork stays visible through it and the tape sits in front: two
+   dark hubs with the wound tape around them, the label band across the
+   top, and the four screw wells. */
+.rack-spine.fmt-cassette::after {
+  background:
+    /* screws, one at each corner */
+    radial-gradient(circle at 7px 7px, rgba(0, 0, 0, 0.5) 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 7px) 7px, rgba(0, 0, 0, 0.5) 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at 7px calc(100% - 7px), rgba(0, 0, 0, 0.5) 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 7px) calc(100% - 7px), rgba(0, 0, 0, 0.5) 0 1.6px, transparent 2.2px),
+    /* the hubs, with tape wound round them */
+    radial-gradient(circle at 32% 64%, #17171a 0 4px, #3c3c42 4.5px 10px, rgba(0, 0, 0, 0.55) 10.5px 11.5px,
+      transparent 12px),
+    radial-gradient(circle at 68% 64%, #17171a 0 4px, #3c3c42 4.5px 10px, rgba(0, 0, 0, 0.55) 10.5px 11.5px,
+      transparent 12px),
+    /* the window the hubs sit behind */
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.05)) 50% 64% / 62% 46% no-repeat,
+    /* the printed label across the top, translucent so the cover shows
+       through it - a tape whose label is the album is the point */
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.26)) 0 0 / 100% 34% no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 -6px 8px -6px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- A film case ----
+   Moulded polypropylene with the sleeve slid under a clear skin. The
+   spine is the tell: a wide flat band down the leading edge, darker
+   than anything printed, with the hinge crease beside it. */
+.rack-spine.fmt-case::after {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.9) 0 7px, rgba(255, 255, 255, 0.22) 7px 8px,
+      rgba(0, 0, 0, 0.35) 8px 10px, transparent 10px),
+    linear-gradient(118deg, transparent 34%, rgba(255, 255, 255, 0.2) 34%, rgba(255, 255, 255, 0.2) 44%,
+      transparent 44%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+
+/* ---- A download has no object ----
+   Left deliberately bare. Giving a file a moulded edge would be the lie
+   the whole format map exists to avoid: the point of drawing the right
+   object per era is that after about 2008 there stopped being one. */
+.rack-spine.fmt-download::after {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.18), transparent 40%);
+}
+
 /* The shade the record behind throws on the one in front, and the light
    down its leading edge. Without this an overlapping row flattens into
    one wide collage. */
@@ -17279,6 +17405,90 @@ button.btn-ghost {
   --edge-outer: 0 0 0 1px rgba(255, 255, 255, 0.16);
   --edge-glow: 0 1px 0 rgba(255, 255, 255, 0.14) inset;
   --edge-drop: 0 8px 22px -10px rgba(0, 0, 0, 0.8);
+}
+
+/* ================================================================
+   The guestbook
+   ================================================================
+   This had no styles at all. Not "the wrong styles" - none: no rule in
+   the sheet ever matched .guestbook or anything under it. So the avatar
+   on each entry was a bare <img> at whatever size the file happened to
+   be, which for anybody who uploaded a photo meant an eight hundred
+   pixel picture filling the panel with two lines of text underneath it.
+   One person signing your guestbook took over the page.
+
+   A signature is a line of text with a face beside it. That is the whole
+   shape, and it is what this now draws. */
+.guestbook-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+}
+.guestbook-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.guestbook-entry:first-child {
+  border-top: 0;
+}
+/* The face. Fixed at both ends and cropped, so nothing an uploader does
+   to their picture can change the size of the row it sits in - which is
+   precisely what went wrong. flex: none matters as much as the width:
+   without it a wide image still stretches the box it is in. */
+.guestbook-entry > img {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(0, 0, 0, 0.08);
+}
+.guestbook-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.guestbook-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11px;
+}
+.guestbook-meta a {
+  font-weight: 600;
+  text-decoration: none;
+}
+.guestbook-meta .ts {
+  opacity: 0.6;
+}
+/* Wrapping rather than scrolling, and breaking a long unbroken string
+   rather than letting it push the panel sideways. Somebody pasting a URL
+   with no spaces in it should not widen the page. */
+.guestbook-text {
+  margin-top: 1px;
+  overflow-wrap: anywhere;
+}
+/* An emoji or a sticker inside a message is text sized, not picture
+   sized. EmojiText renders images inline, and an unconstrained one here
+   is the same bug again one level down. */
+.guestbook-text img {
+  max-width: 100%;
+  max-height: 96px;
+  width: auto;
+  height: auto;
+  vertical-align: middle;
+}
+.guestbook-entry .comment-action {
+  flex: none;
+  align-self: center;
+}
+.guestbook .comment-form textarea {
+  min-height: 54px;
 }
 
 /* ================================================================

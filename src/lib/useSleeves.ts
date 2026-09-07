@@ -1,0 +1,178 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+/**
+ * Covers, clips and years for the records somebody can actually see.
+ *
+ * The shelf used to look up everything on it: fifty records, two at a
+ * time, with a wait between each pair. Two things were wrong with that
+ * and only one of them is the arithmetic.
+ *
+ * The arithmetic is that it took about a minute, in twenty five round
+ * trips, each carrying a session check and a route lookup around a
+ * request that Apple usually answered from cache. That is the slowness
+ * that got reported.
+ *
+ * The other thing is that it asked at all. Nobody looks at record forty
+ * on a fifty record shelf without scrolling to it, and most people never
+ * scroll. Forty of those fifty lookups were for covers no one would see,
+ * spent out of a budget Apple caps at roughly twenty calls a minute -
+ * so the records somebody WAS looking at queued behind the ones they
+ * were not, and the top of the shelf filled in last.
+ *
+ * So this asks for a record when it comes into view, batches whatever
+ * came into view together, and remembers the answer for as long as the
+ * tab is open. A shelf costs one request for the screenful you land on,
+ * and another when you scroll.
+ */
+
+export type SleeveInfo = {
+  artworkUrl: string | null;
+  previewUrl: string | null;
+  trackUrl: string | null;
+  year?: number | null;
+};
+
+export type SleeveAsk = { key: string; title: string; artist: string };
+
+/**
+ * Answers already paid for, kept for the life of the tab.
+ *
+ * Module level rather than component state, and this is the fix for a
+ * bug as much as a speed-up: Year, Decade and Scene are the same
+ * component in the same place in the tree, so switching between them
+ * threw away everything the last shelf had looked up and asked for it
+ * all again. Records shared between two shelves are now free the second
+ * time, and a shelf you have already opened comes back instantly.
+ */
+const answers = new Map<string, SleeveInfo>();
+/** In flight or already asked, so nothing is requested twice. */
+const asked = new Set<string>();
+
+/** How many go in one request. Matches the route's own cap. */
+const BATCH = 24;
+/** Long enough to collect a screenful, short enough to feel immediate. */
+const COALESCE_MS = 60;
+
+export function useSleeves() {
+  const [, bump] = useState(0);
+  const queue = useRef(new Map<string, SleeveAsk>());
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const alive = useRef(true);
+  // flush needs to be able to schedule another flush, for whatever
+  // scrolled into view while a batch was in the air. It cannot name
+  // itself inside its own definition, so the timer calls it through a
+  // ref that is kept pointing at the current one.
+  const latest = useRef<() => Promise<void>>(async () => {});
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+
+  const schedule = useCallback(() => {
+    if (timer.current) return;
+    timer.current = setTimeout(() => void latest.current(), COALESCE_MS);
+  }, []);
+
+  const flush = useCallback(async () => {
+    timer.current = null;
+    const items = [...queue.current.values()].slice(0, BATCH);
+    if (items.length === 0) return;
+    for (const item of items) queue.current.delete(item.key);
+
+    try {
+      const res = await fetch("/api/crate/sleeves", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      // A failed batch is not an answer. Leaving these out of `answers`
+      // and dropping them from `asked` means they can be tried again
+      // when they next scroll past, rather than being remembered
+      // forever as "this record has no cover" - which is how a throttle
+      // used to turn into a permanent blank square.
+      if (!res.ok) {
+        for (const item of items) asked.delete(item.key);
+        return;
+      }
+      const data = (await res.json()) as { results?: Record<string, SleeveInfo> };
+      for (const [key, info] of Object.entries(data.results ?? {})) answers.set(key, info);
+    } catch {
+      for (const item of items) asked.delete(item.key);
+      return;
+    }
+    if (alive.current) bump((n) => n + 1);
+    // More came into view while that was in the air.
+    if (queue.current.size > 0 && alive.current) schedule();
+  }, [schedule]);
+
+  useEffect(() => {
+    latest.current = flush;
+  }, [flush]);
+
+  /** Say that a record is on screen. Safe to call on every render. */
+  const want = useCallback(
+    (ask: SleeveAsk) => {
+      if (asked.has(ask.key)) return;
+      asked.add(ask.key);
+      queue.current.set(ask.key, ask);
+      schedule();
+    },
+    [schedule]
+  );
+
+  const get = useCallback((key: string): SleeveInfo | undefined => answers.get(key), []);
+
+  return { want, get };
+}
+
+/**
+ * A ref that reports when its element is on screen.
+ *
+ * Given a margin, so a record is looked up just before it is scrolled
+ * to rather than as it lands - the cover is there by the time it
+ * arrives instead of appearing under somebody's eye.
+ */
+export function useOnScreen(onScreen: () => void, enabled = true) {
+  const ref = useRef<HTMLElement | null>(null);
+  const fn = useRef(onScreen);
+  // In an effect rather than straight in the body: writing a ref while
+  // rendering is a real hazard under concurrent React, where a render
+  // can be thrown away after it has already changed something outside
+  // itself.
+  useEffect(() => {
+    fn.current = onScreen;
+  });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !enabled) return;
+    // No IntersectionObserver (old browsers, some test environments)
+    // means ask straight away. Slower, and correct, which is the right
+    // way round for a fallback.
+    if (typeof IntersectionObserver === "undefined") {
+      fn.current();
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            fn.current();
+            observer.disconnect();
+          }
+        }
+      },
+      { rootMargin: "400px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [enabled]);
+
+  return ref;
+}

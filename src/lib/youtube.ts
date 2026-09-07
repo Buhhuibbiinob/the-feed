@@ -119,9 +119,9 @@ export type SearchResult = { videos: YoutubeVideo[]; failure?: SearchFailure };
 export function describeSearchFailure(failure: SearchFailure): string {
   switch (failure.reason) {
     case "not-configured":
-      return "Song search isn't set up yet: YOUTUBE_API_KEY is missing.";
+      return "This needs a YouTube key before it can show anything.";
     case "quota":
-      return "Song search has used up today's YouTube quota. It comes back tomorrow.";
+      return "Today's YouTube quota is used up. It comes back tomorrow.";
     case "rate-limited":
       // 429 is searches arriving too fast, not the daily wall - it clears
       // in seconds, so this says wait rather than come back tomorrow.

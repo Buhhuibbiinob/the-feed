@@ -13,6 +13,7 @@ import { chooseNextStep, type NextStep } from "@/lib/afterPost";
 import { checkReviewSafety } from "@/lib/contentSafety";
 import { MAX_PHOTO_BYTES, isImageFile, guessContentType, limitFor, megabytes } from "@/lib/uploads";
 import { isAdmin } from "@/lib/admin";
+import { searchItunesArt } from "@/lib/itunes";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type PostFormState = {
@@ -142,6 +143,26 @@ export async function createPost(
       .eq("id", respondsTo)
       .maybeSingle<{ id: string; user_id: string }>();
     answering = data ?? null;
+  }
+
+  // A music review posted with no artwork gets it from the catalogue,
+  // once, here.
+  //
+  // Plenty of reviews are written by typing a song title and saying what
+  // you think, without going near a picture, and every one of those has
+  // been stored with cover_url null. That is why the shelves are full of
+  // grey squares with a letter on them: the artwork was never missing
+  // from the catalogue, it was just never asked for.
+  //
+  // Saved on the row rather than looked up at render, so it is one
+  // request in the life of the post instead of one on every page that
+  // ever shows it, and so every surface gets it - the feed, the shelves,
+  // the store, the queue - without each one needing to know.
+  //
+  // Failure is not fatal. A review is the words; the cover is a nicety,
+  // and a catalogue having a bad minute must not stop somebody posting.
+  if (!coverUrl && mediaType === "music" && title && artist) {
+    coverUrl = (await searchItunesArt(title, artist).catch(() => null)) ?? "";
   }
 
   const row = {
