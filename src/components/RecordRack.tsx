@@ -5,6 +5,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Find } from "@/lib/musicDiscovery";
 import { formatFor } from "@/lib/physicalMedia";
+import { useOnScreen, useSleeves } from "@/lib/useSleeves";
 
 // A rack of records you flick through.
 //
@@ -135,31 +136,12 @@ export function RecordRack({
           <>
             <div className="rack-row">
               {finds.map((find) => (
-                <button
+                <Spine
                   key={find.key}
-                  type="button"
-                  className={`rack-spine fmt-${formatFor(find.key, find.year)}${
-                    find.key === heldKey ? " pulled" : ""
-                  }`}
-                  aria-pressed={find.key === heldKey}
-                  onClick={() => setHeldKey(find.key === heldKey ? null : find.key)}
-                >
-                  {/* The cover, face on and unblurred. It is the whole
-                      reason to look, and the reason there is no text
-                      printed over it: on a record the artwork IS the
-                      label, and a caption laid on top of one only says
-                      that you did not trust it. */}
-                  {find.imageUrl ? (
-                    <span
-                      className="rack-spine-ink"
-                      style={{ backgroundImage: `url(${find.imageUrl})` }}
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                  <span className="rack-spine-text">
-                    <b>{find.artist}</b> {find.name}
-                  </span>
-                </button>
+                  find={find}
+                  held={find.key === heldKey}
+                  onPick={() => setHeldKey(find.key === heldKey ? null : find.key)}
+                />
               ))}
             </div>
             <div className="rack-base" aria-hidden="true" />
@@ -215,5 +197,63 @@ export function RecordRack({
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * One record in the rack.
+ *
+ * Its own component so it can watch its own element. The rail arrives
+ * with artwork on the handful the server managed to enrich and nothing
+ * on the rest, and a record with no artwork used to render as its own
+ * background colour - a dark square, which on a twelve inch sleeve with
+ * the disc drawn behind it came out as a black slab in the middle of a
+ * row of covers. That is what "the vinyls show up black" was.
+ *
+ * Two fixes, and the first one is the real one: ask for the cover. The
+ * shelves already look up what scrolls into view and batch it into one
+ * request, and there was no reason the rack should not do the same. The
+ * second is that a record the catalogue genuinely does not have now
+ * draws as a plain sleeve with its name printed on it, the way a white
+ * label actually looks, instead of as a hole in the rack.
+ */
+function Spine({ find, held, onPick }: { find: Find; held: boolean; onPick: () => void }) {
+  const { want, get } = useSleeves();
+  const info = get(find.key);
+  const art = find.imageUrl ?? info?.artworkUrl ?? null;
+  const ref = useOnScreen(
+    () => want({ key: find.key, title: find.name, artist: find.artist }),
+    !find.imageUrl
+  );
+
+  return (
+    <button
+      ref={ref as React.Ref<HTMLButtonElement>}
+      type="button"
+      className={`rack-spine fmt-${formatFor(find.key, find.year ?? info?.year)}${
+        held ? " pulled" : ""
+      }${art ? "" : " blank"}`}
+      aria-pressed={held}
+      onClick={onPick}
+    >
+      {/* The cover, face on and unblurred. It is the whole reason to
+          look, and the reason nothing is printed over it: on a record
+          the artwork IS the label, and a caption laid on top of one only
+          says you did not trust it. A sleeve with no artwork is the one
+          case that does want its name on it, because otherwise there is
+          nothing there at all. */}
+      {art ? (
+        <span
+          className="rack-spine-ink"
+          style={{ backgroundImage: `url(${art})` }}
+          aria-hidden="true"
+        />
+      ) : (
+        <span className="rack-spine-ink blank" aria-hidden="true" />
+      )}
+      <span className="rack-spine-text">
+        <b>{find.artist}</b> {find.name}
+      </span>
+    </button>
   );
 }
