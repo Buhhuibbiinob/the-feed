@@ -60,7 +60,7 @@ function AddPlaylist() {
         />
         <div className="field-hint">
           {url.trim() && !parsed
-            ? "That is not a playlist link. Spotify, Apple Music, YouTube, SoundCloud, Deezer and Tidal all work - but it has to be a playlist, not an album, a track or a single video."
+            ? "That is not a playlist link. Spotify, Apple Music, YouTube, SoundCloud, Deezer and Tidal all work, but it has to be a playlist, not an album, a track or a single video."
             : parsed
             ? `${PROVIDER_LABELS[parsed.provider]} playlist. Give it a name and it's up.`
             : APPLE_MUSIC_CONNECT_NOTE}

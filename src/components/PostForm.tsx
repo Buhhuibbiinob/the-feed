@@ -231,7 +231,17 @@ export function PostForm({
               and the image URL field below becomes the way to attach one. */}
           <div className="field" hidden={mediaType === "photography"}>
             <label htmlFor="video-search">
-              {mediaType === "music" ? "Find a track on YouTube" : "Find it on YouTube"}
+              {/* Named for where the searching actually happens.
+                  "Find a track on YouTube" was wrong and it was
+                  confusing: typing here searches Apple's public
+                  catalogue, which needs no key and no account and is
+                  simply better at music. YouTube is asked once, later,
+                  for the one track you pick, because an embed needs a
+                  video id - and a label naming the wrong service sends
+                  somebody off checking credentials for an API this box
+                  never touches. Films and shows really are YouTube, so
+                  those keep saying so. */}
+              {mediaType === "music" ? "Find a track" : "Find it on YouTube"}
             </label>
             {selectedVideo ? (
               <div className="track-selected">

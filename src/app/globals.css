@@ -6834,6 +6834,27 @@ footer .copy {
   justify-content: center;
   background: linear-gradient(160deg, #d9d5c9, #b8b3a4);
 }
+/* A cover on its way, in the crate. Same language as the shelf: it moves
+   while it is working, and stops when the answer is in - so a record the
+   catalogue does not have looks different from one still being found. */
+.crate-blank.waiting {
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0) 32%,
+      rgba(255, 255, 255, 0.6) 50%,
+      rgba(255, 255, 255, 0) 68%
+    ),
+    linear-gradient(160deg, #d9d5c9, #b8b3a4);
+  background-size: 220% 100%, 100% 100%;
+  animation: sleeve-waiting 1.15s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .crate-blank.waiting {
+    animation: none;
+    background-position: 50% 0, 0 0;
+  }
+}
 .crate-blank span {
   width: 34%;
   aspect-ratio: 1;

@@ -90,11 +90,24 @@ export function YourShelf({ items, done }: { items: QueueItem[]; done: boolean }
           title: item.title,
           artist: item.subtitle ?? "",
         });
-        const data: Info = await fetch(`/api/crate/sleeve?${params.toString()}`)
-          .then((res) => res.json())
-          // A record with no clip is still on the shelf.
-          .catch(() => ({ previewUrl: null }));
-        if (!cancelled) setInfo((prev) => ({ ...prev, [item.id]: data }));
+        // 503 is Apple saying "not now", not "this record has no clip".
+        // Recorded as an answer it takes the play button off a record
+        // that has a perfectly good preview, for as long as the page is
+        // open - which is what "the previews are missing on my own
+        // shelf" was. So a refusal is waited out and asked again, and
+        // only a real answer is written down.
+        async function ask(): Promise<Info | null> {
+          const res = await fetch(`/api/crate/sleeve?${params.toString()}`);
+          if (!res.ok) return null;
+          return (await res.json()) as Info;
+        }
+        let data = await ask().catch(() => null);
+        if (data === null) {
+          await new Promise((r) => setTimeout(r, 1400));
+          data = await ask().catch(() => null);
+        }
+        // A record with no clip is still on the shelf.
+        if (!cancelled) setInfo((prev) => ({ ...prev, [item.id]: data ?? { previewUrl: null } }));
         await new Promise((r) => setTimeout(r, 160));
       }
     }
