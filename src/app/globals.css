@@ -15958,6 +15958,44 @@ button.btn-ghost {
    Which object a record gets is decided in src/lib/physicalMedia.ts by
    the year it came out, so a 1974 album is not standing there on a CD. */
 
+/* ---- The lean ----
+   Records on a shelf do not stand to attention. They lean, each one
+   propped on the last, and the angles are all slightly different because
+   nobody straightened them. A grid of perfectly upright squares is what
+   made this read as a shelf of books no matter how good the edge on them
+   was: books have flat spines and stand square, records slump.
+
+   Pivoting on the bottom edge so the feet stay in a line on the board -
+   rotating about the centre lifts one corner off the wood and the whole
+   row starts floating. The angles cycle on a five and a seven so they do
+   not repeat with the columns at any common grid width, which is the
+   same trick the wood grain uses one section up. */
+.woodgrid .wooditem {
+  transform: rotate(-4.5deg);
+  transform-origin: bottom center;
+}
+.woodgrid .woodslot:nth-child(2n) .wooditem {
+  transform: rotate(-1.5deg);
+}
+.woodgrid .woodslot:nth-child(5n) .wooditem {
+  transform: rotate(2.8deg);
+}
+.woodgrid .woodslot:nth-child(7n) .wooditem {
+  transform: rotate(-6.5deg);
+}
+.woodgrid .woodslot:nth-child(11n) .wooditem {
+  transform: rotate(1.2deg);
+}
+/* A leaning record throws its shadow sideways as well as down, which is
+   the other half of why a lean reads as a lean rather than as a wonky
+   picture. */
+.woodgrid .wooditem img,
+.woodgrid .wooditem .wood-blank {
+  box-shadow: 3px 0 0 #cdc4b1, 4px 0 0 rgba(0, 0, 0, 0.45),
+    5px 7px 10px -5px rgba(0, 0, 0, 0.8), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+
 /* ---- The thickness ----
    A record standing face out on a shelf is not a flat picture: you see a
    sliver of its edge down the right hand side, and that sliver is a
