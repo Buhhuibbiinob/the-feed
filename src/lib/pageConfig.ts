@@ -102,6 +102,26 @@ export const PAGE_MODULES: ModuleDef[] = [
   { id: "pinned", label: "Pinned", surfaces: ["profile", "club"], column: "main" },
   { id: "highlights", label: "Greatest Hits", surfaces: ["profile"], column: "main" },
   { id: "collections", label: "Collections", surfaces: ["profile"], column: "main" },
+  // The two shelves. On by default, because a profile without them is a
+  // page about somebody's opinions with none of their music on it - and
+  // both are things members already made, sitting on pages nobody visits
+  // to look at a person.
+  {
+    id: "playlists",
+    label: "Playlists",
+    surfaces: ["profile"],
+    column: "main",
+    defaultOn: true,
+    hint: "The playlists you put up, as a shelf of tapes.",
+  },
+  {
+    id: "shelf",
+    label: "Your Shelf",
+    surfaces: ["profile"],
+    column: "main",
+    defaultOn: true,
+    hint: "What you have put aside to get to.",
+  },
   // Back, because taking it away left holes. The guestbook was removed
   // as MySpace furniture and it is - but the thing that made it feel
   // like that was a wall of comments halfway down a page already full of

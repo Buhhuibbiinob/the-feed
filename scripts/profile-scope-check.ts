@@ -111,6 +111,37 @@ for (const component of PROFILE_ONLY_COMPONENTS) {
   );
 }
 
+// ---- somebody else's shelf is not yours to change ----
+//
+// The shelf on a profile is the same component as the shelf on /queue,
+// which carries a remove button, a "played" button and a "put it back".
+// Those are the owner's gestures. Rendered on a visitor's view they are
+// buttons that either do nothing or, worse, look like they might - and
+// the database refuses them anyway, so what a visitor would get is a
+// control that fails.
+//
+// So every mount of it outside the queue page has to say whose shelf it
+// is. The default is `owner = true`, which is right for /queue and
+// wrong everywhere else, and forgetting the prop is silent.
+{
+  const mounts = execSync(
+    "grep -rn '<YourShelf' src --include=*.tsx || true",
+    { encoding: "utf8" }
+  )
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const offenders = mounts.filter(
+    (line) => !line.startsWith("src/app/queue/") && !line.includes("owner=")
+  );
+  check(
+    "a shelf mounted outside /queue says whose it is",
+    offenders.length === 0,
+    offenders.join(" | ")
+  );
+  check("the shelf is still mounted somewhere", mounts.length > 0);
+}
+
 if (failures > 0) {
   console.error(`\n${failures} check${failures === 1 ? "" : "s"} failed.`);
   process.exit(1);
