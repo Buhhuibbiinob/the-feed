@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Find } from "@/lib/musicDiscovery";
+import { formatForKey } from "@/lib/physicalMedia";
 
 // A rack of records, filed on their spines.
 //
@@ -134,22 +135,28 @@ export function RecordRack({
                 <button
                   key={find.key}
                   type="button"
-                  className={`rack-spine${find.key === heldKey ? " pulled" : ""}`}
+                  className={`rack-spine fmt-${formatForKey(find.key)}${
+                    find.key === heldKey ? " pulled" : ""
+                  }`}
                   aria-pressed={find.key === heldKey}
-                  // The sleeve's own art, seen edge on. The art wraps
-                  // round most sleeves, so the edge really is the colour
-                  // of the record rather than a neutral grey - which is
-                  // also why a rack of these reads as a rack rather than
-                  // as a row of tabs.
-                  style={
-                    find.imageUrl
-                      ? { backgroundImage: `url(${find.imageUrl})` }
-                      : { backgroundColor: "#3a3a40" }
-                  }
                   onClick={() => setHeldKey(find.key === heldKey ? null : find.key)}
                 >
+                  {/* The artwork, but held well back: a spine is a
+                      printed band, not a photograph. Cropping a cover to
+                      twenty six pixels leaves a legible fragment of
+                      somebody's face, and a row of those reads as a shelf
+                      of paperbacks. Blurred and darkened it becomes what
+                      it should have been all along - the colour of the
+                      record, with the title printed over it. */}
+                  {find.imageUrl ? (
+                    <span
+                      className="rack-spine-ink"
+                      style={{ backgroundImage: `url(${find.imageUrl})` }}
+                      aria-hidden="true"
+                    />
+                  ) : null}
                   <span className="rack-spine-text">
-                    {find.artist} {find.name}
+                    <b>{find.artist}</b> {find.name}
                   </span>
                 </button>
               ))}

@@ -254,6 +254,20 @@ export function looksLikeAFilm(title: string): boolean {
   if (/\b(top \d+|best of|compilation|every|all the|reaction|review|explained|breakdown)\b/i.test(title)) {
     return false;
   }
+  // Reels. The archive channels post a lot of "11 Classic Horror Movie
+  // Trailers from the 70s" and "1980s Horror Movie Trailers", and those
+  // reached a shelf as films called exactly that. A film is one film: a
+  // count in front of a plural, or a decade in front of one, is a
+  // compilation whatever it calls itself.
+  if (/^\s*\d+\s+\w+/.test(title) && /\b(trailers|movies|films|classics)\b/i.test(title)) {
+    return false;
+  }
+  if (/\b(19|20)\d0s\b/i.test(title) && /\b(trailers|movies|films|horror|classics)\b/i.test(title)) {
+    return false;
+  }
+  // A title that still says "trailer" after the strip is not a film's
+  // name, it is whatever the uploader called their reel.
+  if (/\btrailers?\b/i.test(title)) return false;
   return true;
 }
 

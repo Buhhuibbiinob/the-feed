@@ -57,13 +57,20 @@ export function DvdRack({
                     type="button"
                     className={`dvd-spine${open ? " pulled" : ""}`}
                     aria-pressed={open}
-                    style={
-                      find.imageUrl
-                        ? { backgroundImage: `url(${find.imageUrl})` }
-                        : { backgroundColor: "#3a3a40" }
-                    }
                     onClick={() => setOpenKey(open ? null : find.key)}
                   >
+                    {/* Same reasoning as the record spines: a DVD spine
+                        is a printed band, not a still from the film.
+                        Stretching a sixteen by nine thumbnail across one
+                        gave a row of letterboxed banners rather than a
+                        stack of cases. */}
+                    {find.imageUrl ? (
+                      <span
+                        className="dvd-ink"
+                        style={{ backgroundImage: `url(${find.imageUrl})` }}
+                        aria-hidden="true"
+                      />
+                    ) : null}
                     <span className="dvd-title">{find.title}</span>
                     {find.year ? <span className="dvd-year">{find.year}</span> : null}
                   </button>
