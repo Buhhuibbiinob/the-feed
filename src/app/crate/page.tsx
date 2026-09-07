@@ -3,7 +3,7 @@ import { guardBuiltinPage } from "@/lib/pages";
 import { Crate } from "@/components/Crate";
 import { FILMS_PER_CRATE, crateSeed, crateSources, fillCrate, mixInFilms, type Sleeve } from "@/lib/crate";
 import { screenFinds } from "@/lib/trailers";
-import { searchVideos } from "@/lib/youtube";
+import { searchVideosDetailed } from "@/lib/youtube";
 import { alreadyKnown, describeDiscoveryStatus, discoveryStatus, type SeedPost } from "@/lib/musicDiscovery";
 
 export const metadata = { title: "The Crate on Feedback" };
@@ -44,7 +44,7 @@ export default async function CratePage() {
     // record before it, which is most of why digging through one is
     // worth doing. One lane's worth, rotated by the same seed as the
     // records so the whole box changes together.
-    screenFinds(myPosts ?? [], known, searchVideos, {
+    screenFinds(myPosts ?? [], known, searchVideosDetailed, {
       limit: FILMS_PER_CRATE,
       rotateBy: seed,
     }).catch(() => null),

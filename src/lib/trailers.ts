@@ -1,4 +1,4 @@
-import type { YoutubeVideo } from "@/lib/youtube";
+import type { SearchFailure, YoutubeVideo } from "@/lib/youtube";
 import { workKey } from "@/lib/taste";
 import { rotate, shuffleSeed, type Known, type SeedPost } from "@/lib/musicDiscovery";
 
@@ -347,7 +347,7 @@ export type TrailerSearch = (
   query: string,
   limit: number,
   options: { revalidateSeconds: number }
-) => Promise<YoutubeVideo[]>;
+) => Promise<{ videos: YoutubeVideo[]; failure?: SearchFailure }>;
 
 /**
  * A rail of films, from one lane's worth of trailers.
@@ -356,12 +356,33 @@ export type TrailerSearch = (
  * stays testable without a key and without a network - the same reason
  * the crate takes its sources rather than reaching for them.
  */
+/**
+ * How many lanes to try before giving up.
+ *
+ * A lane can come back with twenty videos and no films: the parser
+ * throws away compilations, reaction uploads and fan edits, and some
+ * lanes are mostly those. That produced "no trailers came back for that
+ * corner today" on a rail whose search had worked perfectly - which
+ * reads as breakage and is really just an unlucky corner.
+ *
+ * Three, not more. Each lane is another hundred units of a ten thousand
+ * a day budget, and a lane's answer is cached for the day, so the second
+ * and third are usually free after the first person lands on them.
+ */
+const LANES_TO_TRY = 3;
+
 export async function screenFinds(
   posts: SeedPost[],
   known: Known,
   search: TrailerSearch,
   { limit = 8, rotateBy }: { limit?: number; rotateBy?: number } = {}
-): Promise<{ becauseOf: string | null; lane: Lane; finds: ScreenFind[] }> {
+): Promise<{
+  becauseOf: string | null;
+  lane: Lane;
+  finds: ScreenFind[];
+  /** Why it is empty, when it is empty because something went wrong. */
+  failure?: SearchFailure;
+}> {
   const spin = rotateBy ?? shuffleSeed();
   const lane = pickLane(posts, spin);
   // Asked for more than the rail shows: parsing throws some away, and a
@@ -374,12 +395,28 @@ export async function screenFinds(
   // tomorrow. Rotating the list costs nothing, uses the results already
   // paid for, and is the only way a shared cache and a rail that
   // reshuffles on every load can both be true.
-  const videos = await search(lane.query, limit * 5, {
-    revalidateSeconds: TRAILER_TTL_SECONDS,
-  }).catch(() => []);
-  return {
-    becauseOf: lane.label,
-    lane,
-    finds: rankTrailers(rotate(videos, spin), known, lane.label, limit),
-  };
+  let tried = lane;
+  for (let attempt = 0; attempt < LANES_TO_TRY; attempt++) {
+    // A different lane each go, walked by a stride rather than at
+    // random so the same visitor on the same day gets the same three -
+    // otherwise the cache never hits and every reload costs three more
+    // searches.
+    tried = attempt === 0 ? lane : LANES[(LANES.indexOf(lane) + attempt * 7) % LANES.length];
+    const result = await search(tried.query, limit * 5, {
+      revalidateSeconds: TRAILER_TTL_SECONDS,
+    }).catch(() => ({ videos: [], failure: { reason: "network" } as SearchFailure }));
+
+    // A search that FAILED is not an empty corner, and trying two more
+    // lanes will not fix a missing key or a spent quota - it just burns
+    // two hundred more units against a wall. Stop, and say which it was,
+    // because "no trailers today" and "trailers are switched off" look
+    // identical on the page and only one of them is somebody's problem
+    // to fix.
+    if (result.failure) {
+      return { becauseOf: tried.label, lane: tried, finds: [], failure: result.failure };
+    }
+    const finds = rankTrailers(rotate(result.videos, spin), known, tried.label, limit);
+    if (finds.length > 0) return { becauseOf: tried.label, lane: tried, finds };
+  }
+  return { becauseOf: tried.label, lane: tried, finds: [] };
 }

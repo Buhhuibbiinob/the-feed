@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/admin";
 import { RecordRack } from "@/components/RecordRack";
 import { DvdRack } from "@/components/DvdRack";
 import { screenFinds } from "@/lib/trailers";
-import { searchVideos } from "@/lib/youtube";
+import { describeSearchFailure, searchVideosDetailed } from "@/lib/youtube";
 import {
   alreadyKnown,
   communitySeeds,
@@ -236,7 +236,7 @@ export default async function RecsPage() {
     // TMDB, which wants a paid key for what amounts to a poster and a
     // title; it comes from film trailers on YouTube now, which are free,
     // already there for everything worth watching, and move.
-    screenFinds(mine, known, searchVideos, { rotateBy, limit: 14 }),
+    screenFinds(mine, known, searchVideosDetailed, { rotateBy, limit: 14 }),
   ]);
   // Nobody arrives at an empty rail.
   //
@@ -346,10 +346,16 @@ export default async function RecsPage() {
             title="Something to watch"
             becauseOf={screen.becauseOf}
             finds={screen.finds}
+            // What actually went wrong, rather than one sentence for
+            // every kind of empty. A missing key, a spent daily quota
+            // and a genuinely thin corner of the archive all used to
+            // read as "give it another go in a bit", which is advice
+            // that only helps in the third case and is actively
+            // misleading in the first two.
             empty={
-              process.env.YOUTUBE_API_KEY
-                ? "No trailers came back for that corner today. Give it another go in a bit."
-                : "Trailers need a YouTube key before they can show up here."
+              screen.failure
+                ? describeSearchFailure(screen.failure)
+                : "Nothing in that corner of the archive today. There is a different one tomorrow."
             }
           />
           <RecordRack

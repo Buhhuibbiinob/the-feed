@@ -30,6 +30,7 @@ import { fetchStickers } from "@/lib/stickerQuery";
 import { StickerLayer } from "@/components/StickerLayer";
 import type { Sticker } from "@/lib/stickers";
 import { getProfileLabels, personalise } from "@/lib/profileLabels";
+import { backfillCovers } from "@/lib/coverBackfill";
 import {
   chartRows,
   featuredArtists,
@@ -298,7 +299,11 @@ export default async function ProfilePage({
       .returns<FavoriteRow[]>(),
   ]);
 
-  const posts = postRows ?? [];
+  // Covers filled in for reviews that were posted without any, before
+  // anything on this page reads them - so the review rows get artwork
+  // as well as the shelves. New posts save their own cover now; this is
+  // for everything written before they did.
+  const posts = await backfillCovers(postRows ?? []).catch(() => postRows ?? []);
   const clubs = (clubMembershipRows ?? [])
     .map((row) => row.clubs)
     .filter((club): club is NonNullable<ClubMembershipRow["clubs"]> => club !== null);
