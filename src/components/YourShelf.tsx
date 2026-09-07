@@ -71,9 +71,10 @@ export function YourShelf({ items, done }: { items: QueueItem[]; done: boolean }
     () => null
   );
 
-  // Looked up a few at a time. Twenty-four parallel requests to one
-  // address is the shape Apple rate-limits; four fills a shelf in a
-  // couple of seconds and never trips it.
+  // Two at a time, with a gap. Apple allows about twenty calls a minute
+  // and answers 403 above that, which lib/itunes used to read as "no such
+  // track" - so a long shelf came back almost entirely blank and looked
+  // like a catalogue full of holes rather than a queue going too fast.
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;
@@ -94,10 +95,11 @@ export function YourShelf({ items, done }: { items: QueueItem[]; done: boolean }
           // A record with no clip is still on the shelf.
           .catch(() => ({ previewUrl: null }));
         if (!cancelled) setInfo((prev) => ({ ...prev, [item.id]: data }));
+        await new Promise((r) => setTimeout(r, 160));
       }
     }
 
-    void Promise.all(Array.from({ length: Math.min(4, music.length) }, worker));
+    void Promise.all(Array.from({ length: Math.min(2, music.length) }, worker));
     return () => {
       cancelled = true;
     };

@@ -32,6 +32,38 @@ type ItunesSearchResult = {
   results?: ItunesTrack[];
 };
 
+/**
+ * One iTunes request, with the throttle told apart from a miss.
+ *
+ * Apple answers 403 when you have asked too often, and the old code did
+ * `res.ok ? await res.json() : {}` - which turns "slow down" into "no
+ * such track", silently and permanently. On a shelf of twenty four
+ * records that is what put artwork on two of them and blank squares on
+ * the other twenty two: they were all throttled, and every one of them
+ * reported that it simply was not in the catalogue.
+ *
+ * So: three goes, backing off, and a flag saying which kind of empty
+ * this is. Apple's limit is around twenty calls a minute, so waiting is
+ * genuinely the fix rather than a way of hiding one.
+ */
+const RETRY_DELAYS_MS = [700, 1800];
+
+async function itunesFetch(url: string): Promise<{ data: unknown; throttled: boolean }> {
+  for (let attempt = 0; ; attempt++) {
+    let res: Response;
+    try {
+      res = await fetch(url, { next: { revalidate: 3600 } });
+    } catch {
+      return { data: null, throttled: false };
+    }
+    if (res.ok) return { data: await res.json(), throttled: false };
+    // 403 is the throttle; 429 is too, on some edges.
+    const throttled = res.status === 403 || res.status === 429;
+    if (!throttled || attempt >= RETRY_DELAYS_MS.length) return { data: null, throttled };
+    await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt]));
+  }
+}
+
 function normalize(s: string): string {
   return s
     .toLowerCase()
@@ -87,9 +119,11 @@ async function getArtistCatalog(artistName: string): Promise<ItunesTrack[]> {
   const promise = (async () => {
     try {
       const artistParams = new URLSearchParams({ term: artistName, entity: "musicArtist", limit: "3" });
-      const artistRes = await fetch(`https://itunes.apple.com/search?${artistParams.toString()}`);
-      if (!artistRes.ok) return [];
-      const artistData = (await artistRes.json()) as { results?: ItunesArtist[] };
+      const { data: artistPayload } = await itunesFetch(
+        `https://itunes.apple.com/search?${artistParams.toString()}`
+      );
+      if (!artistPayload) return [];
+      const artistData = artistPayload as { results?: ItunesArtist[] };
       const bestArtist = artistData.results?.find((a) => {
         const gotArtist = normalize(a.artistName ?? "");
         return gotArtist === key || gotArtist.includes(key) || key.includes(gotArtist);
@@ -97,9 +131,11 @@ async function getArtistCatalog(artistName: string): Promise<ItunesTrack[]> {
       if (!bestArtist?.artistId) return [];
 
       const catalogParams = new URLSearchParams({ id: String(bestArtist.artistId), entity: "song", limit: "200" });
-      const catalogRes = await fetch(`https://itunes.apple.com/lookup?${catalogParams.toString()}`);
-      if (!catalogRes.ok) return [];
-      const catalogData = (await catalogRes.json()) as ItunesSearchResult;
+      const { data: catalogPayload } = await itunesFetch(
+        `https://itunes.apple.com/lookup?${catalogParams.toString()}`
+      );
+      if (!catalogPayload) return [];
+      const catalogData = catalogPayload as ItunesSearchResult;
       return (catalogData.results ?? []).filter((r) => r.wrapperType === "track");
     } catch {
       return [];
@@ -129,13 +165,17 @@ export async function lookupItunesTrack(
       entity: "song",
       limit: "8",
     });
-    const res = await fetch(`https://itunes.apple.com/search?${params.toString()}`, {
-      next: { revalidate: 3600 },
-    });
-    const data = res.ok ? ((await res.json()) as ItunesSearchResult) : {};
-    let match = findMatch(data.results ?? [], trackName, artistName);
+    const { data, throttled } = await itunesFetch(
+      `https://itunes.apple.com/search?${params.toString()}`
+    );
+    let match = findMatch(((data as ItunesSearchResult) ?? {}).results ?? [], trackName, artistName);
 
-    if (!match) {
+    // The artist catalogue fallback is two more requests, and firing it
+    // after a throttled search is two more requests that were never going
+    // to be answered - it makes the queue worse for everything behind it.
+    // Only worth it when the search really did come back and really did
+    // not have the track.
+    if (!match && !throttled) {
       const catalog = await getArtistCatalog(artistName);
       match = findMatch(catalog, trackName, artistName);
     }
