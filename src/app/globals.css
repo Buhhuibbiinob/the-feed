@@ -16028,6 +16028,48 @@ button.btn-ghost {
   color: #6f6f76;
   background-image: linear-gradient(180deg, #e9e9ec 0%, #d3d3d8 50%, #b4b4ba 100%);
 }
+/* The name on a record nobody has a picture of.
+   A white label: plain paper, the artist stamped across it, the title
+   under it. This is what those records actually looked like, and it is
+   the difference between a shelf with a hole in it and a shelf with a
+   promo pressing on it. */
+.wood-blank {
+  position: relative;
+}
+.wood-label-print {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1.2;
+}
+.wood-label-print b {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(24, 22, 20, 0.82);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wood-label-print i {
+  font-size: 9.5px;
+  font-style: normal;
+  color: rgba(24, 22, 20, 0.6);
+  /* Two lines and then stop: a long title should read as a title, not
+     push the artist off the label. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* A record playing in its own sleeve, where the cover was. */
 .wooditem iframe {
   display: block;

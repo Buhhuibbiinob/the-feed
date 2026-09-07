@@ -293,5 +293,40 @@ check(
   shelfTitle("place", "new york")
 );
 
+
+// ---- a shelf can never empty itself ----
+//
+// The swap-out in ShelfRecords drops a record the catalogue has no
+// cover and no clip for and puts the next one up in its place, which is
+// right when there IS a next one. When Apple is throttling there is not:
+// every record on the shelf comes back with nothing, every one of them
+// is judged dead, and the shelf renders as no records at all. Not blank
+// sleeves - an empty wooden board where a page that worked an hour ago
+// used to be. That is "the shelves don't load".
+//
+// So the component has to put the passed-over ones back rather than
+// show nothing, and a record nobody can find a picture for has to draw
+// as a printed white label so it can still be read and reviewed.
+{
+  const src = readFileSync("src/components/ShelfRecords.tsx", "utf8");
+  check(
+    "a shelf puts back what it passed over rather than emptying",
+    /passedOver/.test(src) && /shown\.length < SHOW/.test(src)
+  );
+  check(
+    "a record with no cover is printed, not blank",
+    /wood-label-print/.test(src)
+  );
+  check(
+    "a record that brought its own video is never judged dead",
+    /!record\.videoId/.test(src)
+  );
+}
+{
+  const film = readFileSync("src/components/FilmShelf.tsx", "utf8");
+  check("a film case with no artwork is printed too", /wood-label-print/.test(film));
+}
+
+
 console.log(failures === 0 ? "\nYou pick the shelf; it does not pick for you." : `\n${failures} failing.`);
 process.exit(failures === 0 ? 0 : 1);

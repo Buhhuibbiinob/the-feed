@@ -142,6 +142,7 @@ export function ShelfRecords({
   // because moving a record out from under somebody while they are
   // looking at it is worse than a moment of not knowing.
   const shown: Sleeve[] = [];
+  const passedOver: Sleeve[] = [];
   for (const record of records) {
     if (shown.length >= SHOW) break;
     const info = get(record.key);
@@ -150,9 +151,33 @@ export function ShelfRecords({
       !info.artworkUrl &&
       !info.previewUrl &&
       !record.imageUrl &&
-      !record.previewUrl;
-    if (dead) continue;
+      !record.previewUrl &&
+      !record.videoId;
+    if (dead) {
+      passedOver.push(record);
+      continue;
+    }
     shown.push(record);
+  }
+  // Nothing is dropped unless something takes its place.
+  //
+  // This is the bug behind "the shelves don't load at all". The swap-out
+  // above is right when there is a replacement to swap in - but when
+  // Apple is throttling, EVERY record on the shelf comes back with no
+  // cover and no clip, so every one of them was judged dead and the
+  // shelf rendered as nothing whatsoever. Not blank sleeves: no shelf.
+  // A page that was working an hour ago showing an empty wooden board.
+  //
+  // A record nobody can find a cover for is still a record. It has a
+  // name, it has an artist, and the thing this site is actually for -
+  // writing about it - needs neither a picture nor a clip. So the
+  // passed-over ones come back rather than the shelf emptying, and they
+  // draw as what they are: a white label with the name printed on it.
+  if (shown.length < SHOW) {
+    for (const record of passedOver) {
+      shown.push(record);
+      if (shown.length >= SHOW) break;
+    }
   }
 
   return (
@@ -223,8 +248,14 @@ function ShelfRecord({
   // no clip for it, only when somebody presses the button, and only once
   // per record for the whole site - see lib/trackVideo. A shelf must
   // never spend a YouTube search on its own.
+  //
+  // A record that arrived FROM YouTube already knows its video and skips
+  // all of that: the scene shelves hand the id over with the row, so
+  // every sleeve on them plays on the first press with nothing looked up
+  // at all.
   const [video, setVideo] = useState<{ id: string | null; error: string | null } | null>(
     () => {
+      if (record.videoId) return { id: record.videoId, error: null };
       const already = knownTrackVideo(record.key);
       return already ? { id: already.videoId, error: already.error } : null;
     }
@@ -267,7 +298,21 @@ function ShelfRecord({
             className={`wood-blank${waiting ? " waiting" : ""}`}
             aria-label={waiting ? `Finding the cover for ${record.name}` : undefined}
             aria-busy={waiting || undefined}
-          />
+          >
+            {/* A white label, which is what a record with no artwork
+                actually looks like - the name stamped on plain paper.
+                An empty square is not a state anybody can read: it says
+                nothing about whether the record exists, whether it is
+                still loading, or what it even is. Hidden while the
+                lookup is still out, because a name appearing and then
+                being replaced by a cover reads as a glitch. */}
+            {!waiting && (
+              <span className="wood-label-print">
+                <b>{record.artist}</b>
+                <i>{record.name}</i>
+              </span>
+            )}
+          </div>
         )}
         {clip ? (
           <button
