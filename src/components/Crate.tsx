@@ -215,13 +215,27 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
           {/* Twenty six, not fourteen. Fourteen edges across a crate this
               wide left dark gaps between them and the whole thing read as
               a row of matchsticks standing in a box. A crate is full. */}
-          {sleeves.slice(index + 1, index + 27).map((sleeve, i) => (
-            <span
-              key={sleeve.key}
-              className={`crate-divider fmt-${formatForKey(sleeve.key)}`}
-              style={{ ["--i" as string]: i }}
-            />
-          ))}
+          {sleeves.slice(index + 1, index + 27).map((sleeve, i) => {
+            // The cover the record already has. Only the one in your
+            // hand gets looked up, so most of the box is drawn from
+            // whatever the source supplied - and anything with none
+            // draws as the printed board and paper label the rest of the
+            // site uses for a record with no picture, rather than as a
+            // coloured card edge.
+            const art = info[sleeve.key]?.artworkUrl ?? sleeve.imageUrl;
+            return (
+              <span
+                key={sleeve.key}
+                className={`crate-divider fmt-${
+                  sleeve.kind === "film" ? "case" : formatForKey(sleeve.key)
+                }${art ? "" : " blank"}`}
+                style={{
+                  ["--i" as string]: i,
+                  ...(art ? { backgroundImage: `url(${art})` } : {}),
+                }}
+              />
+            );
+          })}
         </div>
         <div className="crate-lip" />
       </div>

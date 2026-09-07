@@ -40,6 +40,14 @@ function parseSpotify(raw: string): ParsedPlaylist | null {
   );
   if (web) return { provider: "spotify", providerId: web[1], storefront: null, slug: null };
 
+  // A bare id. The comment above has always said this was one of the
+  // four shapes accepted and it never was, so somebody who copied the id
+  // out of the URL bar got told their playlist link was not a playlist
+  // link. It is unambiguous enough here: the box asks for a playlist and
+  // nothing else this length is made only of base-62.
+  const bare = raw.match(/^([A-Za-z0-9]{16,32})$/);
+  if (bare) return { provider: "spotify", providerId: bare[1], storefront: null, slug: null };
+
   return null;
 }
 
@@ -52,18 +60,28 @@ function parseSpotify(raw: string): ParsedPlaylist | null {
  * Spotify this is not just an id.
  */
 function parseApple(raw: string): ParsedPlaylist | null {
+  // Both the storefront and the slug are optional in the wild, and the
+  // old pattern required both. Apple hands out
+  // /us/playlist/pl.xxx with no slug, and /playlist/name/pl.xxx with no
+  // storefront, and every one of those was answered with "that doesn't
+  // look like a playlist link" - about a link that came straight off
+  // Apple's own share button.
+  //
+  // The id is the part that is actually required. Everything before it
+  // is read if it is there and defaulted if it is not, which is what
+  // embedUrl and openUrl have always done anyway.
   const m = raw.match(
-    /^(?:https?:\/\/)?(?:embed\.)?music\.apple\.com\/([a-z]{2})\/playlist\/([^/]+)\/(pl\.[A-Za-z0-9-]+)(?:[/?#]|$)/
+    /^(?:https?:\/\/)?(?:embed\.)?music\.apple\.com\/(?:([a-z]{2})\/)?playlist\/(?:([^/]+)\/)?(pl\.[A-Za-z0-9-]+)(?:[/?#]|$)/
   );
   if (!m) return null;
   return {
     provider: "apple",
     providerId: m[3],
-    storefront: m[1],
+    storefront: m[1] ?? null,
     // Apple accepts any slug in the path - it is decoration - but
     // keeping the real one means the link out reads like the playlist
     // rather than like an id.
-    slug: decodeURIComponent(m[2]).slice(0, 80),
+    slug: m[2] ? decodeURIComponent(m[2]).slice(0, 80) : null,
   };
 }
 

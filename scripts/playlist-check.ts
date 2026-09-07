@@ -135,5 +135,35 @@ check("an awkward slug is escaped, not passed through", !!odd && !embedUrl(odd).
   );
 }
 
+// ---- The shapes people actually paste ---------------------------------
+//
+// Every one of these was reported as "that doesn't look like a playlist
+// link", about links that came straight off Spotify's and Apple's own
+// share buttons. A parser that is too strict does not fail safe: it
+// tells somebody their working link is broken, and they believe it,
+// because why would the site be wrong about its own field.
+
+for (const [url, why] of [
+  ["https://music.apple.com/us/playlist/pl.f4d106fed2bd41149aaacabb233eb5eb", "Apple hands out links with no slug"],
+  ["https://music.apple.com/playlist/todays-hits/pl.f4d106fed2bd41149aaacabb233eb5eb", "and links with no storefront"],
+  ["37i9dQZF1DXcBWIGoYBM5M", "the comment promised a bare id worked, and it never did"],
+  ["https://open.spotify.com/intl-de/playlist/37i9dQZF1DXcBWIGoYBM5M", "Spotify puts a locale in the path now"],
+  ["https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M?si=8f2a1c0e9b4d4a71", "the share token comes with it"],
+] as [string, string][]) {
+  check(`accepts a real link - ${why}`, !!parsePlaylistUrl(url), url);
+}
+
+// Still fussy about the things that are genuinely not playlists, since
+// an album pasted into a playlist box would embed as an empty player.
+for (const url of [
+  "https://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3",
+  "https://open.spotify.com/track/1DFixLWuPkv3KT3TnV35m3",
+  "https://music.apple.com/us/album/abbey-road/1441164426",
+  "hello",
+  "",
+]) {
+  check(`still rejects ${url || "an empty box"}`, !parsePlaylistUrl(url));
+}
+
 console.log(failures === 0 ? "\nPaste a link, get the playlist." : `\n${failures} failing.`);
 process.exit(failures === 0 ? 0 : 1);
