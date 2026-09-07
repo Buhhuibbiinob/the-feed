@@ -196,7 +196,7 @@ const TAG_TEXT: Record<string, string> = {
   mpb: "mpb",
 };
 
-function tagText(slug: string): string {
+export function tagText(slug: string): string {
   return TAG_TEXT[slug] ?? slug.replace(/-/g, " ");
 }
 

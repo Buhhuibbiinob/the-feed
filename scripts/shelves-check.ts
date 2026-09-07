@@ -20,7 +20,9 @@ import {
   shelfYears,
   yearValues,
   isMedium,
+  filmPlaceTerm,
 } from "../src/lib/shelves";
+import { tagText } from "../src/lib/lastfm";
 import { belongsOnShelf } from "../src/lib/shelfSpan";
 import { NOTHING_KNOWN, alreadyKnown, type SeedPost } from "../src/lib/musicDiscovery";
 import type { LastfmTrack } from "../src/lib/lastfm";
@@ -210,7 +212,11 @@ const filmWall = axes(now, "film").map((a) => a.id);
 const photoWall = axes(now, "photography").map((a) => a.id);
 const musicWall = axes(now, "music").map((a) => a.id);
 check("music keeps the four it had", musicWall.join(",") === "scene,year,decade,place", musicWall.join(","));
-check("film is decade and kind", filmWall.join(",") === "decade,genre", filmWall.join(","));
+check(
+  "film is decade, kind and place",
+  filmWall.join(",") === "decade,genre,place",
+  filmWall.join(",")
+);
 check("photography is subject", photoWall.join(",") === "subject", photoWall.join(","));
 check(
   "the default is still music, so every link written before this lands where it did",
@@ -246,6 +252,46 @@ check(
   shelfTitle("subject", "black-and-white")
 );
 check("a film kind is capitalised", shelfTitle("genre", "sci-fi") === "Sci Fi");
+
+// ---- Wider walls ------------------------------------------------------
+//
+// The Scene wall was thirty-six sounds chosen by hand and the Place wall
+// was twenty-two cities, eleven of them in America or Britain. A wall
+// called Place that is half two countries is a wall about the two scenes
+// everybody already knows, which is most of why the same artists kept
+// coming round.
+
+const musicWall2 = axes(now, "music");
+const scenes = musicWall2.find((a) => a.id === "scene")!.values;
+const places = musicWall2.find((a) => a.id === "place")!.values;
+check("the scene wall is the whole taxonomy", scenes.length > 300, `${scenes.length} scenes`);
+check("the place wall spans the world", places.length > 100, `${places.length} places`);
+check(
+  "and it is no longer half Britain and America",
+  places.filter((p) => ["lagos", "seoul", "sao paulo", "istanbul", "jakarta", "bamako"].includes(p))
+    .length === 6,
+  "the ones that were missing"
+);
+
+// A scene value is a genre slug and Last.fm files its tags with spaces.
+// Asking for "uk-garage" comes back empty and reads as a thin corner of
+// the catalogue rather than as the wrong question.
+check("a hyphenated scene becomes tag text", tagText("uk-garage") === "uk garage");
+check("and one with its own spelling is respected", tagText("drum-and-bass") === "drum and bass");
+check("a plain one is left alone", tagText("shoegaze") === "shoegaze");
+
+// Film places are searched by the word a search actually uses, which for
+// most countries is not the country.
+check("Nigeria's cinema is found as nollywood", filmPlaceTerm("nollywood") === "nollywood");
+check("Korea's is found as korean", filmPlaceTerm("korean") === "korean");
+check("Quebec's is found as quebecois", filmPlaceTerm("quebec") === "quebecois");
+check("something that is not a film place has no term", filmPlaceTerm("detroit") === null);
+check("a film place is titled by its label", shelfTitle("place", "nollywood") === "Nigeria");
+check(
+  "a music place keeps its own name",
+  shelfTitle("place", "new york") === "New York",
+  shelfTitle("place", "new york")
+);
 
 console.log(failures === 0 ? "\nYou pick the shelf; it does not pick for you." : `\n${failures} failing.`);
 process.exit(failures === 0 ? 0 : 1);

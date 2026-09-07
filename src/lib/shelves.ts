@@ -1,4 +1,5 @@
-import { excludeHits, getTracksByTag, type LastfmTrack } from "@/lib/lastfm";
+import { GENRES } from "@/lib/genres";
+import { excludeHits, getTracksByTag, tagText, type LastfmTrack } from "@/lib/lastfm";
 import { enrichFinds, rotate } from "@/lib/musicDiscovery";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
@@ -61,25 +62,75 @@ export type Axis = {
   values: readonly string[];
 };
 
-// Scenes. The discovery tags plus the broader ones people actually name
-// when they say what they are in the mood for - a wall of dividers that
-// only holds microgenres is a wall for people who already know.
-const SCENES = [
-  "shoegaze", "dream pop", "post-punk", "new wave", "britpop", "grunge",
-  "slowcore", "midwest emo", "art pop", "bedroom pop", "hyperpop", "digicore",
-  "soul", "neo-soul", "funk", "disco", "gospel", "trip hop",
-  "house", "techno", "jungle", "breakcore", "dub", "ambient",
-  "krautrock", "no wave", "riot grrrl", "city pop", "bossa nova", "highlife",
-  "g-funk", "underground hip hop", "drill", "afrobeats", "plugg", "experimental",
-] as const;
+/**
+ * Every sound the site knows about.
+ *
+ * Thirty-six, chosen by hand, and the wall behind them was the same
+ * thirty-six for everybody forever. The taxonomy already lists three
+ * hundred and seventy-four music genres in families, which is the wall
+ * this was always trying to be, so it is that now.
+ *
+ * Ordered by family rather than alphabetically, so the dividers read as
+ * neighbourhoods - all the house under one another, all the metal
+ * together - which is how anybody actually walks along a wall of them.
+ *
+ * These are slugs, and Last.fm files its tags with spaces, so getShelf
+ * converts on the way out. That conversion lives in one place rather
+ * than here, because the same slug is also a genre badge on a post and
+ * has to stay a slug for that.
+ */
+const SCENES: readonly string[] = GENRES.music;
 
-// Places with a real presence in Last.fm's tags - a city divider that
-// returns nothing is worse than no city divider.
+/**
+ * Where records come from.
+ *
+ * Twenty-two, and eleven of them were in America or Britain. A wall
+ * called Place that is half two countries is not a wall about place, it
+ * is a wall about the two scenes everybody already knows, and it is one
+ * of the reasons the same artists kept coming round.
+ *
+ * A hundred and thirty-nine now, on every inhabited continent. Cities where a scene really
+ * did happen, and regions where the scene is the region rather than any
+ * one city - a Last.fm tag for "mali" returns more, and better, than a
+ * tag for Bamako would.
+ *
+ * The test for being on this list is not fame, it is whether the tag
+ * comes back with records on it. A divider that opens onto nothing is
+ * worse than no divider, so this is not a map: Antarctica is not missing
+ * because nobody thought of it.
+ */
 const PLACES = [
-  "detroit", "chicago", "new york", "los angeles", "atlanta", "memphis",
-  "manchester", "london", "bristol", "glasgow", "dublin",
-  "berlin", "cologne", "paris", "gothenburg", "reykjavik",
-  "tokyo", "seoul", "lagos", "kingston", "sao paulo", "melbourne",
+  // Britain and Ireland
+  "london", "manchester", "bristol", "sheffield", "leeds", "liverpool",
+  "glasgow", "birmingham", "coventry", "belfast", "dublin", "cardiff",
+  // The United States
+  "new york", "brooklyn", "los angeles", "detroit", "chicago", "memphis",
+  "atlanta", "new orleans", "houston", "philadelphia", "seattle", "portland",
+  "san francisco", "oakland", "miami", "baltimore", "washington dc", "minneapolis",
+  "austin", "nashville", "muscle shoals", "bakersfield",
+  // The rest of the Americas
+  "toronto", "montreal", "vancouver", "mexico city", "monterrey", "havana",
+  "kingston", "port of spain", "san juan", "medellin", "bogota", "lima",
+  "sao paulo", "rio de janeiro", "salvador", "buenos aires", "santiago",
+  // Europe
+  "berlin", "cologne", "dusseldorf", "hamburg", "munich", "paris", "marseille",
+  "brussels", "amsterdam", "rotterdam", "copenhagen", "stockholm", "gothenburg",
+  "oslo", "bergen", "helsinki", "reykjavik", "lisbon", "madrid", "barcelona",
+  "milan", "rome", "naples", "athens", "istanbul", "warsaw", "krakow",
+  "prague", "budapest", "belgrade", "zagreb", "bucharest", "kyiv", "moscow",
+  "saint petersburg", "tbilisi",
+  // Africa
+  "lagos", "accra", "abidjan", "dakar", "bamako", "mali", "kinshasa",
+  "johannesburg", "durban", "cape town", "nairobi", "dar es salaam",
+  "addis ababa", "cairo", "algiers", "casablanca", "luanda",
+  // Asia
+  "tokyo", "osaka", "seoul", "beijing", "shanghai", "taipei", "hong kong",
+  "manila", "jakarta", "bandung", "bangkok", "ho chi minh city", "singapore",
+  "kuala lumpur", "mumbai", "delhi", "chennai", "kolkata", "lahore", "karachi",
+  "dhaka", "colombo", "kathmandu", "tel aviv", "beirut", "tehran", "dubai",
+  // Oceania
+  "melbourne", "sydney", "brisbane", "perth", "auckland", "wellington",
+  "honolulu", "suva",
 ] as const;
 
 /**
@@ -147,6 +198,78 @@ const PHOTO_SUBJECTS = [
   "black-and-white", "analogue", "polaroid", "abstract", "photojournalism", "editorial",
 ] as const;
 
+/**
+ * Where films come from.
+ *
+ * A place wall for film, which the site did not have. It is not the same
+ * shape as the music one: nobody searches for films from Bristol, they
+ * search for Korean films, or Hong Kong cinema, or Nollywood - film
+ * travels as a national or regional cinema in a way records do not.
+ *
+ * Each one carries the word that actually goes in the query, because
+ * that word is rarely the place: the search term for South Korea is
+ * "korean", for Nigeria it is "nollywood", and for Hong Kong it is the
+ * place after all. A slug alone could not know that.
+ */
+export type FilmPlace = { slug: string; label: string; term: string };
+
+const FILM_PLACES: readonly FilmPlace[] = [
+  { slug: "korean", label: "Korea", term: "korean" },
+  { slug: "japanese", label: "Japan", term: "japanese" },
+  { slug: "hong-kong", label: "Hong Kong", term: "hong kong" },
+  { slug: "chinese", label: "China", term: "chinese" },
+  { slug: "taiwanese", label: "Taiwan", term: "taiwanese" },
+  { slug: "thai", label: "Thailand", term: "thai" },
+  { slug: "indonesian", label: "Indonesia", term: "indonesian" },
+  { slug: "filipino", label: "Philippines", term: "filipino" },
+  { slug: "bollywood", label: "India", term: "bollywood" },
+  { slug: "tamil", label: "Tamil", term: "tamil" },
+  { slug: "iranian", label: "Iran", term: "iranian" },
+  { slug: "turkish", label: "Turkey", term: "turkish" },
+  { slug: "israeli", label: "Israel", term: "israeli" },
+  { slug: "lebanese", label: "Lebanon", term: "lebanese" },
+  { slug: "egyptian", label: "Egypt", term: "egyptian" },
+  { slug: "nollywood", label: "Nigeria", term: "nollywood" },
+  { slug: "senegalese", label: "Senegal", term: "senegalese" },
+  { slug: "south-african", label: "South Africa", term: "south african" },
+  { slug: "moroccan", label: "Morocco", term: "moroccan" },
+  { slug: "french", label: "France", term: "french" },
+  { slug: "italian", label: "Italy", term: "italian" },
+  { slug: "spanish", label: "Spain", term: "spanish" },
+  { slug: "german", label: "Germany", term: "german" },
+  { slug: "polish", label: "Poland", term: "polish" },
+  { slug: "czech", label: "Czechia", term: "czech" },
+  { slug: "hungarian", label: "Hungary", term: "hungarian" },
+  { slug: "romanian", label: "Romania", term: "romanian" },
+  { slug: "soviet", label: "Soviet", term: "soviet" },
+  { slug: "russian", label: "Russia", term: "russian" },
+  { slug: "swedish", label: "Sweden", term: "swedish" },
+  { slug: "danish", label: "Denmark", term: "danish" },
+  { slug: "norwegian", label: "Norway", term: "norwegian" },
+  { slug: "icelandic", label: "Iceland", term: "icelandic" },
+  { slug: "irish", label: "Ireland", term: "irish" },
+  { slug: "british", label: "Britain", term: "british" },
+  { slug: "australian", label: "Australia", term: "australian" },
+  { slug: "new-zealand", label: "New Zealand", term: "new zealand" },
+  { slug: "canadian", label: "Canada", term: "canadian" },
+  { slug: "quebec", label: "Québec", term: "quebecois" },
+  { slug: "mexican", label: "Mexico", term: "mexican" },
+  { slug: "brazilian", label: "Brazil", term: "brazilian" },
+  { slug: "argentine", label: "Argentina", term: "argentine" },
+  { slug: "chilean", label: "Chile", term: "chilean" },
+  { slug: "colombian", label: "Colombia", term: "colombian" },
+  { slug: "cuban", label: "Cuba", term: "cuban" },
+];
+
+/** The query word for a film place, if it is one. */
+export function filmPlaceTerm(slug: string): string | null {
+  return FILM_PLACES.find((p) => p.slug === slug)?.term ?? null;
+}
+
+export function filmPlaceLabel(slug: string): string | null {
+  return FILM_PLACES.find((p) => p.slug === slug)?.label ?? null;
+}
+
 /** The first year worth a divider. Earlier tags exist and are thin. */
 export const FIRST_YEAR = 1960;
 
@@ -179,6 +302,12 @@ export function axes(now: Date = new Date(), medium: Medium = "music"): Axis[] {
         label: "Kind",
         prompt: "One kind of film, and the corners of it worth digging through.",
         values: FILM_KINDS,
+      },
+      {
+        id: "place",
+        label: "Place",
+        prompt: "A country's own cinema, which is usually why it looks like that.",
+        values: FILM_PLACES.map((p) => p.slug),
       },
     ];
   }
@@ -264,8 +393,11 @@ export function shelfTitle(axis: AxisId, value: string): string {
     // nothing at all while looking like it handled something.
     case "decade":
       return `The ${decadeFor(value)?.label ?? value}`;
+    // A film place is titled from its own label: the slug is a query
+    // word, not a name, so "quebec" should read Québec and "nollywood"
+    // should read Nigeria.
     case "place":
-      return value.replace(/\b\w/g, (c) => c.toUpperCase());
+      return filmPlaceLabel(value) ?? value.replace(/\b\w/g, (c) => c.toUpperCase());
     // A hyphenated genre is a slug, not a label: "still-life" and
     // "black-and-white" are what the database calls them and not what a
     // divider card should say.
@@ -377,7 +509,12 @@ export async function getShelf(
   // Asked deeper than the shelf shows, so there is something to rotate
   // through: a hundred and twenty gives five shelves' worth before it
   // starts repeating.
-  const tracks = await getTracksByTag(value, 120).catch(() => []);
+  // Scene values are genre slugs and Last.fm files its tags with spaces,
+  // so "uk-garage" has to be asked for as "uk garage" or the shelf comes
+  // back empty and reports it as a thin corner of the catalogue. Year,
+  // decade and place are already tag text and pass through unchanged.
+  const tag = axis === "scene" ? tagText(value) : value;
+  const tracks = await getTracksByTag(tag, 120).catch(() => []);
   const shelf = fillShelf(tracks, known, SHELF_SIZE, rotateBy);
 
   // The first screenful, looked up here rather than in the browser.

@@ -451,9 +451,18 @@ export async function screenFinds(
  * the seventies horror shelf on the same day shares one cached answer
  * rather than each paying a hundred units for their own.
  */
-export function filmShelfQuery(axis: "decade" | "genre", value: string, deep = false): string {
+export function filmShelfQuery(
+  axis: "decade" | "genre" | "place",
+  value: string,
+  deep = false
+): string {
   const parts: string[] = [];
   if (deep) parts.push("obscure");
+  // A place goes in front as the word a search actually uses: "korean
+  // movie trailer" finds Korean cinema and "south korea movie trailer"
+  // finds news reports about it. The word comes from the place table
+  // rather than from the slug, because for most countries they differ.
+  if (axis === "place") parts.push(value);
   if (axis === "genre") parts.push(value);
   parts.push("movie original theatrical trailer");
   if (axis === "decade") {
@@ -474,13 +483,14 @@ function decadeStartYearForTag(tag: string): number | null {
 }
 
 export async function filmShelf(
-  axis: "decade" | "genre",
+  axis: "decade" | "genre" | "place",
   value: string,
   known: Known,
   search: TrailerSearch,
   { limit = 24, rotateBy = 0 }: { limit?: number; rotateBy?: number } = {}
 ): Promise<{ finds: ScreenFind[]; failure?: SearchFailure }> {
-  const label = axis === "genre" ? value : `films from the ${value}`;
+  const label =
+    axis === "genre" ? value : axis === "place" ? `${value} cinema` : `films from the ${value}`;
   // Asked for far more than the shelf shows, then rotated: parsing
   // throws away compilations and fan edits, and the answer is cached for
   // the day, so without the rotation everybody sees the same order until
