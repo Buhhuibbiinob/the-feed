@@ -6464,28 +6464,130 @@ footer .copy {
   aspect-ratio: 1;
   border-radius: 3px;
   overflow: hidden;
+  box-sizing: border-box;
   background: #1d1d21;
   box-shadow:
     0 3px 6px rgba(0, 0, 0, 0.5),
     0 1px 0 rgba(255, 255, 255, 0.22) inset,
     0 0 0 1px rgba(0, 0, 0, 0.5);
 }
-/* A jewel case is narrower than a sleeve and has a hinge down one side. */
+/* ---- The record in your hand, as the object it actually is ----
+   These were a one-line lie each: the jewel case was a square with a
+   pale left border and the cassette was the artwork squashed to
+   landscape. At the size the Crate shows them that reads as artwork
+   with something wrong with it rather than as a thing you could pick
+   up, which is the whole job of this page. */
+
+/* A jewel case. The point of one is that it is CLEAR: you are not
+   looking at a printed surface, you are looking at the booklet THROUGH
+   a piece of scratched polystyrene, which is why the art sits inset with
+   a plastic edge round it and the whole thing carries a hard diagonal
+   sweep that belongs to the lid rather than to the picture. */
 .crate-stack.fmt-cd .crate-sleeve,
 .crate-stack.fmt-download .crate-sleeve {
-  border-left: 5px solid rgba(226, 232, 238, 0.85);
-  border-radius: 2px 4px 4px 2px;
+  border-radius: 2px 5px 5px 2px;
+  background: linear-gradient(115deg, #cfd8e2 0%, #eef3f8 40%, #b9c4d0 100%);
+  padding: 3px 3px 3px 9px;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(90, 105, 120, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
-/* A cassette is landscape, not square. */
+.crate-stack.fmt-cd .crate-sleeve img,
+.crate-stack.fmt-download .crate-sleeve img {
+  border-radius: 1px;
+}
+/* The hinge: the row of teeth down the spine that every case has, and
+   the single most recognisable thing about one. */
+.crate-stack.fmt-cd .crate-sleeve::before,
+.crate-stack.fmt-download .crate-sleeve::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  z-index: 2;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.85) 0 3px,
+      rgba(120, 135, 150, 0.55) 3px 7px
+    ),
+    linear-gradient(90deg, #f2f6fa, #aab6c4);
+  box-shadow: 1px 0 0 rgba(90, 105, 120, 0.5);
+}
+/* The lid. A hard specular running corner to corner, because that is how
+   light comes off flat polystyrene: not a soft sheen, a straight bright
+   band with an edge you could put a ruler against. */
+.crate-stack.fmt-cd .crate-sleeve::after,
+.crate-stack.fmt-download .crate-sleeve::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0) 26%,
+    rgba(255, 255, 255, 0.42) 27%,
+    rgba(255, 255, 255, 0.16) 38%,
+    rgba(255, 255, 255, 0) 39%,
+    rgba(255, 255, 255, 0) 62%,
+    rgba(255, 255, 255, 0.22) 63%,
+    rgba(255, 255, 255, 0) 71%
+  );
+}
+
+/* A cassette. Landscape was the only true thing about the old one.
+   A tape is a dark shell with a PAPER LABEL on it, and the album art
+   belongs on the label rather than being the object: that is the
+   difference between a cassette and a photograph of a cassette. */
 .crate-stack.fmt-cassette .crate-sleeve {
   aspect-ratio: 8 / 5;
-  border-radius: 2px;
+  border-radius: 4px;
+  padding: 7px 8px 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.04) 33.9%,
+      rgba(0, 0, 0, 0.16) 34%, rgba(0, 0, 0, 0.06) 100%),
+    linear-gradient(160deg, #3d3d45 0%, #26262c 55%, #16161a 100%);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(10, 10, 12, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+.crate-stack.fmt-cassette .crate-sleeve img {
+  border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 0 0 3px #f7f1e0;
+}
+/* The window, with the two spools behind it wound unevenly, because a
+   tape with both hubs the same size has never been played. */
+.crate-stack.fmt-cassette .crate-sleeve::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 7px;
+  height: 19px;
+  z-index: 2;
+  border-radius: 3px;
+  /* The hubs, sized off the window rather than off a pixel radius. The
+     first pass gave the circles a 6px ending shape and then put the
+     colour stops at percentages OF that, so each hub was a one pixel
+     dot inside a dark disc and the window read as empty. */
+  background:
+    radial-gradient(circle at 25% 50%, #d8d2c6 0 3px, #6b5c46 3px 7px, rgba(0, 0, 0, 0) 7.5px),
+    radial-gradient(circle at 76% 50%, #d8d2c6 0 2px, #6b5c46 2px 5px, rgba(0, 0, 0, 0) 5.5px),
+    linear-gradient(180deg, #0c0c0f, #1b1b21);
+  background-repeat: no-repeat;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) inset, 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 .crate-sleeve img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  /* The plain sleeve has no padding, so this fills it. The jewel case
+     and the cassette DO have padding, and box-sizing keeps the art
+     inside it rather than pushing the object bigger than its own box. */
+  box-sizing: border-box;
 }
 /* A sleeve whose art has not arrived, or has none: a plain paper sleeve
    with the record showing through, which is what one actually looks like
@@ -15800,6 +15902,45 @@ button.btn-ghost {
     rgba(255, 255, 255, 0) 34.1%
   );
   pointer-events: none;
+}
+
+/* The axis picker, standing on the wood.
+   No boards behind it: this wall is one shelf with four cards leaning on
+   it, so the repeating gradient is switched off and only the timber and
+   the case shadow are kept. Done by overriding the background rather
+   than by writing a second wall, so it follows every change to the
+   wood. */
+.woodwall.axes {
+  background-image:
+    repeating-linear-gradient(
+      89deg,
+      rgba(255, 255, 255, 0.07) 0px,
+      rgba(255, 255, 255, 0.07) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 7px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(50, 24, 4, 0.5) 0%,
+      rgba(50, 24, 4, 0) 7%,
+      rgba(50, 24, 4, 0) 93%,
+      rgba(50, 24, 4, 0.5) 100%
+    ),
+    radial-gradient(ellipse 62% 108% at 50% 42%, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0) 72%);
+}
+.woodwall.axes .shelf-axes {
+  padding: 14px;
+  margin: 0;
+}
+/* A card leaning on a shelf: paper, not a panel. */
+.woodwall.axes .shelf-axis {
+  background: linear-gradient(180deg, #fbf6e6 0%, #eee4c9 100%);
+  border: 0;
+  color: #2f2413;
+  box-shadow: 0 3px 5px -1px rgba(40, 18, 2, 0.55), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+.woodwall.axes .shelf-axis span {
+  color: rgba(47, 36, 19, 0.72);
 }
 
 /* ---- The two doors ----

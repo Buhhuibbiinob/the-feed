@@ -76,13 +76,19 @@ export default async function ShelvesPage({
               Pick what you&apos;re in the mood for, not who you are. Nothing on the other side of
               these is ranked for you.
             </p>
-            <div className="shelf-axes">
-              {wall.map((a) => (
-                <Link key={a.id} href={`/shelves?axis=${a.id}`} className="shelf-axis">
-                  <b>{a.label}</b>
-                  <span>{a.prompt}</span>
-                </Link>
-              ))}
+            {/* The four ways in, standing on a shelf like everything else
+                on this page. They used to be flat cards on the panel,
+                which meant the page announced itself as a shelving unit
+                and then opened with four rectangles. */}
+            <div className="woodwall axes">
+              <div className="shelf-axes">
+                {wall.map((a) => (
+                  <Link key={a.id} href={`/shelves?axis=${a.id}`} className="shelf-axis">
+                    <b>{a.label}</b>
+                    <span>{a.prompt}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
           </>
         ) : (
