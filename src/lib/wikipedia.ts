@@ -1,3 +1,5 @@
+import { cachedFetch } from "@/lib/cachedFetch";
+
 export type WikiSummary = {
   title: string;
   extract: string;
@@ -10,11 +12,11 @@ export type WikiSummary = {
 // missing or unreachable page just means the panel doesn't render.
 export async function getWikipediaSummary(query: string): Promise<WikiSummary | null> {
   try {
-    const res = await fetch(
+    const res = await cachedFetch(
       `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`,
-      { next: { revalidate: 3600 } }
+      3600
     );
-    if (!res.ok) return null;
+    if (!res || !res.ok) return null;
 
     const data = await res.json();
     if (!data?.extract || data.type === "disambiguation") return null;

@@ -1,6 +1,8 @@
 // TMDB (themoviedb.org) powers the movie/TV side of New Releases - upcoming
 // movies and TV currently on the air, merged and sorted by date - and Orby's
 // genre-aware movie/TV recommendations.
+import { cachedFetch } from "@/lib/cachedFetch";
+
 export type TmdbItem = {
   id: string;
   title: string;
@@ -37,10 +39,14 @@ async function tmdbFetch<T>(path: string): Promise<T | null> {
 
   try {
     const separator = path.includes("?") ? "&" : "?";
-    const res = await fetch(`https://api.themoviedb.org/3${path}${separator}api_key=${apiKey}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return null;
+    // Actually cached. TMDB came off Discover but it still feeds the
+    // home page, which is the most looked at page on the site, so an
+    // uncached call here was the most expensive one of the lot.
+    const res = await cachedFetch(
+      `https://api.themoviedb.org/3${path}${separator}api_key=${apiKey}`,
+      3600
+    );
+    if (!res || !res.ok) return null;
     return (await res.json()) as T;
   } catch {
     return null;
