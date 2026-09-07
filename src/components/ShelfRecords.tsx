@@ -86,16 +86,41 @@ export function ShelfRecords({
   // catalogue. Two at a time with a gap between them stays under the
   // limit, and lib/itunes retries the throttle now rather than believing
   // it.
-  const started = useRef(false);
+  // Keyed on the shelf itself, not on "has this ever run".
+  //
+  // This used to be a plain `started` ref, which is right for a component
+  // that mounts once and wrong for this one: switching from Scene to
+  // Decade is a client navigation, React keeps the same instance because
+  // it is in the same place in the tree, and the ref was still true. So
+  // the new shelf never looked anything up and arrived with no covers and
+  // no previews, while the first tab somebody opened worked perfectly.
+  // Comparing the records instead means a new shelf is a new fetch and
+  // the same shelf re-rendering is not.
+  const shelfId = records.map((r) => r.key).join("|");
+  const fetchedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
+    if (fetchedFor.current === shelfId) return;
+    fetchedFor.current = shelfId;
     let cancelled = false;
     let cursor = 0;
 
     async function worker() {
       while (cursor < records.length && !cancelled) {
         const record = records[cursor++];
+        // The first rows arrive from the server with their cover and clip
+        // already on them, so asking again for those is a request that
+        // can only return what we have.
+        if (record.previewUrl || record.imageUrl) {
+          setInfo((prev) => ({
+            ...prev,
+            [record.key]: {
+              artworkUrl: record.imageUrl,
+              previewUrl: record.previewUrl,
+              trackUrl: record.storeUrl,
+            },
+          }));
+          if (record.previewUrl) continue;
+        }
         const params = new URLSearchParams({ title: record.name, artist: record.artist });
         const data: SleeveInfo = await fetch(`/api/crate/sleeve?${params.toString()}`)
           .then((res) => res.json())
@@ -111,7 +136,7 @@ export function ShelfRecords({
     return () => {
       cancelled = true;
     };
-  }, [records]);
+  }, [records, shelfId]);
 
   if (records.length === 0) {
     return <p className="shelf-empty">{emptyNote}</p>;

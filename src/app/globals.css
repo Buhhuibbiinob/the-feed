@@ -15610,10 +15610,14 @@ button.btn-ghost {
      the card below it. The row total and the background's period are the
      same number by construction - if they ever drift apart, every board
      slides out from under the records standing on it. */
-  --wood-row: 189px;
+  --wood-row: 197px;
   --wood-item: 96px;
   --wood-board: 21px;
-  --wood-label: 40px;
+  /* 48, not 40. Two lines of card at 10.5 and 9.5 come to about
+     twenty four pixels, and the box starts twenty one below the board to
+     clear its shadow, so at 40 the artist's name was being cut in half by
+     the next shelf down. */
+  --wood-label: 48px;
   /* How far the board's shadow reaches down the panel below it. Read by
      the card too, which starts below it rather than in it. */
   --wood-cast-depth: 12px;
@@ -15953,6 +15957,40 @@ button.btn-ghost {
 
    Which object a record gets is decided in src/lib/physicalMedia.ts by
    the year it came out, so a 1974 album is not standing there on a CD. */
+
+/* ---- The thickness ----
+   A record standing face out on a shelf is not a flat picture: you see a
+   sliver of its edge down the right hand side, and that sliver is a
+   different material from the cover. A card sleeve shows card, a jewel
+   case shows clear polystyrene, a film case shows black plastic. It is
+   three pixels and it is most of what makes a shelf of these read as
+   objects rather than as a grid of thumbnails.
+
+   Drawn as a hard offset shadow rather than an element, because both of
+   this box's pseudo elements are already spent on the disc, the hinge,
+   the spine and the window - and a hard shadow with no blur IS a strip
+   of colour, which is all this needs to be. */
+.wooditem.fmt-vinyl img,
+.wooditem.fmt-vinyl .wood-blank {
+  box-shadow: 3px 0 0 #cdc4b1, 4px 0 0 rgba(0, 0, 0, 0.45),
+    0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+.wooditem.fmt-cd img,
+.wooditem.fmt-cd .wood-blank {
+  box-shadow: 3px 0 0 #dfe7ef, 4px 0 0 rgba(0, 0, 0, 0.5),
+    0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.45) inset;
+}
+.wooditem.fmt-case img,
+.wooditem.fmt-case .wood-blank {
+  box-shadow: 4px 0 0 #23232a, 5px 0 0 rgba(0, 0, 0, 0.55),
+    0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+}
+/* A download has no edge, because it has no object. Left alone
+   deliberately: giving it one would be the lie the whole format map
+   exists to avoid. */
 
 /* Vinyl: full height, square, with the disc showing past the open edge.
    The sleeve is the widest thing on the shelf, which is right - it is
@@ -16594,6 +16632,7 @@ button.btn-ghost {
 .rack-spine {
   flex: 0 0 auto;
   position: relative;
+  overflow: hidden;
   width: 26px;
   height: 152px;
   padding: 0;
@@ -16601,25 +16640,51 @@ button.btn-ghost {
   cursor: pointer;
   scroll-snap-align: start;
   border-radius: 2px 2px 1px 1px;
-  background-size: cover;
-  background-position: center;
-  /* Leaning back a degree, the way a rack that is not quite full does,
-     and pivoting on the foot so the bottoms stay in a line on the board. */
+  background-color: #2c2c33;
   transform-origin: bottom center;
   transform: rotate(-0.6deg);
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.45), inset 1px 0 0 rgba(255, 255, 255, 0.32),
     inset -2px 0 3px rgba(0, 0, 0, 0.4);
   transition: transform 0.14s ease, box-shadow 0.14s ease;
 }
-.rack-spine:nth-child(3n) {
-  width: 23px;
+/* The artwork as a colour field rather than as a picture. */
+.rack-spine-ink {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(6px) saturate(150%) brightness(0.62);
+  transform: scale(1.4);
+}
+/* The format decides the shape, the way it does everywhere else on this
+   site. A twelve inch sleeve is the widest and tallest thing on any
+   shelf; a jewel case is shorter and thinner; a cassette barely shows
+   above the board; a film case is tall and thin. A rack where every
+   spine is the same rectangle is a rack of one thing. */
+.rack-spine.fmt-vinyl {
+  width: 30px;
+  height: 152px;
+}
+.rack-spine.fmt-cd {
+  width: 22px;
+  height: 128px;
+}
+.rack-spine.fmt-cassette {
+  width: 18px;
+  height: 96px;
+}
+.rack-spine.fmt-case {
+  width: 24px;
+  height: 146px;
+}
+.rack-spine.fmt-download {
+  width: 20px;
+  height: 118px;
 }
 .rack-spine:nth-child(5n) {
-  width: 29px;
   transform: rotate(-1.3deg);
 }
 .rack-spine:nth-child(7n) {
-  width: 21px;
   transform: rotate(0.4deg);
 }
 /* The gloss down a sleeve edge: light along the leading corner, shade
@@ -16629,6 +16694,7 @@ button.btn-ghost {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 1;
   border-radius: inherit;
   background: linear-gradient(
     90deg,
@@ -16643,15 +16709,16 @@ button.btn-ghost {
 .rack-spine-text {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   padding-bottom: 10px;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   overflow: hidden;
   color: #fff;
@@ -16660,6 +16727,11 @@ button.btn-ghost {
      the one thing filing them is supposed to save you. */
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.8);
   pointer-events: none;
+}
+/* The artist heavier than the title, which is how a spine is actually
+   set: you find a record by running along the names. */
+.rack-spine-text b {
+  font-weight: 700;
 }
 /* Pushing one over with two fingers. */
 .rack-spine:hover,
@@ -16811,18 +16883,27 @@ button.btn-ghost {
   font-size: 11.5px;
   font-weight: 600;
   color: #fff;
+  overflow: hidden;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
-  background-size: cover;
-  background-position: center;
+  background-color: #23232a;
   /* A case is plastic: a hard light along the top edge, shade at the
      bottom, and a hairline of black where it meets the one below. */
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.45),
     inset 0 -3px 5px rgba(0, 0, 0, 0.4);
 }
+.dvd-ink {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(7px) saturate(150%) brightness(0.5);
+  transform: scale(1.35);
+}
 .dvd-spine::before {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 1;
   border-radius: inherit;
   background: linear-gradient(
     180deg,

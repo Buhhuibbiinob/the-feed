@@ -1,5 +1,5 @@
 import { MUSIC_ERAS, excludeHits, getTracksByTag, type LastfmTrack } from "@/lib/lastfm";
-import { rotate } from "@/lib/musicDiscovery";
+import { enrichFinds, rotate } from "@/lib/musicDiscovery";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
 import type { Sleeve } from "@/lib/crate";
@@ -130,8 +130,16 @@ export function shelfTitle(axis: AxisId, value: string): string {
   }
 }
 
-/** How many records a shelf holds. A wall you can reach the end of. */
-export const SHELF_SIZE = 24;
+/**
+ * How many records a shelf holds.
+ *
+ * Fifty, not twenty four. Filed on their spines a record takes about a
+ * fifth of the width a face out cover does, so the same shelf that
+ * looked full with twenty four squares looks half empty with twenty four
+ * spines - and a rack with gaps in it is a rack somebody has already been
+ * through.
+ */
+export const SHELF_SIZE = 50;
 
 // How far into a tag chart to start. The top is the scene's greatest
 // hits, and somebody who chose to browse this shelf has heard those.
@@ -163,11 +171,19 @@ export function fillShelf(
   const from = rotate(pool, rotateBy);
 
   const seen = new Set<string>();
+  const perArtist = new Map<string, number>();
   const shelf: Sleeve[] = [];
   for (const track of from) {
     if (!track.name || !track.artist) continue;
     const key = workKey(track.name, track.artist);
     if (seen.has(key) || known.works.has(key)) continue;
+    // Three each. A scene shelf came back four Slowdive, four My Bloody
+    // Valentine and five Have a Nice Life out of twenty four, which is a
+    // shelf about three bands rather than about shoegaze.
+    const artistKey = track.artist.toLowerCase().trim();
+    const already = perArtist.get(artistKey) ?? 0;
+    if (already >= 3) continue;
+    perArtist.set(artistKey, already + 1);
     seen.add(key);
     shelf.push({
       key,
@@ -196,5 +212,19 @@ export async function getShelf(
   // through: a hundred and twenty gives five shelves' worth before it
   // starts repeating.
   const tracks = await getTracksByTag(value, 120).catch(() => []);
-  return fillShelf(tracks, known, SHELF_SIZE, rotateBy);
+  const shelf = fillShelf(tracks, known, SHELF_SIZE, rotateBy);
+
+  // The first screenful, looked up here rather than in the browser.
+  //
+  // The client fills in the rest a couple at a time, which is right for
+  // fifty records but means the top of the page spends several seconds
+  // as blank squares filling in one by one while somebody watches. The
+  // rows anybody sees first arrive with their covers and their clips
+  // already attached, and the shelf below them catches up quietly.
+  const AHEAD = 12;
+  const front = await enrichFinds(
+    shelf.slice(0, AHEAD).map((sleeve) => ({ ...sleeve, becauseOf: null }))
+  ).catch(() => null);
+  if (!front) return shelf;
+  return [...front.map(({ becauseOf: _drop, ...sleeve }) => sleeve), ...shelf.slice(AHEAD)];
 }

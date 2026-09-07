@@ -125,12 +125,21 @@ export function fillCrate(
   { size = CRATE_SIZE, seed = 1 }: { size?: number; seed?: number } = {}
 ): Sleeve[] {
   const seen = new Set<string>();
+  const perArtist = new Map<string, number>();
   const sleeves: Sleeve[] = [];
 
   for (const track of pools.flat()) {
     if (!track.name || !track.artist) continue;
     const key = workKey(track.name, track.artist);
     if (seen.has(key) || known.works.has(key)) continue;
+    // At most three by one artist in a box of thirty. A crate pulls from
+    // six tags at once and the same names sit near the top of all of
+    // them, so without this a third of the crate could be one band and
+    // digging through it stopped being digging.
+    const artistKey = track.artist.toLowerCase().trim();
+    const already = perArtist.get(artistKey) ?? 0;
+    if (already >= 3) continue;
+    perArtist.set(artistKey, already + 1);
     seen.add(key);
     sleeves.push({
       key,

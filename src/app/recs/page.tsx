@@ -215,18 +215,28 @@ export default async function RecsPage() {
   // reshuffles rather than showing the same eight records until midnight.
   const rotateBy = shuffleSeed();
 
+  /**
+   * How many records a rack holds.
+   *
+   * Twenty four, not eight. Filed on their spines a record is about a
+   * fifth the width of a face out cover, so eight of them left most of a
+   * rack empty - and a rack with a gap that size reads as one somebody
+   * has already been through rather than one worth digging in.
+   */
+  const RACK_SIZE = 24;
+
   const [personal, scene, era, screen] = await Promise.all([
-    findsForSeeds(seeds, known, { rotateBy }),
+    findsForSeeds(seeds, known, { rotateBy, limit: RACK_SIZE }),
     // Seeded by the styles this person keeps rating four and five, not
     // by the day - falling back to the day's scene when they have not
     // rated enough for it to mean anything.
-    lovedSceneFinds(mine, known, { rotateBy }),
-    eraFinds(known, { rotateBy }),
+    lovedSceneFinds(mine, known, { rotateBy, limit: RACK_SIZE }),
+    eraFinds(known, { rotateBy, limit: RACK_SIZE }),
     // Films, the same shape as the music rails. This used to come from
     // TMDB, which wants a paid key for what amounts to a poster and a
     // title; it comes from film trailers on YouTube now, which are free,
     // already there for everything worth watching, and move.
-    screenFinds(mine, known, searchVideos, { rotateBy }),
+    screenFinds(mine, known, searchVideos, { rotateBy, limit: 14 }),
   ]);
   // Nobody arrives at an empty rail.
   //
@@ -243,14 +253,31 @@ export default async function RecsPage() {
   const topUp =
     personal.length >= 4
       ? []
-      : (await sceneFinds(known, { rotateBy: rotateBy + 977, limit: 8 }).catch(() => null))
+      : (await sceneFinds(known, { rotateBy: rotateBy + 977, limit: RACK_SIZE }).catch(() => null))
           ?.finds ?? [];
   const startHere = personal.length >= 4 ? personal : [...personal, ...topUp].slice(0, 8);
 
+  // Nothing appears in two rails.
+  //
+  // Each rail deduped inside itself and none of them knew about the
+  // others, so a record that is both "one step sideways from what you
+  // love" and "deeper into the 2010s" showed up in both, twice on one
+  // screen. The rails are built in parallel and then walked in order,
+  // dropping anything already used above: the rail with the strongest
+  // claim to a record is the one nearest the top, which is the order
+  // they are listed in anyway.
+  const usedKeys = new Set<string>();
+  const dedupe = <T extends { key: string }>(rail: T[]): T[] =>
+    rail.filter((find) => {
+      if (usedKeys.has(find.key)) return false;
+      usedKeys.add(find.key);
+      return true;
+    });
+
   const [personalFinds, sceneRail, eraRail] = await Promise.all([
-    enrichFinds(startHere),
-    enrichFinds(scene.finds),
-    enrichFinds(era.finds),
+    enrichFinds(dedupe(startHere)),
+    enrichFinds(dedupe(scene.finds)),
+    enrichFinds(dedupe(era.finds)),
   ]);
 
   // An empty rail because Last.fm is unreachable and an empty rail because

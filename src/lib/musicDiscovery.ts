@@ -181,15 +181,31 @@ export function rotate<T>(items: T[], by: number): T[] {
  * one neighbour of one artist can't take the whole row: you get one from
  * each direction before you get a second from any.
  */
+/**
+ * How many tracks by one artist a single rail may show.
+ *
+ * Two. A tag chart is full of the same handful of names - a shoegaze
+ * shelf came back four Slowdive, four My Bloody Valentine and five Have
+ * a Nice Life out of twenty four - and a rail that is really three
+ * artists is not a rail, it is three artists. The cap costs nothing when
+ * the pool is varied and does all the work when it is not.
+ */
+export const MAX_PER_ARTIST = 2;
+
 export function rankFinds(candidates: Candidate[], known: Known, limit: number): Find[] {
   const groups = new Map<string, Find[]>();
   const seen = new Set<string>();
+  const perArtist = new Map<string, number>();
 
   for (const candidate of candidates) {
     if (!candidate.name || !candidate.artist) continue;
     const key = workKey(candidate.name, candidate.artist);
     if (seen.has(key) || known.works.has(key)) continue;
     if (known.artists.has(squashArtist(candidate.artist))) continue;
+    const artistKey = squashArtist(candidate.artist);
+    const already = perArtist.get(artistKey) ?? 0;
+    if (already >= MAX_PER_ARTIST) continue;
+    perArtist.set(artistKey, already + 1);
     seen.add(key);
 
     const groupKey = candidate.becauseOf ?? "";
