@@ -202,7 +202,19 @@ async function getArtistCatalog(artistName: string): Promise<ItunesTrack[]> {
  */
 export async function lookupItunesTrack(
   trackName: string,
-  artistName: string
+  artistName: string,
+  /**
+   * Whether to fall back to the artist's whole catalogue on a miss.
+   *
+   * Worth two extra requests when somebody is waiting on one record.
+   * Ruinous in a batch: a shelf of a genuinely obscure tag misses on
+   * nearly everything, and every miss then costs three requests instead
+   * of one - so twenty four records became about seventy calls against a
+   * limit of twenty a minute, each throttle adding two and a half
+   * seconds of backoff on top. That is the shelf that never finishes
+   * loading, and it is spent entirely on records Apple does not have.
+   */
+  { deep = true }: { deep?: boolean } = {}
 ): Promise<ItunesTrackInfo> {
   try {
     const params = new URLSearchParams({
@@ -222,7 +234,7 @@ export async function lookupItunesTrack(
     // to be answered - it makes the queue worse for everything behind it.
     // Only worth it when the search really did come back and really did
     // not have the track.
-    if (!match && !throttled) {
+    if (!match && !throttled && deep) {
       const catalog = await getArtistCatalog(artistName);
       match = findMatch(catalog, trackName, artistName);
       // The year is read off whichever pool the match came from, not
