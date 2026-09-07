@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Sleeve } from "@/lib/crate";
 import { formatFor, formatForDecadeTag, type MediaFormat } from "@/lib/physicalMedia";
 import { belongsOnShelf, type ShelfSpan } from "@/lib/shelfSpan";
+import { knownTrackVideo, resolveTrackVideoId } from "@/lib/trackVideo";
 import { useOnScreen, useSleeves } from "@/lib/useSleeves";
 
 // The records on a shelf, which is a wooden shelf.
@@ -63,6 +64,31 @@ function toggle(key: string, url: string) {
   void audio.play().catch(stop);
 }
 
+// One video at a time, for the same reason there is one <audio>: a wall
+// of covers where two of them are playing is the thing that must not
+// happen on a page about listening.
+let videoKey: string | null = null;
+const videoListeners = new Set<() => void>();
+function emitVideo() {
+  for (const listener of videoListeners) listener();
+}
+function subscribeVideo(listener: () => void) {
+  videoListeners.add(listener);
+  return () => {
+    videoListeners.delete(listener);
+  };
+}
+function showVideo(key: string | null) {
+  // Starting a video stops the clip, and vice versa. Two players is two
+  // songs.
+  if (key) {
+    audio?.pause();
+    stop();
+  }
+  videoKey = key;
+  emitVideo();
+}
+
 export function ShelfRecords({
   records,
   emptyNote,
@@ -91,6 +117,11 @@ export function ShelfRecords({
   const playing = useSyncExternalStore(
     subscribe,
     () => playingKey,
+    () => null
+  );
+  const showing = useSyncExternalStore(
+    subscribeVideo,
+    () => videoKey,
     () => null
   );
 
@@ -137,6 +168,7 @@ export function ShelfRecords({
             waiting={pending(record.key)}
             want={want}
             playing={playing === record.key}
+            showingVideo={showing === record.key}
           />
         ))}
       </div>
@@ -161,6 +193,7 @@ function ShelfRecord({
   waiting,
   want,
   playing,
+  showingVideo,
 }: {
   record: Sleeve;
   shelfFormat: MediaFormat | null;
@@ -170,6 +203,8 @@ function ShelfRecord({
   waiting: boolean;
   want: ReturnType<typeof useSleeves>["want"];
   playing: boolean;
+  /** This is the one tile playing a video, if any tile is. */
+  showingVideo: boolean;
 }) {
   // Rows that arrived from the server with their cover and clip already
   // on them are asked for nothing: that request could only return what
@@ -183,6 +218,18 @@ function ShelfRecord({
   const art = info?.artworkUrl ?? record.imageUrl;
   const clip = info?.previewUrl ?? record.previewUrl;
   const year = info?.year ?? record.year;
+
+  // The other way to play a record. Only reached when the catalogue has
+  // no clip for it, only when somebody presses the button, and only once
+  // per record for the whole site - see lib/trackVideo. A shelf must
+  // never spend a YouTube search on its own.
+  const [video, setVideo] = useState<{ id: string | null; error: string | null } | null>(
+    () => {
+      const already = knownTrackVideo(record.key);
+      return already ? { id: already.videoId, error: already.error } : null;
+    }
+  );
+  const [finding, setFinding] = useState(false);
 
   // A record that turned out not to be from this shelf's years comes off
   // it. Only one we have actually looked up and actually disagree with:
@@ -199,7 +246,17 @@ function ShelfRecord({
   return (
     <article className="woodslot" ref={ref as React.Ref<HTMLElement>}>
       <div className={`wooditem fmt-${format}`}>
-        {art ? (
+        {showingVideo && video?.id ? (
+          // In the sleeve, where the record is. Same as the crate and
+          // same as a film's trailer: the thing you are looking at is
+          // the thing making the noise.
+          <iframe
+            src={`https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0`}
+            title={`${record.name} by ${record.artist}`}
+            allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+        ) : art ? (
           <img src={art} alt="" loading="lazy" decoding="async" />
         ) : (
           // Three states, not two. A cover on its way and a record the
@@ -212,7 +269,7 @@ function ShelfRecord({
             aria-busy={waiting || undefined}
           />
         )}
-        {clip && (
+        {clip ? (
           <button
             type="button"
             className={`wood-play${playing ? " playing" : ""}`}
@@ -221,7 +278,47 @@ function ShelfRecord({
           >
             <span aria-hidden="true">{playing ? "■" : "▶"}</span>
           </button>
-        )}
+        ) : info ? (
+          // No clip in the catalogue, which on a shelf of genuinely
+          // obscure records is most of them - and a record you cannot
+          // play is the complaint this whole area keeps generating. So
+          // the button is here anyway and finds the record on YouTube
+          // the first time anybody presses it.
+          <button
+            type="button"
+            className={`wood-play${showingVideo ? " playing" : ""}${
+              video?.error ? " dead" : ""
+            }`}
+            aria-label={
+              video?.error
+                ? `No way to play ${record.name}`
+                : showingVideo
+                ? `Stop ${record.name}`
+                : `Play ${record.name}`
+            }
+            aria-busy={finding || undefined}
+            disabled={finding || !!video?.error}
+            onClick={async () => {
+              if (showingVideo) {
+                showVideo(null);
+                return;
+              }
+              if (video?.id) {
+                showVideo(record.key);
+                return;
+              }
+              setFinding(true);
+              const found = await resolveTrackVideoId(record.key, record.name, record.artist);
+              setFinding(false);
+              setVideo({ id: found.videoId, error: found.error });
+              if (found.videoId) showVideo(record.key);
+            }}
+          >
+            <span aria-hidden="true">
+              {finding ? "…" : video?.error ? "×" : showingVideo ? "■" : "▶"}
+            </span>
+          </button>
+        ) : null}
       </div>
       <div className="woodlabel">
         <b title={record.name}>{record.name}</b>

@@ -213,13 +213,34 @@ export const DISCOVERY_TAGS: readonly string[] = (() => {
 })();
 
 /**
- * Artists to start discovery from when the community hasn't posted enough
- * to seed it themselves. Deliberately small and specific rather than a
- * canon: these are the corner of the map worth walking out from.
+ * Artists to start discovery from when the community hasn't posted
+ * enough to seed it themselves.
+ *
+ * Not a canon and not a chart. Every name here is a corner of the map
+ * worth walking out from, because that is literally what happens to it:
+ * one is picked at random, and half the time the engine steps one artist
+ * sideways before choosing a track. A seed is a starting point, so what
+ * matters is where it leads rather than how big it is.
+ *
+ * Two lanes, on purpose. One list of one scene walks out into the same
+ * neighbourhood every time however long it gets - which is what "it gets
+ * repetitive" was. Two unconnected corners of music means the sideways
+ * step lands somewhere genuinely different depending on where it
+ * started, and neither lane can crowd the other out because the pick is
+ * random across both.
  */
-export const SEED_ARTISTS = [
+
+/**
+ * Underground, in the sense the word actually gets used: digicore,
+ * plugg, hyperpop, the internet's own scenes. Mostly people with no
+ * radio history at all, where the deep cut IS the catalogue.
+ */
+const SEEDS_UNDERGROUND = [
   "2hollis",
   "Lucy Bedroque",
+  "Tezzus",
+  "Nine Vicious",
+  "Rommulas",
   "f5ve",
   "Canelle",
   "Jane Remover",
@@ -238,7 +259,52 @@ export const SEED_ARTISTS = [
   "glaive",
   "Sematary",
   "Aidan Bissett",
+  "midwxst",
+  "ericdoa",
+  "aldn",
+  "8485",
+  "Blackwinterwells",
+  "osquinn",
+  "Nettspend",
+  "osamason",
+  "xaviersobased",
 ];
+
+/**
+ * R&B and soul, weighted to the UK and to the people who never got the
+ * single - the lane somebody asked for by name and the site had none of.
+ *
+ * A couple of these are famous. That is fine and slightly the point:
+ * the engine skips an artist's top three tracks and drops anything with
+ * radio numbers, so a big name here comes back as the record off the
+ * album rather than the one off the advert.
+ */
+const SEEDS_RNB = [
+  "KWN",
+  "Sasha Keable",
+  "Isaiah Falls",
+  "Kehlani",
+  "Cleo Sol",
+  "Tiana Major9",
+  "Mahalia",
+  "Jorja Smith",
+  "Ama Lou",
+  "RAY BLK",
+  "Snoh Aalegra",
+  "UMI",
+  "Alex Isley",
+  "Baby Rose",
+  "Joyce Wrice",
+  "Sinead Harnett",
+  "Bellah",
+  "Greentea Peng",
+  "Olivia Dean",
+  "Amaria",
+  "Léa Sen",
+  "Kadeem Tyrell",
+];
+
+export const SEED_ARTISTS = [...SEEDS_UNDERGROUND, ...SEEDS_RNB];
 
 type RawArtist = { name?: string };
 
@@ -370,23 +436,41 @@ export function cleanArtistName(raw: string | null | undefined): string | null {
  */
 export async function getDeepCut(seeds: string[]): Promise<LastfmTrack | null> {
   const pool = seeds.length ? seeds : SEED_ARTISTS;
-  const seed = pool[Math.floor(Math.random() * pool.length)];
 
-  // Half the time review the seed artist themselves, half the time step out
-  // to a neighbour, so the pool widens over time instead of orbiting a
-  // fixed list.
-  let artist = seed;
-  if (Math.random() < 0.5) {
-    const similar = await getSimilarArtists(seed, 20).catch(() => []);
-    if (similar.length) artist = similar[Math.floor(Math.random() * similar.length)];
+  // Two goes at it, from two different seeds.
+  //
+  // A seed can come up empty for reasons that have nothing to do with
+  // the person browsing: a name spelled differently on Last.fm than the
+  // way it is written here, an artist too new to have a page, or a
+  // member whose own posts seeded this with somebody the service has
+  // never heard of. One go meant that landed as a blank space where a
+  // record should be, and the only way to get another was to reload -
+  // so it read as broken rather than as unlucky.
+  //
+  // The retry is cheap because it is rare: it only happens when the
+  // first seed produced nothing at all, which is the one case where not
+  // asking again means showing nobody anything.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const seed = pool[Math.floor(Math.random() * pool.length)];
+
+    // Half the time review the seed artist themselves, half the time step
+    // out to a neighbour, so the pool widens over time instead of orbiting
+    // a fixed list.
+    let artist = seed;
+    if (Math.random() < 0.5) {
+      const similar = await getSimilarArtists(seed, 20).catch(() => []);
+      if (similar.length) artist = similar[Math.floor(Math.random() * similar.length)];
+    }
+
+    const tracks = await getArtistTopTracks(artist, 30).catch(() => []);
+    if (tracks.length === 0) continue;
+
+    const deep = excludeHits(tracks.slice(3));
+    const from = deep.length >= 3 ? deep : excludeHits(tracks);
+    if (from.length === 0) continue;
+    return from[Math.floor(Math.random() * from.length)];
   }
-
-  const tracks = await getArtistTopTracks(artist, 30).catch(() => []);
-  if (tracks.length === 0) return null;
-
-  const deep = excludeHits(tracks.slice(3));
-  const from = deep.length >= 3 ? deep : excludeHits(tracks);
-  return from[Math.floor(Math.random() * from.length)];
+  return null;
 }
 
 /** A track from one of the scene tags rather than a decade or a chart. */

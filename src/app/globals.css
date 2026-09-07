@@ -6713,7 +6713,12 @@ footer .copy {
   z-index: 2;
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.4), rgba(0, 0, 0, 0.5));
 }
-.crate-stack.fmt-case .crate-sleeve iframe {
+/* Every sleeve, not just a film case.
+   This was scoped to fmt-case because only films played anything. Now a
+   record the catalogue has no clip for plays in its sleeve too, and a
+   vinyl or a jewel case needed the same rule or the player arrived
+   unsized. */
+.crate-sleeve iframe {
   width: 100%;
   height: 100%;
   border: 0;
@@ -16014,6 +16019,26 @@ button.btn-ghost {
   background-image: linear-gradient(180deg, #8e8e95 0%, #bdbdc3 48%, #e6e6e9 100%);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45) inset;
 }
+/* Nothing anywhere has this record. Left in place rather than removed,
+   because a button that vanishes reads as a page that broke, while a
+   dead one reads as an answer: we looked, there is nothing. */
+.wood-play.dead,
+.wood-play:disabled {
+  cursor: default;
+  color: #6f6f76;
+  background-image: linear-gradient(180deg, #e9e9ec 0%, #d3d3d8 50%, #b4b4ba 100%);
+}
+/* A record playing in its own sleeve, where the cover was. */
+.wooditem iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  border: 0;
+  background: #000;
+  box-shadow: 0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
 .woodlabel b {
   display: block;
   font-size: 10.5px;
@@ -17141,6 +17166,16 @@ button.btn-ghost {
   background: #1d1d21;
   box-shadow: 0 8px 14px -5px rgba(0, 0, 0, 0.75), 0 1px 0 rgba(255, 255, 255, 0.3) inset,
     0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+/* A record with no clip plays here, where its cover would be. 108px is
+   small for a video and that is deliberate: this is a preview of a
+   record you are deciding about, not a place to watch something. */
+.rack-held-art iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #000;
 }
 .rack-held-art img {
   width: 100%;

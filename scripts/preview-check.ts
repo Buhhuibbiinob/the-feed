@@ -19,8 +19,20 @@
  *
  * Run: npx tsx scripts/preview-check.ts
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { worthRemembering } from "../src/lib/coverCache";
+
+function walk(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...walk(path));
+    else if (path.endsWith(".ts") || path.endsWith(".tsx")) out.push(path);
+  }
+  return out;
+}
+const SOURCES = walk("src");
 
 let failures = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -85,6 +97,57 @@ check(
 const batch = readFileSync("src/app/api/crate/sleeves/route.ts", "utf8");
 check("the batch goes back for the records that came back empty", /nothingFound/.test(batch));
 check("...and that second pass uses the catalogue fallback", /pool\(nothingFound[\s\S]{0,40}?,\s*true\)/.test(batch));
+
+// ---- the YouTube budget ----
+//
+// A YouTube search costs 100 units of 10,000 a day, shared with every
+// film trailer on the site: a hundred searches for everybody for a whole
+// day. Playing a coverless record off YouTube is only affordable because
+// it happens when a person presses a button and never otherwise, so that
+// is enforced rather than remembered.
+const PLAY_ROUTE = "/api/music/play";
+const callers = SOURCES.filter((f) => readFileSync(f, "utf8").includes(PLAY_ROUTE));
+check(
+  "only lib/trackVideo asks the play route",
+  callers.length === 1 && callers[0].endsWith("trackVideo.ts"),
+  callers.join(", ")
+);
+
+// Nothing may resolve a video from an effect. An effect runs because a
+// component rendered, which means it runs on scroll, on navigation, and
+// once per record on screen - which is exactly the shape that would
+// spend the day's whole allowance on one visit to one shelf.
+for (const file of SOURCES) {
+  const src = readFileSync(file, "utf8");
+  if (!src.includes("resolveTrackVideoId") || file.endsWith("trackVideo.ts")) continue;
+  let from = src.indexOf("useEffect(");
+  while (from !== -1) {
+    let depth = 0;
+    let end = from;
+    for (let i = src.indexOf("(", from); i < src.length; i++) {
+      if (src[i] === "(") depth++;
+      else if (src[i] === ")") {
+        depth--;
+        if (depth === 0) {
+          end = i;
+          break;
+        }
+      }
+    }
+    const body = src.slice(from, end);
+    if (body.includes("resolveTrackVideoId")) {
+      check(`${file} does not look up videos from an effect`, false, "that runs on render, not on a press");
+    }
+    from = src.indexOf("useEffect(", end);
+  }
+}
+check(
+  "no component resolves a video from an effect",
+  !SOURCES.some((file) => {
+    const src = readFileSync(file, "utf8");
+    return file.endsWith("trackVideo.ts") ? false : /useOnScreen\([^)]*resolveTrackVideoId/.test(src);
+  })
+);
 
 console.log(
   failures === 0

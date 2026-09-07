@@ -130,3 +130,45 @@ export async function writeCovers(
     // to whoever asked.
   }
 }
+
+/**
+ * The video for a song, if anybody has ever looked it up.
+ *
+ * Kept apart from readCovers rather than folded into it, and selected on
+ * its own, so a database that has not run migration 016 fails only this
+ * one query and still gets its covers. The catch swallows a missing
+ * column exactly the way it swallows a missing table: the answer is
+ * "nobody knows", which is true and costs one YouTube search to fix.
+ */
+export async function readTrackVideo(key: string): Promise<string | null> {
+  try {
+    const { data, error } = await createAdminClient()
+      .from("track_covers")
+      .select("youtube_id")
+      .eq("work_key", key)
+      .maybeSingle<{ youtube_id: string | null }>();
+    if (error || !data) return null;
+    return data.youtube_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Remember it, so this song costs YouTube nothing ever again.
+ *
+ * Upserted rather than updated: the record may have no cover row yet
+ * (nobody has seen it on a shelf), and refusing to remember the video
+ * until somebody does would mean paying for the search twice.
+ */
+export async function writeTrackVideo(key: string, videoId: string): Promise<void> {
+  try {
+    await createAdminClient()
+      .from("track_covers")
+      .upsert({ work_key: key, youtube_id: videoId, updated_at: new Date().toISOString() }, {
+        onConflict: "work_key",
+      });
+  } catch {
+    // Best effort. The video is already on its way to whoever asked.
+  }
+}
