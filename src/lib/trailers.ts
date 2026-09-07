@@ -531,7 +531,17 @@ export async function newTrailers(
   search: TrailerSearch,
   limit = 6
 ): Promise<{ finds: ScreenFind[]; failure?: SearchFailure }> {
-  const result = await search("movie official trailer", Math.min(50, limit * 5), {
+  // Always fifty, whatever the caller wants to show.
+  //
+  // A search costs a hundred units no matter how many rows come back, so
+  // asking for fewer saves nothing - and the row count is part of the
+  // URL, which is the cache key. The home page wanted six and the new
+  // releases page wanted twenty, which made two different URLs, two
+  // cache entries and two hundred units a day for one question asked
+  // twice. Fixed at fifty they share one answer and the caller slices
+  // it, which is a hundred units for both and a deeper pool to slice
+  // from.
+  const result = await search("movie official trailer", 50, {
     revalidateSeconds: TRAILER_TTL_SECONDS,
     order: "date",
   }).catch(() => ({ videos: [], failure: { reason: "network" } as SearchFailure }));

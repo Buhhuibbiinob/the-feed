@@ -12,6 +12,7 @@
  *      catalogue, and a parser that gives up quietly produces a rail of
  *      cards called "Official Trailer".
  */
+import { failureFromBody } from "../src/lib/youtube";
 import {
   LANES,
   REFRESHES_PER_DAY,
@@ -21,6 +22,8 @@ import {
   TRAILER_TTL_SECONDS,
   worstCaseDailyUnits,
   filmTitleFromVideo,
+  newTrailers,
+  type TrailerSearch,
   looksLikeAFilm,
   rankTrailers,
   pickLane,
@@ -137,6 +140,71 @@ async function main() {
     throw new Error("no API key");
   });
   eq(result.finds, [], "a failing search returns an empty rail rather than taking Discover down with it");
+
+  // ---- Which failure is it, actually ----
+  //
+  // These four look identical from the outside and only one of them is
+  // worth waiting for. Reading the status code alone said "quota, comes
+  // back tomorrow" to all of them, so a key with a referrer restriction
+  // on it - which is what the Google console gives you by default, and
+  // which is useless from a server - reported as a spent quota every day
+  // forever.
+  const quotaBody = JSON.stringify({
+    error: { code: 403, errors: [{ reason: "quotaExceeded", message: "quota exceeded" }] },
+  });
+  const referrerBody = JSON.stringify({
+    error: { code: 403, errors: [{ reason: "ipRefererBlocked", message: "Requests from referer are blocked." }] },
+  });
+  const notEnabledBody = JSON.stringify({
+    error: { code: 403, errors: [{ reason: "accessNotConfigured", message: "YouTube Data API has not been used" }] },
+  });
+  const burstBody = JSON.stringify({
+    error: { code: 403, errors: [{ reason: "rateLimitExceeded", message: "too fast" }] },
+  });
+  const exhausted429 = JSON.stringify({ error: { code: 429, status: "RESOURCE_EXHAUSTED" } });
+
+  eq(failureFromBody(403, quotaBody).reason, "quota", "a spent daily quota is a spent daily quota");
+  eq(
+    failureFromBody(403, referrerBody).reason,
+    "key-rejected",
+    "a referrer-restricted key is not a quota problem and will still be broken tomorrow"
+  );
+  eq(
+    failureFromBody(403, notEnabledBody).reason,
+    "key-rejected",
+    "the API not being switched on for the project is not a quota problem either"
+  );
+  eq(failureFromBody(403, burstBody).reason, "rate-limited", "asking too fast clears in seconds");
+  eq(
+    failureFromBody(429, exhausted429).reason,
+    "quota",
+    "429 RESOURCE_EXHAUSTED is the daily wall wearing a different number, and telling somebody to wait a few seconds for it is how they end up retrying all day"
+  );
+  eq(
+    failureFromBody(500, "not json at all").reason,
+    "http",
+    "an unrecognised failure stays unrecognised rather than being guessed at"
+  );
+
+  // ---- One question, asked once ----
+  //
+  // A YouTube search costs a hundred units whatever maxResults says, and
+  // maxResults is part of the URL, which is the cache key. So two pages
+  // asking the same question with different row counts pay twice for one
+  // answer. The home page asked for six and the new releases page for
+  // twenty, which was exactly that.
+  const seen: string[] = [];
+  const spy: TrailerSearch = async (query, limit) => {
+    seen.push(`${query}|${limit}`);
+    return { videos: [] };
+  };
+  await newTrailers(spy, 6);
+  await newTrailers(spy, 20);
+  if (seen[0] === seen[1]) {
+    ok(`both pages ask YouTube the same thing (${seen[0]}), so it is one cached answer and one hundred units rather than two`);
+  } else {
+    bad(`the two pages ask different things (${seen.join(" vs ")}), which is two cache entries for one question`);
+  }
 
   // ---- And no TMDB on any page somebody browses films on ----
   //
