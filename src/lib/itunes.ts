@@ -304,13 +304,28 @@ export async function searchItunesSongs(query: string, limit = 10): Promise<Itun
     entity: "song",
     limit: String(limit),
   });
-  const res = await cachedFetch(`https://itunes.apple.com/search?${params.toString()}`, 3600);
-  if (!res) throw new Error("Couldn't reach iTunes.");
-  // Unlike the art backfill, a failure here is worth telling apart from
-  // "no such song" - the box says which.
-  if (!res.ok) throw new Error(`iTunes search failed: ${res.status}`);
+  // Through itunesFetch, which retries a throttle. This used to be a
+  // bare request that threw on any non-OK answer, so the moment Apple
+  // said 403 - which it does the instant you ask more than about twenty
+  // times a minute, and the shelves are asking constantly - the search
+  // box in the post form died outright with "couldn't reach the music
+  // catalogue". Nothing was unreachable. It was busy, for a second, and
+  // the one code path here that had no retry was the one a person sits
+  // and watches.
+  const { data: payload, throttled } = await itunesFetch(
+    `https://itunes.apple.com/search?${params.toString()}`
+  );
+  if (!payload) {
+    // Said apart, because they need different things from whoever reads
+    // it: one is "try that again", the other is "this is broken".
+    throw new Error(
+      throttled
+        ? "The music catalogue is busy. Give it a couple of seconds."
+        : "Couldn't reach the music catalogue."
+    );
+  }
 
-  const data = (await res.json()) as { results?: ItunesSongResult[] };
+  const data = payload as { results?: ItunesSongResult[] };
   return (data.results ?? [])
     .filter((r) => r.trackName && r.artistName && r.trackId)
     .map((r) => ({

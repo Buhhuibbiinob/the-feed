@@ -26,13 +26,23 @@ export async function GET(request: NextRequest) {
 
   try {
     return NextResponse.json({ songs: await searchItunesSongs(query) });
-  } catch {
+  } catch (err) {
     // The reason travels with the result, the same as the YouTube route:
     // an empty list meaning "search is down" and one meaning "no such
     // song" are different answers.
+    //
+    // And the reason is the one the catalogue gave, not a single line
+    // for everything. "Couldn't reach it" was being said about a
+    // catalogue that answered immediately and said "slow down" - so the
+    // advice was wrong as well as the diagnosis, because the thing to
+    // do about a throttle is wait two seconds, not check your
+    // connection.
     return NextResponse.json({
       songs: [],
-      error: "Couldn't reach the music catalogue. Try again in a moment.",
+      error:
+        err instanceof Error && err.message
+          ? err.message
+          : "Couldn't reach the music catalogue. Try again in a moment.",
     });
   }
 }
