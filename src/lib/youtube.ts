@@ -1,4 +1,12 @@
 import { cachedFetch } from "@/lib/cachedFetch";
+import {
+  cacheKey,
+  canSpend,
+  readSearch,
+  spendUnits,
+  writeSearch,
+  type SearchPriority,
+} from "@/lib/youtubeBudget";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { siteUrl } from "@/lib/site";
 
@@ -199,13 +207,54 @@ export function failureFromBody(status: number, body: string): SearchFailure {
   return { reason: "http", status };
 }
 
-/** The full answer, failure included. */
+/** The full answer, failure included.
+ *
+ * Every search on the site goes through here, which is why the whole
+ * budget lives here rather than being remembered at each call site. See
+ * lib/youtubeBudget: the answers are kept in the database so they
+ * survive a deploy, background work may spend only part of the day's
+ * allowance, and when there is nothing left a stale answer is served
+ * rather than none.
+ */
 export async function searchVideosDetailed(
   query: string,
   limit = 8,
   options: Parameters<typeof searchVideos>[2] = {}
 ): Promise<SearchResult> {
   if (!API_KEY) return { videos: [], failure: { reason: "not-configured" } };
+
+  const priority: SearchPriority = options.priority ?? "background";
+  const ttl = options.revalidateSeconds ?? 1800;
+  const key = cacheKey(query, limit, {
+    publishedAfter: options.publishedAfter,
+    publishedBefore: options.publishedBefore,
+    order: options.order,
+  });
+
+  // What the site already knows, across every visitor and every deploy.
+  //
+  // This is the change that actually saves the allowance. The results
+  // were cached in the deployment, so every push threw the day's answers
+  // away and the next visitor paid for all of them again - a day with
+  // five deploys cost five times what it should.
+  const remembered = await readSearch(key);
+  if (remembered && remembered.ageSeconds < ttl) {
+    return { videos: remembered.videos };
+  }
+
+  // Refreshing a shelf is not worth the play button.
+  //
+  // Background work gets most of the day and no more; what is left is
+  // held for somebody who is actually waiting - pressing play on a
+  // record with no clip, or resolving a song they just picked. A heavy
+  // day should degrade by shelves going stale, not by play buttons
+  // dying.
+  if (!(await canSpend(priority))) {
+    // Yesterday's shelf is a shelf. Nothing at all is a page that looks
+    // broken, which is the outcome worth avoiding.
+    if (remembered) return { videos: remembered.videos };
+    return { videos: [], failure: { reason: "quota" } };
+  }
 
   const params = new URLSearchParams({
     key: API_KEY,
@@ -222,11 +271,22 @@ export async function searchVideosDetailed(
   // lifetime and does not opt in, so every page view was a live search
   // at a hundred units of a ten thousand a day quota - which is what the
   // rate limit on the rails was.
+  //
+  // Counted before the request rather than after it: two page views at
+  // the same moment both getting past the check above is a small
+  // overrun, while two getting past it and neither being counted is how
+  // a budget stops meaning anything.
+  await spendUnits();
   const res = await cachedFetch(
     `https://www.googleapis.com/youtube/v3/search?${params.toString()}`,
-    options.revalidateSeconds ?? 1800
+    ttl
   );
-  if (!res) return { videos: [], failure: { reason: "network" } };
+  if (!res) {
+    // A network failure is not a reason to show nothing if there is an
+    // older answer sitting right there.
+    if (remembered) return { videos: remembered.videos };
+    return { videos: [], failure: { reason: "network" } };
+  }
 
   if (!res.ok) {
     // Read what Google said, not just the number it said it with.
@@ -237,21 +297,25 @@ export async function searchVideosDetailed(
     // show a sentence, and the reason string is what actually says
     // whether to wait, to top up, or to go and fix the key.
     console.error(`[youtube] ${res.status} ${failure.reason}: ${body.slice(0, 300)}`);
+    // Same again: a spent quota or a rejected key should fall back to
+    // what is remembered rather than emptying every shelf on the site.
+    if (remembered) return { videos: remembered.videos };
     return { videos: [], failure };
   }
 
   const data = (await res.json()) as { items: YoutubeSearchItem[] };
-  return {
-    videos: data.items
-      .filter((item) => item.id.videoId)
-      .map((item) => ({
-        id: item.id.videoId,
-        title: item.snippet.title,
-        channelTitle: item.snippet.channelTitle,
-        thumbnailUrl:
-          item.snippet.thumbnails.medium?.url ?? item.snippet.thumbnails.default?.url ?? null,
-      })),
-  };
+  const videos = data.items
+    .filter((item) => item.id.videoId)
+    .map((item) => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      thumbnailUrl:
+        item.snippet.thumbnails.medium?.url ?? item.snippet.thumbnails.default?.url ?? null,
+    }));
+  // Written down for everybody, not just for this deployment.
+  await writeSearch(key, query, videos);
+  return { videos };
 }
 
 /**
@@ -269,6 +333,16 @@ export async function searchVideos(
     // on every page render (rather than on a user's keystroke) can hold
     // their results for longer than the default half hour.
     revalidateSeconds?: number;
+    /**
+     * Who is waiting on this.
+     *
+     * "background" is a page refreshing itself - a shelf, a rail, the
+     * Feed TV - and gets most of the day's allowance and no more.
+     * "user" is somebody who pressed something and is looking at a
+     * spinner, and gets what is left over. Defaults to background,
+     * because the wrong default there is a shelf that outbids a person.
+     */
+    priority?: SearchPriority;
   } = {}
 ): Promise<YoutubeVideo[]> {
   return (await searchVideosDetailed(query, limit, options)).videos;

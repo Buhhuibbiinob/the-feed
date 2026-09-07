@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const { videos, failure } = await searchVideosDetailed(query);
+  // Typed by a person, into a box, right now.
+  const { videos, failure } = await searchVideosDetailed(query, 8, { priority: "user" });
   // The reason travels with the result. An empty list that means "search
   // is broken" and an empty list that means "no such song" are different
   // answers, and the box needs to be able to say which.
