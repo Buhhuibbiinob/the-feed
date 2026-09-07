@@ -46,7 +46,16 @@ export async function GET(request: NextRequest) {
   const remembered = await readTrackVideo(key);
   if (remembered) return NextResponse.json({ videoId: remembered });
 
-  const { videos, failure } = await searchVideosDetailed(artist ? `${artist} ${title}` : title, 3);
+  // A person is looking at a spinner, so this gets the part of the day's
+  // allowance the shelves are not allowed to touch. See lib/youtubeBudget:
+  // background work stops at seventy per cent and this does not, which is
+  // the difference between a day that degrades into stale shelves and a
+  // day where the play button stops working at four in the afternoon.
+  const { videos, failure } = await searchVideosDetailed(
+    artist ? `${artist} ${title}` : title,
+    3,
+    { priority: "user" }
+  );
   const videoId = videos[0]?.id ?? null;
   if (!videoId) {
     return NextResponse.json({

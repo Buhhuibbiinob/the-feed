@@ -32,9 +32,13 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
+  // Somebody picked this song and is waiting for it to become playable,
+  // so it spends from the reserved part of the day rather than queueing
+  // behind whatever shelf refreshed itself this morning.
   const { videos, failure } = await searchVideosDetailed(
     artist ? `${artist} ${title}` : title,
-    3
+    3,
+    { priority: "user" }
   );
 
   return NextResponse.json({
