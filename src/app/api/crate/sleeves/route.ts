@@ -28,7 +28,7 @@ import { lookupItunesTrack, type ItunesTrackInfo } from "@/lib/itunes";
 const MAX_ITEMS = 24;
 
 /** How many of a batch are in flight at once. */
-const CONCURRENCY = 6;
+const CONCURRENCY = 4;
 
 /**
  * How long the whole batch gets before it answers with what it has.
@@ -89,7 +89,19 @@ export async function POST(request: NextRequest) {
       const info = await lookupItunesTrack(ask.title, ask.artist, { deep: false }).catch(
         () => null
       );
-      if (info) results[ask.key] = info;
+      // A throttled lookup is left OUT of the answer rather than
+      // reported as an empty one.
+      //
+      // Apple answers 403 when asked too often, and lookupItunesTrack
+      // hands back the same all-nulls shape for that as for "no such
+      // track". Passing it on made the browser cache "this record has no
+      // cover" for the life of the tab - and since the shelf now swaps
+      // out records it believes are unplayable, a throttled batch could
+      // empty a shelf of records that were all perfectly fine.
+      //
+      // Absent from the answer means "ask again". The client leaves
+      // those keys unclaimed and picks them up on the next pass.
+      if (info && !info.throttled) results[ask.key] = info;
     }
   }
   await Promise.race([

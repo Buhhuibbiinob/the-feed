@@ -83,6 +83,31 @@ check(
   "the server sends more than the shelf shows so there is something to swap in"
 );
 
+check(
+  "a throttled lookup is told apart from a missing one",
+  /throttled\?: boolean/.test(itunes) && /\.\.\.NO_TRACK_INFO, throttled/.test(itunes),
+  "Apple answers 403 when asked too often and the old code returned that as all-nulls, identical to 'no such track'"
+);
+check(
+  "the batch leaves a throttled lookup out of its answer",
+  /!info\.throttled/.test(route),
+  "reporting it as an empty answer made the browser cache 'no cover' for the life of the tab - which is how a Psychedelic shelf full of Hendrix and the Beatles came out blank"
+);
+check(
+  "the client releases anything the batch did not answer for",
+  /if \(item\.key in results\)/.test(hook) && /asked\.delete\(item\.key\)/.test(hook)
+);
+check(
+  "and asks again, a bounded number of times",
+  /MAX_ATTEMPTS/.test(hook) && /RETRY_MS/.test(hook),
+  "a released key is never re-requested on its own: useOnScreen disconnects after the first sighting, so nothing would ever ask again"
+);
+check(
+  "a record that really is missing is answered once and left alone",
+  /attempts\.delete\(item\.key\)/.test(hook),
+  "only refusals are retried, not genuine misses"
+);
+
 console.log(
   failures === 0
     ? "\nA screenful is one request, and it always finishes."

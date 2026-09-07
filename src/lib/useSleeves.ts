@@ -50,6 +50,22 @@ const answers = new Map<string, SleeveInfo>();
 /** In flight or already asked, so nothing is requested twice. */
 const asked = new Set<string>();
 
+/**
+ * How many times a record has been asked for and not answered.
+ *
+ * Only counts the answers Apple refused to give. A record that is
+ * genuinely not in the catalogue gets one attempt and an answer, and is
+ * never asked again; a record caught in a throttle gets a few more,
+ * spaced out, because the throttle clears in seconds and the cover is
+ * really there. Capped, because a shelf that keeps asking forever is a
+ * shelf making the throttle worse.
+ */
+const attempts = new Map<string, number>();
+const MAX_ATTEMPTS = 3;
+
+/** Long enough for Apple's minute-long window to move on. */
+const RETRY_MS = 1400;
+
 /** How many go in one request. Matches the route's own cap. */
 const BATCH = 24;
 /** Long enough to collect a screenful, short enough to feel immediate. */
@@ -115,13 +131,50 @@ export function useSleeves() {
         return;
       }
       const data = (await res.json()) as { results?: Record<string, SleeveInfo> };
-      for (const [key, info] of Object.entries(data.results ?? {})) answers.set(key, info);
+      const results = data.results ?? {};
+      for (const [key, info] of Object.entries(results)) answers.set(key, info);
+      // Anything the batch did not answer for is released rather than
+      // remembered as an empty answer.
+      //
+      // The server leaves out the lookups Apple refused to serve, which
+      // is the difference between "no cover exists" and "we could not
+      // ask right now". Keeping those in `asked` would mean one
+      // throttled moment blanks a record permanently - and on a busy
+      // shelf that is most of the shelf.
+      let retrying = false;
+      for (const item of items) {
+        if (item.key in results) {
+          attempts.delete(item.key);
+          continue;
+        }
+        const tries = (attempts.get(item.key) ?? 0) + 1;
+        attempts.set(item.key, tries);
+        asked.delete(item.key);
+        if (tries < MAX_ATTEMPTS) {
+          // Put it back in the queue itself. The element that asked for
+          // it has long since stopped watching - useOnScreen disconnects
+          // after the first sighting - so nothing else would ever ask
+          // again, and a released key would just sit there unclaimed
+          // looking exactly like the bug it was meant to fix.
+          asked.add(item.key);
+          queue.current.set(item.key, item);
+          retrying = true;
+        }
+      }
+      if (retrying && alive.current) {
+        timer.current = setTimeout(() => {
+          timer.current = null;
+          void latest.current?.();
+        }, RETRY_MS);
+      }
     } catch {
       for (const item of items) asked.delete(item.key);
       return;
     }
     if (alive.current) bump((n) => n + 1);
-    // More came into view while that was in the air.
+    // More came into view while that was in the air. schedule() does
+    // nothing if the retry above already set a timer, which is what we
+    // want: one timer, the slower of the two.
     if (queue.current.size > 0 && alive.current) schedule();
   }, [schedule]);
 
