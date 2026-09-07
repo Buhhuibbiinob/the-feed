@@ -1,6 +1,6 @@
 import type { SearchFailure, YoutubeVideo } from "@/lib/youtube";
 import { workKey } from "@/lib/taste";
-import { rotate, shuffleSeed, type Known, type SeedPost } from "@/lib/musicDiscovery";
+import { rotate, shuffleSeed, type Known, type SeedPost, NOTHING_KNOWN } from "@/lib/musicDiscovery";
 
 // Films and shows in Discover, without a paid catalogue behind them.
 //
@@ -173,6 +173,14 @@ const NOISE = [
   "restored trailer",
   "theatrical trailer",
   "official trailer",
+  // As a phrase, never as a word. "The Game (1997) Original Trailer HD"
+  // came out as "The Game Original", because "trailer hd" was stripped
+  // as one phrase and left "original" qualifying nothing - but stripping
+  // "original" on its own turns "The Original Kings of Comedy" into "The
+  // Kings of Comedy", which is a different film. The phrase is safe; the
+  // word is not. This has to sit above "trailer hd" so the longer match
+  // wins, which is the order the whole list is in.
+  "original trailer",
   "final trailer",
   "teaser trailer",
   "full trailer",
@@ -220,6 +228,11 @@ export function filmTitleFromVideo(videoTitle: string): { title: string; year: s
   // A year outside brackets survives the strip above and ends up in the
   // name: "Night of the Living Dead 1968". It has already been captured.
   name = name.replace(/\b(19[3-9]\d|20[0-3]\d)\b/g, " ");
+  // "Official Trailer #1" leaves a stray 1 on the end of the name once
+  // the words around it have gone - "The Fifth Element 1". The hash and
+  // its number are the uploader numbering their own uploads, so they go
+  // before anything else can mistake the number for part of a title.
+  name = name.replace(/#\s*\d+/g, " ");
   const cleaned = name.replace(/[^a-z0-9'’:!?&.,\s-]/g, " ").replace(/\s+/g, " ").trim();
   const trimmed = cleaned.replace(/[\s:,.\-]+$/, "").replace(/^[\s:,.\-]+/, "");
 
@@ -346,7 +359,7 @@ export function rankTrailers(
 export type TrailerSearch = (
   query: string,
   limit: number,
-  options: { revalidateSeconds: number }
+  options: { revalidateSeconds: number; order?: string }
 ) => Promise<{ videos: YoutubeVideo[]; failure?: SearchFailure }>;
 
 /**
@@ -494,4 +507,38 @@ export async function filmShelf(
     }
   }
   return { finds };
+}
+
+/**
+ * Trailers that went up recently. What is coming out, without a
+ * catalogue.
+ *
+ * The home page used to ask TMDB what was in cinemas, which is a better
+ * answer to that question and costs money to keep asking - and the whole
+ * reason trailers exist on this site is that they do not. So the
+ * question changes slightly: not "what is released this month" but "what
+ * has a trailer out", which is what anybody actually browses for anyway,
+ * and which the studios publish for free.
+ *
+ * Ordered by upload date rather than relevance, and the query carries no
+ * date in it. That is deliberate: putting today into the query would
+ * make a new cache key every day AND every time the clock ticked over
+ * for somebody in another timezone, which is how a single shared answer
+ * becomes one search per visitor. One fixed string, one cached answer, a
+ * hundred units a day.
+ */
+export async function newTrailers(
+  search: TrailerSearch,
+  limit = 6
+): Promise<{ finds: ScreenFind[]; failure?: SearchFailure }> {
+  const result = await search("movie official trailer", Math.min(50, limit * 5), {
+    revalidateSeconds: TRAILER_TTL_SECONDS,
+    order: "date",
+  }).catch(() => ({ videos: [], failure: { reason: "network" } as SearchFailure }));
+  if (result.failure) return { finds: [], failure: result.failure };
+  // Nothing is filtered out for having been reviewed here: this is a
+  // "what is out" shelf, not a recommendation, and hiding a film from it
+  // because one person wrote about it would make the shelf wrong for
+  // everybody else.
+  return { finds: rankTrailers(result.videos, NOTHING_KNOWN, null, limit) };
 }

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getTrendingTracks } from "@/lib/lastfm";
 import { fillMissingArt } from "@/lib/musicArt";
-import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
+import { newTrailers } from "@/lib/trailers";
+import { describeSearchFailure, searchVideosDetailed } from "@/lib/youtube";
 import { guardBuiltinPage } from "@/lib/pages";
 import { Stars } from "@/components/Stars";
 import { CoverArt } from "@/components/CoverArt";
@@ -22,9 +23,12 @@ export const metadata = { title: "New Releases on Feedback" };
 export default async function NewReleasesPage() {
   const supabase = await createClient();
   await guardBuiltinPage(supabase, "new-releases");
-  const [rawTracks, movies, { data: posts }] = await Promise.all([
+  const [rawTracks, films, { data: posts }] = await Promise.all([
     getTrendingTracks(20),
-    getUpcomingMoviesAndTv(20),
+    // Trailers rather than a catalogue, the same as the strip on the
+    // home page that links here. The two disagreeing about where films
+    // come from would show up the moment somebody pressed See All.
+    newTrailers(searchVideosDetailed, 20),
     supabase
       .from("posts")
       .select("id, title, artist, cover_url, rating, created_at, profiles!posts_user_id_fkey(username)")
@@ -67,22 +71,27 @@ export default async function NewReleasesPage() {
       <div className="panel">
         <div className="panel-head">New Movies &amp; TV</div>
         <div className="release-grid">
-          {movies.length === 0 ? (
+          {films.finds.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>
-              Couldn&apos;t load new movies/TV right now - try again later.
+              {/* Which kind of empty, rather than one line for all of
+                  them. A missing key and a spent quota are somebody's to
+                  fix; "try again later" only helps for neither. */}
+              {films.failure
+                ? describeSearchFailure(films.failure)
+                : "No new trailers came back just now. There will be more tomorrow."}
             </div>
           ) : (
-            movies.map((item) => (
+            films.finds.map((item) => (
               <a
-                href={`https://www.themoviedb.org/${item.mediaType}/${item.id.replace(/^(movie|tv)-/, "")}`}
+                href={`https://www.youtube.com/watch?v=${item.videoId}`}
                 target="_blank"
                 rel="noreferrer"
                 className="release-card"
-                key={item.id}
+                key={item.key}
               >
-                <CoverArt imageUrl={item.imageUrl} seed={item.id} />
+                <CoverArt imageUrl={item.imageUrl} seed={item.key} />
                 <div className="release-title">{item.title}</div>
-                <div className="release-sub">{item.date ?? (item.mediaType === "tv" ? "TV" : "Movie")}</div>
+                <div className="release-sub">{item.year ?? item.channel}</div>
               </a>
             ))
           )}

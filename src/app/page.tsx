@@ -14,7 +14,8 @@ import { OrbyBot } from "@/components/OrbyBot";
 import { getOrbyWishesLeft } from "@/app/actions/orby";
 import { NewsletterSubscribeForm } from "@/components/NewsletterSubscribeForm";
 import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
-import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
+import { newTrailers } from "@/lib/trailers";
+import { searchVideosDetailed } from "@/lib/youtube";
 import { MEDIA_TYPES, MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
 import { PlaylistWall } from "@/components/PlaylistWall";
 import { isMissingSchema } from "@/lib/dbError";
@@ -248,7 +249,7 @@ export default async function FeedPage({
     postsCount,
     { data: likeRows },
     { data: commentRows },
-    upcomingMovies,
+    newFilms,
     { data: statusRows },
     { data: clubRows },
     { data: authorPostRows },
@@ -265,7 +266,11 @@ export default async function FeedPage({
     supabase.from("posts").select("id", { count: "exact", head: true }),
     supabase.from("likes").select("post_id, user_id"),
     supabase.from("comments").select("post_id"),
-    getUpcomingMoviesAndTv(6),
+    // Trailers rather than a catalogue. TMDB answers "what is in cinemas"
+    // better than this does and charges for the privilege, and the whole
+    // reason trailers are on this site is that they do not. One search,
+    // one cached answer for the day, a hundred units.
+    newTrailers(searchVideosDetailed, 6),
     supabase
       .from("profiles")
       .select("username, status_media_type, status_title, status_artist")
@@ -1133,7 +1138,7 @@ export default async function FeedPage({
           </Link>
         )}
 
-        {siteFlags.homepage_new_releases && upcomingMovies.length > 0 && (
+        {siteFlags.homepage_new_releases && newFilms.finds.length > 0 && (
           <div className="panel">
             <div className="panel-head tabbed">
               <span className="panel-head-tab">
@@ -1145,9 +1150,9 @@ export default async function FeedPage({
               </Link>
             </div>
             <div className="release-grid" style={{ padding: 16 }}>
-              {upcomingMovies.map((item) => (
-                <div className="release-card" key={item.id}>
-                  <CoverArt imageUrl={item.imageUrl} seed={item.id} />
+              {newFilms.finds.map((item) => (
+                <div className="release-card" key={item.key}>
+                  <CoverArt imageUrl={item.imageUrl} seed={item.key} />
                   <div className="release-title">{item.title}</div>
                 </div>
               ))}

@@ -74,6 +74,16 @@ const CASES: [string, string, string | null][] = [
   ["PARASITE - Official Trailer", "Parasite", null],
   ["Night of the Living Dead 1968 trailer", "Night of the Living Dead", "1968"],
   ["The Silence of the Lambs — Trailer HD", "The Silence of the Lambs", null],
+  // An uploader numbering their own uploads. The hash and its number
+  // used to survive and end up as part of the name: "The Fifth Element 1".
+  ["The Fifth Element (1997) Official Trailer #1 - Bruce Willis Movie HD", "The Fifth Element", "1997"],
+  // "trailer hd" is stripped as one phrase, which used to leave
+  // "original" qualifying nothing: "The Game Original".
+  ["The Game (1997) Original Trailer HD", "The Game", "1997"],
+  // And the reason that is fixed with a phrase rather than a word. Strip
+  // a bare "original" and this becomes a different film.
+  ["The Original Kings of Comedy (2000) Trailer", "The Original Kings of Comedy", "2000"],
+  ["Original Sin (2001) Trailer", "Original Sin", "2001"],
 ];
 for (const [input, title, year] of CASES) {
   const got = filmTitleFromVideo(input);
@@ -128,9 +138,22 @@ async function main() {
   });
   eq(result.finds, [], "a failing search returns an empty rail rather than taking Discover down with it");
 
-  // ---- And no TMDB anywhere near it ----
-  const src =
-    readFileSync("src/lib/trailers.ts", "utf8") + readFileSync("src/app/recs/page.tsx", "utf8");
+  // ---- And no TMDB on any page somebody browses films on ----
+  //
+  // This used to check Discover alone, and Discover was clean while the
+  // home page, the page its See All linked to, and the Shelves film wall
+  // all still went to a paid catalogue. "Films come from YouTube" is
+  // either true of every page that shows films or it is not true.
+  const src = [
+    "src/lib/trailers.ts",
+    "src/app/recs/page.tsx",
+    "src/app/page.tsx",
+    "src/app/new-releases/page.tsx",
+    "src/app/shelves/page.tsx",
+    "src/app/crate/page.tsx",
+  ]
+    .map((f) => readFileSync(f, "utf8"))
+    .join("\n");
   // Usage, not the word. A comment saying why Discover no longer needs a
   // paid catalogue is the note somebody will thank us for; an import or a
   // read of the key is the thing that costs money.
@@ -140,9 +163,9 @@ async function main() {
     /api\.themoviedb\.org/i,
   ].filter((re) => re.test(src));
   if (reaches.length > 0) {
-    bad(`Discover still reaches for TMDB (${reaches.length} way(s)) - the point was that it costs money and should not be needed here`);
+    bad(`a film page still reaches for TMDB (${reaches.length} way(s)) - the point was that it costs money and should not be needed`);
   } else {
-    ok("Discover imports nothing from TMDB, reads no TMDB key and calls no TMDB endpoint, so there is nothing to pay for");
+    ok("no page that shows films imports TMDB, reads its key or calls its endpoint, so there is nothing to pay for");
   }
 
   console.log(
