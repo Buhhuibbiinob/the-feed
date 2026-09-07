@@ -63,6 +63,26 @@ check(
   /asked\.delete\(item\.key\)/.test(hook)
 );
 
+check(
+  "the timer handle is cleared before the flush runs, not inside it",
+  /timer\.current = null;\s*\n\s*void latest\.current\?\.\(\);/.test(hook),
+  "latest starts unset because it cannot be assigned until an effect runs; if the timer fired first, nothing was fetched AND the handle stayed set, so schedule() returned early forever and the queue was stranded for the life of the page - which is exactly 'it never loads until I refresh'"
+);
+check(
+  "anything queued before the flush was wired still gets sent",
+  /if \(queue\.current\.size > 0\) schedule\(\);/.test(hook)
+);
+check(
+  "the shelf can tell 'on its way' from 'not in the catalogue'",
+  /pending/.test(hook) && /waiting/.test(shelf),
+  "both were a blank sleeve, so a finished shelf looked like a working one"
+);
+check(
+  "a record with no cover and no clip is replaced rather than left blank",
+  /const dead =/.test(shelf) && /SHOW/.test(shelf),
+  "the server sends more than the shelf shows so there is something to swap in"
+);
+
 console.log(
   failures === 0
     ? "\nA screenful is one request, and it always finishes."

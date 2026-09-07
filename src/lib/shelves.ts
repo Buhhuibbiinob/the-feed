@@ -504,6 +504,17 @@ export function shelfYears(axis: AxisId, value: string): ShelfSpan | null {
 export const SHELF_SIZE = 50;
 
 /**
+ * How many extra records come back beyond the ones on show.
+ *
+ * Replacements. A record whose cover and clip the catalogue does not
+ * have is a blank sleeve with nothing to press, and the shelf trades it
+ * for one of these the moment the lookup says so - so what is on the
+ * boards is what actually works, rather than fifty attempts of which
+ * some number are dead.
+ */
+export const SHELF_SPARE = 40;
+
+/**
  * How far into a tag chart to start.
  *
  * Five was nowhere near enough, and the reason is written in lastfm.ts:
@@ -616,7 +627,14 @@ export async function getShelf(
   // way round the finds are what you see and page one is the backstop
   // that keeps the shelf full.
   const tracks = [...deeper, ...front];
-  const shelf = fillShelf(tracks, known, SHELF_SIZE, rotateBy);
+  // Fetched deeper than the shelf shows, and the extra is not padding.
+  //
+  // A record the catalogue has nothing for is a blank sleeve you cannot
+  // play, and a wall of those is the thing that got reported. The
+  // browser swaps each one out for the next record down as soon as it
+  // finds out, so the tail is the supply of replacements. Costs nothing:
+  // the tracks were already in the answer.
+  const shelf = fillShelf(tracks, known, SHELF_SIZE + SHELF_SPARE, rotateBy);
 
   // Nothing is enriched here any more, and that is the whole speed fix.
   //

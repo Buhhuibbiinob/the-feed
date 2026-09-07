@@ -64,7 +64,7 @@ export function useSleeves() {
   // scrolled into view while a batch was in the air. It cannot name
   // itself inside its own definition, so the timer calls it through a
   // ref that is kept pointing at the current one.
-  const latest = useRef<() => Promise<void>>(async () => {});
+  const latest = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     alive.current = true;
@@ -76,7 +76,21 @@ export function useSleeves() {
 
   const schedule = useCallback(() => {
     if (timer.current) return;
-    timer.current = setTimeout(() => void latest.current(), COALESCE_MS);
+    timer.current = setTimeout(() => {
+      // Cleared BEFORE the call, not inside it.
+      //
+      // This is the bug behind "it never loads until I refresh and come
+      // back". latest started as a no-op, because it cannot be assigned
+      // until the effect below runs, and a no-op does not clear the
+      // timer handle. So if the timer ever fired first, nothing was
+      // fetched AND timer.current stayed set - which makes this function
+      // return early on every subsequent call, forever. The queue was
+      // stranded for the life of the page, and the only thing that
+      // looked like a fix was navigating away and back, because the
+      // answers map survives and the second visit paints from it.
+      timer.current = null;
+      void latest.current?.();
+    }, COALESCE_MS);
   }, []);
 
   const flush = useCallback(async () => {
@@ -113,7 +127,10 @@ export function useSleeves() {
 
   useEffect(() => {
     latest.current = flush;
-  }, [flush]);
+    // Anything that queued up before this ref was wired still needs
+    // sending. Cheap to check and it closes the window entirely.
+    if (queue.current.size > 0) schedule();
+  }, [flush, schedule]);
 
   /** Say that a record is on screen. Safe to call on every render. */
   const want = useCallback(
@@ -128,7 +145,21 @@ export function useSleeves() {
 
   const get = useCallback((key: string): SleeveInfo | undefined => answers.get(key), []);
 
-  return { want, get };
+  /**
+   * Whether this record has been asked for and not yet answered.
+   *
+   * The shelf needs this to tell two identical-looking things apart: a
+   * record whose cover is on its way, and a record the catalogue does
+   * not have. Both were drawn as a blank sleeve, so a shelf that had
+   * finished looked exactly like a shelf that was still working, and the
+   * only way to know was to keep staring at it.
+   */
+  const pending = useCallback(
+    (key: string): boolean => asked.has(key) && !answers.has(key),
+    []
+  );
+
+  return { want, get, pending };
 }
 
 /**

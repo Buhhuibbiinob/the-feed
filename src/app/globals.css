@@ -15856,6 +15856,41 @@ button.btn-ghost {
   box-shadow: 0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
     0 1px 0 rgba(255, 255, 255, 0.28) inset;
 }
+/* A cover that is on its way.
+   A sleeve still being looked up and a sleeve the catalogue does not
+   have were drawn identically, so a shelf that had finished looked
+   exactly like one still working - and the only way to tell was to keep
+   staring at it, which is precisely the thing that is irritating. This
+   one moves, so it reads as working. */
+.wooditem .wood-blank.waiting {
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0) 30%,
+      rgba(255, 255, 255, 0.55) 50%,
+      rgba(255, 255, 255, 0) 70%
+    ),
+    linear-gradient(160deg, #cfcabc, #a9a493);
+  background-size: 220% 100%, 100% 100%;
+  animation: sleeve-waiting 1.15s ease-in-out infinite;
+}
+@keyframes sleeve-waiting {
+  from {
+    background-position: 140% 0, 0 0;
+  }
+  to {
+    background-position: -60% 0, 0 0;
+  }
+}
+/* Somebody who has asked for less movement gets a still sleeve that
+   still reads as different from a finished one. */
+@media (prefers-reduced-motion: reduce) {
+  .wooditem .wood-blank.waiting {
+    animation: none;
+    background-position: 50% 0, 0 0;
+  }
+}
+
 /* A record the catalogue has no picture for.
    The same printed board and paper label the Crate draws for the same
    case, rather than a third answer - this used to be a near black
