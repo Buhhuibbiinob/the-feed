@@ -25,6 +25,17 @@ export type ItunesTrackInfo = {
   artworkUrl: string | null;
   previewUrl: string | null;
   trackUrl: string | null;
+  /**
+   * True when Apple would not answer, as opposed to answering "no".
+   *
+   * These are the same shape and they are not the same fact, and every
+   * time this codebase has forgotten that it has ended up telling
+   * somebody a thing does not exist. Here it meant a throttled batch got
+   * cached as "these fifty records have no covers" for the life of the
+   * tab - which is how the Psychedelic shelf, containing Hendrix, the
+   * Beatles and the Velvet Underground, came out entirely blank.
+   */
+  throttled?: boolean;
   /** The year the recording came out, as far as the catalogue knows.
    *  Null when nothing matched, which is not the same as "it is not from
    *  that year" and must not be treated as one. */
@@ -242,7 +253,7 @@ export async function lookupItunesTrack(
       // catalogue could find would come back dated null.
       if (match) pool = catalog;
     }
-    if (!match) return NO_TRACK_INFO;
+    if (!match) return { ...NO_TRACK_INFO, throttled };
 
     return {
       // iTunes serves a 100x100 thumbnail by default - swap the size
