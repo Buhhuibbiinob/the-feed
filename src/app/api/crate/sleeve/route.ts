@@ -30,6 +30,17 @@ export async function GET(request: NextRequest) {
 
   try {
     const info = await lookupItunesTrack(title, artist);
+    // A refusal travels as a refusal.
+    //
+    // Apple answers 403 when asked too often and lookupItunesTrack hands
+    // back the same all-nulls shape for that as for "no such track".
+    // Passed on, the crate wrote it down as "this record has no cover"
+    // and marked the record looked-up, so one busy moment left a blank
+    // sleeve there for good. The batch route learned this already; this
+    // one is where the crate actually gets its covers from.
+    if (info.throttled) {
+      return NextResponse.json({ throttled: true }, { status: 503 });
+    }
     return NextResponse.json(info);
   } catch {
     // A sleeve with no art is still a sleeve. The card shows a blank

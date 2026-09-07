@@ -82,9 +82,12 @@ export default async function CratePage() {
       <div className="panel-head">The Crate</div>
       <div className="panel-body">
         <p className="crate-intro">
-          Thirty records, in no particular order. Nothing here was chosen for you - it&apos;s
-          pulled from scenes and decades at random, minus anything you&apos;ve already reviewed.
-          Most of it won&apos;t be for you. That&apos;s the idea.
+          {/* Counted rather than stated. It said thirty while the box
+              said "5 of 35", because the films get mixed in after the
+              records are counted and nobody updated the sentence. */}
+          {sleeves.length} records and films, in no particular order. Nothing here was chosen
+          for you - it&apos;s pulled from scenes and decades at random, minus anything
+          you&apos;ve already reviewed. Most of it won&apos;t be for you. That&apos;s the idea.
         </p>
         <Crate
           sleeves={sleeves}

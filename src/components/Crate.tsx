@@ -53,14 +53,36 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
   // makes the next record already have its cover by the time you get to
   // it, instead of every flip starting with a blank square.
   const pending = useRef(new Set<string>());
+  // How many times a sleeve has been refused rather than answered, so a
+  // throttle can be waited out without asking forever.
+  const attempts = useRef(new Map<string, number>());
+  // Bumped to run the effect again after a refusal.
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
     for (const sleeve of [current, next]) {
       if (!sleeve || info[sleeve.key] || pending.current.has(sleeve.key)) continue;
       pending.current.add(sleeve.key);
       const params = new URLSearchParams({ title: sleeve.name, artist: sleeve.artist });
+      const key = sleeve.key;
+      const tries = attempts.current.get(key) ?? 0;
       fetch(`/api/crate/sleeve?${params.toString()}`)
-        .then((res) => res.json())
-        .then((data: SleeveInfo) => setInfo((prev) => ({ ...prev, [sleeve.key]: data })))
+        .then(async (res) => {
+          // 503 means Apple was busy, not that the record has no cover.
+          // Writing that down as an answer is what left blank sleeves in
+          // the box permanently, so instead the record is un-marked and
+          // asked for again in a moment. Three goes: a throttle clears
+          // in seconds, and a crate that keeps asking forever is a crate
+          // making the throttle worse.
+          if (res.status === 503) {
+            pending.current.delete(key);
+            attempts.current.set(key, tries + 1);
+            if (tries + 1 < 3) setTimeout(() => setRetry((n) => n + 1), 1400);
+            return;
+          }
+          const data = (await res.json()) as SleeveInfo;
+          attempts.current.delete(key);
+          setInfo((prev) => ({ ...prev, [key]: data }));
+        })
         .catch(() => {
           // A blank sleeve is a fine outcome. Marking it as looked-up
           // stops the same failing request firing on every render.
@@ -70,7 +92,7 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
           }));
         });
     }
-  }, [current, next, info]);
+  }, [current, next, info, retry]);
 
   // Whatever is in your hand stops when you put it down. Done here
   // rather than in an effect on `index`: both ways of moving on go
@@ -172,7 +194,14 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
           ) : art ? (
             <img src={art} alt="" />
           ) : (
-            <div className="crate-blank" aria-hidden="true">
+            // Three states, not two: a cover on its way and a record the
+            // catalogue does not have looked identical here, which is
+            // the same thing that made the shelves feel stuck.
+            <div
+              className={`crate-blank${info[current.key] ? "" : " waiting"}`}
+              aria-busy={info[current.key] ? undefined : true}
+              aria-label={info[current.key] ? undefined : `Finding the cover for ${current.name}`}
+            >
               <span />
             </div>
           )}
