@@ -87,6 +87,15 @@ export function RecordRack({
   /** Said out loud when the rack is empty, rather than showing a gap. */
   empty: string;
 }) {
+  // One queue for the rack, not one per record.
+  //
+  // useSleeves keeps its queue and its timer in refs, so calling it
+  // inside each Spine gave every record a queue of its own with exactly
+  // one thing in it - and the whole point of the hook is that a
+  // screenful goes out as a single request. Twenty four records meant
+  // twenty four HTTP calls, each carrying a session check, which is
+  // slower than the thing it replaced.
+  const { want, get } = useSleeves();
   const [heldKey, setHeldKey] = useState<string | null>(null);
   const held = finds.find((f) => f.key === heldKey) ?? null;
   const playing = usePlayingKey();
@@ -141,6 +150,8 @@ export function RecordRack({
                   find={find}
                   held={find.key === heldKey}
                   onPick={() => setHeldKey(find.key === heldKey ? null : find.key)}
+                  want={want}
+                  get={get}
                 />
               ))}
             </div>
@@ -217,8 +228,19 @@ export function RecordRack({
  * draws as a plain sleeve with its name printed on it, the way a white
  * label actually looks, instead of as a hole in the rack.
  */
-function Spine({ find, held, onPick }: { find: Find; held: boolean; onPick: () => void }) {
-  const { want, get } = useSleeves();
+function Spine({
+  find,
+  held,
+  onPick,
+  want,
+  get,
+}: {
+  find: Find;
+  held: boolean;
+  onPick: () => void;
+  want: ReturnType<typeof useSleeves>["want"];
+  get: ReturnType<typeof useSleeves>["get"];
+}) {
   const info = get(find.key);
   const art = find.imageUrl ?? info?.artworkUrl ?? null;
   const ref = useOnScreen(

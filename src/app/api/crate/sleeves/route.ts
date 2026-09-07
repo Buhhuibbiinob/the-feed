@@ -30,6 +30,20 @@ const MAX_ITEMS = 24;
 /** How many of a batch are in flight at once. */
 const CONCURRENCY = 6;
 
+/**
+ * How long the whole batch gets before it answers with what it has.
+ *
+ * An obscure shelf misses on nearly every record, and a miss is a real
+ * request whatever comes back. Without a ceiling the browser waits on
+ * the slowest lookup in the batch - which, once Apple starts throttling,
+ * is however long the backoff takes - and the shelf sits there.
+ *
+ * Whatever arrived by the deadline is sent. The rest are simply not in
+ * the answer, and the client leaves those records as blank sleeves,
+ * which is the correct picture for a record Apple does not have anyway.
+ */
+const DEADLINE_MS = 4000;
+
 type Ask = { key: string; title: string; artist: string };
 
 function asks(value: unknown): Ask[] {
@@ -70,11 +84,18 @@ export async function POST(request: NextRequest) {
       const ask = items[cursor++];
       // A sleeve that fails is a sleeve with no art, not a failed batch.
       // One bad lookup must not cost the other twenty three their covers.
-      const info = await lookupItunesTrack(ask.title, ask.artist).catch(() => null);
+      // No catalogue fallback here. See lookupItunesTrack: it is two
+      // extra requests per miss, and a batch is mostly misses.
+      const info = await lookupItunesTrack(ask.title, ask.artist, { deep: false }).catch(
+        () => null
+      );
       if (info) results[ask.key] = info;
     }
   }
-  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, items.length) }, worker));
+  await Promise.race([
+    Promise.all(Array.from({ length: Math.min(CONCURRENCY, items.length) }, worker)),
+    new Promise((resolve) => setTimeout(resolve, DEADLINE_MS)),
+  ]);
 
   return NextResponse.json({ results });
 }
