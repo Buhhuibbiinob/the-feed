@@ -6388,62 +6388,112 @@ footer .copy {
   bottom: 26px;
   height: 92px;
   display: flex;
+  /* Feet on the bottom of the box, which is what they are standing on.
+     Different heights differing at the TOP is the thing that says these
+     are objects in a container rather than a row of pictures. */
   align-items: flex-end;
   justify-content: center;
   gap: 0;
+  /* The row is wider than the box once the records face out, and the
+     part that overflows is the part hidden behind the front board
+     anyway. */
+  overflow: hidden;
 }
+/* ---- The records still in the box ----
+   Face out, leaning, overlapping - the same objects the rack on Discover
+   draws, at box size.
+
+   These used to be thin coloured strips: a spine each, sized by format,
+   tinted by position out of a cycle of five so the band had some
+   variety. It was a comb of card edges, and it was the same mistake the
+   rack made twice before it was fixed - reasoning from how a record is
+   FILED rather than from what you see when you look into a box. You do
+   not see spines in a crate. You see the front of the first one and the
+   leading third of every one behind it, which is exactly what a leaning
+   overlapping row is.
+
+   So they carry the real artwork now, and the format detail is the same
+   rule the rack uses rather than a second version of it - one shared
+   block, with the geometry expressed against each object's own width so
+   it holds at box size as well as at rack size. */
 .crate-divider {
   flex: 0 0 auto;
-  border-radius: 2px 2px 0 0;
-  /* Leaning back a little more with each one, the way a part full crate
-     does once you have taken a few out of the front. */
-  transform: rotate(calc(-4deg + var(--i) * 0.5deg));
-  transform-origin: bottom center;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+  background-color: #2c2c33;
+  background-size: cover;
+  background-position: center;
+  /* Resting on the bottom left corner, the corner a record in a box
+     actually leans on. */
+  transform-origin: bottom left;
+  transform: rotate(calc(-7deg + var(--i) * 0.12deg));
+  box-shadow: 3px 0 6px -1px rgba(0, 0, 0, 0.55), inset 1px 0 0 rgba(255, 255, 255, 0.28),
+    inset -3px 0 5px rgba(0, 0, 0, 0.45);
 }
-/* The format decides how thick a thing is and how tall it stands. */
+.crate-divider:first-child {
+  margin-left: 0;
+}
+/* The shade the record behind throws, and the light down the leading
+   edge. Without it an overlapping row flattens into one wide collage. */
+.crate-divider::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.45) 0%,
+    rgba(0, 0, 0, 0.12) 9%,
+    rgba(0, 0, 0, 0) 26%,
+    rgba(0, 0, 0, 0) 88%,
+    rgba(255, 255, 255, 0.22) 100%
+  );
+  pointer-events: none;
+}
+/* A record the catalogue has no picture for. The same printed board and
+   paper label the shelf and the held sleeve use. */
+.crate-divider.blank {
+  background-image:
+    radial-gradient(circle at 50% 46%, #fff 0 4%, #2a2a2e 4.5% 15%, transparent 15.5%),
+    repeating-linear-gradient(94deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 5px),
+    linear-gradient(160deg, #d9d5c9, #b8b3a4);
+}
+/* The format decides the shape, at about half rack size: a box seen from
+   above shows less of each record than a rack at eye level does. The
+   overlap is a little over half of each object's own width, so the strip
+   you can see is one rhythm across a mix of formats. */
 .crate-divider.fmt-vinyl {
-  width: 17px;
-  height: 88px;
+  --obj: 58px;
+  width: 58px;
+  height: 58px;
+  margin-left: -31px;
 }
 .crate-divider.fmt-cd {
-  width: 12px;
-  height: 70px;
+  --obj: 52px;
+  width: 52px;
+  height: 52px;
+  margin-left: -28px;
 }
 .crate-divider.fmt-cassette {
-  width: 10px;
-  height: 52px;
+  --obj: 50px;
+  width: 50px;
+  height: 32px;
+  margin-left: -27px;
+}
+.crate-divider.fmt-case {
+  --obj: 46px;
+  width: 46px;
+  height: 62px;
+  margin-left: -25px;
 }
 .crate-divider.fmt-download {
-  width: 11px;
-  height: 64px;
-}
-/* And the position in the row decides its colour, cycling through five
-   so the band has variety in it without anybody choosing per record. A
-   crate of identically coloured edges is a comb. */
-.crate-divider:nth-child(5n + 1) {
-  background: linear-gradient(90deg, #efe8da 0 2px, #cdc4b1 2px 60%, #918876);
-}
-.crate-divider:nth-child(5n + 2) {
-  background: linear-gradient(90deg, #6d5240 0 2px, #4a382c 2px 60%, #2a2019);
-}
-.crate-divider:nth-child(5n + 3) {
-  background: linear-gradient(90deg, #d8c9a2 0 2px, #ab9974 2px 60%, #6f6249);
-}
-.crate-divider:nth-child(5n + 4) {
-  background: linear-gradient(90deg, #9fb4c2 0 2px, #6f8695 2px 60%, #43535e);
-}
-.crate-divider:nth-child(5n + 5) {
-  background: linear-gradient(90deg, #c2a0a0 0 2px, #8d6a6a 2px 60%, #56403f);
-}
-/* Except the jewel cases, which are plastic whatever is printed inside
-   them, and the cassettes, which are black. Those two read wrong in
-   card colours, so they keep their own. */
-.crate-divider.fmt-cd {
-  background: linear-gradient(90deg, #f6fafd 0 2px, #cdd7e1 2px 58%, #8e9aa8);
-}
-.crate-divider.fmt-cassette {
-  background: linear-gradient(90deg, #5c5c64 0 2px, #34343b 2px 60%, #18181b);
+  --obj: 52px;
+  width: 52px;
+  height: 52px;
+  margin-left: -28px;
+  border-radius: 6px;
 }
 
 /* The one in your hand: lifted out, tilted, and casting onto the box. */
@@ -16789,26 +16839,31 @@ button.btn-ghost {
    something is there and not enough to know what, which is the opposite
    of what a rack is for. */
 .rack-spine.fmt-vinyl {
+  --obj: 108px;
   width: 108px;
   height: 108px;
   margin-left: -58px;
 }
 .rack-spine.fmt-cd {
+  --obj: 96px;
   width: 96px;
   height: 96px;
   margin-left: -52px;
 }
 .rack-spine.fmt-cassette {
+  --obj: 90px;
   width: 90px;
   height: 58px;
   margin-left: -48px;
 }
 .rack-spine.fmt-case {
+  --obj: 84px;
   width: 84px;
   height: 112px;
   margin-left: -45px;
 }
 .rack-spine.fmt-download {
+  --obj: 96px;
   width: 96px;
   height: 96px;
   margin-left: -52px;
@@ -16831,7 +16886,8 @@ button.btn-ghost {
 
    ::before is already the edge shading, so this is all ::after, which
    means one layered background per format. */
-.rack-spine::after {
+.rack-spine::after,
+.crate-divider::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -16846,7 +16902,8 @@ button.btn-ghost {
    mouth. The disc is a very dark ring rather than flat black, because a
    record catches the light in a band around its circumference and that
    band is the only reason it reads as round. */
-.rack-spine.fmt-vinyl::after {
+.rack-spine.fmt-vinyl::after,
+.crate-divider.fmt-vinyl::after {
   background:
     /* The disc, standing a few millimetres proud of the mouth.
        Sized in pixels off a circle whose centre is outside the sleeve,
@@ -16859,16 +16916,21 @@ button.btn-ghost {
        and the light band at r56 to r58 falls on its outer edge, which is
        the part of a record that actually catches a lamp. */
     radial-gradient(
-        circle 60px at 143% 50%,
-        rgba(20, 20, 23, 0.97) 0 56px,
-        rgba(158, 158, 166, 0.7) 56px 58px,
-        rgba(20, 20, 23, 0.97) 58px 60px,
-        transparent 60px
+        circle calc(var(--obj) * 0.556) at 143% 50%,
+        rgba(20, 20, 23, 0.97) 0 calc(var(--obj) * 0.519),
+        rgba(158, 158, 166, 0.7) calc(var(--obj) * 0.519) calc(var(--obj) * 0.537),
+        rgba(20, 20, 23, 0.97) calc(var(--obj) * 0.537) calc(var(--obj) * 0.556),
+        transparent calc(var(--obj) * 0.556)
       )
       no-repeat,
     /* the seam where the sleeve opens, just inside the disc */
-    linear-gradient(90deg, transparent calc(100% - 17px), rgba(0, 0, 0, 0.3) calc(100% - 16px),
-      rgba(255, 255, 255, 0.18) calc(100% - 15px), transparent calc(100% - 14px));
+    linear-gradient(
+      90deg,
+      transparent calc(100% - var(--obj) * 0.157),
+      rgba(0, 0, 0, 0.3) calc(100% - var(--obj) * 0.148),
+      rgba(255, 255, 255, 0.18) calc(100% - var(--obj) * 0.139),
+      transparent calc(100% - var(--obj) * 0.13)
+    );
 }
 
 /* ---- CD: a jewel case ----
@@ -16876,7 +16938,8 @@ button.btn-ghost {
    them is the picture: a hard specular streak across the face, the
    hinge column down the leading edge with its two moulded lugs, and a
    bright rim where the light runs round the moulding. */
-.rack-spine.fmt-cd::after {
+.rack-spine.fmt-cd::after,
+.crate-divider.fmt-cd::after {
   background:
     /* the two lugs on the hinge */
     linear-gradient(180deg, transparent 20%, rgba(255, 255, 255, 0.5) 20%, rgba(255, 255, 255, 0.5) 30%,
@@ -16899,7 +16962,8 @@ button.btn-ghost {
    the artwork stays visible through it and the tape sits in front: two
    dark hubs with the wound tape around them, the label band across the
    top, and the four screw wells. */
-.rack-spine.fmt-cassette::after {
+.rack-spine.fmt-cassette::after,
+.crate-divider.fmt-cassette::after {
   background:
     /* screws, one at each corner */
     radial-gradient(circle at 7px 7px, rgba(0, 0, 0, 0.5) 0 1.6px, transparent 2.2px),
@@ -16923,7 +16987,8 @@ button.btn-ghost {
    Moulded polypropylene with the sleeve slid under a clear skin. The
    spine is the tell: a wide flat band down the leading edge, darker
    than anything printed, with the hinge crease beside it. */
-.rack-spine.fmt-case::after {
+.rack-spine.fmt-case::after,
+.crate-divider.fmt-case::after {
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.9) 0 7px, rgba(255, 255, 255, 0.22) 7px 8px,
       rgba(0, 0, 0, 0.35) 8px 10px, transparent 10px),
@@ -16936,7 +17001,8 @@ button.btn-ghost {
    Left deliberately bare. Giving a file a moulded edge would be the lie
    the whole format map exists to avoid: the point of drawing the right
    object per era is that after about 2008 there stopped being one. */
-.rack-spine.fmt-download::after {
+.rack-spine.fmt-download::after,
+.crate-divider.fmt-download::after {
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.18), transparent 40%);
 }
 
