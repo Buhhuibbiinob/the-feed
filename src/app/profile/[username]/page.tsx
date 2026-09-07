@@ -31,6 +31,11 @@ import { StickerLayer } from "@/components/StickerLayer";
 import type { Sticker } from "@/lib/stickers";
 import { getProfileLabels, personalise } from "@/lib/profileLabels";
 import { backfillCovers } from "@/lib/coverBackfill";
+import { YourShelf } from "@/components/YourShelf";
+import { CoverFlow } from "@/components/CoverFlow";
+import { toQueueItem, type QueueRow } from "@/lib/queue";
+import { toPlaylists, type PlaylistRow } from "@/lib/playlists";
+import { isMissingSchema } from "@/lib/dbError";
 import {
   chartRows,
   featuredArtists,
@@ -451,6 +456,48 @@ export default async function ProfilePage({
   ]);
 
   const collections = collectionRows ?? [];
+
+  // The two shelves.
+  //
+  // Both are things members already made, and both were sitting on pages
+  // nobody goes to in order to look at a person. A profile that lists
+  // somebody's opinions and not their music is half a profile.
+  //
+  // They behave differently to a visitor, and that is the database
+  // rather than a choice made here:
+  //
+  //  - Playlists are readable by everyone, so this shelf works on
+  //    anybody's profile for anybody looking at it.
+  //  - Queue rows are readable by their OWNER only, deliberately - a
+  //    watchlist was built as a private thing and un-exposing something
+  //    people assumed was private is not a change you can take back. So
+  //    on somebody else's profile this comes back empty and the section
+  //    is hidden, until the site decides to open it.
+  //
+  // A missing table means the migration has not been run, which is not
+  // an error worth showing anybody: the section just does not appear.
+  const [{ data: playlistRows, error: playlistError }, { data: queueRows }] = await Promise.all([
+    supabase
+      .from("playlists")
+      .select(
+        "id, user_id, provider, provider_id, storefront, slug, title, note, cover_url, created_at, profiles!playlists_user_id_fkey(username, avatar_url)"
+      )
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(24)
+      .returns<PlaylistRow[]>(),
+    supabase
+      .from("queue_items")
+      .select("id, media_type, title, subtitle, image_url, from_post_id, done_at, created_at")
+      .eq("user_id", profile.id)
+      .is("done_at", null)
+      .order("created_at", { ascending: false })
+      .limit(24)
+      .returns<QueueRow[]>(),
+  ]);
+  const playlists =
+    playlistError && isMissingSchema(playlistError.message) ? [] : toPlaylists(playlistRows ?? []);
+  const shelfItems = (queueRows ?? []).map(toQueueItem);
   const followsByCollection = new Map<string, CollectionFollowRow[]>();
   for (const row of collectionFollowRows ?? []) {
     const list = followsByCollection.get(row.collection_id) ?? [];
@@ -624,6 +671,8 @@ export default async function ProfilePage({
     presence: (viewerCount ?? 0) > 0 || !!custom?.last_seen_at,
     highlights: highlights.length > 0,
     collections: collections.length > 0,
+    playlists: playlists.length > 0,
+    shelf: shelfItems.length > 0,
     favorites: favoriteCount > 0,
     achievements: achievements.length > 0,
     stats: MEDIA_TYPES.some((mt) => breakdown[mt] > 0),
@@ -918,6 +967,67 @@ export default async function ProfilePage({
                     );
                   })}
                 </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "playlists":
+        return (
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">
+              Playlists
+              {isOwnProfile && (
+                <Link href="/?type=music&view=playlists#reviews" className="see-all">
+                  Add One ▸
+                </Link>
+              )}
+            </div>
+            <div className="panel-body flush">
+              {playlists.length === 0 ? (
+                <div style={{ padding: 16 }}>
+                  <EmptySlot>
+                    {isOwnProfile
+                      ? "Paste a link to one you actually listen to and it stands here."
+                      : "No playlists up yet."}
+                  </EmptySlot>
+                </div>
+              ) : (
+                // The same deck as the Playlists tab, minus the shelf
+                // underneath it: that one carries a delete button, which
+                // is a thing for the page you manage them on rather than
+                // the page that shows them off.
+                <CoverFlow playlists={playlists} />
+              )}
+            </div>
+          </div>
+        );
+
+      case "shelf":
+        return (
+          <div className="panel" key={id} id={id} style={moduleStyle(moduleStates.get(id))}>
+            <div className="panel-head">
+              {isOwnProfile ? "Your shelf" : `${profile.username}'s shelf`}
+              {isOwnProfile && (
+                <Link href="/queue" className="see-all">
+                  See All ▸
+                </Link>
+              )}
+            </div>
+            <div className="panel-body flush">
+              {shelfItems.length === 0 ? (
+                <div style={{ padding: 16 }}>
+                  <EmptySlot>
+                    {isOwnProfile
+                      ? "Dig through a crate or walk the shelves, and whatever you take stands here."
+                      : "Nothing on the shelf."}
+                  </EmptySlot>
+                </div>
+              ) : (
+                // Read-only for a visitor: taking a record down and
+                // marking it played are the owner's gestures, and the
+                // database would refuse them anyway.
+                <YourShelf items={shelfItems} done={false} owner={isOwnProfile} />
               )}
             </div>
           </div>

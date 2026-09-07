@@ -63,7 +63,25 @@ function shelfFormat(item: QueueItem): MediaFormat | "case" {
   return formatForKey(`${item.title} ${item.subtitle ?? ""}`);
 }
 
-export function YourShelf({ items, done }: { items: QueueItem[]; done: boolean }) {
+export function YourShelf({
+  items,
+  done,
+  owner = true,
+}: {
+  items: QueueItem[];
+  done: boolean;
+  /**
+   * Whether this is the viewer's own shelf.
+   *
+   * The same shelf appears on a profile, where a visitor is looking at
+   * somebody else's. Everything that CHANGES it comes off then - taking
+   * a record down, marking it played, putting it back - because those
+   * are the owner's gestures and the server would refuse them anyway.
+   * What is left is the shelf as an object: covers, names, and the clip,
+   * which is the part worth showing a stranger.
+   */
+  owner?: boolean;
+}) {
   const [info, setInfo] = useState<Record<string, Info>>({});
   const playing = useSyncExternalStore(
     subscribe,
@@ -145,16 +163,18 @@ export function YourShelf({ items, done }: { items: QueueItem[]; done: boolean }
                 {/* Taking it off the shelf lives on the record itself.
                     Under it, beside the other two, it was a third link in
                     a column with room for two. */}
-                <form action={removeFromQueue} className="inline-form">
-                  <input type="hidden" name="id" value={item.id} />
-                  <button
-                    type="submit"
-                    className="wood-remove"
-                    aria-label={`Take ${item.title} off the shelf`}
-                  >
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </form>
+                {owner && (
+                  <form action={removeFromQueue} className="inline-form">
+                    <input type="hidden" name="id" value={item.id} />
+                    <button
+                      type="submit"
+                      className="wood-remove"
+                      aria-label={`Take ${item.title} off the shelf`}
+                    >
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </form>
+                )}
               </div>
               <div className="woodlabel">
                 <b title={item.title}>{item.title}</b>
@@ -163,7 +183,14 @@ export function YourShelf({ items, done }: { items: QueueItem[]; done: boolean }
                 </span>
               </div>
               <div className="woodactions">
-                {done ? (
+                {!owner ? (
+                  // A visitor gets the one action that is theirs to
+                  // take: write their own review of it. Not "mark it
+                  // played" on somebody else's shelf.
+                  <Link href={reviewHref(item)} className="wood-link">
+                    Review
+                  </Link>
+                ) : done ? (
                   <form action={markQueueUndone} className="inline-form">
                     <input type="hidden" name="id" value={item.id} />
                     <button type="submit">Put it back</button>
