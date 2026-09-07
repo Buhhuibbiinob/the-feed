@@ -1,4 +1,5 @@
 import { MUSIC_ERAS, excludeHits, getTracksByTag, type LastfmTrack } from "@/lib/lastfm";
+import { rotate } from "@/lib/musicDiscovery";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
 import type { Sleeve } from "@/lib/crate";
@@ -143,9 +144,23 @@ const SKIP_TOP = 5;
  * hits - not re-sorted, because re-sorting would be this page having an
  * opinion, and it is the page that does not.
  */
-export function fillShelf(tracks: LastfmTrack[], known: Known, limit = SHELF_SIZE): Sleeve[] {
+export function fillShelf(
+  tracks: LastfmTrack[],
+  known: Known,
+  limit = SHELF_SIZE,
+  rotateBy = 0
+): Sleeve[] {
   const deep = excludeHits(tracks.slice(SKIP_TOP));
-  const from = deep.length >= limit ? deep : excludeHits(tracks);
+  const pool = deep.length >= limit ? deep : excludeHits(tracks);
+  // Start somewhere else in the pool each time.
+  //
+  // A shelf asked Last.fm for sixty and always showed the same first
+  // twenty four of them, so walking away and coming back gave you the
+  // shelf you had already read. Rotating rather than shuffling keeps the
+  // chart's own order, which is the only ranking this page has and the
+  // reason the records next to each other belong together; it just does
+  // not always start at the top.
+  const from = rotate(pool, rotateBy);
 
   const seen = new Set<string>();
   const shelf: Sleeve[] = [];
@@ -168,10 +183,18 @@ export function fillShelf(tracks: LastfmTrack[], known: Known, limit = SHELF_SIZ
 }
 
 /** Everything on one shelf, fetched. */
-export async function getShelf(axis: AxisId, value: string, known: Known): Promise<Sleeve[]> {
+export async function getShelf(
+  axis: AxisId,
+  value: string,
+  known: Known,
+  rotateBy = 0
+): Promise<Sleeve[]> {
   // Every axis is a Last.fm tag - "1994", "shoegaze", "detroit", "90s"
   // are all just tags, which is the reason this page can exist at all
   // without a music database of our own.
-  const tracks = await getTracksByTag(value, 60).catch(() => []);
-  return fillShelf(tracks, known);
+  // Asked deeper than the shelf shows, so there is something to rotate
+  // through: a hundred and twenty gives five shelves' worth before it
+  // starts repeating.
+  const tracks = await getTracksByTag(value, 120).catch(() => []);
+  return fillShelf(tracks, known, SHELF_SIZE, rotateBy);
 }

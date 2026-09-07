@@ -9,6 +9,7 @@ import {
   alreadyKnown,
   describeDiscoveryStatus,
   discoveryStatus,
+  shuffleSeed,
   type SeedPost,
 } from "@/lib/musicDiscovery";
 
@@ -59,7 +60,10 @@ export default async function ShelvesPage({
     : { data: null };
   const known = alreadyKnown(myPosts ?? []);
 
-  const records = axis && value ? await getShelf(axis, value, known) : [];
+  // A fresh spin per request, so coming back to a shelf is a different
+  // set of records rather than the one you have already read.
+  const spin = shuffleSeed();
+  const records = axis && value ? await getShelf(axis, value, known, spin) : [];
   const problem = axis && value ? describeDiscoveryStatus(discoveryStatus([records.length])) : "";
 
   const openAxis = axis ? wall.find((a) => a.id === axis) ?? null : null;

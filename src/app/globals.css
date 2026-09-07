@@ -16021,13 +16021,49 @@ button.btn-ghost {
   pointer-events: none;
 }
 
-/* Cassette: small, landscape, and sitting low on the board, because a
-   cassette case is the shortest thing anybody ever shelved. */
+/* Cassette: small, landscape, sitting low on the board, because a
+   cassette is the shortest thing anybody ever shelved.
+   Same object as the one in the Crate, at shelf size: an ivory shell
+   with the album art as its label, four sunk screws, and the window with
+   its two hubs. The art IS the coloured panel rather than a picture
+   printed on a black brick, which is the difference between a cassette
+   and a rectangle of album cover. */
 .wooditem.fmt-cassette img,
 .wooditem.fmt-cassette .wood-blank {
-  width: 68px;
-  height: 43px;
-  object-position: center 30%;
+  width: 76px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 2px;
+  /* The shell, drawn as a ring round the label rather than as another
+     element: at this size a border with the right colours reads as
+     moulded plastic and costs nothing. */
+  border: 5px solid #f0e5cf;
+  border-bottom-width: 15px;
+  box-shadow: 0 0 0 1px rgba(120, 104, 78, 0.9), 0 6px 9px -4px rgba(0, 0, 0, 0.85),
+    0 2px 0 rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.75) inset;
+}
+/* The window and its two hubs, sitting in the wide bottom edge of the
+   shell where a real one has them. */
+.wooditem.fmt-cassette::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 44px;
+  height: 9px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 2.5px, #241d18 3px 100%),
+    repeating-conic-gradient(from 0deg at 50% 50%, #9c968a 0deg 12deg, #d6d1c6 12deg 24deg),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 2px, #241d18 2.5px 100%),
+    repeating-conic-gradient(from 7deg at 50% 50%, #9c968a 0deg 14deg, #d6d1c6 14deg 28deg),
+    linear-gradient(180deg, #3a3129, #241d18);
+  background-repeat: no-repeat;
+  background-size: 36% 100%, 36% 100%, 36% 100%, 36% 100%, 100% 100%;
+  background-position: 6% 0, 6% 0, 94% 0, 94% 0, 0 0;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.7) inset, 0 1px 0 rgba(255, 255, 255, 0.6);
+  pointer-events: none;
 }
 
 /* A film. Taller than it is wide, with the spine catching light down the
