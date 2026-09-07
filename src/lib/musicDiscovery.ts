@@ -344,7 +344,7 @@ export async function sceneFinds(
   { limit = 6, rotateBy }: { limit?: number; rotateBy?: number } = {}
 ): Promise<{ tag: string; finds: Find[] }> {
   const spin = rotateBy ?? shuffleSeed();
-  const tag = rotate(DISCOVERY_TAGS, spin)[0];
+  const tag = rotate([...DISCOVERY_TAGS], spin)[0];
   const tracks = await getDeepTracksByTag(tag, 50).catch(() => []);
   const deep = excludeHits(tracks);
   const from = rotate(deep.length >= limit ? deep : excludeHits(tracks), spin);

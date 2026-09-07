@@ -40,6 +40,14 @@ export function MediaSearchField({
   const [searching, setSearching] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  // Kept apart from searchError on purpose. One means the search itself
+  // failed and there is nothing to show; the other means one particular
+  // pick could not be turned into something playable, while the list of
+  // results is still perfectly good. Sharing a single string made the
+  // second one render as a header over the first one's results, which is
+  // how "couldn't find anything playable for that song" ended up sitting
+  // on top of four copies of that song.
+  const [pickError, setPickError] = useState<string | null>(null);
 
   // "Searching" is switched on where the typing happens, not in the effect
   // below: the effect's job is the request, and setting state synchronously
@@ -50,6 +58,7 @@ export function MediaSearchField({
     // spinner running for one or two characters that will never be sent.
     setSearching(value.trim().length >= MIN_QUERY_LENGTH);
     if (!value.trim()) setResults([]);
+    setPickError(null);
   }
 
   useEffect(() => {
@@ -64,6 +73,9 @@ export function MediaSearchField({
         if (!cancelled && answer) {
           setResults(answer.songs);
           setSearchError(answer.error);
+          // A new search is a new question. Whatever went wrong with the
+          // last pick is no longer being asked about.
+          setPickError(null);
         }
       } catch {
         if (!cancelled) {
@@ -92,11 +104,14 @@ export function MediaSearchField({
     // failure is worth showing rather than swallowing: for a profile
     // song, no video means nothing to play.
     setResolving(true);
-    setSearchError(null);
+    setPickError(null);
     const { video, error } = await resolveTrackVideo(track);
     setResolving(false);
     if (!video) {
-      setSearchError(error);
+      // The list stays. There are usually several versions of a song and
+      // the next one down often does have a video, so taking the results
+      // away would remove the only useful thing left on screen.
+      setPickError(error);
       return;
     }
     onPick(track, video);
@@ -125,10 +140,11 @@ export function MediaSearchField({
           ) : searching ? (
             <div className="track-result">Searching…</div>
           ) : results.length === 0 ? (
-            <div className="track-result">{searchError ?? "No matches."}</div>
+            <div className="track-result">{searchError ?? pickError ?? "No matches."}</div>
           ) : (
             <>
               {searchError && <div className="track-result">{searchError}</div>}
+              {pickError && <div className="track-result note">{pickError}</div>}
               {results.map((track) => (
                 <div className="track-result" key={track.id} onClick={() => pick(track)}>
                   {track.thumbnailUrl && <img src={track.thumbnailUrl} alt="" />}

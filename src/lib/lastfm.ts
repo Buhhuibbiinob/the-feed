@@ -1,6 +1,7 @@
 // Last.fm's free API stands in for Spotify's now-deprecated new-releases
 // endpoint. Last.fm has no real "release date" chart, so this surfaces what's
 // currently trending across the whole service instead of strict new releases.
+import { GENRES } from "@/lib/genres";
 import { cachedFetch } from "@/lib/cachedFetch";
 
 export type LastfmTrack = {
@@ -132,10 +133,28 @@ export async function getTrackFromAnyEra(): Promise<LastfmTrack | null> {
   return found[Math.floor(Math.random() * found.length)];
 }
 
-// Tags that surface scenes rather than charts. The decade buckets give
-// range; these give depth - the corners of Last.fm where the listener
-// counts are small and the records are the reason people are there.
-export const DISCOVERY_TAGS = [
+/**
+ * Every corner of the catalogue this site is willing to dig in.
+ *
+ * This was eighteen tags, written by hand. Eighteen. Every crate anybody
+ * has ever opened and every Discover rail anybody has ever seen was
+ * drawn from the same eighteen corners, which is exactly why it went
+ * round in circles: there was no "all over" to go to. Hyperpop, digicore
+ * and midwest emo are good corners and they are not the world.
+ *
+ * The genre taxonomy already lists three hundred and seventy-four music
+ * genres, family by family, and every one of them is a tag Last.fm
+ * understands. So that is the pool now - the whole of it - and the
+ * original eighteen keep their place at the front because they are known
+ * deep corners rather than guesses.
+ *
+ * Slugs become tag text: Last.fm files "uk garage" and "city pop" with
+ * spaces, not hyphens. A few genres are ours rather than theirs and will
+ * come back empty; that is what the fallbacks downstream are for, and an
+ * empty answer from one lane out of three hundred is a far smaller
+ * problem than three hundred lanes that were never asked.
+ */
+const DEEP_CORNERS = [
   "hyperpop",
   "digicore",
   "bedroom pop",
@@ -155,6 +174,43 @@ export const DISCOVERY_TAGS = [
   "slowcore",
   "plugg",
 ];
+
+/** Where a slug and the tag people actually use differ. */
+const TAG_TEXT: Record<string, string> = {
+  rnb: "rnb",
+  "contemporary-rnb": "contemporary r&b",
+  "alternative-rnb": "alternative r&b",
+  pbrnb: "alternative r&b",
+  "drum-and-bass": "drum and bass",
+  "liquid-dnb": "liquid drum and bass",
+  "city-pop-jp": "city pop",
+  "black-and-white": "black and white",
+  "2-step": "2 step",
+  "d-beat": "dbeat",
+  "p-funk": "p funk",
+  "g-funk": "g funk",
+  oi: "oi",
+  idm: "idm",
+  edm: "edm",
+  ebm: "ebm",
+  mpb: "mpb",
+};
+
+function tagText(slug: string): string {
+  return TAG_TEXT[slug] ?? slug.replace(/-/g, " ");
+}
+
+export const DISCOVERY_TAGS: readonly string[] = (() => {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const tag of [...DEEP_CORNERS, ...GENRES.music.map(tagText)]) {
+    const clean = tag.trim();
+    if (!clean || seen.has(clean)) continue;
+    seen.add(clean);
+    out.push(clean);
+  }
+  return out;
+})();
 
 /**
  * Artists to start discovery from when the community hasn't posted enough
