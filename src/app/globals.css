@@ -6538,47 +6538,218 @@ footer .copy {
   );
 }
 
-/* A cassette. Landscape was the only true thing about the old one.
-   A tape is a dark shell with a PAPER LABEL on it, and the album art
-   belongs on the label rather than being the object: that is the
-   difference between a cassette and a photograph of a cassette. */
+/* A cassette, built off the reference rather than off a memory of one.
+   ------------------------------------------------------------------
+   Everything about the last version was the wrong way round. It was a
+   dark shell with the artwork shrunk onto it, and a real tape is a CREAM
+   shell whose whole front is the label - so the artwork is not a picture
+   sitting on the object, it IS the coloured panel, which is also what
+   "base it on the colour of the album cover" means in practice.
+
+   Reading the reference from the outside in: ivory plastic, rounded
+   about six pixels, five screws sunk into it; a label filling the top
+   two thirds with its own rounded corners and a hairline of shell
+   showing all round; two toothed hubs with the tape wound on them; a
+   window between the hubs; and a trapezoid cut out of the bottom edge
+   with the four holes the deck's pins go through. */
 .crate-stack.fmt-cassette .crate-sleeve {
   aspect-ratio: 8 / 5;
-  border-radius: 4px;
-  padding: 7px 8px 26px;
+  border-radius: 6px;
+  /* The label is the artwork, inset to leave a rim of shell round it and
+     stopping well short of the bottom, where the hubs and the cut-out
+     live. */
+  padding: 9% 9% 40%;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.04) 33.9%,
-      rgba(0, 0, 0, 0.16) 34%, rgba(0, 0, 0, 0.06) 100%),
-    linear-gradient(160deg, #3d3d45 0%, #26262c 55%, #16161a 100%);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(10, 10, 12, 0.9),
-    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+    /* The screws. Four in the corners, sunk: a dark ring with a lit lower
+       lip, which is what a countersunk head looks like from above. */
+    radial-gradient(circle at 6% 11%, #6f6353 0 1.6px, rgba(0, 0, 0, 0) 2.2px),
+    radial-gradient(circle at 94% 11%, #6f6353 0 1.6px, rgba(0, 0, 0, 0) 2.2px),
+    radial-gradient(circle at 6% 89%, #6f6353 0 1.6px, rgba(0, 0, 0, 0) 2.2px),
+    radial-gradient(circle at 94% 89%, #6f6353 0 1.6px, rgba(0, 0, 0, 0) 2.2px),
+    /* The shell. Ivory, lit from above, with the moulding line down it. */
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 33.9%,
+      rgba(0, 0, 0, 0.05) 34%, rgba(0, 0, 0, 0.02) 100%),
+    linear-gradient(165deg, #f6ecd7 0%, #e8dabd 52%, #d6c5a4 100%);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(120, 104, 78, 0.85),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
+/* The label: the album art, with the printed border a blank tape has. */
 .crate-stack.fmt-cassette .crate-sleeve img {
-  border-radius: 1px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 0 0 3px #f7f1e0;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(120, 104, 78, 0.55), 0 1px 2px rgba(0, 0, 0, 0.35);
 }
-/* The window, with the two spools behind it wound unevenly, because a
-   tape with both hubs the same size has never been played. */
+/* The mechanism: two toothed hubs with the tape wound on them, and the
+   window between.
+   The trick is the MASK. A conic gradient fills its whole background box,
+   so on the first pass each hub came out as a starburst fanning right
+   across the window. Painting an opaque disc-with-a-hole ON TOP of each
+   one, in the same box, cuts the fan down to a circle: everything outside
+   the hole is the window colour, so only the middle of the fan survives
+   and that middle is a sprocket. Each hub gets its own 30 per cent wide
+   background box so its mask cannot reach the other one. */
+.crate-stack.fmt-cassette .crate-sleeve::before {
+  content: "";
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 26%;
+  height: 26%;
+  z-index: 2;
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 7px, #241d18 7.5px 100%),
+    repeating-conic-gradient(from 0deg at 50% 50%, #9c968a 0deg 11deg, #d6d1c6 11deg 22deg),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 5px, #241d18 5.5px 100%),
+    repeating-conic-gradient(from 7deg at 50% 50%, #9c968a 0deg 13deg, #d6d1c6 13deg 26deg),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 45%),
+    linear-gradient(180deg, #3a3129 0%, #241d18 100%);
+  background-repeat: no-repeat;
+  background-size: 34% 100%, 34% 100%, 34% 100%, 34% 100%, 100% 100%, 100% 100%;
+  background-position: 4% 0, 4% 0, 96% 0, 96% 0, 0 0, 0 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7) inset, 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* The bottom edge: the trapezoid cut out of the shell, with the holes
+   the deck's pins go through. The angled sides are what stop the whole
+   thing reading as a rectangle with a stripe on it. */
 .crate-stack.fmt-cassette .crate-sleeve::after {
   content: "";
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 7px;
-  height: 19px;
+  left: 20%;
+  right: 20%;
+  bottom: 0;
+  height: 22%;
   z-index: 2;
-  border-radius: 3px;
-  /* The hubs, sized off the window rather than off a pixel radius. The
-     first pass gave the circles a 6px ending shape and then put the
-     colour stops at percentages OF that, so each hub was a one pixel
-     dot inside a dark disc and the window read as empty. */
+  clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%);
   background:
-    radial-gradient(circle at 25% 50%, #d8d2c6 0 3px, #6b5c46 3px 7px, rgba(0, 0, 0, 0) 7.5px),
-    radial-gradient(circle at 76% 50%, #d8d2c6 0 2px, #6b5c46 2px 5px, rgba(0, 0, 0, 0) 5.5px),
-    linear-gradient(180deg, #0c0c0f, #1b1b21);
-  background-repeat: no-repeat;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) inset, 0 1px 0 rgba(255, 255, 255, 0.16);
+    radial-gradient(circle at 26% 46%, #4a4237 0 1.8px, rgba(0, 0, 0, 0) 2.4px),
+    radial-gradient(circle at 40% 46%, #4a4237 0 1.8px, rgba(0, 0, 0, 0) 2.4px),
+    radial-gradient(circle at 60% 46%, #4a4237 0 1.8px, rgba(0, 0, 0, 0) 2.4px),
+    radial-gradient(circle at 74% 46%, #4a4237 0 1.8px, rgba(0, 0, 0, 0) 2.4px),
+    linear-gradient(180deg, #efe4cd 0%, #dccbaa 100%);
 }
+
+/* A film in the crate: a case, taller than it is wide, with the spine
+   catching light down the left. Same object the DVD stack on Discover
+   uses, at the size a hand holds. */
+.crate-stack.fmt-case .crate-sleeve {
+  aspect-ratio: 5 / 7;
+  border-radius: 2px 5px 5px 2px;
+  background: linear-gradient(115deg, #2a2a30 0%, #3a3a42 45%, #1c1c21 100%);
+  padding-left: 8px;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(10, 10, 12, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.22) inset;
+}
+.crate-stack.fmt-case .crate-sleeve::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  z-index: 2;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.4), rgba(0, 0, 0, 0.5));
+}
+.crate-stack.fmt-case .crate-sleeve iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #000;
+}
+
+/* The one in your hand: lifted out, tilted, and casting onto the box. */
+.crate-stack {
+  position: relative;
+  width: 100%;
+  /* Smaller than the crate it came out of, deliberately. At 236 the
+     sleeve was wider than the box and covered the records still in it,
+     so the only thing you could see was the one you were holding - which
+     is the opposite of what a crate is for. */
+  max-width: 194px;
+  margin: 0 auto;
+  z-index: 1;
+  transform: rotate(-1.6deg);
+}
+.crate-sleeve {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: #1d1d21;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+/* ---- The record in your hand, as the object it actually is ----
+   These were a one-line lie each: the jewel case was a square with a
+   pale left border and the cassette was the artwork squashed to
+   landscape. At the size the Crate shows them that reads as artwork
+   with something wrong with it rather than as a thing you could pick
+   up, which is the whole job of this page. */
+
+/* A jewel case. The point of one is that it is CLEAR: you are not
+   looking at a printed surface, you are looking at the booklet THROUGH
+   a piece of scratched polystyrene, which is why the art sits inset with
+   a plastic edge round it and the whole thing carries a hard diagonal
+   sweep that belongs to the lid rather than to the picture. */
+.crate-stack.fmt-cd .crate-sleeve,
+.crate-stack.fmt-download .crate-sleeve {
+  border-radius: 2px 5px 5px 2px;
+  background: linear-gradient(115deg, #cfd8e2 0%, #eef3f8 40%, #b9c4d0 100%);
+  padding: 3px 3px 3px 9px;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(90, 105, 120, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+.crate-stack.fmt-cd .crate-sleeve img,
+.crate-stack.fmt-download .crate-sleeve img {
+  border-radius: 1px;
+}
+/* The hinge: the row of teeth down the spine that every case has, and
+   the single most recognisable thing about one. */
+.crate-stack.fmt-cd .crate-sleeve::before,
+.crate-stack.fmt-download .crate-sleeve::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  z-index: 2;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.85) 0 3px,
+      rgba(120, 135, 150, 0.55) 3px 7px
+    ),
+    linear-gradient(90deg, #f2f6fa, #aab6c4);
+  box-shadow: 1px 0 0 rgba(90, 105, 120, 0.5);
+}
+/* The lid. A hard specular running corner to corner, because that is how
+   light comes off flat polystyrene: not a soft sheen, a straight bright
+   band with an edge you could put a ruler against. */
+.crate-stack.fmt-cd .crate-sleeve::after,
+.crate-stack.fmt-download .crate-sleeve::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0) 26%,
+    rgba(255, 255, 255, 0.42) 27%,
+    rgba(255, 255, 255, 0.16) 38%,
+    rgba(255, 255, 255, 0) 39%,
+    rgba(255, 255, 255, 0) 62%,
+    rgba(255, 255, 255, 0.22) 63%,
+    rgba(255, 255, 255, 0) 71%
+  );
+}
+
 .crate-sleeve img {
   width: 100%;
   height: 100%;

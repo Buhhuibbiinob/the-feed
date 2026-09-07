@@ -17,6 +17,7 @@ import { getTopTracks, getValidAccessToken } from "@/lib/spotify";
 import { getUpcomingMoviesAndTv } from "@/lib/tmdb";
 import { MEDIA_TYPES, MEDIA_FILTER_LABELS, type MediaType } from "@/lib/media";
 import { PlaylistWall } from "@/components/PlaylistWall";
+import { isMissingSchema } from "@/lib/dbError";
 import { toPlaylists, type Playlist, type PlaylistRow } from "@/lib/playlists";
 import { isGenreFor, genreLabel } from "@/lib/genres";
 import { selectPosts } from "@/lib/postQuery";
@@ -215,8 +216,9 @@ export default async function FeedPage({
   // Only when the tab is open. Every other homepage load should not pay
   // for a query it will not render.
   let playlists: Playlist[] = [];
+  let playlistsOff = false;
   if (showPlaylists) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("playlists")
       .select(
         "id, user_id, provider, provider_id, storefront, slug, title, note, created_at, profiles!playlists_user_id_fkey(username, avatar_url)"
@@ -224,6 +226,12 @@ export default async function FeedPage({
       .order("created_at", { ascending: false })
       .limit(60)
       .returns<PlaylistRow[]>();
+    // The table ships in a migration somebody has to run by hand. Without
+    // this the tab said "nobody has put a playlist up yet", which is the
+    // silent failure: it reads as a working feature nobody has used
+    // rather than as a feature that is not switched on, and there is no
+    // way to tell those apart from the outside.
+    playlistsOff = Boolean(error && isMissingSchema(error.message));
     playlists = toPlaylists(data ?? []);
   }
   // One clock reading for the whole render, shared by the Live Now window
@@ -904,7 +912,8 @@ export default async function FeedPage({
               playlists={playlists}
               currentUserId={user?.id ?? null}
               viewerIsAdmin={viewerIsAdmin}
-              canAdd={!!user}
+              canAdd={!!user && !playlistsOff}
+              notSetUp={playlistsOff}
             />
           ) : feedPosts.length === 0 ? (
             <div className="empty-state" style={{ padding: 16 }}>

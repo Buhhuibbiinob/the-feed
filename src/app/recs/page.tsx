@@ -14,6 +14,7 @@ import {
   eraFinds,
   findsForSeeds,
   lovedSceneFinds,
+  sceneFinds,
   seedArtists,
   shuffleSeed,
   type SeedPost,
@@ -227,8 +228,27 @@ export default async function RecsPage() {
     // already there for everything worth watching, and move.
     screenFinds(mine, known, searchVideos, { rotateBy }),
   ]);
+  // Nobody arrives at an empty rail.
+  //
+  // On a fresh account seedArtists finds nothing, so the seeds fall back
+  // to what the community has posted - and on a quiet week that comes
+  // back short too, which is how somebody signing up got a heading called
+  // "Somewhere to start" with nothing under it. The point of that rail is
+  // that it is the one thing a stranger CAN look at.
+  //
+  // So if it comes back thin, it is topped up from a random scene rather
+  // than left half full. A different scene each request, so refreshing
+  // moves it, and never the day's scene: the rail below is already that
+  // one and two rails of the same records is worse than one short one.
+  const topUp =
+    personal.length >= 4
+      ? []
+      : (await sceneFinds(known, { rotateBy: rotateBy + 977, limit: 8 }).catch(() => null))
+          ?.finds ?? [];
+  const startHere = personal.length >= 4 ? personal : [...personal, ...topUp].slice(0, 8);
+
   const [personalFinds, sceneRail, eraRail] = await Promise.all([
-    enrichFinds(personal),
+    enrichFinds(startHere),
     enrichFinds(scene.finds),
     enrichFinds(era.finds),
   ]);

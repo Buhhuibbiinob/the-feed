@@ -82,7 +82,7 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
     setSaving(true);
     setSaveError(null);
     const form = new FormData();
-    form.set("media_type", "music");
+    form.set("media_type", current.kind === "film" ? "movie_tv" : "music");
     form.set("title", current.name);
     form.set("subtitle", current.artist);
     form.set("image_url", info[current.key]?.artworkUrl ?? current.imageUrl ?? "");
@@ -141,9 +141,24 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
           Drawn this way round because a sleeve INSIDE the box turns the
           crate into a picture frame: you cannot see the records at all,
           and the box reads as a border rather than as a container. */}
-      <div className={`crate-stack fmt-${formatForKey(current.key)}`}>
+      <div
+        className={`crate-stack fmt-${
+          current.kind === "film" ? "case" : formatForKey(current.key)
+        }`}
+      >
         <div className="crate-sleeve">
-          {art ? (
+          {/* A film plays its trailer where a record plays its clip, in
+              the sleeve rather than anywhere else, because the whole
+              gesture of this page is that the thing in your hand is the
+              thing you are deciding about. */}
+          {current.kind === "film" && playing && current.videoId ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${current.videoId}?autoplay=1&rel=0`}
+              title={`${current.name} trailer`}
+              allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          ) : art ? (
             <img src={art} alt="" />
           ) : (
             <div className="crate-blank" aria-hidden="true">
@@ -151,7 +166,17 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
             </div>
           )}
 
-          {clip && (
+          {current.kind === "film" && current.videoId && (
+            <button
+              type="button"
+              className={`crate-play${playing ? " playing" : ""}`}
+              onClick={() => setPlaying(!playing)}
+            >
+              {playing ? "Stop" : "Trailer"}
+            </button>
+          )}
+
+          {current.kind !== "film" && clip && (
             <button
               type="button"
               className={`crate-play${playing ? " playing" : ""}`}
@@ -195,7 +220,9 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
         <span className="crate-by">{current.artist}</span>
         {/* No rating, no match score, no reason. The crate has no opinion
             about this record and saying so is the point. */}
-        <span className="crate-format">{FORMAT_LABELS[formatForKey(current.key)]}</span>
+        <span className="crate-format">
+          {current.kind === "film" ? "Film" : FORMAT_LABELS[formatForKey(current.key)]}
+        </span>
       </div>
 
       {saveError && <div className="form-error">{saveError}</div>}

@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { guardBuiltinPage } from "@/lib/pages";
 import { Crate } from "@/components/Crate";
-import { crateSeed, crateSources, fillCrate } from "@/lib/crate";
+import { FILMS_PER_CRATE, crateSeed, crateSources, fillCrate, mixInFilms, type Sleeve } from "@/lib/crate";
+import { screenFinds } from "@/lib/trailers";
+import { searchVideos } from "@/lib/youtube";
 import { alreadyKnown, describeDiscoveryStatus, discoveryStatus, type SeedPost } from "@/lib/musicDiscovery";
 
 export const metadata = { title: "The Crate on Feedback" };
@@ -35,8 +37,32 @@ export default async function CratePage() {
   const known = alreadyKnown(myPosts ?? []);
 
   const seed = crateSeed(new Date(), user?.id ?? null);
-  const pools = await crateSources(seed);
-  const sleeves = fillCrate(pools, known, { seed });
+  const [pools, screen] = await Promise.all([
+    crateSources(seed),
+    // Films in the box. A crate in a shop is not sorted by medium, and
+    // the moment you hit a film it is a different decision from the
+    // record before it, which is most of why digging through one is
+    // worth doing. One lane's worth, rotated by the same seed as the
+    // records so the whole box changes together.
+    screenFinds(myPosts ?? [], known, searchVideos, {
+      limit: FILMS_PER_CRATE,
+      rotateBy: seed,
+    }).catch(() => null),
+  ]);
+  const records = fillCrate(pools, known, { seed });
+  const films: Sleeve[] = (screen?.finds ?? []).map((find) => ({
+    key: find.key,
+    name: find.title,
+    artist: find.year ?? find.channel,
+    imageUrl: find.imageUrl,
+    // A film has no thirty second clip, it has a trailer, and the card
+    // plays that instead.
+    previewUrl: null,
+    storeUrl: null,
+    kind: "film",
+    videoId: find.videoId,
+  }));
+  const sleeves = mixInFilms(records, films, seed);
 
   const status = discoveryStatus([sleeves.length]);
 
