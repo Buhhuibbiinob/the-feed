@@ -8,6 +8,7 @@ import { PhotoShelf } from "@/components/PhotoShelf";
 import {
   MEDIA,
   axes,
+  isComingSoon,
   getShelf,
   isAxis,
   isMedium,
@@ -104,7 +105,7 @@ export default async function ShelvesPage({
         )
       : null;
   const prints =
-    medium === "photography" && axis === "subject" && value
+    medium === "photography" && !isComingSoon(medium) && axis === "subject" && value
       ? await getPrints(supabase, value)
       : [];
 
@@ -139,7 +140,10 @@ export default async function ShelvesPage({
                   className={`shelf-medium${m.id === medium ? " on" : ""}`}
                   aria-current={m.id === medium ? "page" : undefined}
                 >
-                  <b>{m.label}</b>
+                  <b>
+                    {m.label}
+                    {m.comingSoon ? <span className="shelf-soon">Soon</span> : null}
+                  </b>
                   <span>{m.blurb}</span>
                 </Link>
               ))}
@@ -148,6 +152,12 @@ export default async function ShelvesPage({
                 this page. They used to be flat cards on the panel, which
                 meant the page announced itself as a shelving unit and
                 then opened with rectangles. */}
+            {isComingSoon(medium) && (
+              <p className="shelf-intro">
+                This wall is built and switched off. It reads what people here have shot, and
+                nobody can upload a photograph yet.
+              </p>
+            )}
             <div className="woodwall axes">
               <div className="shelf-axes">
                 {wall.map((a) => (
@@ -217,6 +227,12 @@ export default async function ShelvesPage({
                     : "Nothing behind that divider today. There is a different set tomorrow."
                 }
               />
+            ) : medium === "photography" && isComingSoon(medium) ? (
+              <p className="shelf-empty">
+                Photography shelves are built and waiting on one thing: there is no way to
+                put a photograph up yet. The wall reads what people here have actually shot,
+                which is the only honest source for it, so it stays empty until that works.
+              </p>
             ) : medium === "photography" ? (
               <PhotoShelf
                 prints={prints}
