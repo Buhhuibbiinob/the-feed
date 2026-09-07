@@ -1,6 +1,7 @@
 import { GENRES } from "@/lib/genres";
 import { excludeHits, getTracksByTag, tagText, type LastfmTrack } from "@/lib/lastfm";
-import { rotate } from "@/lib/musicDiscovery";
+import { dayIndex, rotate } from "@/lib/musicDiscovery";
+import { getYoutubeSceneShelf, isYoutubeScene } from "@/lib/youtubeScenes";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
 import { type ShelfSpan } from "@/lib/shelfSpan";
@@ -603,6 +604,33 @@ export async function getShelf(
   // back empty and reports it as a thin corner of the catalogue. Year,
   // decade and place are already tag text and pass through unchanged.
   const tag = axis === "scene" ? tagText(value) : value;
+
+  // Except for the handful Last.fm cannot describe.
+  //
+  // digicore, sigilkore, HexD, alte and the rest did not happen on
+  // scrobblers - they happened on YouTube, mostly in the last five
+  // years, mostly by people who never put a record in a store. Asking
+  // Last.fm for those charts returns a handful of tracks or none, which
+  // draws as a shelf saying nobody makes this about a scene with more
+  // releases in a week than half the tags around it.
+  //
+  // Those come from where the music is. One cached search a day each,
+  // and the records arrive with their own artwork and their own player,
+  // so they are also the only shelves where nothing has to be looked up
+  // afterwards to be seen or heard. See lib/youtubeScenes.
+  if (axis === "scene" && isYoutubeScene(value)) {
+    const fromYoutube = await getYoutubeSceneShelf(
+      tag,
+      known,
+      SHELF_SIZE + SHELF_SPARE,
+      rotateBy,
+      dayIndex()
+    );
+    // A quota that has run out, or a key that is not set, must not leave
+    // a scene with no shelf at all - so it falls through to Last.fm,
+    // which will be thin for these but is better than empty.
+    if (fromYoutube.length > 0) return fromYoutube;
+  }
 
   // Two pages, in parallel, and the second one moves.
   //

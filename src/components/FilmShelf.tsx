@@ -44,7 +44,18 @@ export function FilmShelf({ finds, emptyNote }: { finds: ScreenFind[]; emptyNote
                 {find.imageUrl ? (
                   <img src={find.imageUrl} alt="" loading="lazy" decoding="async" />
                 ) : (
-                  <span className="wood-blank" aria-hidden="true" />
+                  // A case with no artwork gets its title printed on it,
+                  // the same as a record with no cover gets a white
+                  // label. An empty rectangle in a row of covers reads as
+                  // something that failed to load; a printed sleeve reads
+                  // as a film you have not seen the poster for, which is
+                  // what it is - and it is still reviewable either way.
+                  <span className="wood-blank">
+                    <span className="wood-label-print">
+                      <b>{find.title}</b>
+                      <i>{find.year ?? find.channel}</i>
+                    </span>
+                  </span>
                 )}
               </button>
               <div className="woodlabel">
