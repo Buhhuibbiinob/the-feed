@@ -155,6 +155,16 @@ export const FAMILIES: Record<MediaType, readonly GenreFamily[]> = {
         "bubblegum",
         "art-pop",
         "hyperpop",
+        // The scenes that actually grew out of hyperpop, which the list
+        // stopped short of. Without these the members who live in this
+        // corner of music had nothing to tag a record as except
+        // "hyperpop", which by now is about as specific as "rock".
+        "digicore",
+        "glitchcore",
+        "dariacore",
+        "nightcore",
+        "bubblegum-bass",
+        "hexd",
         "bedroom-pop",
         "chamber-pop",
         "baroque-pop",
@@ -183,7 +193,13 @@ export const FAMILIES: Record<MediaType, readonly GenreFamily[]> = {
         "drill",
         "uk-drill",
         "plugg",
+        "pluggnb",
         "rage",
+        // Sematary's corner and Drain Gang's, both of which the seed
+        // list already walks out from and neither of which had a name
+        // here to be filed under.
+        "sigilkore",
+        "drain",
         "cloud-rap",
         "phonk",
         "memphis-rap",
@@ -224,6 +240,13 @@ export const FAMILIES: Record<MediaType, readonly GenreFamily[]> = {
         "contemporary-rnb",
         "alternative-rnb",
         "pbrnb",
+        // The UK lineage, which had no name at all - the one scene that
+        // got asked for by name and the one the taxonomy could not
+        // describe.
+        "uk-rnb",
+        "trap-soul",
+        "britfunk",
+        "lovers-rock",
         "funk",
         "p-funk",
         "boogie",
@@ -285,6 +308,8 @@ export const FAMILIES: Record<MediaType, readonly GenreFamily[]> = {
         "witch-house",
         "edm",
         "future-bass",
+        "jersey-club",
+        "uk-funky",
         "trip-hop",
         "downtempo",
         "chillout",
@@ -457,6 +482,7 @@ export const FAMILIES: Record<MediaType, readonly GenreFamily[]> = {
       genres: [
         "afrobeats",
         "afrobeat",
+        "alte",
         "highlife",
         "juju",
         "soukous",
@@ -1231,6 +1257,15 @@ const LABEL_OVERRIDES: Record<string, string> = {
   "dream-pop": "Dream Pop",
   "city-pop": "City Pop",
   "bedroom-pop": "Bedroom Pop",
+  // Scenes that write themselves a particular way and look wrong
+  // title-cased. A member who tags a record "PluggnB" and gets back a
+  // badge reading "Pluggnb" has been corrected by a machine that is
+  // wrong.
+  "uk-rnb": "UK R&B",
+  "uk-funky": "UK Funky",
+  hexd: "HexD",
+  pluggnb: "PluggnB",
+  britfunk: "Brit-Funk",
   "bossa-nova": "Bossa Nova",
   "self-portrait": "Self-Portrait",
   "still-life": "Still Life",
