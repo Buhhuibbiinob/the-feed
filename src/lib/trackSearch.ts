@@ -57,6 +57,15 @@ function remember(key: string, answer: TrackSearchAnswer) {
  * They are no longer about money - they are about not repainting the
  * results under somebody's fingers while they are still typing.
  */
+async function askOnce(query: string): Promise<TrackSearchAnswer> {
+  const res = await fetch(`/api/music/search?q=${encodeURIComponent(query)}`);
+  const data = await res.json();
+  return {
+    songs: Array.isArray(data.songs) ? data.songs : [],
+    error: typeof data.error === "string" ? data.error : null,
+  };
+}
+
 export async function searchTracksClient(query: string): Promise<TrackSearchAnswer | null> {
   const trimmed = query.trim();
   if (trimmed.length < MIN_QUERY_LENGTH) return null;
@@ -66,12 +75,19 @@ export async function searchTracksClient(query: string): Promise<TrackSearchAnsw
   if (hit) return hit;
 
   try {
-    const res = await fetch(`/api/music/search?q=${encodeURIComponent(trimmed)}`);
-    const data = await res.json();
-    const answer: TrackSearchAnswer = {
-      songs: Array.isArray(data.songs) ? data.songs : [],
-      error: typeof data.error === "string" ? data.error : null,
-    };
+    let answer = await askOnce(trimmed);
+    // One more go if the catalogue was merely busy.
+    //
+    // Apple refuses when asked too often and clears in seconds, and the
+    // server already backs off twice before giving up - but when the
+    // shelves are loading, three attempts is sometimes not enough, and
+    // what somebody sees is a search box that failed while a page full
+    // of covers loads behind it. Waiting once more here is cheaper than
+    // making them retype it.
+    if (answer.songs.length === 0 && answer.error && /busy/i.test(answer.error)) {
+      await new Promise((r) => setTimeout(r, 1600));
+      answer = await askOnce(trimmed);
+    }
     remember(key, answer);
     return answer;
   } catch {

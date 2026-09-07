@@ -109,6 +109,35 @@ export function useSleeves() {
     }, COALESCE_MS);
   }, []);
 
+  /**
+   * Put items back and try them again shortly.
+   *
+   * A batch that fails outright used to release its keys and stop there,
+   * which sounds harmless and is not: the element that asked has long
+   * since disconnected its observer, so nothing would ever ask again and
+   * one bad response left those records blank for the life of the page.
+   * Releasing a key is only half the job; something has to pick it up.
+   */
+  const requeue = useCallback((items: SleeveAsk[]) => {
+    let any = false;
+    for (const item of items) {
+      const tries = (attempts.get(item.key) ?? 0) + 1;
+      attempts.set(item.key, tries);
+      asked.delete(item.key);
+      if (tries < MAX_ATTEMPTS) {
+        asked.add(item.key);
+        queue.current.set(item.key, item);
+        any = true;
+      }
+    }
+    if (any && alive.current && !timer.current) {
+      timer.current = setTimeout(() => {
+        timer.current = null;
+        void latest.current?.();
+      }, RETRY_MS);
+    }
+  }, []);
+
   const flush = useCallback(async () => {
     timer.current = null;
     const items = [...queue.current.values()].slice(0, BATCH);
@@ -127,7 +156,7 @@ export function useSleeves() {
       // forever as "this record has no cover" - which is how a throttle
       // used to turn into a permanent blank square.
       if (!res.ok) {
-        for (const item of items) asked.delete(item.key);
+        requeue(items);
         return;
       }
       const data = (await res.json()) as { results?: Record<string, SleeveInfo> };
@@ -141,34 +170,16 @@ export function useSleeves() {
       // ask right now". Keeping those in `asked` would mean one
       // throttled moment blanks a record permanently - and on a busy
       // shelf that is most of the shelf.
-      let retrying = false;
+      const refused: SleeveAsk[] = [];
       for (const item of items) {
-        if (item.key in results) {
-          attempts.delete(item.key);
-          continue;
-        }
-        const tries = (attempts.get(item.key) ?? 0) + 1;
-        attempts.set(item.key, tries);
-        asked.delete(item.key);
-        if (tries < MAX_ATTEMPTS) {
-          // Put it back in the queue itself. The element that asked for
-          // it has long since stopped watching - useOnScreen disconnects
-          // after the first sighting - so nothing else would ever ask
-          // again, and a released key would just sit there unclaimed
-          // looking exactly like the bug it was meant to fix.
-          asked.add(item.key);
-          queue.current.set(item.key, item);
-          retrying = true;
-        }
+        if (item.key in results) attempts.delete(item.key);
+        // Not in the answer means Apple would not serve it, not that the
+        // record has no cover. Same treatment as a failed batch.
+        else refused.push(item);
       }
-      if (retrying && alive.current) {
-        timer.current = setTimeout(() => {
-          timer.current = null;
-          void latest.current?.();
-        }, RETRY_MS);
-      }
+      if (refused.length > 0) requeue(refused);
     } catch {
-      for (const item of items) asked.delete(item.key);
+      requeue(items);
       return;
     }
     if (alive.current) bump((n) => n + 1);
@@ -176,7 +187,7 @@ export function useSleeves() {
     // nothing if the retry above already set a timer, which is what we
     // want: one timer, the slower of the two.
     if (queue.current.size > 0 && alive.current) schedule();
-  }, [schedule]);
+  }, [schedule, requeue]);
 
   useEffect(() => {
     latest.current = flush;
@@ -191,6 +202,19 @@ export function useSleeves() {
       if (asked.has(ask.key)) return;
       asked.add(ask.key);
       queue.current.set(ask.key, ask);
+      // Repaint, so the sleeve can show that it is working.
+      //
+      // Without this the loading state could never appear at all.
+      // `asked` is a plain module-level Set, so adding to it changes
+      // nothing React watches: the shelf carried on showing the settled
+      // blank until the batch came back, at which point the answer
+      // existed and the record was no longer pending. The one state
+      // that says "this is in hand" was unreachable for the entire
+      // window it describes.
+      //
+      // Safe from here: want is called from an IntersectionObserver
+      // callback, never during a render.
+      bump((n) => n + 1);
       schedule();
     },
     [schedule]
@@ -252,7 +276,16 @@ export function useOnScreen(onScreen: () => void, enabled = true) {
           }
         }
       },
-      { rootMargin: "400px" }
+      // Just ahead of the fold, not the whole page.
+      //
+      // Four hundred pixels on a grid of fifty sleeves catches almost
+      // all of them at once, so "only look up what somebody can see"
+      // was in practice looking up the entire shelf. That is fifty
+      // requests to a catalogue that allows about twenty a minute, and
+      // it is the reason the search box in the post form - a person,
+      // waiting, typing - kept being told the catalogue was busy. It was
+      // busy with us.
+      { rootMargin: "120px" }
     );
     observer.observe(el);
     return () => observer.disconnect();

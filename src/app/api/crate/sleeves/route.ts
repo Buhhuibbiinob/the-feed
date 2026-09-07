@@ -27,8 +27,15 @@ import { lookupItunesTrack, type ItunesTrackInfo } from "@/lib/itunes";
  */
 const MAX_ITEMS = 24;
 
-/** How many of a batch are in flight at once. */
-const CONCURRENCY = 4;
+/**
+ * How many of a batch are in flight at once.
+ *
+ * Low on purpose. Apple allows roughly twenty calls a minute across
+ * everything this site does, and shelf covers are background work
+ * competing with the search box in the post form, which is a person
+ * sitting and waiting. Background work should lose that competition.
+ */
+const CONCURRENCY = 2;
 
 /**
  * How long the whole batch gets before it answers with what it has.
