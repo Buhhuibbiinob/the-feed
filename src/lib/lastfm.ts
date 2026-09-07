@@ -181,6 +181,13 @@ const TAG_TEXT: Record<string, string> = {
   "contemporary-rnb": "contemporary r&b",
   "alternative-rnb": "alternative r&b",
   pbrnb: "alternative r&b",
+  // Slug to the words people actually tag with. "uk rnb" is nearly
+  // unused on Last.fm and "uk r&b" is the real tag, so a shelf built
+  // from the slug straight would come back empty and read as a scene
+  // nobody records in.
+  "uk-rnb": "uk r&b",
+  britfunk: "brit funk",
+  drain: "drain gang",
   "drum-and-bass": "drum and bass",
   "liquid-dnb": "liquid drum and bass",
   "city-pop-jp": "city pop",
