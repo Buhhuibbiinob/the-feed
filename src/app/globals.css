@@ -15793,10 +15793,20 @@ button.btn-ghost {
   box-shadow: 0 6px 9px -4px rgba(0, 0, 0, 0.85), 0 2px 0 rgba(0, 0, 0, 0.5),
     0 1px 0 rgba(255, 255, 255, 0.28) inset;
 }
+/* A record the catalogue has no picture for.
+   The same printed board and paper label the Crate draws for the same
+   case, rather than a third answer - this used to be a near black
+   gradient, which is the one thing a sleeve must not be, because a dark
+   square on a shelf reads as a hole in it rather than as a record. The
+   label is a background here rather than a child element, since this is
+   a bare div with nothing inside it. */
 .wooditem .wood-blank {
   width: var(--wood-item);
   height: var(--wood-item);
-  background: linear-gradient(160deg, #3a3a3f, #17171a);
+  background:
+    radial-gradient(circle at 50% 50%, #fff 0 4.5%, #2a2a2e 5% 17%, transparent 17.5%),
+    repeating-linear-gradient(94deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 5px),
+    linear-gradient(160deg, #d9d5c9, #b8b3a4);
 }
 
 /* The card under the shelf.
@@ -16714,14 +16724,20 @@ button.btn-ghost {
    dark square, and on a twelve inch sleeve with the disc drawn behind it
    that came out as a black slab in the middle of a row of covers. A
    record with no artwork is a white label, so that is what it draws as -
-   printed board with a plate on it, and the name goes on the plate,
-   which is the one case where text on a sleeve is right rather than a
-   caption on somebody else's photograph. */
+   the same printed board the Crate and the shelves use for the same
+   case, so a record with no picture looks like one record everywhere
+   rather than three.
+
+   The rack adds a printed plate with the name on it, and only the rack,
+   because it is the only one of the three with no label under the item:
+   on a shelf and in the crate the name is already on the board below.
+   Text on a sleeve is a caption on somebody else's photograph, except
+   when there is no photograph. */
 .rack-spine-ink.blank {
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.22)),
     repeating-linear-gradient(94deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 5px),
-    linear-gradient(155deg, #ded6c6, #b9ae99 60%, #a2977f);
+    linear-gradient(160deg, #d9d5c9, #b8b3a4);
 }
 /* The plate. Centred, inset, and only on a blank one. */
 .rack-spine.blank .rack-spine-text {
