@@ -97,7 +97,17 @@ export async function resolveTrackVideo(track: TrackResult): Promise<ResolvedTra
     const videos: YoutubeVideo[] = Array.isArray(data.videos) ? data.videos : [];
     const error = typeof data.error === "string" ? data.error : null;
     if (videos.length > 0) return { video: videos[0], error: null };
-    return { video: null, error: error ?? "Couldn't find anything playable for that song." };
+    // Named for what it is: YouTube had nothing for THIS one. The old
+    // wording was "couldn't find anything playable for that song", which
+    // was shown at the top of a list that had the song in it four times
+    // - so it read as "this song does not exist" about a song visibly
+    // right there, and the only sensible response to it was confusion.
+    return {
+      video: null,
+      error:
+        error ??
+        `No video on YouTube for "${track.title}". Another version below may have one.`,
+    };
   } catch {
     return { video: null, error: "Couldn't reach the search. Try again in a moment." };
   }

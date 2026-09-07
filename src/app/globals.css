@@ -1564,6 +1564,19 @@ button:not([class]):disabled {
   cursor: pointer;
   font-size: 12px;
 }
+/* A note rather than a row: this one is not clickable and must not look
+   like one of the results it is sitting above. */
+.track-result.note {
+  cursor: default;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: #7a4a12;
+  background: #fdf3dc;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.track-result.note:hover {
+  background: #fdf3dc;
+}
 .track-result:hover {
   background: #f2f2f2;
 }
