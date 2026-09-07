@@ -219,14 +219,26 @@ export default async function FeedPage({
   let playlists: Playlist[] = [];
   let playlistsOff = false;
   if (showPlaylists) {
-    const { data, error } = await supabase
+    const COLUMNS =
+      "id, user_id, provider, provider_id, storefront, slug, title, note, created_at, profiles!playlists_user_id_fkey(username, avatar_url)";
+    // cover_url arrives with migration 014. Asked for first, and asked
+    // again without it if the column is not there yet - so a database
+    // still on 013 shows its playlists with no artwork rather than
+    // showing nothing and reporting the tab as broken.
+    let { data, error } = await supabase
       .from("playlists")
-      .select(
-        "id, user_id, provider, provider_id, storefront, slug, title, note, created_at, profiles!playlists_user_id_fkey(username, avatar_url)"
-      )
+      .select(`${COLUMNS}, cover_url`)
       .order("created_at", { ascending: false })
       .limit(60)
       .returns<PlaylistRow[]>();
+    if (error && /cover_url/.test(error.message)) {
+      ({ data, error } = await supabase
+        .from("playlists")
+        .select(COLUMNS)
+        .order("created_at", { ascending: false })
+        .limit(60)
+        .returns<PlaylistRow[]>());
+    }
     // The table ships in a migration somebody has to run by hand. Without
     // this the tab said "nobody has put a playlist up yet", which is the
     // silent failure: it reads as a working feature nobody has used

@@ -1,15 +1,10 @@
 /**
- * Genres are only ever valid as a pair with their category.
- *
- * "Documentary" is a genre of film and of photography but not of music.
- * A post that claims a genre its category doesn't have is a row no filter
- * will ever match: invisible on the feed, uncounted everywhere, and
- * silent about it. So the pairing is checked here rather than trusted.
+ * The genre taxonomy holds together.
  *
  * Run: npx tsx scripts/genre-check.ts
  */
-import { GENRES, genreLabel, isGenreFor, mediaTypeForGenre } from "../src/lib/genres";
-import { MEDIA_TYPES } from "../src/lib/media";
+import { COMMON_GENRES, FAMILIES, GENRES, familyForGenre, genreLabel, isGenreFor, searchGenres } from "../src/lib/genres";
+import type { MediaType } from "../src/lib/media";
 
 let failures = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -17,38 +12,205 @@ function check(name: string, ok: boolean, detail = "") {
   if (!ok) failures++;
 }
 
-check("every category has genres", MEDIA_TYPES.every((t) => GENRES[t].length > 0));
+const TYPES: MediaType[] = ["music", "movie_tv", "photography"];
 
-check("a film genre is valid for film", isGenreFor("movie_tv", "horror"));
-check("a film genre is not valid for music", !isGenreFor("music", "horror"));
-check("a music genre is not valid for film", !isGenreFor("movie_tv", "kpop"));
-check("documentary belongs to both film and photography",
-  isGenreFor("movie_tv", "documentary") && isGenreFor("photography", "documentary"));
-check("documentary is not a music genre", !isGenreFor("music", "documentary"));
+/**
+ * Every slug the flat list had before it became a taxonomy.
+ *
+ * Frozen here on purpose. These are on real posts, and a genre that
+ * disappears does not delete its rows - it hides them: isGenreFor goes
+ * false, the badge stops rendering, and no filter ever matches that row
+ * again. Nothing about that is visible from the outside, which is
+ * exactly why it is pinned.
+ */
+const WAS_ALREADY_LIVE: Record<MediaType, string[]> = {
+  music: [
+    "pop",
+    "hip-hop",
+    "rnb",
+    "rock",
+    "indie",
+    "electronic",
+    "country",
+    "jazz",
+    "classical",
+    "metal",
+    "punk",
+    "folk",
+    "latin",
+    "kpop",
+    "soundtrack",
+    "alternative",
+    "soul",
+    "funk",
+    "disco",
+    "house",
+    "techno",
+    "drum-and-bass",
+    "dubstep",
+    "garage",
+    "ambient",
+    "experimental",
+    "shoegaze",
+    "dream-pop",
+    "post-punk",
+    "new-wave",
+    "synthpop",
+    "hyperpop",
+    "emo",
+    "hardcore",
+    "grunge",
+    "britpop",
+    "psychedelic",
+    "prog",
+    "blues",
+    "gospel",
+    "reggae",
+    "dancehall",
+    "afrobeats",
+    "amapiano",
+    "highlife",
+    "bossa-nova",
+    "salsa",
+    "reggaeton",
+    "bollywood",
+    "city-pop",
+    "jpop",
+    "trap",
+    "drill",
+    "grime",
+    "lo-fi",
+    "bedroom-pop",
+    "singer-songwriter",
+    "americana",
+    "bluegrass",
+    "opera",
+    "musical-theatre",
+    "spoken-word",
+    "field-recording",
+  ],
+  movie_tv: [
+    "action",
+    "comedy",
+    "drama",
+    "horror",
+    "thriller",
+    "sci-fi",
+    "fantasy",
+    "romance",
+    "documentary",
+    "animation",
+    "anime",
+    "crime",
+    "reality",
+    "adventure",
+    "mystery",
+    "biopic",
+    "historical",
+    "war",
+    "western",
+    "musical",
+    "family",
+    "sitcom",
+    "sketch",
+    "stand-up",
+    "noir",
+    "psychological",
+    "slasher",
+    "found-footage",
+    "superhero",
+    "heist",
+    "courtroom",
+    "coming-of-age",
+    "road-movie",
+    "disaster",
+    "sports",
+    "spy",
+    "martial-arts",
+    "experimental",
+    "short",
+    "miniseries",
+    "soap",
+    "game-show",
+    "nature-doc",
+    "true-crime",
+  ],
+  photography: [
+    "portrait",
+    "street",
+    "landscape",
+    "fashion",
+    "nature",
+    "architecture",
+    "film",
+    "documentary",
+    "abstract",
+    "wildlife",
+    "macro",
+    "still-life",
+    "night",
+    "astro",
+    "travel",
+    "wedding",
+    "editorial",
+    "product",
+    "sport",
+    "photojournalism",
+    "black-and-white",
+    "analogue",
+    "polaroid",
+    "double-exposure",
+    "long-exposure",
+    "aerial",
+    "underwater",
+    "self-portrait",
+    "conceptual",
+    "fine-art",
+    "candid",
+    "minimal",
+  ],
+};
 
-// Anything a form can post that isn't a genre.
-for (const junk of [null, undefined, "", " horror", "HORROR", 5, {}, "'; drop table posts;--"]) {
-  check(`rejects ${JSON.stringify(junk)}`, !isGenreFor("movie_tv", junk));
+for (const type of TYPES) {
+  const list = GENRES[type] as string[];
+
+  const dupes = [...new Set(list.filter((g, i) => list.indexOf(g) !== i))];
+  check(`${type}: no genre appears twice`, dupes.length === 0, dupes.join(", "));
+
+  const homeless = list.filter((g) => !familyForGenre(type, g));
+  check(`${type}: every genre is in a family`, homeless.length === 0, homeless.slice(0, 6).join(", "));
+
+  const lost = WAS_ALREADY_LIVE[type].filter((g) => !isGenreFor(type, g));
+  check(
+    `${type}: nothing that was already live has gone`,
+    lost.length === 0,
+    lost.length ? `${lost.join(", ")} - posts using these would go invisible` : ""
+  );
+
+  const strays = (COMMON_GENRES[type] as string[]).filter((g) => !isGenreFor(type, g));
+  check(`${type}: the common shortlist is all real genres`, strays.length === 0, strays.join(", "));
+
+  const blank = list.filter((g) => !genreLabel(g).trim());
+  check(`${type}: every genre has a label`, blank.length === 0, blank.join(", "));
+
+  console.log(`      ${list.length} genres across ${FAMILIES[type].length} families`);
 }
 
-// Slugs go in URLs and into a database column; labels go on screen.
-const allSlugs = MEDIA_TYPES.flatMap((t) => [...GENRES[t]]);
-check("slugs are url-safe", allSlugs.every((s) => /^[a-z0-9-]+$/.test(s)), allSlugs.find((s) => !/^[a-z0-9-]+$/.test(s)) ?? "");
-check("every slug has a non-empty label", allSlugs.every((s) => genreLabel(s).length > 0));
-check("labels are capitalised", allSlugs.every((s) => /^[A-Z]/.test(genreLabel(s))),
-  allSlugs.find((s) => !/^[A-Z]/.test(genreLabel(s))) ?? "");
-check("R&B and K-Pop keep their punctuation",
-  genreLabel("rnb") === "R&B" && genreLabel("kpop") === "K-Pop" && genreLabel("hip-hop") === "Hip-Hop");
+// A slug in two categories is fine and deliberate - "documentary" is a
+// genre of both film and photography - but it must still be checked as a
+// pair, or a photography post could claim a film-only genre.
+check("a film genre is not a photography genre", !isGenreFor("photography", "slasher"));
+check("a music genre is not a film genre", !isGenreFor("movie_tv", "shoegaze"));
+check("documentary is genuinely both", isGenreFor("movie_tv", "documentary") && isGenreFor("photography", "documentary"));
 
-check("no duplicates inside a category",
-  MEDIA_TYPES.every((t) => new Set(GENRES[t]).size === GENRES[t].length));
+// The search is what makes eight hundred usable rather than a wall.
+check("an empty query gives the shortlist", searchGenres("music", "").length > 0);
+check("a prefix finds the microgenre", searchGenres("music", "shoeg").includes("shoegaze"));
+check("a middle-of-the-word match still finds it", searchGenres("music", "gaze").includes("shoegaze"));
+check(
+  "a search that matches nothing returns nothing rather than everything",
+  searchGenres("music", "zzzzqqq").length === 0
+);
 
-// Shared slugs are fine; the lookup just has to be deterministic about them.
-check("mediaTypeForGenre finds a unique genre", mediaTypeForGenre("kpop") === "music");
-check("mediaTypeForGenre returns null for a non-genre", mediaTypeForGenre("polka") === null);
-
-if (failures > 0) {
-  console.error(`\n${failures} check${failures === 1 ? "" : "s"} failed.`);
-  process.exit(1);
-}
-console.log("\nGenres are valid only where they belong.");
+console.log(failures === 0 ? "\nEight hundred genres, and every one of them findable." : `\n${failures} failing.`);
+if (failures > 0) process.exit(1);

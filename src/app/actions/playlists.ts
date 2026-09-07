@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchPlaylistCover } from "@/lib/playlistCover";
 import { isAdmin } from "@/lib/admin";
 import { friendlyDbError, isMissingSchema } from "@/lib/dbError";
 import {
@@ -28,7 +29,8 @@ export async function addPlaylist(
   // somebody who pasted an ALBUM link with no idea what went wrong.
   if (!parsed) {
     return {
-      error: "That doesn't look like a playlist link. Paste the link to a playlist on Spotify or Apple Music. An album or track link won't work.",
+      error:
+        "That doesn't look like a playlist link. Spotify, Apple Music, YouTube, SoundCloud, Deezer and Tidal all work - but it has to be a playlist. An album, a single track or one video won't.",
     };
   }
 
@@ -43,7 +45,14 @@ export async function addPlaylist(
     return { error: `That's ${MAX_PLAYLISTS_PER_PERSON} playlists. Take one down first.` };
   }
 
-  const { error } = await supabase.from("playlists").insert({
+  // The artwork, once, here. Not per render: a wall of twelve would
+  // otherwise be twelve requests every time anybody opened the tab, and
+  // a playlist's cover does not change. Failure is not fatal - a
+  // playlist with no picture still goes up, and Cover Flow draws it as a
+  // blank sleeve rather than refusing the paste over a thumbnail.
+  const coverUrl = await fetchPlaylistCover(parsed).catch(() => null);
+
+  const row = {
     user_id: user.id,
     provider: parsed.provider,
     provider_id: parsed.providerId,
@@ -51,7 +60,15 @@ export async function addPlaylist(
     slug: parsed.slug,
     title,
     note: String(formData.get("note") ?? "").trim().slice(0, 200) || null,
-  });
+  };
+  let { error } = await supabase.from("playlists").insert({ ...row, cover_url: coverUrl });
+  // A database still on 013 has no cover_url column. Rather than refuse
+  // the playlist over a picture, put it up without one - the column
+  // arrives with migration 014 and every playlist added after that gets
+  // its cover.
+  if (error && /cover_url/.test(error.message)) {
+    ({ error } = await supabase.from("playlists").insert(row));
+  }
 
   // 23505: they already added it. That is the state they wanted.
   if (error && error.code !== "23505") {
