@@ -112,6 +112,8 @@ export type SearchFailure =
   | { reason: "not-configured" }
   | { reason: "quota" }
   | { reason: "rate-limited" }
+  /** The key is set and Google will not accept it. */
+  | { reason: "key-rejected"; detail: string }
   | { reason: "http"; status: number }
   | { reason: "network" };
 
@@ -122,16 +124,79 @@ export function describeSearchFailure(failure: SearchFailure): string {
     case "not-configured":
       return "This needs a YouTube key before it can show anything.";
     case "quota":
-      return "Today's YouTube quota is used up. It comes back tomorrow.";
+      return "Today's YouTube quota is used up. It comes back at midnight Pacific.";
     case "rate-limited":
-      // 429 is searches arriving too fast, not the daily wall - it clears
-      // in seconds, so this says wait rather than come back tomorrow.
       return "Searching a bit fast for YouTube. Wait a few seconds and try again.";
+    case "key-rejected":
+      // Said plainly, because this is the one failure here that nobody
+      // can wait out. It looked exactly like a spent quota for as long
+      // as the status code was all we read, so it was advice to come
+      // back tomorrow for a problem that would still be there tomorrow.
+      return `YouTube is refusing the API key (${failure.detail}). That needs fixing in the Google Cloud console, not waiting out.`;
     case "network":
       return "Couldn't reach YouTube. Try again in a moment.";
     default:
       return `YouTube said ${failure.status}. Try again in a moment.`;
   }
+}
+
+/**
+ * What Google actually said, rather than what the status code implies.
+ *
+ * The status code alone is not enough to tell these apart, and getting
+ * it wrong sends somebody to wait for a thing that will never happen.
+ * A spent daily quota comes back as 403 quotaExceeded on one path and
+ * 429 RESOURCE_EXHAUSTED on another; a key with an HTTP-referrer
+ * restriction on it - which is the default when you create one in the
+ * console and is useless from a server - comes back as 403 too, and so
+ * does a key from the wrong project, and so does one with the YouTube
+ * Data API not switched on.
+ *
+ * Reading 403 as "quota" meant every one of those said "used up, comes
+ * back tomorrow", and tomorrow it said it again. The body names the
+ * reason, so it is read.
+ */
+export function failureFromBody(status: number, body: string): SearchFailure {
+  let reason = "";
+  let message = "";
+  try {
+    const parsed = JSON.parse(body) as {
+      error?: { errors?: { reason?: string; message?: string }[]; status?: string; message?: string };
+    };
+    reason = parsed.error?.errors?.[0]?.reason ?? parsed.error?.status ?? "";
+    message = parsed.error?.errors?.[0]?.message ?? parsed.error?.message ?? "";
+  } catch {
+    // Not JSON. Fall through to the status code, which is all there is.
+  }
+
+  const r = reason.toLowerCase();
+  if (r.includes("quotaexceeded") || r.includes("dailylimitexceeded") || r === "resource_exhausted") {
+    return { reason: "quota" };
+  }
+  if (r.includes("ratelimitexceeded")) return { reason: "rate-limited" };
+  if (
+    r.includes("keyinvalid") ||
+    r.includes("keyexpired") ||
+    r.includes("iprefererblocked") ||
+    r.includes("forbidden") ||
+    r.includes("accessnotconfigured") ||
+    r.includes("permission_denied") ||
+    r.includes("unauthenticated")
+  ) {
+    return { reason: "key-rejected", detail: reason || message || `HTTP ${status}` };
+  }
+
+  // Nothing recognised in the body. The status code is the last word,
+  // and this is where the old guesses live - but now only as a
+  // fallback, with whatever Google said carried along so it is
+  // diagnosable rather than a shrug.
+  if (status === 429) return { reason: "quota" };
+  if (status === 403) {
+    return reason || message
+      ? { reason: "key-rejected", detail: reason || message }
+      : { reason: "quota" };
+  }
+  return { reason: "http", status };
 }
 
 /** The full answer, failure included. */
@@ -164,11 +229,15 @@ export async function searchVideosDetailed(
   if (!res) return { videos: [], failure: { reason: "network" } };
 
   if (!res.ok) {
-    // 403 is what an exhausted quota looks like, and it is by far the
-    // likeliest failure on a key that used to work.
-    if (res.status === 403) return { videos: [], failure: { reason: "quota" } };
-    if (res.status === 429) return { videos: [], failure: { reason: "rate-limited" } };
-    return { videos: [], failure: { reason: "http", status: res.status } };
+    // Read what Google said, not just the number it said it with.
+    const body = await res.text().catch(() => "");
+    const failure = failureFromBody(res.status, body);
+    // Logged once per failed search, because this is the one thing here
+    // that cannot be worked out from the outside: the page can only ever
+    // show a sentence, and the reason string is what actually says
+    // whether to wait, to top up, or to go and fix the key.
+    console.error(`[youtube] ${res.status} ${failure.reason}: ${body.slice(0, 300)}`);
+    return { videos: [], failure };
   }
 
   const data = (await res.json()) as { items: YoutubeSearchItem[] };
