@@ -16021,13 +16021,49 @@ button.btn-ghost {
   pointer-events: none;
 }
 
-/* Cassette: small, landscape, and sitting low on the board, because a
-   cassette case is the shortest thing anybody ever shelved. */
+/* Cassette: small, landscape, sitting low on the board, because a
+   cassette is the shortest thing anybody ever shelved.
+   Same object as the one in the Crate, at shelf size: an ivory shell
+   with the album art as its label, four sunk screws, and the window with
+   its two hubs. The art IS the coloured panel rather than a picture
+   printed on a black brick, which is the difference between a cassette
+   and a rectangle of album cover. */
 .wooditem.fmt-cassette img,
 .wooditem.fmt-cassette .wood-blank {
-  width: 68px;
-  height: 43px;
-  object-position: center 30%;
+  width: 76px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 2px;
+  /* The shell, drawn as a ring round the label rather than as another
+     element: at this size a border with the right colours reads as
+     moulded plastic and costs nothing. */
+  border: 5px solid #f0e5cf;
+  border-bottom-width: 15px;
+  box-shadow: 0 0 0 1px rgba(120, 104, 78, 0.9), 0 6px 9px -4px rgba(0, 0, 0, 0.85),
+    0 2px 0 rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.75) inset;
+}
+/* The window and its two hubs, sitting in the wide bottom edge of the
+   shell where a real one has them. */
+.wooditem.fmt-cassette::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 44px;
+  height: 9px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 2.5px, #241d18 3px 100%),
+    repeating-conic-gradient(from 0deg at 50% 50%, #9c968a 0deg 12deg, #d6d1c6 12deg 24deg),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 2px, #241d18 2.5px 100%),
+    repeating-conic-gradient(from 7deg at 50% 50%, #9c968a 0deg 14deg, #d6d1c6 14deg 28deg),
+    linear-gradient(180deg, #3a3129, #241d18);
+  background-repeat: no-repeat;
+  background-size: 36% 100%, 36% 100%, 36% 100%, 36% 100%, 100% 100%;
+  background-position: 6% 0, 6% 0, 94% 0, 94% 0, 0 0;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.7) inset, 0 1px 0 rgba(255, 255, 255, 0.6);
+  pointer-events: none;
 }
 
 /* A film. Taller than it is wide, with the spine catching light down the
@@ -16863,6 +16899,237 @@ button.btn-ghost {
   color: #ffd9a4;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* ================================================================
+   APPLE 2026: LIQUID GLASS
+   ----------------------------------------------------------------
+   The other end of the site's own timeline.
+
+   Everything else here is 2012: milled gradients, a hard specular cut
+   you could put a ruler against, a dark stroke round every control, and
+   chrome that sits ON the page. The current language is the opposite of
+   all four. Glass floats ABOVE the content and lets it through, blurred
+   and tinted; the light on it is a rim rather than a band across the
+   middle; the edge is a bright hairline rather than a dark one; and the
+   shapes are capsules and generous continuous radii instead of five
+   pixel rounded rects.
+
+   Which makes this the one theme that has to switch things OFF rather
+   than add to them. The glaze goes to nothing, the letterpress goes to
+   nothing, the frames go pale. Left in, they read as a 2012 button
+   wearing a 2026 colour, which is worse than either.
+
+   Radii are set through --panel-radius and --btn-radius rather than
+   declared, because a theme is not allowed to touch border-radius and
+   should not be: those two tokens exist so a theme can change the shape
+   language without moving any furniture.
+   ================================================================ */
+
+[data-theme="apple-2026"] {
+  --chrome-hi: #ffffff;
+  --chrome-mid: #e8e8ed;
+  --chrome-low: #c7c7cf;
+  --chrome-dark: #48484f;
+  --chrome-black: #17171a;
+  /* The current system blue, which is a shade cooler and brighter than
+     the one iOS 6 used. */
+  --link-blue: #0071e3;
+  --link-blue-dark: #0058b0;
+  --link: #0071e3;
+  --text: #1c1c1e;
+  --muted: #6c6c72;
+  --divider: rgba(60, 60, 67, 0.16);
+  --star-gold: #ffb400;
+
+  /* The ground. Not a texture: a wide, soft wash, because glass needs
+     something with variation behind it or it has nothing to refract.
+     Linen under liquid glass would be two eras arguing. */
+  --body-bg: radial-gradient(ellipse 90% 60% at 12% 0%, #dbe8ff 0%, rgba(219, 232, 255, 0) 60%),
+    radial-gradient(ellipse 80% 55% at 88% 8%, #ffe2f0 0%, rgba(255, 226, 240, 0) 58%),
+    radial-gradient(ellipse 100% 70% at 50% 100%, #e6f2ea 0%, rgba(230, 242, 234, 0) 62%),
+    linear-gradient(180deg, #f7f7fb 0%, #eff0f5 100%);
+  --body-texture: none;
+
+  /* Panels: glass. A pale translucent fill, a bright hairline that is
+     brightest along the top edge where the light catches the lip, and a
+     wide soft shadow rather than a hard one. */
+  --panel-radius: 20px;
+  --panel-frame: rgba(255, 255, 255, 0.55);
+  --panel-body-bg: rgba(255, 255, 255, 0.62);
+  --panel-head-bg: rgba(255, 255, 255, 0.5);
+  --panel-head-border: rgba(60, 60, 67, 0.1);
+  --panel-head-text: #1c1c1e;
+  --panel-head-letterpress: none;
+  --panel-head-shadow: none;
+  --panel-border: rgba(60, 60, 67, 0.14);
+  --panel-texture: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 8px 26px -10px rgba(28, 30, 45, 0.28);
+
+  --nav-bg: rgba(255, 255, 255, 0.62);
+  --nav-border: rgba(60, 60, 67, 0.12);
+
+  /* Buttons: capsules with a flat vivid fill.
+     No midline. A hard specular cut at 34 per cent is the single most
+     2012 thing on this site and the single thing this theme must not
+     have. What replaces it is a rim: one bright pixel round the whole
+     shape, brightest at the top. */
+  --btn-radius: 999px;
+  --btn-bg: #0071e3;
+  --btn-image: linear-gradient(180deg, #1a86f0 0%, #0071e3 100%);
+  --btn-image-hover: linear-gradient(180deg, #3097f5 0%, #0f7ee9 100%);
+  --btn-image-active: linear-gradient(180deg, #005ec2 0%, #0071e3 100%);
+  --btn-border: rgba(0, 0, 0, 0);
+  --btn-text: #fff;
+  --btn-letterpress: none;
+  --btn-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 4px 12px -4px rgba(0, 113, 227, 0.6);
+  --btn-shadow-active: 0 1px 4px rgba(0, 0, 0, 0.2) inset;
+
+  --btn-ghost-image: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.66));
+  --btn-ghost-frame: rgba(60, 60, 67, 0.16);
+  --btn-ghost-text: #1c1c1e;
+  --btn-ghost-letterpress: none;
+  --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 4px 12px -6px rgba(28, 30, 45, 0.35);
+
+  /* The glaze off. Everything above depends on it being gone. */
+  --glaze: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --glaze-pale: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --glaze-bar: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+
+  /* The rim light, in place of the 2012 object recipe's pale ring and
+     dark stroke. Same tokens, opposite intent: the edge is now the
+     brightest thing on the control rather than the darkest. */
+  --edge-outer: 0 0 0 1px rgba(255, 255, 255, 0.7);
+  --edge-glow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+  --edge-drop: 0 6px 18px -8px rgba(28, 30, 45, 0.35);
+
+  --art-frame: 1px solid rgba(60, 60, 67, 0.12);
+  --art-sweep: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --tab-gloss: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+  --row-stripe: rgba(0, 0, 0, 0.018);
+  --chip-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 2px 8px -4px rgba(28, 30, 45, 0.3);
+  --hero-letterpress: none;
+  --hero-glow: none;
+}
+
+/* The blur. This is the whole material and it cannot be a token, because
+   backdrop-filter is a property rather than a colour. Saturation goes up
+   with the blur: glass concentrates the colour behind it, and blurring
+   without saturating gives you frosted plastic. */
+[data-theme="apple-2026"] .panel,
+[data-theme="apple-2026"] .apple-nav,
+[data-theme="apple-2026"] .site-nav,
+[data-theme="apple-2026"] .tab-bar {
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+/* The pale button and the unclassed one, given a real fill.
+   Both are drawn with background-IMAGE only, so their colour depends on
+   whatever shows through from behind - which on glass is glass, and a
+   translucent white over a translucent white panel comes out near enough
+   white in both modes. In dark mode that put light grey text on a near
+   white pill at 1.5 to 1. Setting the colour outright rather than
+   layering another wash over an unknown backdrop is the only way to know
+   what it will be. */
+[data-theme="apple-2026"] .btn-ghost,
+[data-theme="apple-2026"] button.btn-ghost,
+[data-theme="apple-2026"] button:not([class]) {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: #1c1c1e;
+}
+:root[data-mode="dark"][data-theme="apple-2026"] .btn-ghost,
+:root[data-mode="dark"][data-theme="apple-2026"] button.btn-ghost,
+:root[data-mode="dark"][data-theme="apple-2026"] button:not([class]) {
+  background-color: rgba(72, 72, 82, 0.92);
+  color: #f2f2f7;
+}
+
+/* Fields, on glass.
+   The base rules draw these as sunk metal: a hard inner shadow, a dark
+   frame, and in the select's case a gel gradient with two triangles
+   painted straight into background-image, which no token can reach past.
+   None of that survives the change of era, so all three are overridden
+   here rather than dimmed. A 2026 field is a pale capsule with a
+   hairline: it does not pretend to be a hole in the page. */
+[data-theme="apple-2026"] input[type="text"],
+[data-theme="apple-2026"] input[type="email"],
+[data-theme="apple-2026"] input[type="password"],
+[data-theme="apple-2026"] input[type="search"],
+[data-theme="apple-2026"] input[type="url"],
+[data-theme="apple-2026"] input[type="number"],
+[data-theme="apple-2026"] input:not([type]),
+[data-theme="apple-2026"] textarea,
+[data-theme="apple-2026"] select {
+  background-color: rgba(255, 255, 255, 0.72);
+  border-color: rgba(60, 60, 67, 0.16);
+  color: var(--text);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+}
+[data-theme="apple-2026"] select {
+  background-image: linear-gradient(45deg, transparent 50%, #6c6c72 50%),
+    linear-gradient(135deg, #6c6c72 50%, transparent 50%);
+  background-position: calc(100% - 16px) center, calc(100% - 11px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+[data-theme="apple-2026"] input:focus,
+[data-theme="apple-2026"] textarea:focus,
+[data-theme="apple-2026"] select:focus {
+  border-color: var(--link-blue);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.18);
+}
+:root[data-mode="dark"][data-theme="apple-2026"] input[type="text"],
+:root[data-mode="dark"][data-theme="apple-2026"] input:not([type]),
+:root[data-mode="dark"][data-theme="apple-2026"] textarea,
+:root[data-mode="dark"][data-theme="apple-2026"] select {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+}
+:root[data-mode="dark"][data-theme="apple-2026"] select {
+  background-image: linear-gradient(45deg, transparent 50%, #c7c7cf 50%),
+    linear-gradient(135deg, #c7c7cf 50%, transparent 50%);
+}
+
+/* A control on glass is glass too, so it gets the rim rather than a
+   frame, and it presses by sinking rather than by flipping its light. */
+[data-theme="apple-2026"] .btn:active:not(:disabled),
+[data-theme="apple-2026"] button.btn:active:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+/* Dark mode: the same material with the light behind it instead of in
+   front. Glass over a dark room is a dark pane with a bright edge, not a
+   grey box - so the fills go to near-black at low opacity and the rim
+   stays, because the rim is the only thing that says "pane" at all. */
+:root[data-mode="dark"][data-theme="apple-2026"],
+[data-theme="apple-2026"]:root[data-mode="dark"] {
+  --text: #f2f2f7;
+  --muted: #98989f;
+  --link: #4da3ff;
+  --link-blue: #4da3ff;
+  --divider: rgba(255, 255, 255, 0.14);
+  --body-bg: radial-gradient(ellipse 90% 60% at 12% 0%, #16233d 0%, rgba(22, 35, 61, 0) 60%),
+    radial-gradient(ellipse 80% 55% at 88% 8%, #2a1730 0%, rgba(42, 23, 48, 0) 58%),
+    linear-gradient(180deg, #101014 0%, #17171c 100%);
+  --panel-frame: rgba(255, 255, 255, 0.12);
+  --panel-body-bg: rgba(28, 28, 34, 0.66);
+  --panel-head-bg: rgba(255, 255, 255, 0.06);
+  --panel-head-text: #f2f2f7;
+  --panel-head-border: rgba(255, 255, 255, 0.1);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset, 0 10px 30px -12px rgba(0, 0, 0, 0.8);
+  --nav-bg: rgba(24, 24, 29, 0.66);
+  --nav-border: rgba(255, 255, 255, 0.1);
+  --btn-ghost-image: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.07));
+  --btn-ghost-frame: rgba(255, 255, 255, 0.16);
+  --btn-ghost-text: #f2f2f7;
+  --btn-ghost-shadow: 0 1px 0 rgba(255, 255, 255, 0.16) inset,
+    0 6px 16px -8px rgba(0, 0, 0, 0.7);
+  --edge-outer: 0 0 0 1px rgba(255, 255, 255, 0.16);
+  --edge-glow: 0 1px 0 rgba(255, 255, 255, 0.14) inset;
+  --edge-drop: 0 8px 22px -10px rgba(0, 0, 0, 0.8);
 }
 
 /* ================================================================

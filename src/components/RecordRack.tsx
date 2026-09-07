@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Find } from "@/lib/musicDiscovery";
 
@@ -86,6 +86,36 @@ export function RecordRack({
   const held = finds.find((f) => f.key === heldKey) ?? null;
   const playing = usePlayingKey();
 
+  // The clip for whatever is in your hand, looked up when you pull it.
+  //
+  // The rail enriches what it can up front, but a lookup that came back
+  // empty - and most of them do when Apple is throttling - left the
+  // record with no Hear it at all, so pulling one out of the rack and
+  // finding nothing to press is the commonest thing that happens. Asking
+  // again for the ONE record somebody has actually chosen is a single
+  // request at the moment it is wanted, which is both cheap and the only
+  // time it is certainly worth making.
+  const [pulledClip, setPulledClip] = useState<Record<string, string | null>>({});
+  useEffect(() => {
+    if (!held || held.previewUrl || pulledClip[held.key] !== undefined) return;
+    let cancelled = false;
+    const params = new URLSearchParams({ title: held.name, artist: held.artist });
+    fetch(`/api/crate/sleeve?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data: { previewUrl: string | null }) => {
+        if (!cancelled) setPulledClip((prev) => ({ ...prev, [held.key]: data.previewUrl ?? null }));
+      })
+      // Marked as looked-up either way, so a failing record does not
+      // re-request every time the component renders.
+      .catch(() => {
+        if (!cancelled) setPulledClip((prev) => ({ ...prev, [held.key]: null }));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [held, pulledClip]);
+  const heldClip = held ? held.previewUrl ?? pulledClip[held.key] ?? null : null;
+
   return (
     <section className="rack-section">
       {/* The card a shop slips into the rack to name a section. */}
@@ -145,11 +175,11 @@ export function RecordRack({
                 <span className="why">Because you liked {held.becauseOf}</span>
               ) : null}
               <div className="rack-held-actions">
-                {held.previewUrl ? (
+                {heldClip ? (
                   <button
                     type="button"
                     className="rack-link"
-                    onClick={() => togglePreview(held.key, held.previewUrl!)}
+                    onClick={() => togglePreview(held.key, heldClip)}
                   >
                     {playing === held.key ? "Stop" : "Hear it"}
                   </button>

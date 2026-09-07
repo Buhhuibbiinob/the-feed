@@ -78,9 +78,14 @@ export function ShelfRecords({
   );
 
   // Art and clips are fetched for the whole shelf, but a few at a time.
-  // Twenty-four parallel lookups from one address is the shape Apple
-  // rate-limits; four at a time fills the grid in a couple of seconds
-  // and never trips it.
+  // This said four at a time "never trips it", and that was simply
+  // wrong: a shelf of twenty four came back with artwork on two. Apple
+  // allows roughly twenty calls a minute and answers 403 above that, and
+  // a 403 was being read as "no such track", so twenty two records
+  // reported confidently and permanently that they were not in the
+  // catalogue. Two at a time with a gap between them stays under the
+  // limit, and lib/itunes retries the throttle now rather than believing
+  // it.
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;
@@ -97,10 +102,12 @@ export function ShelfRecords({
           // A record with no cover still belongs on the shelf.
           .catch(() => ({ artworkUrl: null, previewUrl: null, trackUrl: null }));
         if (!cancelled) setInfo((prev) => ({ ...prev, [record.key]: data }));
+        // A gap, so a long shelf arrives as a queue rather than a burst.
+        await new Promise((r) => setTimeout(r, 160));
       }
     }
 
-    void Promise.all(Array.from({ length: Math.min(4, records.length) }, worker));
+    void Promise.all(Array.from({ length: Math.min(2, records.length) }, worker));
     return () => {
       cancelled = true;
     };
