@@ -10,6 +10,10 @@ type ItunesTrack = {
    *  discovery can be listened to rather than only read. */
   previewUrl?: string;
   trackViewUrl?: string;
+  /** ISO date of the release this copy of the track belongs to. Note
+   *  "this copy": the field is the COLLECTION's date, so a remaster
+   *  reads as the remaster's year, not the record's. */
+  releaseDate?: string;
 };
 
 /** What a lookup can tell us about one track. Every field is optional
@@ -19,9 +23,18 @@ export type ItunesTrackInfo = {
   artworkUrl: string | null;
   previewUrl: string | null;
   trackUrl: string | null;
+  /** The year the recording came out, as far as the catalogue knows.
+   *  Null when nothing matched, which is not the same as "it is not from
+   *  that year" and must not be treated as one. */
+  year: number | null;
 };
 
-const NO_TRACK_INFO: ItunesTrackInfo = { artworkUrl: null, previewUrl: null, trackUrl: null };
+const NO_TRACK_INFO: ItunesTrackInfo = {
+  artworkUrl: null,
+  previewUrl: null,
+  trackUrl: null,
+  year: null,
+};
 
 type ItunesArtist = {
   artistId?: number;
@@ -103,6 +116,37 @@ function findMatch(results: ItunesTrack[], trackName: string, artistName: string
   });
 }
 
+/**
+ * The year a recording came out, taken as the earliest the catalogue has.
+ *
+ * iTunes' releaseDate is the date of the COLLECTION a copy sits on, so
+ * asking the top match gives you the anniversary edition: "Heart of
+ * Glass" off a 2014 remaster reads as 2014, and a shelf that trusted
+ * that would throw the record off its own decade for being too new.
+ *
+ * Every result that really is this track by this artist is the same
+ * recording on a different release, so the earliest of them is the one
+ * that is not a reissue. It is not free of error - a catalogue can be
+ * missing the original press entirely - but it is wrong in one
+ * direction only, and always by being too late, which matters because
+ * the shelf that uses this treats "too late" as the only failure worth
+ * acting on.
+ */
+function earliestYear(
+  results: ItunesTrack[],
+  trackName: string,
+  artistName: string
+): number | null {
+  let best: number | null = null;
+  for (const r of results) {
+    if (!findMatch([r], trackName, artistName)) continue;
+    const year = Number(r.releaseDate?.slice(0, 4));
+    if (!Number.isFinite(year) || year < 1900) continue;
+    if (best === null || year < best) best = year;
+  }
+  return best;
+}
+
 // Brand-new releases can take a while to surface in iTunes' general search
 // relevance ranking even though the tracks already exist in the catalog -
 // pulling the artist's own track listing directly finds them immediately.
@@ -168,7 +212,8 @@ export async function lookupItunesTrack(
     const { data, throttled } = await itunesFetch(
       `https://itunes.apple.com/search?${params.toString()}`
     );
-    let match = findMatch(((data as ItunesSearchResult) ?? {}).results ?? [], trackName, artistName);
+    let pool = ((data as ItunesSearchResult) ?? {}).results ?? [];
+    let match = findMatch(pool, trackName, artistName);
 
     // The artist catalogue fallback is two more requests, and firing it
     // after a throttled search is two more requests that were never going
@@ -178,6 +223,10 @@ export async function lookupItunesTrack(
     if (!match && !throttled) {
       const catalog = await getArtistCatalog(artistName);
       match = findMatch(catalog, trackName, artistName);
+      // The year is read off whichever pool the match came from, not
+      // always the search results - otherwise a track only the artist
+      // catalogue could find would come back dated null.
+      if (match) pool = catalog;
     }
     if (!match) return NO_TRACK_INFO;
 
@@ -187,6 +236,7 @@ export async function lookupItunesTrack(
       artworkUrl: match.artworkUrl100?.replace("100x100bb", "600x600bb") ?? null,
       previewUrl: match.previewUrl ?? null,
       trackUrl: match.trackViewUrl ?? null,
+      year: earliestYear(pool, trackName, artistName),
     };
   } catch {
     return NO_TRACK_INFO;

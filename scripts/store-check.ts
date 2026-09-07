@@ -56,12 +56,23 @@ const many: StorePost[] = [
 const hero = heroPicks(many);
 check("three banners", hero.length === 3, hero.map((i) => i.id).join(","));
 check("best rated leads, newest breaks the tie", hero[0].id === "b" && hero[1].id === "a");
-check("no banner without artwork", !hero.some((i) => i.id === "h"));
+// h is rated 5 and would be second on rating alone. Artwork is the
+// first sort key now, so it loses to seven covered records - but on a
+// profile where NOTHING has artwork it would lead, rather than the row
+// coming back empty. Preference, not exclusion.
+check("artwork wins the banner row while there is any", !hero.some((i) => i.id === "h"));
 
 // ---- the shelves ----
 const shelf1 = recentShelf(many);
 check("first shelf is newest first", shelf1.map((i) => i.id).join(",") === "b,c,d,e");
-check("a coverless post never reaches a shelf", !shelf1.some((i) => i.id === "h"));
+// This shelf is "lately", so it does not reorder around cover art at
+// all: h is simply the fifth newest. A shelf that sorted covered records
+// forward would be reporting something other than what happened lately.
+check("the recent shelf is recency only", !shelf1.some((i) => i.id === "h"));
+check(
+  "and it takes a coverless record when that is what is recent",
+  recentShelf([post("bare", { cover_url: null, created_at: day(30) }), ...many])[0].id === "bare"
+);
 
 // ---- the second shelf: their own picks ----
 // This used to be more reviews chosen by a rule, and the test here was
@@ -121,10 +132,22 @@ check(
   popularShelf(many, new Map(), new Map()).length === 3,
   "ties break on recency, so it shows the newest three rather than nothing"
 );
+// The promo row reports what everybody ELSE thought, so popularity is
+// the first key and artwork only breaks ties. The old rule dropped
+// coverless reviews outright, which meant the most talked about review
+// on a profile could be missing from the one row that is about being
+// talked about.
 check(
-  "a coverless review never reaches a tile",
-  !popularShelf(many, new Map([["h", 99]]), new Map()).some((i) => i.id === "h"),
-  "h is the most liked here and has no artwork"
+  "the most popular review makes the row even with no artwork",
+  popularShelf(many, new Map([["h", 99]]), new Map())[0].id === "h"
+);
+check(
+  "artwork breaks a tie on the promo row",
+  popularShelf(
+    [post("bare", { cover_url: null, created_at: day(9) }), post("art", { created_at: day(9) })],
+    new Map(),
+    new Map()
+  )[0].id === "art"
 );
 
 // ---- the chart ----
@@ -157,12 +180,32 @@ check(
     "rap,rock"
 );
 
-// ---- the threshold ----
-check("a profile with four covered reviews gets a store", hasStorefront(many));
-check("a profile with two does not", !hasStorefront([post("1"), post("2")]));
+// ---- everyone gets a store ----
+//
+// There used to be a threshold here: four reviews with cover art, and
+// below it a profile fell back to a stack of plain boxes. That made two
+// different websites and showed the emptier one to exactly the people
+// who had just arrived. These checks pin the replacement, which is that
+// the store handles thin profiles rather than declining to appear.
+check("a full profile gets a store", hasStorefront(many));
+check("a profile with one review gets one too", hasStorefront([post("1")]));
 check(
-  "covers are what counts, not post count",
-  !hasStorefront(Array.from({ length: 9 }, (_, i) => post(`n${i}`, { cover_url: null })))
+  "so does a profile whose reviews have no artwork at all",
+  hasStorefront(Array.from({ length: 9 }, (_, i) => post(`n${i}`, { cover_url: null })))
+);
+check(
+  "a shelf of coverless reviews is not an empty shelf",
+  recentShelf(Array.from({ length: 4 }, (_, i) => post(`n${i}`, { cover_url: null }))).length === 4,
+  "they draw as lettered blank sleeves rather than vanishing"
+);
+check(
+  "a banner row of coverless reviews is not empty either",
+  heroPicks([post("n1", { cover_url: null })]).length === 1
+);
+check(
+  "artwork still leads the banner row when there is any",
+  heroPicks([post("bare", { cover_url: null, rating: 5 }), post("art", { rating: 4 })])[0].id === "art",
+  "a banner is mostly a picture, so a covered four beats a bare five"
 );
 check("an empty profile does not crash", heroPicks([]).length === 0 && chartRows([]).length === 0);
 

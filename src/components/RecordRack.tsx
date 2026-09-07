@@ -4,19 +4,22 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Find } from "@/lib/musicDiscovery";
-import { formatForKey } from "@/lib/physicalMedia";
+import { formatFor } from "@/lib/physicalMedia";
 
-// A rack of records, filed on their spines.
+// A rack of records you flick through.
 //
-// In a shop nothing is face on. Records stand on their edges, packed
-// tight, and you walk along pushing them over with two fingers until one
-// stops you. A row of cover art is a shop where somebody has taken four
-// hundred records out of the rack and laid them on the floor, which is
-// not a nicer version of digging: it is the thing digging exists instead
-// of. You cannot flick past ninety records laid face up, and flicking
-// past ninety is the whole pleasure.
+// This filed them on their spines twice, and got called a bookshelf
+// twice, which was fair. The error was reasoning from how a record is
+// stored rather than from how one is looked through. Spines are for the
+// wall at home, where you already own everything and are looking for a
+// title you can name. Nobody reads spines in a shop. You push the front
+// record over with two fingers and look at the next cover, and the next,
+// and what is in front of you the whole time is artwork on a lean with
+// the edges of forty more stacked up behind it.
 //
-// So the spines scroll, and the one you press comes out and turns over.
+// So: covers, face out, tipped back, each one overlapping the one before
+// it so about a third shows. Flicking past ninety is still the pleasure,
+// and now the thing you flick past is the thing worth looking at.
 
 // One shared player for the page. Every card owning an <audio> means two
 // can play at once, which on a page whose entire purpose is "listen to
@@ -135,19 +138,17 @@ export function RecordRack({
                 <button
                   key={find.key}
                   type="button"
-                  className={`rack-spine fmt-${formatForKey(find.key)}${
+                  className={`rack-spine fmt-${formatFor(find.key, find.year)}${
                     find.key === heldKey ? " pulled" : ""
                   }`}
                   aria-pressed={find.key === heldKey}
                   onClick={() => setHeldKey(find.key === heldKey ? null : find.key)}
                 >
-                  {/* The artwork, but held well back: a spine is a
-                      printed band, not a photograph. Cropping a cover to
-                      twenty six pixels leaves a legible fragment of
-                      somebody's face, and a row of those reads as a shelf
-                      of paperbacks. Blurred and darkened it becomes what
-                      it should have been all along - the colour of the
-                      record, with the title printed over it. */}
+                  {/* The cover, face on and unblurred. It is the whole
+                      reason to look, and the reason there is no text
+                      printed over it: on a record the artwork IS the
+                      label, and a caption laid on top of one only says
+                      that you did not trust it. */}
                   {find.imageUrl ? (
                     <span
                       className="rack-spine-ink"

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { addToQueue, type QueueState } from "@/app/actions/queue";
 import type { Sleeve } from "@/lib/crate";
-import { FORMAT_LABELS, formatForKey } from "@/lib/physicalMedia";
+import { FORMAT_LABELS, formatFor, formatForKey } from "@/lib/physicalMedia";
 
 // Flipping through a crate.
 //
@@ -13,7 +13,13 @@ import { FORMAT_LABELS, formatForKey } from "@/lib/physicalMedia";
 // There is no rating, no "not for me, show me why", no thumbs - a record
 // shop has never once asked you to explain a pass.
 
-type SleeveInfo = { artworkUrl: string | null; previewUrl: string | null; trackUrl: string | null };
+type SleeveInfo = {
+  artworkUrl: string | null;
+  previewUrl: string | null;
+  trackUrl: string | null;
+  /** The year the catalogue has for it, once it has been asked. */
+  year?: number | null;
+};
 
 // One shared player, same reason as the discovery rails: two records
 // playing at once on a page about listening is the thing that must not
@@ -130,6 +136,11 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
   }
 
   const currentInfo = info[current.key];
+  // The record in your hand is the one that has been looked up, so it is
+  // the one that can be drawn as the object it actually was rather than
+  // as a hash of its title. The rest of the box behind it has not been
+  // looked up and keeps the hash, which is what the hash is for.
+  const currentYear = currentInfo?.year ?? current.year;
   const art = currentInfo?.artworkUrl ?? current.imageUrl;
   const clip = currentInfo?.previewUrl ?? null;
 
@@ -143,7 +154,7 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
           and the box reads as a border rather than as a container. */}
       <div
         className={`crate-stack fmt-${
-          current.kind === "film" ? "case" : formatForKey(current.key)
+          current.kind === "film" ? "case" : formatFor(current.key, currentYear)
         }`}
       >
         <div className="crate-sleeve">
@@ -221,7 +232,7 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
         {/* No rating, no match score, no reason. The crate has no opinion
             about this record and saying so is the point. */}
         <span className="crate-format">
-          {current.kind === "film" ? "Film" : FORMAT_LABELS[formatForKey(current.key)]}
+          {current.kind === "film" ? "Film" : FORMAT_LABELS[formatFor(current.key, currentYear)]}
         </span>
       </div>
 

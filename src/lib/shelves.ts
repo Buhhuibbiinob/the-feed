@@ -1,7 +1,8 @@
-import { MUSIC_ERAS, excludeHits, getTracksByTag, type LastfmTrack } from "@/lib/lastfm";
+import { excludeHits, getTracksByTag, type LastfmTrack } from "@/lib/lastfm";
 import { enrichFinds, rotate } from "@/lib/musicDiscovery";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
+import { belongsOnShelf, type ShelfSpan } from "@/lib/shelfSpan";
 import type { Sleeve } from "@/lib/crate";
 
 // Browsing, rather than being served.
@@ -53,6 +54,46 @@ const PLACES = [
   "tokyo", "seoul", "lagos", "kingston", "sao paulo", "melbourne",
 ] as const;
 
+/**
+ * The decade wall.
+ *
+ * This used to borrow MUSIC_ERAS, which is the Feed TV's list of eras and
+ * was never a decade wall: it runs 70s to 2010s because those are the
+ * decades a television set is worth drawing for. Used here it left the
+ * Year wall covering 1960 to this year while the Decade wall covered 1970
+ * to 2019, so two thirds of a century had a year divider and no decade
+ * to put it under, and everything released since 2020 had nowhere on the
+ * wall at all.
+ *
+ * The tag and the decade are separate fields because they genuinely
+ * differ: Last.fm's nineties tag is "90s" and its twenty tens tag is
+ * "2010s", and neither is a spelling we get to choose. The label is
+ * separate again, because "00s" is a tag and "2000s" is what a person
+ * reads, and "20s" on a divider card reads as nineteen twenty.
+ */
+export type Decade = {
+  /** What Last.fm calls it. */
+  tag: string;
+  /** What the divider card says. */
+  label: string;
+  startYear: number;
+};
+
+const DECADES: readonly Decade[] = [
+  { tag: "2020s", label: "2020s", startYear: 2020 },
+  { tag: "2010s", label: "2010s", startYear: 2010 },
+  { tag: "00s", label: "2000s", startYear: 2000 },
+  { tag: "90s", label: "90s", startYear: 1990 },
+  { tag: "80s", label: "80s", startYear: 1980 },
+  { tag: "70s", label: "70s", startYear: 1970 },
+  { tag: "60s", label: "60s", startYear: 1960 },
+];
+
+/** The decade a tag names, if it names one. */
+export function decadeFor(tag: string): Decade | null {
+  return DECADES.find((d) => d.tag === tag) ?? null;
+}
+
 /** The first year worth a divider. Earlier tags exist and are thin. */
 export const FIRST_YEAR = 1960;
 
@@ -83,7 +124,7 @@ export function axes(now: Date = new Date()): Axis[] {
       id: "decade",
       label: "Decade",
       prompt: "Ten years at a time, past the songs from the adverts.",
-      values: MUSIC_ERAS.filter((era) => era.tag !== null).map((era) => era.tag as string),
+      values: DECADES.map((d) => d.tag),
     },
     {
       id: "place",
@@ -121,13 +162,35 @@ export function shelfTitle(axis: AxisId, value: string): string {
   switch (axis) {
     case "year":
       return value;
+    // The decade's own label, rather than its tag dressed up. The old
+    // line ran two replaces, and the second one - "90s" for "90s" - did
+    // nothing at all while looking like it handled something.
     case "decade":
-      return `The ${value.replace(/^00s$/, "2000s").replace(/^(\d0)s$/, "$1s")}`;
+      return `The ${decadeFor(value)?.label ?? value}`;
     case "place":
       return value.replace(/\b\w/g, (c) => c.toUpperCase());
     default:
       return value.replace(/\b\w/g, (c) => c.toUpperCase());
   }
+}
+
+/**
+ * The years a shelf is actually claiming, when it claims any.
+ *
+ * Scene and Place make no falsifiable claim about a date, so they get
+ * none. Year and Decade do, in the panel heading, in enormous type, and
+ * that is the whole reason this exists.
+ */
+export function shelfYears(axis: AxisId, value: string): ShelfSpan | null {
+  if (axis === "year") {
+    const year = Number(value);
+    return Number.isFinite(year) ? { from: year, to: year } : null;
+  }
+  if (axis === "decade") {
+    const decade = decadeFor(value);
+    return decade ? { from: decade.startYear, to: decade.startYear + 9 } : null;
+  }
+  return null;
 }
 
 /**
@@ -222,9 +285,19 @@ export async function getShelf(
   // rows anybody sees first arrive with their covers and their clips
   // already attached, and the shelf below them catches up quietly.
   const AHEAD = 12;
+  const span = shelfYears(axis, value);
   const front = await enrichFinds(
     shelf.slice(0, AHEAD).map((sleeve) => ({ ...sleeve, becauseOf: null }))
   ).catch(() => null);
   if (!front) return shelf;
-  return [...front.map(({ becauseOf: _drop, ...sleeve }) => sleeve), ...shelf.slice(AHEAD)];
+
+  // The lookup came back with a release year on it, so the front of the
+  // shelf can be checked rather than taken on the tag's word. Anything
+  // that does not belong comes off and the shelf closes up behind it
+  // from the records below, which are checked in turn in the browser as
+  // they are looked up.
+  const checked = front
+    .filter((find) => belongsOnShelf(find.year, span))
+    .map(({ becauseOf: _drop, ...sleeve }) => sleeve);
+  return [...checked, ...shelf.slice(AHEAD)];
 }

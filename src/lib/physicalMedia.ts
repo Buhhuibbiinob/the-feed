@@ -35,9 +35,9 @@ export function formatForYear(year: number | null | undefined): MediaFormat {
   return "download";
 }
 
-/** The same, from a decade tag such as "90s" or "00s". */
-export function formatForDecadeTag(tag: string): MediaFormat {
-  const year = decadeStartYear(tag);
+/** The same, from a decade tag such as "90s", "00s" or "2010s". */
+export function formatForDecadeTag(tag: string, now: Date = new Date()): MediaFormat {
+  const year = decadeStartYear(tag, now);
   // Mid decade rather than its first year: "the 80s" is 1985, not the
   // eleven months of 1980 that still sounded like 1979.
   return formatForYear(year === null ? null : year + 5);
@@ -58,12 +58,31 @@ export function decadeTagForYear(year: number | null | undefined): string | null
   return `${String(start % 100).padStart(2, "0")}s`;
 }
 
-export function decadeStartYear(tag: string): number | null {
+/**
+ * The first year of a decade tag: "90s" is 1990, "2010s" is 2010.
+ *
+ * Both spellings, because both are real. Last.fm's own tag for the
+ * nineties is "90s" and its tag for the twenty tens is "2010s", and this
+ * only accepted the two digit one - so "2010s" came back null, the shelf
+ * asked for the format of no year at all, got the fallback, and drew a
+ * decade of streaming era records as twelve inch vinyl. The Year wall
+ * had it right the whole time, because 2015 goes through
+ * decadeTagForYear and comes out "10s", which does parse. Two walls
+ * disagreeing about the same ten years is the tell.
+ *
+ * Which century a two digit tag means is decided against today rather
+ * than against a number typed in once: a decade that has already begun
+ * is this century, and one that has not is the last. "20s" is the 2020s
+ * now and "30s" is still the 1930s, and in 2035 that flips on its own
+ * instead of quietly meaning the wrong hundred years.
+ */
+export function decadeStartYear(tag: string, now: Date = new Date()): number | null {
+  const four = tag.match(/^([12]\d{3})s$/);
+  if (four) return Number(four[1]);
   const m = tag.match(/^(\d{2})s$/);
   if (!m) return null;
   const two = Number(m[1]);
-  // "00s" and "10s" are this century; everything else is the last one.
-  return two <= 20 ? 2000 + two : 1900 + two;
+  return two <= now.getFullYear() % 100 ? 2000 + two : 1900 + two;
 }
 
 /**
@@ -78,4 +97,19 @@ export function formatForKey(key: string): MediaFormat {
   for (const char of key) hash = (hash * 31 + char.charCodeAt(0)) | 0;
   const order: MediaFormat[] = ["vinyl", "cd", "cassette", "vinyl", "cd"];
   return order[Math.abs(hash) % order.length];
+}
+
+/**
+ * The object for a record, using its year when the catalogue gave us one.
+ *
+ * formatForKey is a hash, which is the right answer for something whose
+ * year nobody knows: stable, so the crate does not flicker between
+ * formats as you flip through it, and varied, so a rack is not a rack of
+ * one thing. It is the wrong answer the moment a real date turns up. A
+ * 1968 soul record drawn as a jewel case is the same complaint as a
+ * record on the wrong decade shelf - the object is the era, so a known
+ * year outranks a hash of the title every time.
+ */
+export function formatFor(key: string, year: number | null | undefined): MediaFormat {
+  return year ? formatForYear(year) : formatForKey(key);
 }

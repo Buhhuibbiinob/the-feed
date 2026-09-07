@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { guardBuiltinPage } from "@/lib/pages";
 import { ShelfDividers } from "@/components/ShelfDividers";
 import { ShelfRecords } from "@/components/ShelfRecords";
-import { axes, getShelf, isAxis, isShelfValue, shelfTitle } from "@/lib/shelves";
+import { axes, getShelf, isAxis, isShelfValue, shelfTitle, shelfYears } from "@/lib/shelves";
 import { decadeTagForYear } from "@/lib/physicalMedia";
 import {
   alreadyKnown,
@@ -144,6 +144,10 @@ export default async function ShelvesPage({
                       ? decadeTagForYear(Number(value))
                       : null
                 }
+                // Year and Decade put a date in the heading, so what is
+                // under them gets checked against it as the lookups come
+                // back. Scene and Place claim no date and get no span.
+                span={shelfYears(openAxis.id, value)}
               />
             ) : (
               <p className="shelf-pick">{openAxis.prompt}</p>
