@@ -1,3 +1,4 @@
+import { cachedFetch } from "@/lib/cachedFetch";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { siteUrl } from "@/lib/site";
 
@@ -152,14 +153,15 @@ export async function searchVideosDetailed(
     ...(options.order ? { order: options.order } : {}),
   });
 
-  let res: Response;
-  try {
-    res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`, {
-      next: { revalidate: options.revalidateSeconds ?? 1800 },
-    });
-  } catch {
-    return { videos: [], failure: { reason: "network" } };
-  }
+  // Actually cached. This read `next: { revalidate }` alone, which sets a
+  // lifetime and does not opt in, so every page view was a live search
+  // at a hundred units of a ten thousand a day quota - which is what the
+  // rate limit on the rails was.
+  const res = await cachedFetch(
+    `https://www.googleapis.com/youtube/v3/search?${params.toString()}`,
+    options.revalidateSeconds ?? 1800
+  );
+  if (!res) return { videos: [], failure: { reason: "network" } };
 
   if (!res.ok) {
     // 403 is what an exhausted quota looks like, and it is by far the

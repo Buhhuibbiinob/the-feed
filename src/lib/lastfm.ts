@@ -1,6 +1,8 @@
 // Last.fm's free API stands in for Spotify's now-deprecated new-releases
 // endpoint. Last.fm has no real "release date" chart, so this surfaces what's
 // currently trending across the whole service instead of strict new releases.
+import { cachedFetch } from "@/lib/cachedFetch";
+
 export type LastfmTrack = {
   id: string;
   name: string;
@@ -34,11 +36,11 @@ export async function getTrendingTracks(limit = 20): Promise<LastfmTrack[]> {
   if (!apiKey) return [];
 
   try {
-    const res = await fetch(
+    const res = await cachedFetch(
       `https://ws.audioscrobbler.com/2.0/?method=chart.gettoptracks&api_key=${apiKey}&format=json&limit=${limit}`,
-      { next: { revalidate: 3600 } }
+      3600
     );
-    if (!res.ok) return [];
+    if (!res || !res.ok) return [];
 
     const data = (await res.json()) as { tracks?: { track?: RawLastfmTrack[] } };
     const tracks = data.tracks?.track ?? [];
@@ -84,13 +86,13 @@ export async function getTracksByTag(tag: string, limit = 50, page = 1): Promise
   if (!apiKey) return [];
 
   try {
-    const res = await fetch(
+    const res = await cachedFetch(
       `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${encodeURIComponent(
         tag
       )}&api_key=${apiKey}&format=json&limit=${limit}&page=${page}`,
-      { next: { revalidate: 86400 } }
+      86400
     );
-    if (!res.ok) return [];
+    if (!res || !res.ok) return [];
 
     const data = (await res.json()) as { tracks?: { track?: RawLastfmTrack[] } };
     return (data.tracks?.track ?? [])
@@ -191,13 +193,13 @@ export async function getSimilarArtists(artist: string, limit = 20): Promise<str
   if (!apiKey) return [];
 
   try {
-    const res = await fetch(
+    const res = await cachedFetch(
       `https://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=${encodeURIComponent(
         artist
       )}&api_key=${apiKey}&format=json&limit=${limit}`,
-      { next: { revalidate: 86400 } }
+      86400
     );
-    if (!res.ok) return [];
+    if (!res || !res.ok) return [];
     const data = (await res.json()) as { similarartists?: { artist?: RawArtist[] } };
     return (data.similarartists?.artist ?? [])
       .map((a) => a.name)
@@ -213,13 +215,13 @@ export async function getArtistTopTracks(artist: string, limit = 30): Promise<La
   if (!apiKey) return [];
 
   try {
-    const res = await fetch(
+    const res = await cachedFetch(
       `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptracks&artist=${encodeURIComponent(
         artist
       )}&api_key=${apiKey}&format=json&limit=${limit}`,
-      { next: { revalidate: 86400 } }
+      86400
     );
-    if (!res.ok) return [];
+    if (!res || !res.ok) return [];
     const data = (await res.json()) as { toptracks?: { track?: RawLastfmTrack[] } };
     return (data.toptracks?.track ?? [])
       .filter((t) => t.name)

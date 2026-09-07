@@ -1,6 +1,8 @@
 // Apple's iTunes Search API - no API key or auth required, unlike Spotify's
 // client-credentials flow. Used as the cover-art backfill for tracks whose
 // Last.fm entry has no real artwork.
+import { cachedFetch } from "@/lib/cachedFetch";
+
 type ItunesTrack = {
   wrapperType?: string;
   trackName?: string;
@@ -63,12 +65,12 @@ const RETRY_DELAYS_MS = [700, 1800];
 
 async function itunesFetch(url: string): Promise<{ data: unknown; throttled: boolean }> {
   for (let attempt = 0; ; attempt++) {
-    let res: Response;
-    try {
-      res = await fetch(url, { next: { revalidate: 3600 } });
-    } catch {
-      return { data: null, throttled: false };
-    }
+    // Actually cached. `next: { revalidate }` alone sets a lifetime and
+    // does not opt in, so every sleeve on every shelf on every view was
+    // a live call against a limit of roughly twenty a minute. Most of
+    // the throttling this function works so hard to survive was this.
+    const res = await cachedFetch(url, 3600);
+    if (!res) return { data: null, throttled: false };
     if (res.ok) return { data: await res.json(), throttled: false };
     // 403 is the throttle; 429 is too, on some edges.
     const throttled = res.status === 403 || res.status === 429;
@@ -279,9 +281,8 @@ export async function searchItunesSongs(query: string, limit = 10): Promise<Itun
     entity: "song",
     limit: String(limit),
   });
-  const res = await fetch(`https://itunes.apple.com/search?${params.toString()}`, {
-    next: { revalidate: 3600 },
-  });
+  const res = await cachedFetch(`https://itunes.apple.com/search?${params.toString()}`, 3600);
+  if (!res) throw new Error("Couldn't reach iTunes.");
   // Unlike the art backfill, a failure here is worth telling apart from
   // "no such song" - the box says which.
   if (!res.ok) throw new Error(`iTunes search failed: ${res.status}`);

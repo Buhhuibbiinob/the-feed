@@ -2,6 +2,8 @@
 // release dates, which is what makes them usable for a date-scoped weekly
 // newsletter. (The "most-recent" feed 404s; "most-played" is the one Apple
 // actually serves, so we pull that and filter by releaseDate ourselves.)
+import { cachedFetch } from "@/lib/cachedFetch";
+
 export type AppleAlbum = {
   name: string;
   artistName: string;
@@ -20,11 +22,11 @@ type AppleFeedResult = {
 
 export async function getTopAlbums(limit = 25): Promise<AppleAlbum[]> {
   try {
-    const res = await fetch(
+    const res = await cachedFetch(
       `https://rss.marketingtools.apple.com/api/v2/us/music/most-played/${limit}/albums.json`,
-      { next: { revalidate: 3600 } }
+      3600
     );
-    if (!res.ok) return [];
+    if (!res || !res.ok) return [];
     const data = (await res.json()) as { feed?: { results?: AppleFeedResult[] } };
     return (data.feed?.results ?? [])
       .filter((r) => r.name && r.artistName)
