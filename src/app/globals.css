@@ -17407,6 +17407,138 @@ button.btn-ghost {
   --edge-drop: 0 8px 22px -10px rgba(0, 0, 0, 0.8);
 }
 
+/* ---- A shelf item you can press ----
+   The films are buttons: pressing one opens its trailer under the
+   shelf. A button carries a browser's own chrome - a border, padding, a
+   grey face, a centred label - none of which belongs on a thing meant to
+   read as a plastic case standing on wood, so it is taken off and the
+   item's own layout put back. .wooditem is a flex row, so display has to
+   be restored explicitly or the button default flattens the artwork. */
+.wooditem.as-button {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: transform 0.14s ease;
+}
+.wooditem.as-button img,
+.wooditem.as-button .wood-blank {
+  display: block;
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+}
+/* Coming off the shelf: up and forward, the way you tip a case out with
+   a finger before it clears the board. */
+.wooditem.as-button:hover,
+.wooditem.as-button:focus-visible {
+  transform: translateY(-4px);
+}
+.wooditem.as-button.pulled {
+  transform: translateY(-8px);
+}
+.wooditem.as-button.pulled img,
+.wooditem.as-button.pulled .wood-blank {
+  outline: 2px solid rgba(255, 232, 180, 0.9);
+}
+
+/* ---- Which wall you are in front of ----
+   Music, film and photography. Above the axes rather than beside them,
+   because the medium decides what the axes even are. */
+.shelf-media {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.shelf-medium {
+  display: block;
+  padding: 9px 11px;
+  border-radius: 7px;
+  text-decoration: none;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(238, 238, 240, 0.95) 33.9%,
+    rgba(224, 224, 228, 0.95));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 2px rgba(0, 0, 0, 0.16);
+}
+.shelf-medium b {
+  display: block;
+  font-size: 13px;
+}
+.shelf-medium span {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  opacity: 0.72;
+}
+/* The one you are on is pressed in, which is the same language every
+   other control here uses for "this is the state you are in". */
+.shelf-medium.on {
+  background: linear-gradient(180deg, rgba(198, 202, 210, 0.95), rgba(224, 226, 232, 0.95) 33.9%,
+    rgba(242, 243, 246, 0.95));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) inset;
+}
+
+/* ---- Photographs, framed ----
+   A photograph on a shelf is a framed print standing on the board. Not a
+   sleeve: drawing one as a record would be the same mistake the racks
+   made twice, reaching for the object we already had rather than the one
+   the thing actually is.
+
+   Frame, mount, print. The frame is what makes a picture read as an
+   object rather than an image dropped on a page, and the mount is what
+   makes the frame read as a frame - a photograph pressed straight
+   against a moulding is a poster. */
+.woodgrid.prints {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.wooditem.framed {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  text-decoration: none;
+  transition: transform 0.14s ease;
+}
+.wooditem.framed:hover,
+.wooditem.framed:focus-visible {
+  transform: translateY(-3px);
+}
+/* The moulding, and the card mount inside it. Two rings rather than a
+   border and a padding, so the mount keeps its own colour against
+   whatever theme the page is on. */
+.frame-mount {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 7px;
+  background: linear-gradient(150deg, #f6f3ea, #e6e1d4);
+  border: 3px solid #3a2b20;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 7px 10px -5px rgba(0, 0, 0, 0.85),
+    0 2px 0 rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.35) inset;
+}
+.frame-mount img {
+  display: block;
+  max-width: 100%;
+  /* Room for the mount and the label under the board. */
+  max-height: calc(var(--wood-item) - 22px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.print-by {
+  text-decoration: none;
+}
+
 /* ================================================================
    The guestbook
    ================================================================

@@ -420,3 +420,78 @@ export async function screenFinds(
   }
   return { becauseOf: tried.label, lane: tried, finds: [] };
 }
+
+/**
+ * A shelf of films, from a divider somebody chose.
+ *
+ * screenFinds picks a lane off what you have been reviewing, which is
+ * the right behaviour for a rail on Discover and the wrong one here: on
+ * Shelves the whole point is that YOU pick the divider, and a shelf that
+ * quietly showed you something else would be the page breaking its one
+ * promise.
+ *
+ * So the query is built from the axis and nothing else. It reuses the
+ * same phrasing the lanes use - "movie original theatrical trailer" is
+ * what the archive channels actually title their uploads, and "trailer"
+ * on its own returns fan edits and game footage - and it is a fixed
+ * string per divider, which matters for the budget: everybody who opens
+ * the seventies horror shelf on the same day shares one cached answer
+ * rather than each paying a hundred units for their own.
+ */
+export function filmShelfQuery(axis: "decade" | "genre", value: string, deep = false): string {
+  const parts: string[] = [];
+  if (deep) parts.push("obscure");
+  if (axis === "genre") parts.push(value);
+  parts.push("movie original theatrical trailer");
+  if (axis === "decade") {
+    const start = decadeStartYearForTag(value);
+    if (start !== null) parts.push(`${start}s`);
+  }
+  return parts.join(" ");
+}
+
+/** Local, so trailers.ts does not have to import the shelves module. */
+function decadeStartYearForTag(tag: string): number | null {
+  const four = tag.match(/^([12]\d{3})s$/);
+  if (four) return Number(four[1]);
+  const two = tag.match(/^(\d{2})s$/);
+  if (!two) return null;
+  const n = Number(two[1]);
+  return n <= new Date().getFullYear() % 100 ? 2000 + n : 1900 + n;
+}
+
+export async function filmShelf(
+  axis: "decade" | "genre",
+  value: string,
+  known: Known,
+  search: TrailerSearch,
+  { limit = 24, rotateBy = 0 }: { limit?: number; rotateBy?: number } = {}
+): Promise<{ finds: ScreenFind[]; failure?: SearchFailure }> {
+  const label = axis === "genre" ? value : `films from the ${value}`;
+  // Asked for far more than the shelf shows, then rotated: parsing
+  // throws away compilations and fan edits, and the answer is cached for
+  // the day, so without the rotation everybody sees the same order until
+  // tomorrow.
+  const first = await search(filmShelfQuery(axis, value), Math.min(50, limit * 2), {
+    revalidateSeconds: TRAILER_TTL_SECONDS,
+  }).catch(() => ({ videos: [], failure: { reason: "network" } as SearchFailure }));
+  if (first.failure) return { finds: [], failure: first.failure };
+
+  let finds = rankTrailers(rotate(first.videos, rotateBy), known, label, limit);
+  // A shelf that came back half full gets one more go with the word the
+  // archive uploaders use, which reaches a different set of channels
+  // rather than the same ones again.
+  if (finds.length < Math.min(8, limit)) {
+    const second = await search(filmShelfQuery(axis, value, true), Math.min(50, limit * 2), {
+      revalidateSeconds: TRAILER_TTL_SECONDS,
+    }).catch(() => ({ videos: [], failure: undefined }));
+    const seen = new Set(finds.map((f) => f.key));
+    for (const extra of rankTrailers(rotate(second.videos, rotateBy), known, label, limit)) {
+      if (seen.has(extra.key)) continue;
+      seen.add(extra.key);
+      finds.push(extra);
+      if (finds.length >= limit) break;
+    }
+  }
+  return { finds };
+}

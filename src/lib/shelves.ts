@@ -22,7 +22,35 @@ import type { Sleeve } from "@/lib/crate";
 // that scene's greatest hits, which is the part somebody choosing to
 // browse it has already heard.
 
-export type AxisId = "scene" | "year" | "place" | "decade";
+export type AxisId = "scene" | "year" | "place" | "decade" | "genre" | "subject";
+
+/**
+ * What a wall of shelves is a wall OF.
+ *
+ * The page was only ever music, and its axes were built for music: a
+ * scene, a place, a year. Film and photography want different ones, and
+ * forcing them through the music axes would give a Detroit shelf of
+ * films (a tagging argument, not a shelf) and a 1994 shelf of members'
+ * photographs (a date the site does not hold).
+ *
+ * So the medium comes first and picks the axes, rather than every
+ * medium sharing one set. It is also where the three of them differ
+ * most: music and film come from catalogues out on the internet, and
+ * photography comes from what people here have actually posted, which
+ * is the only honest source for it - there is no archive of members'
+ * own photographs to query.
+ */
+export type Medium = "music" | "film" | "photography";
+
+export function isMedium(value: unknown): value is Medium {
+  return value === "music" || value === "film" || value === "photography";
+}
+
+export const MEDIA: { id: Medium; label: string; blurb: string }[] = [
+  { id: "music", label: "Music", blurb: "Records, by when or where or what they are." },
+  { id: "film", label: "Film", blurb: "Trailers, by decade and by kind." },
+  { id: "photography", label: "Photography", blurb: "What people here have shot, by subject." },
+];
 
 export type Axis = {
   id: AxisId;
@@ -94,6 +122,31 @@ export function decadeFor(tag: string): Decade | null {
   return DECADES.find((d) => d.tag === tag) ?? null;
 }
 
+/**
+ * The kinds of film a shelf can be about.
+ *
+ * The same five the trailer lanes already use, and the same five for the
+ * same reason: every one is another YouTube search against a ten
+ * thousand a day budget, and a wall of twenty kinds would be a wall
+ * nobody could afford to walk along. These are also the five that
+ * actually have archive uploads behind them.
+ */
+const FILM_KINDS = ["horror", "sci-fi", "thriller", "comedy", "crime"] as const;
+
+/**
+ * What a photography shelf can be about.
+ *
+ * Subject, because that is the only axis a wall of members' own
+ * photographs can honestly have. There is no release year for somebody's
+ * photograph and no scene it belongs to; there is what it is a picture
+ * of, which is exactly what the genre on the post already says.
+ */
+const PHOTO_SUBJECTS = [
+  "portrait", "street", "landscape", "nature", "fashion", "documentary",
+  "architecture", "wildlife", "macro", "still-life", "night", "travel",
+  "black-and-white", "analogue", "polaroid", "abstract", "photojournalism", "editorial",
+] as const;
+
 /** The first year worth a divider. Earlier tags exist and are thin. */
 export const FIRST_YEAR = 1960;
 
@@ -106,7 +159,39 @@ export function yearValues(now: Date = new Date()): string[] {
   return years;
 }
 
-export function axes(now: Date = new Date()): Axis[] {
+export function axes(now: Date = new Date(), medium: Medium = "music"): Axis[] {
+  if (medium === "film") {
+    return [
+      {
+        id: "decade",
+        label: "Decade",
+        prompt: "Ten years of film, past the ones everybody has seen.",
+        // The same decades as the music wall. The filter that used to
+        // be here read `startYear >= 1960` and did nothing at all, since
+        // the earliest decade in the table IS the sixties - a condition
+        // that looks like a rule and excludes nothing is worse than no
+        // condition, because the next person reads it as a decision
+        // somebody made.
+        values: DECADES.map((d) => d.tag),
+      },
+      {
+        id: "genre",
+        label: "Kind",
+        prompt: "One kind of film, and the corners of it worth digging through.",
+        values: FILM_KINDS,
+      },
+    ];
+  }
+  if (medium === "photography") {
+    return [
+      {
+        id: "subject",
+        label: "Subject",
+        prompt: "What it is a picture of, shot by people here.",
+        values: PHOTO_SUBJECTS,
+      },
+    ];
+  }
   return [
     {
       id: "scene",
@@ -136,7 +221,14 @@ export function axes(now: Date = new Date()): Axis[] {
 }
 
 export function isAxis(value: unknown): value is AxisId {
-  return value === "scene" || value === "year" || value === "place" || value === "decade";
+  return (
+    value === "scene" ||
+    value === "year" ||
+    value === "place" ||
+    value === "decade" ||
+    value === "genre" ||
+    value === "subject"
+  );
 }
 
 /**
@@ -147,14 +239,19 @@ export function isAxis(value: unknown): value is AxisId {
  * by list so the divider wall and the guard cannot drift apart in
  * January.
  */
-export function isShelfValue(axis: AxisId, value: unknown, now: Date = new Date()): value is string {
+export function isShelfValue(
+  axis: AxisId,
+  value: unknown,
+  now: Date = new Date(),
+  medium: Medium = "music"
+): value is string {
   if (typeof value !== "string") return false;
   if (axis === "year") {
     if (!/^\d{4}$/.test(value)) return false;
     const year = Number(value);
     return year >= FIRST_YEAR && year <= now.getFullYear();
   }
-  return axes(now).some((a) => a.id === axis && a.values.includes(value));
+  return axes(now, medium).some((a) => a.id === axis && a.values.includes(value));
 }
 
 /** How a shelf reads at the top of the page. */
@@ -169,6 +266,12 @@ export function shelfTitle(axis: AxisId, value: string): string {
       return `The ${decadeFor(value)?.label ?? value}`;
     case "place":
       return value.replace(/\b\w/g, (c) => c.toUpperCase());
+    // A hyphenated genre is a slug, not a label: "still-life" and
+    // "black-and-white" are what the database calls them and not what a
+    // divider card should say.
+    case "genre":
+    case "subject":
+      return value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     default:
       return value.replace(/\b\w/g, (c) => c.toUpperCase());
   }

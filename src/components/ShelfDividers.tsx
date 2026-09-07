@@ -13,10 +13,13 @@ import { useEffect, useRef } from "react";
  * the whole reason the strip is a client component.
  */
 export function ShelfDividers({
+  medium,
   axis,
   dividers,
   open,
 }: {
+  /** Which wall these dividers belong to, so a link stays on it. */
+  medium: string;
   axis: string;
   /**
    * Label and value together, worked out on the server.
@@ -49,7 +52,7 @@ export function ShelfDividers({
       {dividers.map((divider) => (
         <Link
           key={divider.value}
-          href={`/shelves?axis=${axis}&value=${encodeURIComponent(divider.value)}`}
+          href={`/shelves?medium=${medium}&axis=${axis}&value=${encodeURIComponent(divider.value)}`}
           className={`shelf-divider${divider.value === open ? " open" : ""}`}
         >
           {divider.label}
