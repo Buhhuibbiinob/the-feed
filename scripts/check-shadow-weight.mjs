@@ -49,6 +49,12 @@ const FLOATERS = [
   // the skeuomorphic detail rather than an accident of styling.
   "sk-stack", "sk-record", "record-",
   "sk-np-card", "sk-np-art", "track-thumb", "release-cover",
+  // Same allowance, same reason. A Cover Flow cover is an album held up
+  // in front of the ones behind it - the shadow IS the depth, and
+  // hairlining it would flatten the effect into a row of stamps. A
+  // framed print is an object hanging on a wall, and the shadow is what
+  // puts it off the wall rather than printed on it.
+  "cflow-cover", "frame-mount",
   // The crate is a wooden box drawn on the page, not a card. Its walls
   // throw a real shadow onto the paper and its front board throws one
   // back into the box over the records behind it, which is the only

@@ -285,7 +285,15 @@ export function useOnScreen(onScreen: () => void, enabled = true) {
       // it is the reason the search box in the post form - a person,
       // waiting, typing - kept being told the catalogue was busy. It was
       // busy with us.
-      { rootMargin: "120px" }
+      //
+      // A hundred and twenty was the panicked version of that fix, and
+      // it was a trade rather than a balance: covers only started
+      // loading once a row was practically on screen, so the shelves
+      // looked slow to save a search box. Now that a seen cover is
+      // remembered in the database, a screenful ahead is mostly free -
+      // it is a read, not a lookup - so the margin goes back to
+      // something that loads a row before you reach it.
+      { rootMargin: "300px" }
     );
     observer.observe(el);
     return () => observer.disconnect();

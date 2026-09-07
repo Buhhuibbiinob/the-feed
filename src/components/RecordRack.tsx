@@ -5,7 +5,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Find } from "@/lib/musicDiscovery";
 import { formatFor } from "@/lib/physicalMedia";
-import { useOnScreen, useSleeves } from "@/lib/useSleeves";
+import { useOnScreen, useSleeves, type SleeveInfo } from "@/lib/useSleeves";
 
 // A rack of records you flick through.
 //
@@ -99,6 +99,10 @@ export function RecordRack({
   const [heldKey, setHeldKey] = useState<string | null>(null);
   const held = finds.find((f) => f.key === heldKey) ?? null;
   const playing = usePlayingKey();
+  // What the rack already looked up for this record when it scrolled
+  // past. Read here as well as in the sleeve, because the covers and the
+  // clips arrive together and the panel was using neither.
+  const heldInfo = held ? get(held.key) : undefined;
 
   // The clip for whatever is in your hand, looked up when you pull it.
   //
@@ -109,26 +113,48 @@ export function RecordRack({
   // again for the ONE record somebody has actually chosen is a single
   // request at the moment it is wanted, which is both cheap and the only
   // time it is certainly worth making.
-  const [pulledClip, setPulledClip] = useState<Record<string, string | null>>({});
+  const [pulled, setPulled] = useState<Record<string, SleeveInfo | null>>({});
+  const alreadyHave = !!(held && (held.previewUrl || heldInfo?.previewUrl));
   useEffect(() => {
-    if (!held || held.previewUrl || pulledClip[held.key] !== undefined) return;
+    if (!held || alreadyHave || pulled[held.key] !== undefined) return;
     let cancelled = false;
     const params = new URLSearchParams({ title: held.name, artist: held.artist });
     fetch(`/api/crate/sleeve?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data: { previewUrl: string | null }) => {
-        if (!cancelled) setPulledClip((prev) => ({ ...prev, [held.key]: data.previewUrl ?? null }));
+      .then(async (res) => {
+        // A refusal is not an answer. The route says 503 when Apple is
+        // busy, and recording that as "this record has nothing" left the
+        // one record somebody had actually picked up with nothing to
+        // press until they reloaded the page. Left unrecorded, it is
+        // asked again the next time they pull it out.
+        if (!res.ok) return;
+        const data = (await res.json()) as SleeveInfo;
+        if (!cancelled) setPulled((prev) => ({ ...prev, [held.key]: data }));
       })
-      // Marked as looked-up either way, so a failing record does not
-      // re-request every time the component renders.
+      // Marked as looked-up on a real failure, so a broken record does
+      // not re-request every time the component renders.
       .catch(() => {
-        if (!cancelled) setPulledClip((prev) => ({ ...prev, [held.key]: null }));
+        if (!cancelled) setPulled((prev) => ({ ...prev, [held.key]: null }));
       });
     return () => {
       cancelled = true;
     };
-  }, [held, pulledClip]);
-  const heldClip = held ? held.previewUrl ?? pulledClip[held.key] ?? null : null;
+  }, [held, alreadyHave, pulled]);
+
+  // Three places a clip can come from, in order of what cost nothing.
+  //
+  // The middle one is the fix: the rack looks up a screenful of sleeves
+  // at a time and gets the covers AND the clips back, and the panel was
+  // reading only the row the server sent - so a record whose clip had
+  // already arrived was fetched a second time, and if Apple happened to
+  // be busy for that one request, a record with a perfectly good preview
+  // sitting in memory showed nothing to press.
+  //
+  // Which matters most where the cover is missing. A blank sleeve you
+  // can play is a record; a blank sleeve you cannot is a dead square.
+  const heldClip = held
+    ? held.previewUrl ?? heldInfo?.previewUrl ?? pulled[held.key]?.previewUrl ?? null
+    : null;
+  const heldArt = held ? held.imageUrl ?? heldInfo?.artworkUrl ?? pulled[held.key]?.artworkUrl ?? null : null;
 
   return (
     <section className="rack-section">
@@ -162,11 +188,11 @@ export function RecordRack({
         {held && (
           <div className="rack-held">
             <div className="rack-held-art">
-              {held.imageUrl ? (
+              {heldArt ? (
                 // Cover art comes from Apple's and Last.fm's CDNs, which
                 // are not in next.config's image allowlist. A plain img
                 // avoids adding every music CDN on earth to it.
-                <img src={held.imageUrl} alt="" />
+                <img src={heldArt} alt="" />
               ) : null}
             </div>
             <div className="rack-held-body">
@@ -197,7 +223,7 @@ export function RecordRack({
                   mediaType="music"
                   title={held.name}
                   artist={held.artist}
-                  coverUrl={held.imageUrl}
+                  coverUrl={heldArt}
                 />
                 <button type="button" className="rack-link" onClick={() => setHeldKey(null)}>
                   Put it back

@@ -508,7 +508,7 @@ export async function filmShelf(
   }).catch(() => ({ videos: [], failure: { reason: "network" } as SearchFailure }));
   if (first.failure) return { finds: [], failure: first.failure };
 
-  let finds = rankTrailers(rotate(first.videos, rotateBy), known, label, limit);
+  const finds = rankTrailers(rotate(first.videos, rotateBy), known, label, limit);
   // A shelf that came back half full gets one more go with the word the
   // archive uploaders use, which reaches a different set of channels
   // rather than the same ones again.

@@ -30,7 +30,7 @@ export async function addPlaylist(
   if (!parsed) {
     return {
       error:
-        "That doesn't look like a playlist link. Spotify, Apple Music, YouTube, SoundCloud, Deezer and Tidal all work - but it has to be a playlist. An album, a single track or one video won't.",
+        "That doesn't look like a playlist link. Spotify, Apple Music, YouTube, SoundCloud, Deezer and Tidal all work, but it has to be a playlist. An album, a single track or one video won't.",
     };
   }
 

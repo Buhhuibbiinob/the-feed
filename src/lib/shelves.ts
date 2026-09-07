@@ -3,7 +3,7 @@ import { excludeHits, getTracksByTag, tagText, type LastfmTrack } from "@/lib/la
 import { rotate } from "@/lib/musicDiscovery";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
-import { belongsOnShelf, type ShelfSpan } from "@/lib/shelfSpan";
+import { type ShelfSpan } from "@/lib/shelfSpan";
 import type { Sleeve } from "@/lib/crate";
 
 // Browsing, rather than being served.

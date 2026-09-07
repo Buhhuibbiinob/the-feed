@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { lookupItunesTrack } from "@/lib/itunes";
+import { coverKeyFor, readCovers, worthRemembering, writeCovers } from "@/lib/coverCache";
 
 /**
  * The art and the clip for one sleeve, fetched when it is pulled out.
@@ -29,6 +30,15 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
   try {
+    // The database first. A record somebody has already dug up is
+    // answered without touching Apple, which matters most here: the
+    // crate and the shelves share one small budget with the search box,
+    // and the same records surface in all three.
+    const cacheKey = coverKeyFor(title, artist);
+    const known = await readCovers([cacheKey]);
+    const remembered = known.get(cacheKey);
+    if (remembered) return NextResponse.json(remembered);
+
     const info = await lookupItunesTrack(title, artist);
     // A refusal travels as a refusal.
     //
@@ -41,6 +51,10 @@ export async function GET(request: NextRequest) {
     if (info.throttled) {
       return NextResponse.json({ throttled: true }, { status: 503 });
     }
+    // Deep, because this route always uses the catalogue fallback - so
+    // an empty answer from here really is "Apple does not have it", and
+    // is worth writing down so nobody pays for that lookup again.
+    if (worthRemembering(info, true)) await writeCovers([{ key: cacheKey, info }]);
     return NextResponse.json(info);
   } catch {
     // A sleeve with no art is still a sleeve. The card shows a blank
