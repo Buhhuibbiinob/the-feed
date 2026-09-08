@@ -257,9 +257,24 @@ export type SpotifyLookup = {
   artworkUrl: string | null;
   trackUrl: string | null;
   year: number | null;
+  /**
+   * The id an embed needs.
+   *
+   * Here because a review has to be able to play when YouTube cannot
+   * answer - a spent daily quota meant every review posted that day was
+   * saved with no player at all. A Spotify embed costs no quota, has no
+   * daily cap, and the posts table and the player component both already
+   * understood one.
+   */
+  trackId: string | null;
 };
 
-const NOTHING: SpotifyLookup = { artworkUrl: null, trackUrl: null, year: null };
+const NOTHING: SpotifyLookup = {
+  artworkUrl: null,
+  trackUrl: null,
+  year: null,
+  trackId: null,
+};
 
 /**
  * Artwork and, mainly, a year for one record.
@@ -313,6 +328,7 @@ export async function lookupSpotifyTrack(
       artworkUrl: first.album.images[0]?.url ?? null,
       trackUrl: first.external_urls?.spotify ?? null,
       year: best,
+      trackId: first.id ?? null,
     };
   } catch {
     return NOTHING;

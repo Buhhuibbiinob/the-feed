@@ -7,6 +7,7 @@ import { withoutOptionalFields } from "@/lib/postQuery";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { searchVideosDetailed } from "@/lib/youtube";
+import { lookupSpotifyTrack } from "@/lib/spotify";
 import { isGenreFor } from "@/lib/genres";
 import { findOrCreateClub } from "@/lib/clubs";
 import { findOrCreateWork } from "@/lib/works";
@@ -189,11 +190,27 @@ export async function createPost(
       // out of the part of the day's allowance the shelves cannot touch.
       { priority: "user" }
     ).catch(() => ({ videos: [] }));
-    // Not finding one is not a reason to refuse the review. It keeps its
-    // title, its artwork and its words, and simply has no player - which
-    // is what every review had before this.
     videoId = videos[0]?.id ?? "";
   }
+
+  // And when YouTube cannot answer at all, Spotify can.
+  //
+  // The day's YouTube quota being spent meant every review posted after
+  // it ran out was saved with no player - a review of a song with no way
+  // to hear the song, which is the thing this has now failed at three
+  // separate ways.
+  //
+  // A Spotify embed costs no quota and has no daily cap, the posts table
+  // already had a column for one, and PreviewPlayer already knew how to
+  // render it. It plays a preview rather than the video, which is worse
+  // than the video and enormously better than nothing.
+  let spotifyId = spotifyTrackId;
+  if (!videoId && !spotifyId && mediaType === "music" && title) {
+    const found = await lookupSpotifyTrack(title, artist || "").catch(() => null);
+    spotifyId = found?.trackId ?? "";
+  }
+  // Neither is not a reason to refuse the review. It keeps its title, its
+  // artwork and its words, and simply has no player.
 
   const row = {
     user_id: user.id,
@@ -203,7 +220,7 @@ export async function createPost(
     rating,
     artist: artist || null,
     cover_url: coverUrl || null,
-    spotify_track_id: spotifyTrackId || null,
+    spotify_track_id: spotifyId || null,
     youtube_video_id: videoId || null,
     club_id: clubId,
     work_id: workId,
@@ -460,6 +477,7 @@ export async function updatePost(
   // Costs one search per edit of a review that has no video yet, and
   // exactly nothing on every other edit.
   let foundVideo: string | null = null;
+  let foundSpotify: string | null = null;
   if (
     existing &&
     existing.media_type === "music" &&
@@ -472,6 +490,13 @@ export async function updatePost(
       { priority: "user" }
     ).catch(() => ({ videos: [] }));
     foundVideo = videos[0]?.id ?? null;
+    // Same second chance as posting: if YouTube has nothing to give
+    // today, Spotify still can, and editing is where a review written
+    // during an outage gets its player.
+    if (!foundVideo) {
+      const found = await lookupSpotifyTrack(title, existing.artist || "").catch(() => null);
+      foundSpotify = found?.trackId ?? null;
+    }
   }
 
   // Admins can edit anyone's post - title, body, rating and genre - which
@@ -488,6 +513,7 @@ export async function updatePost(
     // edit would take the player OFF the reviews that have one, which is
     // the opposite of the point.
     ...(foundVideo ? { youtube_video_id: foundVideo } : {}),
+    ...(foundSpotify ? { spotify_track_id: foundSpotify } : {}),
   };
   const admin = await isAdmin(supabase, user.id);
   const save = (values: Record<string, unknown>) =>
