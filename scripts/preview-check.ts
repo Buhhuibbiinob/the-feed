@@ -163,6 +163,27 @@ for (const file of MUSIC_SURFACES) {
     "a review started from a link is given one too",
     /!videoId && !spotifyTrackId && mediaType === "music"/.test(action)
   );
+  // And when YouTube cannot answer at all. The day's quota being spent
+  // meant every review posted after it ran out was saved with no player
+  // - which is the third separate way this has failed, so it gets a
+  // second source like everything else.
+  //
+  // A Spotify embed costs no quota and has no daily cap, the posts table
+  // already had a column for one, and PreviewPlayer already knew how to
+  // render it.
+  check(
+    "a review falls back to Spotify when YouTube has nothing",
+    /lookupSpotifyTrack\(title, artist \|\| ""\)/.test(action)
+  );
+  check(
+    "and editing gives an old review the same second chance",
+    /foundSpotify/.test(action)
+  );
+  check(
+    "the player can render a Spotify embed",
+    /open\.spotify\.com\/embed\/track/.test(readFileSync("src/components/PreviewPlayer.tsx", "utf8"))
+  );
+
   // A member's own uploaded track plays on its own page rather than
   // being a link off the site - it is the one piece of music here that
   // is not in anybody's catalogue.
