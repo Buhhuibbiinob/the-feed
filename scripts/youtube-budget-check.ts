@@ -80,6 +80,11 @@ check("a spent day serves what it remembers", /if \(remembered\) return \{ video
 const ALLOWED_TO_ASK = [
   "src/app/api/youtube/resolve/route.ts",
   "src/app/api/youtube/search/route.ts",
+  // Writing a review. One search per review WRITTEN, not per view, and
+  // it is what gives the review a player - a review of a song with no
+  // way to hear the song is half a review. Somebody is watching a
+  // spinner when this runs.
+  "src/app/actions/posts.ts",
 ];
 const claiming = SOURCES.filter(
   (f) => !f.endsWith("youtube.ts") && /priority:\s*"user"/.test(readFileSync(f, "utf8"))

@@ -134,6 +134,49 @@ for (const file of MUSIC_SURFACES) {
     /current\.kind === "film" && playing && current\.videoId/.test(crate)
   );
 }
+// ---- but a review DOES play the video ----
+//
+// The line is not "no video anywhere". It is about which surface. A
+// shelf is a wall of records to look through and a player in it is
+// noise; a review is about ONE record, and a song somebody uploaded is
+// the whole reason they posted. Those play.
+//
+// Checked from both directions, because a rule enforced in one
+// direction only is how the shelves lost their embeds and the reviews
+// nearly went with them.
+{
+  const card = readFileSync("src/components/PostCard.tsx", "utf8");
+  check("a review still carries a player", /PreviewPlayer/.test(card));
+  const player = readFileSync("src/components/PreviewPlayer.tsx", "utf8");
+  check("and that player plays video", /youtube-nocookie\.com\/embed/.test(player));
+  const form = readFileSync("src/components/PostForm.tsx", "utf8");
+  check(
+    "a song picked for a review is given its video",
+    /resolveTrackVideo\(/.test(form)
+  );
+  // And the path that does NOT go through the search box, which is most
+  // of them: a review started from Discover, the Crate or a shelf
+  // arrives with the title already in the URL and never touches that
+  // box. Those were saved with no video and rendered with no player.
+  const action = readFileSync("src/app/actions/posts.ts", "utf8");
+  check(
+    "a review started from a link is given one too",
+    /!videoId && !spotifyTrackId && mediaType === "music"/.test(action)
+  );
+  // A member's own uploaded track plays on its own page rather than
+  // being a link off the site - it is the one piece of music here that
+  // is not in anybody's catalogue.
+  const artistPage = readFileSync("src/app/artists/[id]/page.tsx", "utf8");
+  check("an uploaded track plays on its page", /artistEmbedSrc/.test(artistPage));
+  const embeds: string[] = [];
+  for (const platform of ["youtube", "spotify", "soundcloud", "apple_music"]) {
+    if (readFileSync("src/lib/artistEmbed.ts", "utf8").includes(`"${platform}"`)) {
+      embeds.push(platform);
+    }
+  }
+  check("all four services it accepts can play", embeds.length === 4, embeds.join(", "));
+}
+
 // The route and the client that spent YouTube quota to play a record
 // are gone with the feature, rather than left behind to be rediscovered
 // and rewired by somebody later.
@@ -144,7 +187,7 @@ check(
 
 console.log(
   failures === 0
-    ? "\nA coverless record keeps its clip, and a record is never a video player."
+    ? "\nReviews play the video, shelves play the clip, and a coverless record keeps both."
     : `\n${failures} way(s) a record can end up with no cover and nothing to press.`
 );
 process.exit(failures === 0 ? 0 : 1);
