@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { lookupItunesTrack, type ItunesTrackInfo } from "@/lib/itunes";
+import type { ItunesTrackInfo } from "@/lib/itunes";
+import { lookupTrack } from "@/lib/catalogue";
 import { coverKeyFor, readCovers, worthRemembering, writeCovers } from "@/lib/coverCache";
 
 /**
@@ -148,7 +149,12 @@ export async function POST(request: NextRequest) {
         // A sleeve that fails is a sleeve with no art, not a failed
         // batch. One bad lookup must not cost the other twenty three
         // their covers.
-        const info = await lookupItunesTrack(ask.title, ask.artist, { deep }).catch(() => null);
+        // Two catalogues, not one. Apple knows release years and allows
+        // twenty calls a minute; Deezer allows about thirty times that
+        // and has most of the same records. The first refusal from Apple
+        // sends the rest of the batch straight to Deezer rather than
+        // backing off into a wall - see lib/catalogue.
+        const info = await lookupTrack(ask.title, ask.artist, { deep }).catch(() => null);
         // A throttled lookup is left OUT of the answer rather than
         // reported as an empty one.
         //

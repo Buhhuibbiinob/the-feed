@@ -1,4 +1,4 @@
-import { lookupItunesTrack } from "@/lib/itunes";
+import { lookupTrack } from "@/lib/catalogue";
 import {
   DISCOVERY_TAGS,
   MUSIC_ERAS,
@@ -399,16 +399,21 @@ const LOOKUP_CONCURRENCY = 4;
  * and the catalogue simply has no clip for some records.
  */
 /**
- * Apple's catalogue, tried more than once.
+ * The catalogues, tried more than once.
  *
  * Some cards had no artwork and no play button, and the reason was the
  * name rather than the catalogue: "TheFugeesVEVO" matches nothing, and
  * neither does "Helmet (Official Video)". So the artist is cleaned, and
  * a title carrying video furniture is tried again without it.
+ *
+ * Goes through lib/catalogue rather than Apple directly, so a rail
+ * whose records Apple does not stock - which on this site is most of
+ * them - gets its covers and clips from Deezer instead of coming back
+ * as a row of blank cards.
  */
 async function lookupFind(find: Find) {
   const artist = cleanArtistName(find.artist) ?? find.artist;
-  const first = await lookupItunesTrack(find.name, artist);
+  const first = await lookupTrack(find.name, artist);
   if (first.previewUrl || first.artworkUrl) return first;
 
   // "Song (Official Video)", "Song [Official Audio]", "Artist - Song".
@@ -418,7 +423,7 @@ async function lookupFind(find: Find) {
     .replace(/\s{2,}/g, " ")
     .trim();
   if (bare && bare.toLowerCase() !== find.name.toLowerCase()) {
-    return lookupItunesTrack(bare, artist);
+    return lookupTrack(bare, artist);
   }
   return first;
 }
