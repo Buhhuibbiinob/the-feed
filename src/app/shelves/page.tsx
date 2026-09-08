@@ -10,6 +10,7 @@ import {
   axes,
   isComingSoon,
   getShelf,
+  SHELF_SIZE,
   isAxis,
   isMedium,
   isShelfValue,
@@ -21,6 +22,8 @@ import {
 import { filmShelf } from "@/lib/trailers";
 import { getPrints } from "@/lib/photoShelf";
 import { describeSearchFailure, searchVideosDetailed } from "@/lib/youtube";
+import { getShelfFromPosts } from "@/lib/shelfPosts";
+import type { Sleeve } from "@/lib/crate";
 import { decadeTagForYear } from "@/lib/physicalMedia";
 import {
   alreadyKnown,
@@ -90,8 +93,30 @@ export default async function ShelvesPage({
   // Only the medium being looked at is fetched. Asking all three would
   // be a Last.fm call and a hundred YouTube units spent on two walls
   // nobody opened.
-  const records =
-    medium === "music" && axis && value ? await getShelf(axis, value, known, spin) : [];
+  const shelf =
+    medium === "music" && axis && value
+      ? await getShelf(axis, value, known, spin)
+      : { records: [] as Sleeve[], source: "none" as const };
+
+  // The source that cannot fail, behind the two that can.
+  //
+  // A shelf headed UK R&B was showing "couldn't reach Last.fm" over an
+  // empty board, which was wrong twice: that shelf does not come from
+  // Last.fm, and an empty board with an apology on it is a page that
+  // looks broken. Last.fm can be down or have nothing for a scene it has
+  // never heard of, YouTube's allowance runs out at some point in the
+  // day, and when both happen there is still one source left that needs
+  // no key and cannot be rate limited - the records people here have
+  // posted about.
+  //
+  // Only for a scene, because that is the only axis a post can be
+  // matched on: a post carries a genre and does not carry a year.
+  const fromPosts =
+    medium === "music" && axis === "scene" && value && shelf.records.length < SHELF_SIZE
+      ? await getShelfFromPosts(supabase, value, SHELF_SIZE - shelf.records.length)
+      : [];
+  const already = new Set(shelf.records.map((r) => r.key));
+  const records = [...shelf.records, ...fromPosts.filter((r) => !already.has(r.key))];
   const screen =
     medium === "film" && value && (axis === "decade" || axis === "genre" || axis === "place")
       ? await filmShelf(
@@ -109,10 +134,29 @@ export default async function ShelvesPage({
       ? await getPrints(supabase, value)
       : [];
 
+  // What to say when there is genuinely nothing.
+  //
+  // Two lies were being told here and the screenshot had both. Every
+  // empty music shelf reported "couldn't reach Last.fm" - including the
+  // sixteen scenes that never ask Last.fm at all, so somebody on an
+  // empty UK R&B shelf was told to wait for a service with nothing to
+  // do with it. And discoveryStatus cannot tell "Last.fm answered with
+  // nothing" from "Last.fm did not answer", because every helper in
+  // there returns an empty array for both - so a genuinely thin tag was
+  // reported as an outage, and waiting for it to clear would have taken
+  // forever.
+  //
+  // Only one of those states is actually knowable, so only that one is
+  // claimed: a missing key is a fact. Everything else is said as what it
+  // is - a shelf with nothing on it yet - and pointed at the thing that
+  // would fix it, which is somebody posting a record.
+  const status = discoveryStatus([records.length]);
   const problem =
-    medium === "music" && axis && value
-      ? describeDiscoveryStatus(discoveryStatus([records.length]))
-      : "";
+    medium !== "music" || !axis || !value || records.length > 0
+      ? ""
+      : status === "not-configured"
+        ? describeDiscoveryStatus(status)
+        : `Nothing on this shelf yet. Post a ${shelfTitle(axis, value)} record and it goes up here.`;
 
   const openAxis = axis ? wall.find((a) => a.id === axis) ?? null : null;
 

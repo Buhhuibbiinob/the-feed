@@ -1,4 +1,4 @@
-import { GENRES } from "@/lib/genres";
+import { GENRES, genreLabel } from "@/lib/genres";
 import { excludeHits, getTracksByTag, tagText, type LastfmTrack } from "@/lib/lastfm";
 import { dayIndex, rotate } from "@/lib/musicDiscovery";
 import { getYoutubeSceneShelf, isYoutubeScene } from "@/lib/youtubeScenes";
@@ -466,9 +466,21 @@ export function shelfTitle(axis: AxisId, value: string): string {
     // A hyphenated genre is a slug, not a label: "still-life" and
     // "black-and-white" are what the database calls them and not what a
     // divider card should say.
+    //
+    // Titled by genreLabel rather than by title-casing the slug here,
+    // which is where "Uk-Rnb" came from - printed on the divider, on the
+    // chip and in the breadcrumb, on a shelf whose whole point was that
+    // somebody asked for UK R&B by name. Title-casing also left the
+    // hyphens in, so the wall read Quiet-Storm and New-Jack-Swing.
+    //
+    // lib/genres already knows every one of these, including the ones no
+    // rule gets right: UK R&B, PluggnB, HexD, Brit-Funk, PBR&B, K-Pop.
+    // Doing it twice, in two files, by two different rules, is how one
+    // of them ends up wrong.
     case "genre":
     case "subject":
-      return value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    case "scene":
+      return genreLabel(value);
     default:
       return value.replace(/\b\w/g, (c) => c.toUpperCase());
   }
@@ -586,13 +598,18 @@ export function fillShelf(
   return shelf;
 }
 
+/** Where a shelf's records came from, so the page can say the truth. */
+export type ShelfSource = "youtube" | "lastfm" | "posts" | "none";
+
+export type ShelfResult = { records: Sleeve[]; source: ShelfSource };
+
 /** Everything on one shelf, fetched. */
 export async function getShelf(
   axis: AxisId,
   value: string,
   known: Known,
   rotateBy = 0
-): Promise<Sleeve[]> {
+): Promise<ShelfResult> {
   // Every axis is a Last.fm tag - "1994", "shoegaze", "detroit", "90s"
   // are all just tags, which is the reason this page can exist at all
   // without a music database of our own.
@@ -629,7 +646,7 @@ export async function getShelf(
     // A quota that has run out, or a key that is not set, must not leave
     // a scene with no shelf at all - so it falls through to Last.fm,
     // which will be thin for these but is better than empty.
-    if (fromYoutube.length > 0) return fromYoutube;
+    if (fromYoutube.length > 0) return { records: fromYoutube, source: "youtube" };
   }
 
   // Two pages, in parallel, and the second one moves.
@@ -678,5 +695,5 @@ export async function getShelf(
   // do, and the thirty-eight below them are never fetched unless
   // somebody scrolls. Doing it twice was not belt and braces, it was
   // paying the slow way first and the fast way second.
-  return shelf;
+  return { records: shelf, source: shelf.length > 0 ? "lastfm" : "none" };
 }

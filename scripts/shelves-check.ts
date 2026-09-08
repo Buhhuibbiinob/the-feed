@@ -84,7 +84,13 @@ check("a non-string is not a value", !isShelfValue("scene", 7, now));
 // ---- titles ------------------------------------------------------------
 
 check("a year is its own title", shelfTitle("year", "1994") === "1994");
-check("a scene is capitalised", shelfTitle("scene", "dream pop") === "Dream Pop");
+// A scene value is a SLUG, which is what the wall actually passes -
+// this asked with a space in it, which no scene has ever had, and so
+// tested a path the site never takes. Titled through genreLabel now, so
+// the wall says UK R&B and PluggnB rather than Uk-Rnb and Pluggnb.
+check("a scene is titled by its own label", shelfTitle("scene", "dream-pop") === "Dream Pop");
+check("a scene the taxonomy spells oddly keeps its spelling", shelfTitle("scene", "uk-rnb") === "UK R&B", shelfTitle("scene", "uk-rnb"));
+check("and one that title-cases wrong is overridden", shelfTitle("scene", "pluggnb") === "PluggnB", shelfTitle("scene", "pluggnb"));
 check("a place is capitalised", shelfTitle("place", "new york") === "New York");
 check("the 2000s is not 'The 00s'", shelfTitle("decade", "00s") === "The 2000s", shelfTitle("decade", "00s"));
 check("a decade keeps its decade", shelfTitle("decade", "90s") === "The 90s");
@@ -248,10 +254,14 @@ check(
 check("a hyphenated subject is spelled out", shelfTitle("subject", "still-life") === "Still Life");
 check(
   "and so is a long one",
-  shelfTitle("subject", "black-and-white") === "Black And White",
+  // "Black & White", not "Black And White". The taxonomy's own label,
+  // which is how anybody writes it.
+  shelfTitle("subject", "black-and-white") === "Black & White",
   shelfTitle("subject", "black-and-white")
 );
-check("a film kind is capitalised", shelfTitle("genre", "sci-fi") === "Sci Fi");
+// "Sci-Fi" keeps its hyphen, because that is the word. Title-casing the
+// slug gave "Sci Fi", which is nothing.
+check("a film kind is capitalised", shelfTitle("genre", "sci-fi") === "Sci-Fi", shelfTitle("genre", "sci-fi"));
 
 // ---- Wider walls ------------------------------------------------------
 //
@@ -325,6 +335,39 @@ check(
 {
   const film = readFileSync("src/components/FilmShelf.tsx", "utf8");
   check("a film case with no artwork is printed too", /wood-label-print/.test(film));
+}
+
+
+// ---- an empty shelf is not an outage ----
+//
+// A shelf headed UK R&B showed "Couldn't reach Last.fm just now. The
+// picks come back as soon as it does." over an empty board. Both halves
+// were wrong. That shelf does not come from Last.fm - it is one of the
+// sixteen that come from YouTube - and discoveryStatus cannot tell
+// "Last.fm answered with nothing" from "Last.fm did not answer", since
+// every helper returns an empty array for both. So a genuinely thin tag
+// was reported as an outage, and somebody waiting for it to clear would
+// have waited forever.
+//
+// A missing key is the only one of those states that is actually
+// knowable, so it is the only one the page may claim.
+{
+  const page = readFileSync("src/app/shelves/page.tsx", "utf8");
+  check(
+    "only a missing key is reported as a configuration problem",
+    /status === "not-configured"/.test(page) && /describeDiscoveryStatus\(status\)/.test(page)
+  );
+  check(
+    "an empty shelf is not reported as an outage",
+    !/describeDiscoveryStatus\(discoveryStatus\(/.test(page)
+  );
+  check(
+    "an empty shelf asks for a review instead",
+    /Post a \$\{shelfTitle\(axis, value\)\} record/.test(page)
+  );
+  // The source that cannot fail. When both catalogues have nothing, the
+  // records people here have posted still fill the shelf.
+  check("a thin shelf is filled from the site's own posts", /getShelfFromPosts/.test(page));
 }
 
 
