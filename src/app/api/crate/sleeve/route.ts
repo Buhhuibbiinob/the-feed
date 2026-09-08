@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { lookupItunesTrack } from "@/lib/itunes";
+import { lookupTrack } from "@/lib/catalogue";
 import { coverKeyFor, readCovers, worthRemembering, writeCovers } from "@/lib/coverCache";
 
 /**
@@ -39,7 +39,9 @@ export async function GET(request: NextRequest) {
     const remembered = known.get(cacheKey);
     if (remembered) return NextResponse.json(remembered);
 
-    const info = await lookupItunesTrack(title, artist);
+    // Both catalogues. Somebody is holding this one record and waiting,
+    // so it is worth asking the second one when the first has nothing.
+    const info = await lookupTrack(title, artist);
     // A refusal travels as a refusal.
     //
     // Apple answers 403 when asked too often and lookupItunesTrack hands
