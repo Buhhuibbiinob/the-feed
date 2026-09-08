@@ -366,10 +366,18 @@ export async function getArtistTopTracks(artist: string, limit = 30): Promise<La
   }
 }
 
-// Above this many Last.fm listeners a track is a hit, not a find. Chosen so
-// a genuinely underground record passes and anything with radio history
-// doesn't - roughly, a track everyone recognises clears a million.
-const HIT_LISTENER_CEILING = 400_000;
+// Above this many Last.fm listeners a track is a hit, not a find.
+//
+// Was four hundred thousand, which only excluded records with radio
+// history - a track with three hundred thousand listeners is not a find,
+// it is something most people in that scene already own. A hundred and
+// twenty thousand is the line where an artist stops being one somebody
+// browsing this shelf has probably met.
+//
+// Lowering it cannot empty a rail: excludeHits hands back the unfiltered
+// list when the filter takes everything, because an artist with no
+// obscure tracks should still have a catalogue rather than nothing.
+const HIT_LISTENER_CEILING = 120_000;
 
 /** Drops tracks big enough that surfacing them isn't a discovery. Tracks
  *  with no listener data are kept, since the endpoint not reporting it is

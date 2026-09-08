@@ -2,6 +2,7 @@ import { GENRES, genreLabel } from "@/lib/genres";
 import { excludeHits, getTracksByTag, tagText, type LastfmTrack } from "@/lib/lastfm";
 import { dayIndex, rotate } from "@/lib/musicDiscovery";
 import { getYoutubeSceneShelf, isYoutubeScene } from "@/lib/youtubeScenes";
+import type { SearchFailure } from "@/lib/youtube";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
 import { type ShelfSpan } from "@/lib/shelfSpan";
@@ -601,7 +602,12 @@ export function fillShelf(
 /** Where a shelf's records came from, so the page can say the truth. */
 export type ShelfSource = "youtube" | "lastfm" | "posts" | "none";
 
-export type ShelfResult = { records: Sleeve[]; source: ShelfSource };
+export type ShelfResult = {
+  records: Sleeve[];
+  source: ShelfSource;
+  /** Why it is empty, when something actually went wrong. */
+  failure?: SearchFailure;
+};
 
 /** Everything on one shelf, fetched. */
 export async function getShelf(
@@ -621,6 +627,7 @@ export async function getShelf(
   // back empty and reports it as a thin corner of the catalogue. Year,
   // decade and place are already tag text and pass through unchanged.
   const tag = axis === "scene" ? tagText(value) : value;
+  let youtubeFailure: SearchFailure | undefined;
 
   // Except for the handful Last.fm cannot describe.
   //
@@ -646,7 +653,14 @@ export async function getShelf(
     // A quota that has run out, or a key that is not set, must not leave
     // a scene with no shelf at all - so it falls through to Last.fm,
     // which will be thin for these but is better than empty.
-    if (fromYoutube.length > 0) return { records: fromYoutube, source: "youtube" };
+    if (fromYoutube.records.length > 0) {
+      return { records: fromYoutube.records, source: "youtube" };
+    }
+    // Nothing from YouTube. Last.fm is still worth asking - it is thin
+    // for these scenes rather than empty - but the reason YouTube had
+    // nothing is carried on in case Last.fm has nothing either, so the
+    // page can say which thing failed instead of shrugging.
+    youtubeFailure = fromYoutube.failure;
   }
 
   // Two pages, in parallel, and the second one moves.
@@ -661,7 +675,18 @@ export async function getShelf(
   // Costs nothing in time: two requests going out together take as long
   // as the slower one, and Last.fm answers both from the same cache
   // shelf anybody else on that tag today has already warmed.
-  const deepPage = 2 + (Math.abs(rotateBy) % 4);
+  // How far down the chart the shelf starts.
+  //
+  // Widened from four pages to six. A tag chart is ordered by play count
+  // and reports nothing else, so rank IS the popularity signal, and the
+  // further down you go the closer you get to people nobody has heard
+  // of - which is the whole request. Page 7 at 120 a page is rank 720
+  // upward: still real records with real listeners, deep enough that
+  // somebody browsing that shelf almost certainly has not met them.
+  //
+  // Safe to reach past the end of a small tag: page one is fetched
+  // alongside this and backs the shelf up when the deep page is thin.
+  const deepPage = 2 + (Math.abs(rotateBy) % 6);
   const [front, deeper] = await Promise.all([
     getTracksByTag(tag, 120).catch(() => []),
     getTracksByTag(tag, 120, deepPage).catch(() => []),
@@ -695,5 +720,6 @@ export async function getShelf(
   // do, and the thirty-eight below them are never fetched unless
   // somebody scrolls. Doing it twice was not belt and braces, it was
   // paying the slow way first and the fast way second.
-  return { records: shelf, source: shelf.length > 0 ? "lastfm" : "none" };
+  if (shelf.length > 0) return { records: shelf, source: "lastfm" };
+  return { records: shelf, source: "none", ...(youtubeFailure ? { failure: youtubeFailure } : {}) };
 }

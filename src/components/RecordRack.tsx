@@ -5,7 +5,6 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { AddToQueueButton } from "@/components/AddToQueueButton";
 import type { Find } from "@/lib/musicDiscovery";
 import { formatFor } from "@/lib/physicalMedia";
-import { knownTrackVideo, resolveTrackVideoId } from "@/lib/trackVideo";
 import { useOnScreen, useSleeves, type SleeveInfo } from "@/lib/useSleeves";
 
 // A rack of records you flick through.
@@ -157,40 +156,6 @@ export function RecordRack({
     : null;
   const heldArt = held ? held.imageUrl ?? heldInfo?.artworkUrl ?? pulled[held.key]?.artworkUrl ?? null : null;
 
-  // And when there is no clip at all, the other way of playing it.
-  //
-  // Apple has no preview for a good share of what is on these racks -
-  // disproportionately the obscure ones, which is the entire point of a
-  // rack like this - so "pull one out and there is nothing to press" was
-  // the commonest thing that happened here. YouTube is asked for the one
-  // record somebody has actually got in their hand, once, and the answer
-  // is kept for everybody afterwards. Nothing on this page asks on its
-  // own: no scroll, no lookahead, no rack-fills-itself.
-  const [video, setVideo] = useState<Record<string, { id: string | null; error: string | null }>>(
-    {}
-  );
-  const [finding, setFinding] = useState<string | null>(null);
-  const [showing, setShowing] = useState<string | null>(null);
-  const alreadyKnown = held ? knownTrackVideo(held.key) : null;
-  const heldVideo = held
-    ? video[held.key] ??
-      (alreadyKnown ? { id: alreadyKnown.videoId, error: alreadyKnown.error } : null)
-    : null;
-  const heldShowing = !!held && showing === held.key;
-
-  async function findVideo(key: string, title: string, artist: string) {
-    setFinding(key);
-    const found = await resolveTrackVideoId(key, title, artist);
-    setFinding(null);
-    setVideo((prev) => ({ ...prev, [key]: { id: found.videoId, error: found.error } }));
-    // One thing playing at a time: starting the video stops the clip.
-    if (found.videoId) {
-      audio?.pause();
-      stop();
-      setShowing(key);
-    }
-  }
-
   return (
     <section className="rack-section">
       {/* The card a shop slips into the rack to name a section. */}
@@ -210,11 +175,7 @@ export function RecordRack({
                   key={find.key}
                   find={find}
                   held={find.key === heldKey}
-                  onPick={() => {
-                    // Putting one back stops whatever it was playing.
-                    setShowing(null);
-                    setHeldKey(find.key === heldKey ? null : find.key);
-                  }}
+                  onPick={() => setHeldKey(find.key === heldKey ? null : find.key)}
                   want={want}
                   get={get}
                 />
@@ -227,17 +188,7 @@ export function RecordRack({
         {held && (
           <div className="rack-held">
             <div className="rack-held-art">
-              {heldShowing && heldVideo?.id ? (
-                // Playing where the cover was, the same as the crate and
-                // the shelf: the record in your hand is the thing making
-                // the noise.
-                <iframe
-                  src={`https://www.youtube.com/embed/${heldVideo.id}?autoplay=1&rel=0`}
-                  title={`${held.name} by ${held.artist}`}
-                  allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : heldArt ? (
+              {heldArt ? (
                 // Cover art comes from Apple's and Last.fm's CDNs, which
                 // are not in next.config's image allowlist. A plain img
                 // avoids adding every music CDN on earth to it.
@@ -259,32 +210,7 @@ export function RecordRack({
                   >
                     {playing === held.key ? "Stop" : "Hear it"}
                   </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="rack-link"
-                    disabled={finding === held.key || !!heldVideo?.error}
-                    onClick={() => {
-                      if (heldShowing) {
-                        setShowing(null);
-                        return;
-                      }
-                      if (heldVideo?.id) {
-                        setShowing(held.key);
-                        return;
-                      }
-                      void findVideo(held.key, held.name, held.artist);
-                    }}
-                  >
-                    {finding === held.key
-                      ? "Finding it"
-                      : heldVideo?.error
-                      ? "Can't play it"
-                      : heldShowing
-                      ? "Stop"
-                      : "Play it"}
-                  </button>
-                )}
+                ) : null}
                 <Link
                   href={`/post/new?type=music&title=${encodeURIComponent(
                     held.name

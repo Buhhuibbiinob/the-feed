@@ -371,5 +371,41 @@ check(
 }
 
 
+// ---- the people here are on the shelves ----
+//
+// A wall of UK R&B built entirely out of a catalogue, with a member's
+// own UK R&B record sitting on another page unable to get on it, is the
+// wrong way round for a site about what the people here are making.
+// artist_posts had no genre, so it could not be filed anywhere.
+{
+  const posts = readFileSync("src/lib/shelfPosts.ts", "utf8");
+  check("a shelf reads what members made, not only what they reviewed", /artist_posts/.test(posts));
+  check("and what members made leads", posts.indexOf("...made, ...reviewed") !== -1);
+  const form = readFileSync("src/components/ArtistPostForm.tsx", "utf8");
+  check("sharing your own work lets you say what it is", /StandaloneGenrePicker/.test(form));
+  const action = readFileSync("src/app/actions/artistPosts.ts", "utf8");
+  check("and the genre is validated, not trusted", /isGenreFor\("music", rawGenre\)/.test(action));
+  // 019 is not a prerequisite. A post still goes up without it, exactly
+  // as it did before the column existed.
+  check(
+    "a post still goes up before migration 019 is run",
+    /isMissingSchema\(error\.message\)/.test(action)
+  );
+}
+
+// ---- an empty shelf says which thing failed ----
+//
+// A missing key, a spent daily allowance and a genuinely thin corner
+// are three different problems and only one of them means "try another
+// divider". The film shelves have said this for months; the music ones
+// were shrugging.
+{
+  const page = readFileSync("src/app/shelves/page.tsx", "utf8");
+  check("a music shelf reports the search failure it got", /describeSearchFailure\(shelf\.failure\)/.test(page));
+  const scenes = readFileSync("src/lib/youtubeScenes.ts", "utf8");
+  check("and the scene shelf carries one back", /failure\?: SearchFailure/.test(scenes));
+}
+
+
 console.log(failures === 0 ? "\nYou pick the shelf; it does not pick for you." : `\n${failures} failing.`);
 process.exit(failures === 0 ? 0 : 1);

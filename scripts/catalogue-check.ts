@@ -108,9 +108,60 @@ check(
 // an ok response is not the same as an answer.
 check("a 200 carrying an error is not treated as an answer", /data\.error/.test(deezer));
 
+// ---- the mix ----
+//
+// Four sources, each asked for the thing it is actually best at, and the
+// division of labour is the whole design rather than a detail:
+//
+//   Apple    art, clip, year - but twenty calls a minute for the site
+//   Deezer   art, clip, thirty times the headroom, no release date
+//   Spotify  art and a RELIABLE YEAR, no clip worth depending on
+//   YouTube  the only one that can play what nobody else stocks, at a
+//            hundred quota units a search, so only on a press
+//
+// The year is the one that puts records in the right spot. A shelf
+// headed 1994 checks each record against its own years, and an unknown
+// year has to be allowed to stay - so before Spotify, everything Deezer
+// rescued was undateable and could sit on any shelf at all.
+{
+  const catalogue = readFileSync("src/lib/catalogue.ts", "utf8");
+  const spotify = readFileSync("src/lib/spotify.ts", "utf8");
+
+  check("the year is asked for from Spotify", /lookupSpotifyTrack/.test(catalogue));
+  check(
+    "and only when a shelf is going to check it",
+    /needYear && found\.year === null/.test(catalogue)
+  );
+  // Spotify stopped serving preview_url to newly registered apps, so a
+  // play button built on it works or does not depending on when the app
+  // was registered - the worst kind of feature.
+  check(
+    "no clip is ever taken from Spotify",
+    /previewUrl: null/.test(catalogue) && !/spotify[^\n]*previewUrl:\s*(?!null)/i.test(catalogue)
+  );
+  check(
+    "Spotify dates a record by its earliest release, not the top hit",
+    /year < best/.test(spotify)
+  );
+  check("and matches on the artist too", /matchSpotifyTrack/.test(catalogue) === false && /artistMatches/.test(spotify));
+  check(
+    "a site with no Spotify credentials behaves as before",
+    /SPOTIFY_CLIENT_ID \|\| !process\.env\.SPOTIFY_CLIENT_SECRET/.test(spotify)
+  );
+
+  // Only the two axes that claim a span pay for a year.
+  const shelf = readFileSync("src/components/ShelfRecords.tsx", "utf8");
+  check("only a shelf with a span asks for years", /needYear: !!span/.test(shelf));
+
+  // And a row cached without a year on a scene shelf must not be handed
+  // straight back to a year shelf undated forever.
+  const batch = readFileSync("src/app/api/crate/sleeves/route.ts", "utf8");
+  check("a cached row with no year gets dated when a year shelf needs one", /undated/.test(batch));
+}
+
 console.log(
   failures === 0
-    ? "\nApple first for the years, Deezer the moment Apple says no."
+    ? "\nApple for all three, Deezer the moment Apple says no, Spotify for the year."
     : `\n${failures} way(s) a shelf can go blank when one catalogue is busy.`
 );
 process.exit(failures === 0 ? 0 : 1);

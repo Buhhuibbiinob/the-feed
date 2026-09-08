@@ -19,12 +19,15 @@
  *
  * Run: npx tsx scripts/youtube-scene-check.ts
  */
+import { readFileSync } from "node:fs";
 import { GENRES } from "../src/lib/genres";
 import { tagText } from "../src/lib/lastfm";
 import {
   YOUTUBE_SCENES,
   isYoutubeScene,
   parseVideoTitle,
+  looksLikeScene,
+  sceneOrder,
   sceneQuery,
 } from "../src/lib/youtubeScenes";
 
@@ -101,6 +104,73 @@ check(
 // The slug is never asked for raw: "uk-rnb" finds nothing on YouTube
 // and "uk r&b" finds the scene.
 check("a scene is searched as words, not as a slug", !sceneQuery(tagText("uk-rnb"), 0).includes("-"));
+
+// ---- deep cuts, not the same fifteen artists ----
+//
+// Relevance is a popularity ranking wearing a different name: ask
+// YouTube for "uk r&b" and it returns whoever has the views, which is
+// both the repetition complaint and the opposite of what these shelves
+// are for. Date returns what went up this week, which in a scene this
+// size is overwhelmingly people with a few hundred plays and no press.
+//
+// But not every day, or one quiet week leaves the shelf with no floor
+// under it.
+{
+  const orders = [0, 1, 2, 3, 4, 5, 6, 7].map((d) => sceneOrder(d));
+  check("most days the shelf is what went up recently", orders.filter((o) => o === "date").length >= 5);
+  check("but the scene's own canon comes back round", orders.some((o) => o === undefined));
+  check("and it is still one search either way", new Set(orders).size === 2);
+}
+
+// ---- the shelf has to be the scene, not the word ----
+//
+// The HexD shelf came back as Disney's "Hexed" trailer, a D23 Expo
+// reel, The Birthday Massacre, Hex Girls, a Friday Night Funkin mod and
+// an FL Studio tutorial called "How to make a song". Every one of them
+// ranked because it shares a prefix with the scene's name, and none of
+// them is a record. A shelf like that is a search results page wearing
+// a shelf's furniture.
+//
+// Two filters, and both are needed: YouTube's Music category throws out
+// the trailers and the tutorials, and a whole-word check throws out the
+// four different acts called some variation of Hex.
+{
+  const scenes = readFileSync("src/lib/youtubeScenes.ts", "utf8");
+  check("scene searches ask for music only", /videoCategoryId: "10"/.test(scenes));
+
+  const v = (title: string, channelTitle = "a channel") => ({
+    id: "x",
+    title,
+    channelTitle,
+    thumbnailUrl: null,
+  });
+  // The exact junk from the shelf, with the scene that produced it.
+  const JUNK: [string, string][] = [
+    ["Disney Concept (2026) | Hexed Official Teazer", "hexd"],
+    ["HEX SO HEAVY - BAMBIE THUG", "hexd"],
+    ["Hex Girls - Im A Hex Girl", "hexd"],
+    ["Official Trailer | D23 Expo", "hexd"],
+    ["Hexd - How to make a song", "hexd"],
+    ["JJS Emote OST", "hexd"],
+    ["Friday Night Funkin - Hex WEEKEND UPDATE", "hexd"],
+  ];
+  for (const [title, scene] of JUNK) {
+    const kept = looksLikeScene(v(title), scene) && parseVideoTitle(v(title)) !== null;
+    check(`keeps ${JSON.stringify(title.slice(0, 34))} off the ${scene} shelf`, !kept);
+  }
+  // And the one real record on that shelf survives both filters.
+  const real = v("axxturel x st47ic - (sigilkore) u #hexd #hex");
+  check(
+    "but a real hexd record stays",
+    looksLikeScene(real, "hexd") && parseVideoTitle(real) !== null
+  );
+  // A scene named in two words describes itself and is left alone - "uk
+  // r&b" does not collide with anything the way "drain" does.
+  check(
+    "a two-word scene is not word-filtered",
+    looksLikeScene(v("Some Artist - Some Song"), "uk r&b")
+  );
+}
 
 console.log(
   failures === 0

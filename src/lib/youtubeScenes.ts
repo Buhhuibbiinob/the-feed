@@ -1,5 +1,5 @@
 import { workKey } from "@/lib/taste";
-import { searchVideosDetailed, type YoutubeVideo } from "@/lib/youtube";
+import { searchVideosDetailed, type SearchFailure, type YoutubeVideo } from "@/lib/youtube";
 import type { Sleeve } from "@/lib/crate";
 import type { Known } from "@/lib/musicDiscovery";
 
@@ -81,13 +81,41 @@ export function isYoutubeScene(slug: string): boolean {
 const QUERY_SHAPES = [
   (scene: string) => `${scene}`,
   (scene: string) => `${scene} songs`,
-  (scene: string) => `best ${scene}`,
   (scene: string) => `underground ${scene}`,
+  (scene: string) => `new ${scene}`,
 ];
 
 export function sceneQuery(sceneText: string, dayIndex: number): string {
   const shape = QUERY_SHAPES[Math.abs(dayIndex) % QUERY_SHAPES.length];
   return shape(sceneText);
+}
+
+/**
+ * Newest first, most days. Relevance one day in four.
+ *
+ * This is the setting that decides whether the shelf is full of people
+ * who already have an audience.
+ *
+ * Relevance is a popularity ranking wearing a different name. Ask
+ * YouTube for "uk r&b" and it returns whoever has the views, which is
+ * the same fifteen artists every time - the repetition, and the exact
+ * opposite of what a shelf on a site like this is for.
+ *
+ * Date returns what went up this week. In a scene of this size that is
+ * overwhelmingly people with a few hundred plays and no press: the
+ * rappers and producers who are actually making it, rather than the ones
+ * who already broke. That is the point of these shelves.
+ *
+ * Not every day, because a shelf that is only ever the last four days of
+ * uploads has no floor under it - one quiet week and it thins out. One
+ * day in four the scene's own canon comes back round, which also gives
+ * somebody arriving new a way in.
+ *
+ * Costs nothing either way: it is the same single search, and both
+ * orders are cached under their own key.
+ */
+export function sceneOrder(dayIndex: number): "date" | undefined {
+  return Math.abs(dayIndex) % 4 === 3 ? undefined : "date";
 }
 
 // Things that are not one song.
@@ -97,7 +125,7 @@ export function sceneQuery(sceneText: string, dayIndex: number): string {
 // they are the worst kind of wrong: a sleeve with a name that is not a
 // song by an artist who is not an artist.
 const NOT_A_SONG =
-  /\b(mix|mixtape|playlist|compilation|megamix|full album|type beat|typebeat|reaction|tutorial|interview|documentary|live ?set|dj set|radio|hour|hours|minutes|best of|top \d+)\b/i;
+  /\b(mix|mixtape|playlist|compilation|megamix|full album|type beat|typebeat|reaction|tutorial|interview|documentary|live ?set|dj set|radio|hour|hours|minutes|best of|top \d+|trailer|teaser|ost|soundtrack|how to|fnf|friday night funkin|mod|gameplay|walkthrough|episode|ep\.? ?\d+|concept|expo|announcement|behind the scenes|making of)\b/i;
 
 // The furniture uploaders put around a title.
 const TITLE_NOISE =
@@ -130,6 +158,29 @@ export type ParsedTrack = { name: string; artist: string };
  * title is half a sentence - which is worse than one fewer record,
  * because it is indistinguishable from a real one until you press it.
  */
+/**
+ * Whether this result is plausibly about the scene that was asked for.
+ *
+ * A search for "hexd" returned Hex, Hexed, HEX BLOOD and Hex Girls -
+ * four different acts, none of them the scene, all of them ranking
+ * because the word is a prefix of their name. YouTube has no way to say
+ * "this word, not words beginning with it", so it is checked here: the
+ * scene's own words have to appear as WHOLE words in the title, the
+ * channel or the description of what came back.
+ *
+ * Only applied to one-word scene names. "uk r&b" and "jersey club"
+ * describe themselves; "drain" and "hexd" are the ones that collide with
+ * ordinary English and with other artists' names.
+ */
+export function looksLikeScene(video: YoutubeVideo, sceneText: string): boolean {
+  const words = sceneText.split(/\s+/).filter(Boolean);
+  if (words.length !== 1) return true;
+  const word = words[0].replace(/[^a-z0-9]/gi, "");
+  if (word.length < 3) return true;
+  const haystack = `${video.title} ${video.channelTitle}`.toLowerCase();
+  return new RegExp(`(^|[^a-z0-9])${word}([^a-z0-9]|$)`, "i").test(haystack);
+}
+
 export function parseVideoTitle(video: YoutubeVideo): ParsedTrack | null {
   const raw = video.title.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"');
   if (NOT_A_SONG.test(raw)) return null;
@@ -180,11 +231,24 @@ export async function getYoutubeSceneShelf(
   limit: number,
   rotateBy = 0,
   dayIndex = 0
-): Promise<Sleeve[]> {
-  const { videos } = await searchVideosDetailed(sceneQuery(sceneText, dayIndex), 50, {
+): Promise<{ records: Sleeve[]; failure?: SearchFailure }> {
+  const order = sceneOrder(dayIndex);
+  const { videos, failure } = await searchVideosDetailed(sceneQuery(sceneText, dayIndex), 50, {
     revalidateSeconds: SCENE_TTL_SECONDS,
-  }).catch(() => ({ videos: [] as YoutubeVideo[], failure: undefined }));
-  if (videos.length === 0) return [];
+    ...(order ? { order } : {}),
+    // Music only. Without this a search for a small scene returns
+    // whatever shares the word, and the shelf fills with things that
+    // are not records at all - see the note in lib/youtube.
+    videoCategoryId: "10",
+  }).catch(() => ({ videos: [] as YoutubeVideo[], failure: { reason: "network" } as SearchFailure }));
+  // The reason travels with the emptiness.
+  //
+  // A missing key, a spent daily allowance and a scene the search
+  // genuinely has nothing for are three different problems with three
+  // different answers, and all three used to render as the same empty
+  // board. Somebody looking at it could not tell whether to wait until
+  // tomorrow, go and fix a key, or try another divider.
+  if (videos.length === 0) return { records: [], failure };
 
   const start = videos.length ? Math.abs(rotateBy) % videos.length : 0;
   const ordered = [...videos.slice(start), ...videos.slice(0, start)];
@@ -193,6 +257,8 @@ export async function getYoutubeSceneShelf(
   const perArtist = new Map<string, number>();
   const shelf: Sleeve[] = [];
   for (const video of ordered) {
+    // A one-word scene has to actually be named, not merely prefixed.
+    if (!looksLikeScene(video, sceneText)) continue;
     const parsed = parseVideoTitle(video);
     if (!parsed) continue;
     const key = workKey(parsed.name, parsed.artist);
@@ -221,5 +287,5 @@ export async function getYoutubeSceneShelf(
     });
     if (shelf.length >= limit) break;
   }
-  return shelf;
+  return { records: shelf, failure: shelf.length === 0 ? failure : undefined };
 }
