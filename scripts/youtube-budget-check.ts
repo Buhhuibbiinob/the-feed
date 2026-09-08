@@ -110,6 +110,33 @@ check(
   /videos\.length === 0\) return/.test(budget)
 );
 
+// ---- the burst limit is waited out, not handed to a person ----
+//
+// "Searching a bit fast for YouTube. Wait a few seconds and try again."
+// on an empty shelf. That is rateLimitExceeded - the BURST limit, not
+// the daily quota, and it clears in seconds. It happened because a page
+// fires several searches at once: a shelves page asks for a film shelf
+// and a scene shelf together, and filmShelf itself tries several lanes
+// in parallel, so four or five requests left shoulder to shoulder.
+//
+// Nothing was wrong with the key or the allowance. And being told to
+// retry by hand is the site asking a person to do a thing it could
+// obviously do itself.
+{
+  const lib = readFileSync("src/lib/youtube.ts", "utf8");
+  check("searches go out one at a time", /function queued</.test(lib) && /queued\(async/.test(lib));
+  check("a burst refusal is waited out once", /BURST_BACKOFF_MS/.test(lib));
+  // Google returns rateLimitExceeded under 403 as well as 429, and
+  // reading only the number is the mistake failureFromBody exists to
+  // stop being made.
+  check(
+    "and it is recognised on 403 as well as 429",
+    /first\.status !== 429 && first\.status !== 403/.test(lib)
+  );
+  // A failed search must not wedge every search behind it.
+  check("one failed search cannot block the line", /line = mine\.catch/.test(lib));
+}
+
 console.log(
   failures === 0
     ? `\nThe allowance degrades into stale shelves, not dead buttons. ${Math.floor(reserve / SEARCH_UNITS)} searches held back for people.`
