@@ -113,7 +113,11 @@ export function ShelfRecords({
   // known year falls back to a hash of its key - which is stable, so a
   // record is not a cassette on one render and a CD on the next.
   const shelfFormat: MediaFormat | null = decade ? formatForDecadeTag(decade) : null;
-  const { want, get, pending } = useSleeves();
+  // A shelf that claims a span is a shelf that will throw a record off
+  // for being from the wrong time, so those - and only those - are worth
+  // paying an extra lookup to date properly. Scene and Place claim no
+  // years and check none.
+  const { want, get, pending } = useSleeves({ needYear: !!span });
   const playing = useSyncExternalStore(
     subscribe,
     () => playingKey,

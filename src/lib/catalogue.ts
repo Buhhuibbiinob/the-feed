@@ -1,5 +1,6 @@
 import { lookupItunesTrack, type ItunesTrackInfo } from "@/lib/itunes";
 import { lookupDeezerTrack } from "@/lib/deezer";
+import { lookupSpotifyTrack } from "@/lib/spotify";
 
 // Two catalogues, asked in the order that keeps the site working.
 //
@@ -67,6 +68,39 @@ function hasSomething(info: ItunesTrackInfo): boolean {
 export async function lookupTrack(
   trackName: string,
   artistName: string,
+  { deep = true, needYear = false }: { deep?: boolean; needYear?: boolean } = {}
+): Promise<ItunesTrackInfo> {
+  const found = await findTrack(trackName, artistName, { deep });
+
+  // The year, and only when a shelf is actually going to check it.
+  //
+  // This is what puts records in the right spot. A shelf headed 1994 or
+  // The 90s checks each record against its own years, and a record with
+  // no year has to be allowed to stay - unknown is not wrong, and
+  // dropping unknowns would empty a shelf the moment the lookups started
+  // failing. So an unknown year is a record that can neither be put in
+  // the wrong place nor kept out of it, and until now everything Deezer
+  // rescued was unknown.
+  //
+  // Spotify is the one catalogue that answers this cheaply: its search
+  // carries the album's release date, and it takes the EARLIEST matching
+  // release rather than the top hit, so a record is dated by its
+  // original press and not by whichever anniversary edition ranks best.
+  //
+  // Asked for only on the two axes that claim a span, because on a scene
+  // or a place shelf the year is not used for anything and the request
+  // would be spent on nothing.
+  if (needYear && found.year === null && (found.artworkUrl || found.previewUrl)) {
+    const spotify = await lookupSpotifyTrack(trackName, artistName);
+    if (spotify.year !== null) return { ...found, year: spotify.year };
+  }
+  return found;
+}
+
+/** The art and the clip, from whichever of the two has them. */
+async function findTrack(
+  trackName: string,
+  artistName: string,
   { deep = true }: { deep?: boolean } = {}
 ): Promise<ItunesTrackInfo> {
   // Apple, unless it has just refused somebody else.
@@ -95,6 +129,22 @@ export async function lookupTrack(
 
   const deezer = await lookupDeezerTrack(trackName, artistName);
   if (hasSomething(deezer)) return deezer;
+
+  // Third and last for artwork: Spotify. It has no clip to give - the
+  // preview field is gone for newly registered apps, so relying on it
+  // would mean a play button that works or does not depending on when
+  // somebody registered the app - but a cover and a year are worth
+  // having, and a sleeve with a picture on it is a record somebody will
+  // look at twice.
+  const spotify = await lookupSpotifyTrack(trackName, artistName);
+  if (spotify.artworkUrl) {
+    return {
+      artworkUrl: spotify.artworkUrl,
+      previewUrl: null,
+      trackUrl: spotify.trackUrl,
+      year: spotify.year,
+    };
+  }
 
   // Nothing anywhere. Reported as throttled only if Apple was the reason
   // it was not properly asked, so a caller can tell "we could not ask"

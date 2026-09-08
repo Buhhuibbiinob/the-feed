@@ -37,6 +37,18 @@ export type SleeveInfo = {
 export type SleeveAsk = { key: string; title: string; artist: string };
 
 /**
+ * Whether this page's shelf is going to check the years.
+ *
+ * Only Year and Decade claim a span, and only they throw a record off
+ * for being from the wrong time. Everywhere else the year is not used
+ * for anything, so looking one up would be a request spent on nothing.
+ *
+ * Set once per hook rather than per record, because a shelf is one axis
+ * from top to bottom.
+ */
+export type SleeveOptions = { needYear?: boolean };
+
+/**
  * Answers already paid for, kept for the life of the tab.
  *
  * Module level rather than component state, and this is the fix for a
@@ -71,7 +83,7 @@ const BATCH = 24;
 /** Long enough to collect a screenful, short enough to feel immediate. */
 const COALESCE_MS = 60;
 
-export function useSleeves() {
+export function useSleeves({ needYear = false }: SleeveOptions = {}) {
   const [, bump] = useState(0);
   const queue = useRef(new Map<string, SleeveAsk>());
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -148,7 +160,7 @@ export function useSleeves() {
       const res = await fetch("/api/crate/sleeves", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, needYear }),
       });
       // A failed batch is not an answer. Leaving these out of `answers`
       // and dropping them from `asked` means they can be tried again
@@ -187,7 +199,7 @@ export function useSleeves() {
     // nothing if the retry above already set a timer, which is what we
     // want: one timer, the slower of the two.
     if (queue.current.size > 0 && alive.current) schedule();
-  }, [schedule, requeue]);
+  }, [schedule, requeue, needYear]);
 
   useEffect(() => {
     latest.current = flush;

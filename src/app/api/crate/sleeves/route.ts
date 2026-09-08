@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { ItunesTrackInfo } from "@/lib/itunes";
 import { lookupTrack } from "@/lib/catalogue";
+import { lookupSpotifyTrack } from "@/lib/spotify";
 import { coverKeyFor, readCovers, worthRemembering, writeCovers } from "@/lib/coverCache";
 
 /**
@@ -65,6 +66,16 @@ const CONCURRENCY = 3;
  */
 const DEADLINE_MS = 4000;
 
+/**
+ * How many already-cached records get dated in one batch.
+ *
+ * Capped for the same reason the deep pass is: a shelf of fifty
+ * undated records would be fifty Spotify requests in one page view.
+ * Whatever is not reached this time is picked up next time, and each
+ * one is only ever paid for once because the answer is written back.
+ */
+const DEEP_MAX_DATES = 8;
+
 type Ask = { key: string; title: string; artist: string };
 
 function asks(value: unknown): Ask[] {
@@ -97,6 +108,11 @@ export async function POST(request: NextRequest) {
   }
   const items = asks((body as { items?: unknown })?.items);
   if (items.length === 0) return NextResponse.json({ results: {} });
+  // Only Year and Decade shelves ask for this. See lib/catalogue: it is
+  // one more request per record, to Spotify, and it is what lets those
+  // two shelves tell a 1994 record from a 2013 one instead of having to
+  // keep everything because the year is unknown.
+  const needYear = (body as { needYear?: unknown })?.needYear === true;
 
   const results: Record<string, ItunesTrackInfo> = {};
 
@@ -114,10 +130,25 @@ export async function POST(request: NextRequest) {
   // spellings, so misses are gathered by cache key rather than by ask -
   // otherwise a batch could spend two lookups learning one fact.
   const missing = new Map<string, { title: string; artist: string }>();
+  /** Cached, but without the year a year shelf is about to check. */
+  const undated = new Map<string, { title: string; artist: string }>();
   for (const w of wanted) {
     const hit = known.get(w.cacheKey);
-    if (hit) results[w.key] = hit;
-    else if (!missing.has(w.cacheKey)) missing.set(w.cacheKey, { title: w.title, artist: w.artist });
+    if (hit) {
+      results[w.key] = hit;
+      // A row learned on a scene shelf carries no year, because scene
+      // shelves do not check one - and the cache read would then hand
+      // that undated row straight back to a Year shelf, which would
+      // keep the record because unknown is not wrong. So the record
+      // would sit on 1994 forever without anybody ever finding out
+      // whether it belonged there. Asked for once, here, and written
+      // back so it is only ever paid for the first time.
+      if (needYear && hit.year === null && !undated.has(w.cacheKey)) {
+        undated.set(w.cacheKey, { title: w.title, artist: w.artist });
+      }
+    } else if (!missing.has(w.cacheKey)) {
+      missing.set(w.cacheKey, { title: w.title, artist: w.artist });
+    }
   }
 
   const asked = [...missing].map(([cacheKey, ask]) => ({ cacheKey, ...ask }));
@@ -154,7 +185,9 @@ export async function POST(request: NextRequest) {
         // and has most of the same records. The first refusal from Apple
         // sends the rest of the batch straight to Deezer rather than
         // backing off into a wall - see lib/catalogue.
-        const info = await lookupTrack(ask.title, ask.artist, { deep }).catch(() => null);
+        const info = await lookupTrack(ask.title, ask.artist, { deep, needYear }).catch(
+          () => null
+        );
         // A throttled lookup is left OUT of the answer rather than
         // reported as an empty one.
         //
@@ -188,13 +221,28 @@ export async function POST(request: NextRequest) {
     return Promise.all(Array.from({ length: Math.min(CONCURRENCY, list.length) }, worker));
   }
 
+  // Dating what was already known but never dated. One Spotify request
+  // each, run alongside the lookups below rather than before them, so a
+  // shelf of entirely-cached records still answers immediately.
+  const dating = Promise.all(
+    [...undated].slice(0, DEEP_MAX_DATES).map(async ([cacheKey, ask]) => {
+      const spotify = await lookupSpotifyTrack(ask.title, ask.artist).catch(() => null);
+      if (!spotify || spotify.year === null) return;
+      const cached = known.get(cacheKey);
+      if (!cached) return;
+      const dated = { ...cached, year: spotify.year };
+      learned.push({ key: cacheKey, info: dated });
+      publish(cacheKey, dated);
+    })
+  );
+
   // First pass: one request each, no fallback.
   //
   // A shelf of a genuinely obscure tag misses on nearly everything, and
   // with the fallback on, every miss costs three requests instead of one
   // - twenty four records become about seventy calls against a limit of
   // twenty a minute. That is the shelf that never finishes loading.
-  const tails: Promise<unknown>[] = [];
+  const tails: Promise<unknown>[] = [dating];
   const first = pool(asked, false);
   tails.push(first);
   await Promise.race([first, new Promise((resolve) => setTimeout(resolve, timeLeft()))]);
