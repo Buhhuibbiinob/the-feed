@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { isGenreFor } from "@/lib/genres";
+import { isMissingSchema } from "@/lib/dbError";
 import { createClient } from "@/lib/supabase/server";
 import { ARTIST_PLATFORMS, ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatforms";
 
@@ -49,13 +51,31 @@ export async function createArtistPost(
 
   const description = String(formData.get("description") ?? "").trim().slice(0, 500) || null;
 
-  const { error } = await supabase.from("artist_posts").insert({
+  // What it is, so it can be filed rather than only listed.
+  //
+  // Optional, and it stays optional: somebody sharing a track should not
+  // be stopped by a taxonomy of four hundred genres. But when they do
+  // pick one, their record stands on that scene's shelf next to the
+  // catalogue ones - which is the point of a site about what the people
+  // here are making, and was not possible while this column did not
+  // exist.
+  const rawGenre = String(formData.get("genre") ?? "").trim();
+  const genre = rawGenre && isGenreFor("music", rawGenre) ? rawGenre : null;
+
+  const row = {
     user_id: user.id,
     artist_name: artistName,
     platform,
     link_url: linkUrl,
     description,
-  });
+  };
+  let { error } = await supabase.from("artist_posts").insert({ ...row, genre });
+  // The column arrives in migration 019. Until that has been run, the
+  // post still goes up - it just cannot be filed on a shelf yet, which
+  // is exactly how it behaved before any of this.
+  if (error && isMissingSchema(error.message)) {
+    ({ error } = await supabase.from("artist_posts").insert(row));
+  }
 
   if (error) return { error: error.message };
 

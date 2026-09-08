@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { createArtistPost, type ArtistPostFormState } from "@/app/actions/artistPosts";
 import { ARTIST_PLATFORMS, ARTIST_PLATFORM_LABELS } from "@/lib/artistPlatforms";
+import { StandaloneGenrePicker } from "@/components/GenrePicker";
 
 const initialState: ArtistPostFormState = {};
 
@@ -32,6 +33,11 @@ export function ArtistPostForm() {
           ))}
         </select>
         <input type="url" name="link_url" placeholder="Link to your track, video, or profile" required />
+        {/* What it is, so it can stand on that scene's shelf next to
+            the catalogue records rather than only appearing in a list of
+            newest-first links. Optional: somebody sharing a track should
+            not be stopped by a taxonomy of four hundred genres. */}
+        <StandaloneGenrePicker mediaType="music" initial={null} />
         <textarea
           name="description"
           placeholder="Tell people about it if you like. A song, a short film, a music video you directed."

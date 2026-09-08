@@ -154,9 +154,16 @@ export default async function ShelvesPage({
   const problem =
     medium !== "music" || !axis || !value || records.length > 0
       ? ""
-      : status === "not-configured"
-        ? describeDiscoveryStatus(status)
-        : `Nothing on this shelf yet. Post a ${shelfTitle(axis, value)} record and it goes up here.`;
+      : shelf.failure
+        // A scene that comes from the video search says what the video
+        // search said. A missing key, a spent daily allowance and a
+        // genuinely thin corner are three different problems and only
+        // one of them means "try another divider" - the film shelves
+        // have said this for months and the music ones were shrugging.
+        ? describeSearchFailure(shelf.failure)
+        : status === "not-configured"
+          ? describeDiscoveryStatus(status)
+          : `Nothing on this shelf yet. Post a ${shelfTitle(axis, value)} record and it goes up here.`;
 
   const openAxis = axis ? wall.find((a) => a.id === axis) ?? null : null;
 

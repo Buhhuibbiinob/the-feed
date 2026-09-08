@@ -25,6 +25,7 @@ import {
   YOUTUBE_SCENES,
   isYoutubeScene,
   parseVideoTitle,
+  sceneOrder,
   sceneQuery,
 } from "../src/lib/youtubeScenes";
 
@@ -101,6 +102,23 @@ check(
 // The slug is never asked for raw: "uk-rnb" finds nothing on YouTube
 // and "uk r&b" finds the scene.
 check("a scene is searched as words, not as a slug", !sceneQuery(tagText("uk-rnb"), 0).includes("-"));
+
+// ---- deep cuts, not the same fifteen artists ----
+//
+// Relevance is a popularity ranking wearing a different name: ask
+// YouTube for "uk r&b" and it returns whoever has the views, which is
+// both the repetition complaint and the opposite of what these shelves
+// are for. Date returns what went up this week, which in a scene this
+// size is overwhelmingly people with a few hundred plays and no press.
+//
+// But not every day, or one quiet week leaves the shelf with no floor
+// under it.
+{
+  const orders = [0, 1, 2, 3, 4, 5, 6, 7].map((d) => sceneOrder(d));
+  check("most days the shelf is what went up recently", orders.filter((o) => o === "date").length >= 5);
+  check("but the scene's own canon comes back round", orders.some((o) => o === undefined));
+  check("and it is still one search either way", new Set(orders).size === 2);
+}
 
 console.log(
   failures === 0

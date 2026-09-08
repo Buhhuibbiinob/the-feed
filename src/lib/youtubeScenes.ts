@@ -1,5 +1,5 @@
 import { workKey } from "@/lib/taste";
-import { searchVideosDetailed, type YoutubeVideo } from "@/lib/youtube";
+import { searchVideosDetailed, type SearchFailure, type YoutubeVideo } from "@/lib/youtube";
 import type { Sleeve } from "@/lib/crate";
 import type { Known } from "@/lib/musicDiscovery";
 
@@ -81,13 +81,41 @@ export function isYoutubeScene(slug: string): boolean {
 const QUERY_SHAPES = [
   (scene: string) => `${scene}`,
   (scene: string) => `${scene} songs`,
-  (scene: string) => `best ${scene}`,
   (scene: string) => `underground ${scene}`,
+  (scene: string) => `new ${scene}`,
 ];
 
 export function sceneQuery(sceneText: string, dayIndex: number): string {
   const shape = QUERY_SHAPES[Math.abs(dayIndex) % QUERY_SHAPES.length];
   return shape(sceneText);
+}
+
+/**
+ * Newest first, most days. Relevance one day in four.
+ *
+ * This is the setting that decides whether the shelf is full of people
+ * who already have an audience.
+ *
+ * Relevance is a popularity ranking wearing a different name. Ask
+ * YouTube for "uk r&b" and it returns whoever has the views, which is
+ * the same fifteen artists every time - the repetition, and the exact
+ * opposite of what a shelf on a site like this is for.
+ *
+ * Date returns what went up this week. In a scene of this size that is
+ * overwhelmingly people with a few hundred plays and no press: the
+ * rappers and producers who are actually making it, rather than the ones
+ * who already broke. That is the point of these shelves.
+ *
+ * Not every day, because a shelf that is only ever the last four days of
+ * uploads has no floor under it - one quiet week and it thins out. One
+ * day in four the scene's own canon comes back round, which also gives
+ * somebody arriving new a way in.
+ *
+ * Costs nothing either way: it is the same single search, and both
+ * orders are cached under their own key.
+ */
+export function sceneOrder(dayIndex: number): "date" | undefined {
+  return Math.abs(dayIndex) % 4 === 3 ? undefined : "date";
 }
 
 // Things that are not one song.
@@ -180,11 +208,20 @@ export async function getYoutubeSceneShelf(
   limit: number,
   rotateBy = 0,
   dayIndex = 0
-): Promise<Sleeve[]> {
-  const { videos } = await searchVideosDetailed(sceneQuery(sceneText, dayIndex), 50, {
+): Promise<{ records: Sleeve[]; failure?: SearchFailure }> {
+  const order = sceneOrder(dayIndex);
+  const { videos, failure } = await searchVideosDetailed(sceneQuery(sceneText, dayIndex), 50, {
     revalidateSeconds: SCENE_TTL_SECONDS,
-  }).catch(() => ({ videos: [] as YoutubeVideo[], failure: undefined }));
-  if (videos.length === 0) return [];
+    ...(order ? { order } : {}),
+  }).catch(() => ({ videos: [] as YoutubeVideo[], failure: { reason: "network" } as SearchFailure }));
+  // The reason travels with the emptiness.
+  //
+  // A missing key, a spent daily allowance and a scene the search
+  // genuinely has nothing for are three different problems with three
+  // different answers, and all three used to render as the same empty
+  // board. Somebody looking at it could not tell whether to wait until
+  // tomorrow, go and fix a key, or try another divider.
+  if (videos.length === 0) return { records: [], failure };
 
   const start = videos.length ? Math.abs(rotateBy) % videos.length : 0;
   const ordered = [...videos.slice(start), ...videos.slice(0, start)];
@@ -221,5 +258,5 @@ export async function getYoutubeSceneShelf(
     });
     if (shelf.length >= limit) break;
   }
-  return shelf;
+  return { records: shelf, failure: shelf.length === 0 ? failure : undefined };
 }
