@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { addToQueue, type QueueState } from "@/app/actions/queue";
 import type { Sleeve } from "@/lib/crate";
 import { FORMAT_LABELS, formatFor, formatForKey } from "@/lib/physicalMedia";
-import { knownTrackVideo, resolveTrackVideoId } from "@/lib/trackVideo";
 
 // Flipping through a crate.
 //
@@ -44,10 +43,6 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
   const [kept, setKept] = useState<Sleeve[]>([]);
   const [playing, setPlaying] = useState(false);
   const [info, setInfo] = useState<Record<string, SleeveInfo>>({});
-  // A record Apple has no clip for, played off YouTube instead - asked
-  // for only when somebody presses the button, never on the way past.
-  const [video, setVideo] = useState<{ id: string | null; error: string | null } | null>(null);
-  const [finding, setFinding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -106,8 +101,6 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
   function flip() {
     stopClip();
     setPlaying(false);
-    setVideo(null);
-    setFinding(false);
     setSaveError(null);
     setIndex((i) => i + 1);
   }
@@ -165,11 +158,6 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
   }
 
   const currentInfo = info[current.key];
-  // What was already looked up for this record, in this tab, so flipping
-  // back to one you played does not pay for it twice. `video` is the
-  // answer from this hand of it and is cleared on every flip, so the
-  // last record's video can never play behind this one's sleeve.
-  const knownVideo = knownTrackVideo(current.key);
   // The record in your hand is the one that has been looked up, so it is
   // the one that can be drawn as the object it actually was rather than
   // as a hash of its title. The rest of the box behind it has not been
@@ -177,16 +165,6 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
   const currentYear = currentInfo?.year ?? current.year;
   const art = currentInfo?.artworkUrl ?? current.imageUrl;
   const clip = currentInfo?.previewUrl ?? null;
-  const videoId = video?.id ?? knownVideo?.videoId ?? null;
-  const videoError = video?.error ?? knownVideo?.error ?? null;
-
-  async function playFromYoutube() {
-    setFinding(true);
-    const found = await resolveTrackVideoId(current.key, current.name, current.artist);
-    setFinding(false);
-    setVideo({ id: found.videoId, error: found.error });
-    if (found.videoId) setPlaying(true);
-  }
 
   return (
     <div className="crate">
@@ -210,16 +188,6 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
             <iframe
               src={`https://www.youtube.com/embed/${current.videoId}?autoplay=1&rel=0`}
               title={`${current.name} trailer`}
-              allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
-              allowFullScreen
-            />
-          ) : current.kind !== "film" && playing && videoId ? (
-            // A record with no clip plays in the sleeve, exactly where a
-            // film plays its trailer. Same gesture, same place: the
-            // thing in your hand is the thing making the noise.
-            <iframe
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
-              title={`${current.name} by ${current.artist}`}
               allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
             />
@@ -266,39 +234,6 @@ export function Crate({ sleeves, emptyNote }: { sleeves: Sleeve[]; emptyNote: st
             </button>
           )}
 
-          {/* No clip in the catalogue. Which used to be the end of it -
-              a sleeve with nothing to press, and the records that get
-              that treatment are the obscure ones, meaning the whole
-              point of the box. YouTube has them, so it is asked: once,
-              here, because somebody pressed this. Never on the way
-              past, and never again for this record after the first
-              time, for anybody. */}
-          {current.kind !== "film" && !clip && info[current.key] && (
-            <button
-              type="button"
-              className={`crate-play${playing && videoId ? " playing" : ""}`}
-              disabled={finding || videoError !== null}
-              onClick={() => {
-                if (playing && videoId) {
-                  setPlaying(false);
-                  return;
-                }
-                if (videoId) {
-                  setPlaying(true);
-                  return;
-                }
-                void playFromYoutube();
-              }}
-            >
-              {finding
-                ? "Finding it"
-                : videoError
-                ? "Can't play it"
-                : playing && videoId
-                ? "Stop"
-                : "Play it"}
-            </button>
-          )}
         </div>
       </div>
 

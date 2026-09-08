@@ -229,6 +229,9 @@ export async function searchVideosDetailed(
     publishedAfter: options.publishedAfter,
     publishedBefore: options.publishedBefore,
     order: options.order,
+    // In the key, or a music-filtered search and an unfiltered one for
+    // the same words would share a row and serve each other's answers.
+    videoCategoryId: options.videoCategoryId,
   });
 
   // What the site already knows, across every visitor and every deploy.
@@ -265,6 +268,15 @@ export async function searchVideosDetailed(
     ...(options.publishedAfter ? { publishedAfter: options.publishedAfter } : {}),
     ...(options.publishedBefore ? { publishedBefore: options.publishedBefore } : {}),
     ...(options.order ? { order: options.order } : {}),
+    // Category 10 is Music.
+    //
+    // Without it a search for a small scene returns whatever shares the
+    // word: "hexd" came back as Disney's "Hexed" trailer, a D23 Expo
+    // reel, The Birthday Massacre, Friday Night Funkin mods and an FL
+    // Studio tutorial called "How to make a song". None of that is
+    // music, all of it outranked the actual scene, and the shelf read as
+    // a search results page rather than a shelf of records.
+    ...(options.videoCategoryId ? { videoCategoryId: options.videoCategoryId } : {}),
   });
 
   // Actually cached. This read `next: { revalidate }` alone, which sets a
@@ -343,6 +355,8 @@ export async function searchVideos(
      * because the wrong default there is a shelf that outbids a person.
      */
     priority?: SearchPriority;
+    /** YouTube's own category filter. "10" is Music. */
+    videoCategoryId?: string;
   } = {}
 ): Promise<YoutubeVideo[]> {
   return (await searchVideosDetailed(query, limit, options)).videos;

@@ -74,8 +74,10 @@ check("a spent day serves what it remembers", /if \(remembered\) return \{ video
 // one that will actually catch something one day: a rail added in six
 // months, copying a route that says priority: "user", quietly taking the
 // play button's allowance with it.
+// music/play used to be here. It is gone: the shelves no longer fall
+// back to a video for a record with no clip, so nothing on a music
+// surface spends YouTube quota at all any more.
 const ALLOWED_TO_ASK = [
-  "src/app/api/music/play/route.ts",
   "src/app/api/youtube/resolve/route.ts",
   "src/app/api/youtube/search/route.ts",
 ];

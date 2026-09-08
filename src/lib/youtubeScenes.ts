@@ -125,7 +125,7 @@ export function sceneOrder(dayIndex: number): "date" | undefined {
 // they are the worst kind of wrong: a sleeve with a name that is not a
 // song by an artist who is not an artist.
 const NOT_A_SONG =
-  /\b(mix|mixtape|playlist|compilation|megamix|full album|type beat|typebeat|reaction|tutorial|interview|documentary|live ?set|dj set|radio|hour|hours|minutes|best of|top \d+)\b/i;
+  /\b(mix|mixtape|playlist|compilation|megamix|full album|type beat|typebeat|reaction|tutorial|interview|documentary|live ?set|dj set|radio|hour|hours|minutes|best of|top \d+|trailer|teaser|ost|soundtrack|how to|fnf|friday night funkin|mod|gameplay|walkthrough|episode|ep\.? ?\d+|concept|expo|announcement|behind the scenes|making of)\b/i;
 
 // The furniture uploaders put around a title.
 const TITLE_NOISE =
@@ -158,6 +158,29 @@ export type ParsedTrack = { name: string; artist: string };
  * title is half a sentence - which is worse than one fewer record,
  * because it is indistinguishable from a real one until you press it.
  */
+/**
+ * Whether this result is plausibly about the scene that was asked for.
+ *
+ * A search for "hexd" returned Hex, Hexed, HEX BLOOD and Hex Girls -
+ * four different acts, none of them the scene, all of them ranking
+ * because the word is a prefix of their name. YouTube has no way to say
+ * "this word, not words beginning with it", so it is checked here: the
+ * scene's own words have to appear as WHOLE words in the title, the
+ * channel or the description of what came back.
+ *
+ * Only applied to one-word scene names. "uk r&b" and "jersey club"
+ * describe themselves; "drain" and "hexd" are the ones that collide with
+ * ordinary English and with other artists' names.
+ */
+export function looksLikeScene(video: YoutubeVideo, sceneText: string): boolean {
+  const words = sceneText.split(/\s+/).filter(Boolean);
+  if (words.length !== 1) return true;
+  const word = words[0].replace(/[^a-z0-9]/gi, "");
+  if (word.length < 3) return true;
+  const haystack = `${video.title} ${video.channelTitle}`.toLowerCase();
+  return new RegExp(`(^|[^a-z0-9])${word}([^a-z0-9]|$)`, "i").test(haystack);
+}
+
 export function parseVideoTitle(video: YoutubeVideo): ParsedTrack | null {
   const raw = video.title.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"');
   if (NOT_A_SONG.test(raw)) return null;
@@ -213,6 +236,10 @@ export async function getYoutubeSceneShelf(
   const { videos, failure } = await searchVideosDetailed(sceneQuery(sceneText, dayIndex), 50, {
     revalidateSeconds: SCENE_TTL_SECONDS,
     ...(order ? { order } : {}),
+    // Music only. Without this a search for a small scene returns
+    // whatever shares the word, and the shelf fills with things that
+    // are not records at all - see the note in lib/youtube.
+    videoCategoryId: "10",
   }).catch(() => ({ videos: [] as YoutubeVideo[], failure: { reason: "network" } as SearchFailure }));
   // The reason travels with the emptiness.
   //
@@ -230,6 +257,8 @@ export async function getYoutubeSceneShelf(
   const perArtist = new Map<string, number>();
   const shelf: Sleeve[] = [];
   for (const video of ordered) {
+    // A one-word scene has to actually be named, not merely prefixed.
+    if (!looksLikeScene(video, sceneText)) continue;
     const parsed = parseVideoTitle(video);
     if (!parsed) continue;
     const key = workKey(parsed.name, parsed.artist);

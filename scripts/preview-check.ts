@@ -98,60 +98,53 @@ const batch = readFileSync("src/app/api/crate/sleeves/route.ts", "utf8");
 check("the batch goes back for the records that came back empty", /nothingFound/.test(batch));
 check("...and that second pass uses the catalogue fallback", /pool\(nothingFound[\s\S]{0,40}?,\s*true\)/.test(batch));
 
-// ---- the YouTube budget ----
+// ---- a record plays its clip, and nothing else ----
 //
-// A YouTube search costs 100 units of 10,000 a day, shared with every
-// film trailer on the site: a hundred searches for everybody for a whole
-// day. Playing a coverless record off YouTube is only affordable because
-// it happens when a person presses a button and never otherwise, so that
-// is enforced rather than remembered.
-const PLAY_ROUTE = "/api/music/play";
-const callers = SOURCES.filter((f) => readFileSync(f, "utf8").includes(PLAY_ROUTE));
-check(
-  "only lib/trackVideo asks the play route",
-  callers.length === 1 && callers[0].endsWith("trackVideo.ts"),
-  callers.join(", ")
-);
-
-// Nothing may resolve a video from an effect. An effect runs because a
-// component rendered, which means it runs on scroll, on navigation, and
-// once per record on screen - which is exactly the shape that would
-// spend the day's whole allowance on one visit to one shelf.
-for (const file of SOURCES) {
+// The shelves, the crate and the racks used to fall back to a YouTube
+// embed for a record no catalogue had a preview for. That was the wrong
+// answer to the right problem: a wall of records is not a place to
+// watch anything, and a sleeve that turns into a video player is not a
+// sleeve.
+//
+// The right answer was the second catalogue. Between Apple and Deezer
+// far more records have a real 30-second clip than either had alone,
+// and where there is genuinely none the record still stands there with
+// its name printed on it - readable, and reviewable, which is the thing
+// this site is actually for.
+//
+// So no music surface may embed a video. Film keeps its trailer: a
+// trailer IS the thing, in the way a music video is not.
+const MUSIC_SURFACES = [
+  "src/components/ShelfRecords.tsx",
+  "src/components/RecordRack.tsx",
+  "src/components/YourShelf.tsx",
+];
+for (const file of MUSIC_SURFACES) {
   const src = readFileSync(file, "utf8");
-  if (!src.includes("resolveTrackVideoId") || file.endsWith("trackVideo.ts")) continue;
-  let from = src.indexOf("useEffect(");
-  while (from !== -1) {
-    let depth = 0;
-    let end = from;
-    for (let i = src.indexOf("(", from); i < src.length; i++) {
-      if (src[i] === "(") depth++;
-      else if (src[i] === ")") {
-        depth--;
-        if (depth === 0) {
-          end = i;
-          break;
-        }
-      }
-    }
-    const body = src.slice(from, end);
-    if (body.includes("resolveTrackVideoId")) {
-      check(`${file} does not look up videos from an effect`, false, "that runs on render, not on a press");
-    }
-    from = src.indexOf("useEffect(", end);
-  }
+  check(`${file} plays a clip, not a video`, !/youtube\.com\/embed/.test(src));
 }
+// The crate holds both, so it is checked more precisely: the only embed
+// in it has to be the film branch.
+{
+  const crate = readFileSync("src/components/Crate.tsx", "utf8");
+  const embeds = crate.split("\n").filter((l) => l.includes("youtube.com/embed"));
+  check("the crate embeds only a film trailer", embeds.length === 1, embeds.join(" | "));
+  check(
+    "and only on the film branch",
+    /current\.kind === "film" && playing && current\.videoId/.test(crate)
+  );
+}
+// The route and the client that spent YouTube quota to play a record
+// are gone with the feature, rather than left behind to be rediscovered
+// and rewired by somebody later.
 check(
-  "no component resolves a video from an effect",
-  !SOURCES.some((file) => {
-    const src = readFileSync(file, "utf8");
-    return file.endsWith("trackVideo.ts") ? false : /useOnScreen\([^)]*resolveTrackVideoId/.test(src);
-  })
+  "nothing spends YouTube quota to play a record any more",
+  !SOURCES.some((f) => readFileSync(f, "utf8").includes("/api/music/play"))
 );
 
 console.log(
   failures === 0
-    ? "\nA coverless record keeps its clip: refusals are not answers, and a clip in hand is not re-fetched."
+    ? "\nA coverless record keeps its clip, and a record is never a video player."
     : `\n${failures} way(s) a record can end up with no cover and nothing to press.`
 );
 process.exit(failures === 0 ? 0 : 1);
