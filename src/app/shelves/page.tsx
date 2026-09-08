@@ -154,12 +154,19 @@ export default async function ShelvesPage({
   const problem =
     medium !== "music" || !axis || !value || records.length > 0
       ? ""
-      : shelf.failure
-        // A scene that comes from the video search says what the video
-        // search said. A missing key, a spent daily allowance and a
-        // genuinely thin corner are three different problems and only
-        // one of them means "try another divider" - the film shelves
-        // have said this for months and the music ones were shrugging.
+      : shelf.failure &&
+          // Only the failures somebody can actually do something about.
+          //
+          // "Searching a bit fast for YouTube. Wait a few seconds and try
+          // again" was shown on a shelf that had ALSO already tried
+          // Deezer, Last.fm and the site's own posts and got nothing from
+          // any of them. Waiting would not have helped, and being told to
+          // wait for the one service that is no longer the only source is
+          // worse than being told the shelf is thin.
+          //
+          // A missing key and a rejected key are different: those are
+          // real, fixable, and nothing else can paper over them.
+          (shelf.failure.reason === "not-configured" || shelf.failure.reason === "key-rejected")
         ? describeSearchFailure(shelf.failure)
         : status === "not-configured"
           ? describeDiscoveryStatus(status)

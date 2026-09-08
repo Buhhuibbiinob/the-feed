@@ -39,6 +39,8 @@ export type DeezerTrack = {
 
 type DeezerSearch = { data?: DeezerTrack[]; error?: unknown };
 
+type DeezerSceneTrack = DeezerTrack & { id?: number; rank?: number };
+
 function normalize(s: string): string {
   return s
     .toLowerCase()
@@ -144,5 +146,87 @@ export async function lookupDeezerTrack(
     };
   } catch {
     return empty;
+  }
+}
+
+
+/**
+ * A scene's shelf, from Deezer.
+ *
+ * The sixteen internet scenes were built from YouTube, and YouTube kept
+ * refusing - three different failures in three days, the last of which I
+ * could not reproduce or diagnose from outside the deployment. A shelf
+ * that only works when one service is happy is a shelf that is empty
+ * whenever it is not.
+ *
+ * So there is another way to fill it, and this one needs no key, has no
+ * daily allowance to run out, and is not rate limited by whoever else
+ * happens to share a serverless IP with us - the three ways YouTube has
+ * failed so far.
+ *
+ * It is not as good at naming a scene: Deezer has no "digicore" tag, so
+ * this is a text search and it will be approximate at the edges. What it
+ * gives in exchange is that every record on it is a real record with a
+ * real cover and a real thirty-second clip, which is more than an empty
+ * board with an apology on it.
+ *
+ * Ranked lowest-first on purpose. Deezer's rank IS its popularity
+ * score, and the whole point of these shelves is the people who do not
+ * have an audience yet.
+ */
+export async function getDeezerSceneShelf(
+  sceneText: string,
+  limit: number,
+  rotateBy = 0
+): Promise<{ name: string; artist: string; imageUrl: string | null; previewUrl: string | null; trackUrl: string | null }[]> {
+  try {
+    const res = await cachedFetch(
+      `https://api.deezer.com/search?q=${encodeURIComponent(sceneText)}&limit=100`,
+      3600
+    );
+    if (!res || !res.ok) return [];
+    const data = (await res.json()) as { data?: DeezerSceneTrack[]; error?: unknown };
+    if (data.error || !Array.isArray(data.data)) return [];
+
+    // Least popular first. A text search puts the biggest names on top,
+    // which is the same repetition problem every other source has.
+    const ranked = [...data.data].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
+    const start = ranked.length ? Math.abs(rotateBy) % ranked.length : 0;
+    const ordered = [...ranked.slice(start), ...ranked.slice(0, start)];
+
+    const seen = new Set<string>();
+    const perArtist = new Map<string, number>();
+    const out: {
+      name: string;
+      artist: string;
+      imageUrl: string | null;
+      previewUrl: string | null;
+      trackUrl: string | null;
+    }[] = [];
+    for (const track of ordered) {
+      const name = (track.title_short ?? track.title ?? "").trim();
+      const artist = (track.artist?.name ?? "").trim();
+      if (!name || !artist) continue;
+      const key = `${name.toLowerCase()}|${artist.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      // Three each, the same rule every other shelf uses.
+      const artistKey = artist.toLowerCase();
+      const already = perArtist.get(artistKey) ?? 0;
+      if (already >= 3) continue;
+      perArtist.set(artistKey, already + 1);
+      seen.add(key);
+      out.push({
+        name,
+        artist,
+        imageUrl:
+          track.album?.cover_xl ?? track.album?.cover_big ?? track.album?.cover_medium ?? null,
+        previewUrl: track.preview ?? null,
+        trackUrl: track.link ?? null,
+      });
+      if (out.length >= limit) break;
+    }
+    return out;
+  } catch {
+    return [];
   }
 }
