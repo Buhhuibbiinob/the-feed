@@ -230,3 +230,54 @@ export async function getDeezerSceneShelf(
     return [];
   }
 }
+
+
+/**
+ * Songs for a search box, from Deezer.
+ *
+ * The post form's track search was Apple only, so "The music catalogue
+ * is busy. Give it a couple of seconds." is what somebody got whenever
+ * a shelf happened to be loading - Apple allows about twenty calls a
+ * minute for the entire site, and a person typing a song name loses that
+ * race to a page full of covers every time.
+ *
+ * Deezer answers the same question with about thirty times the headroom,
+ * and returns the cover and the clip in the same response. So the box
+ * has somewhere to go instead of telling somebody to wait.
+ *
+ * Shaped exactly like Apple's result so the caller cannot tell which one
+ * answered - the id is prefixed, because it is a Deezer id and something
+ * downstream would otherwise treat it as Apple's.
+ */
+export async function searchDeezerSongs(
+  query: string,
+  limit = 10
+): Promise<{
+  id: string;
+  title: string;
+  artist: string;
+  artworkUrl: string | null;
+  previewUrl: string | null;
+}[]> {
+  try {
+    const res = await cachedFetch(
+      `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+      600
+    );
+    if (!res || !res.ok) return [];
+    const data = (await res.json()) as { data?: (DeezerTrack & { id?: number })[]; error?: unknown };
+    if (data.error || !Array.isArray(data.data)) return [];
+    return data.data
+      .filter((track) => (track.title ?? track.title_short) && track.artist?.name)
+      .map((track) => ({
+        id: `dz-${track.id ?? track.link ?? Math.random().toString(36).slice(2)}`,
+        title: (track.title_short ?? track.title ?? "").trim(),
+        artist: (track.artist?.name ?? "").trim(),
+        artworkUrl:
+          track.album?.cover_big ?? track.album?.cover_medium ?? track.album?.cover_xl ?? null,
+        previewUrl: track.preview ?? null,
+      }));
+  } catch {
+    return [];
+  }
+}

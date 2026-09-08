@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { searchItunesSongs } from "@/lib/itunes";
+import { searchDeezerSongs } from "@/lib/deezer";
+import { appleIsBusy, noteAppleThrottled } from "@/lib/catalogue";
 
 /**
  * Song search for the pickers.
@@ -24,9 +26,30 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
+  // Apple first, unless it has just refused somebody else - and Deezer
+  // whenever Apple has nothing or will not answer.
+  //
+  // "The music catalogue is busy. Give it a couple of seconds." is what
+  // this box said whenever a shelf happened to be loading, because Apple
+  // allows about twenty calls a minute for the entire site and a person
+  // typing a song name loses that race to a page full of covers every
+  // time. Telling them to wait was the honest version of a bad answer.
+  //
+  // Deezer has about thirty times the headroom and returns the cover and
+  // the clip in the same response, so the box has somewhere to go.
   try {
-    return NextResponse.json({ songs: await searchItunesSongs(query) });
+    const songs = appleIsBusy() ? [] : await searchItunesSongs(query);
+    if (songs.length > 0) return NextResponse.json({ songs });
+    const fromDeezer = await searchDeezerSongs(query);
+    return NextResponse.json({ songs: fromDeezer });
   } catch (err) {
+    // Apple threw, which means it refused rather than came back empty.
+    // Noted, so the next few seconds of searching skip it entirely, and
+    // then asked of Deezer - a throttle on one catalogue is not a reason
+    // to tell somebody the search is down.
+    noteAppleThrottled();
+    const fromDeezer = await searchDeezerSongs(query).catch(() => []);
+    if (fromDeezer.length > 0) return NextResponse.json({ songs: fromDeezer });
     // The reason travels with the result, the same as the YouTube route:
     // an empty list meaning "search is down" and one meaning "no such
     // song" are different answers.
