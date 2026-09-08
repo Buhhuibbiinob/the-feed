@@ -207,6 +207,37 @@ export function failureFromBody(status: number, body: string): SearchFailure {
   return { reason: "http", status };
 }
 
+/**
+ * How long to wait out YouTube's burst limit before trying again.
+ *
+ * Its own window is a few seconds, so this is deliberately short: long
+ * enough to clear, short enough that a page waiting on it still renders
+ * inside the deadline the caller gave it.
+ */
+const BURST_BACKOFF_MS = 1200;
+
+/**
+ * Searches go out one at a time.
+ *
+ * A shelves page asks for a film shelf and a scene shelf together, and
+ * filmShelf tries several lanes in parallel, so four or five searches
+ * could leave at once - which is precisely what YouTube's burst limit
+ * refuses. Serialised, they arrive in a line and none of them is
+ * refused, and the total wait is no worse because the refusals were
+ * costing a retry each anyway.
+ *
+ * A chained promise rather than a queue object: each caller waits for
+ * whatever is already in flight and hands the next one its turn. Errors
+ * are swallowed into the chain so one failed search cannot wedge every
+ * search after it.
+ */
+let line: Promise<unknown> = Promise.resolve();
+function queued<T>(run: () => Promise<T>): Promise<T> {
+  const mine = line.then(run, run);
+  line = mine.catch(() => {});
+  return mine;
+}
+
 /** The full answer, failure included.
  *
  * Every search on the site goes through here, which is why the whole
@@ -289,10 +320,32 @@ export async function searchVideosDetailed(
   // overrun, while two getting past it and neither being counted is how
   // a budget stops meaning anything.
   await spendUnits();
-  const res = await cachedFetch(
-    `https://www.googleapis.com/youtube/v3/search?${params.toString()}`,
-    ttl
-  );
+  const url = `https://www.googleapis.com/youtube/v3/search?${params.toString()}`;
+  // One at a time, and one more go if it was only too fast.
+  //
+  // "Searching a bit fast for YouTube" is rateLimitExceeded, which is
+  // the BURST limit rather than the daily quota - it clears in seconds.
+  // It happens because a page fires several searches at once: a shelves
+  // page asks for a film shelf and a scene shelf together, and filmShelf
+  // itself tries several lanes in parallel. Nothing was wrong with the
+  // key or the allowance; the requests simply arrived shoulder to
+  // shoulder.
+  //
+  // So they queue, and a refusal is waited out once rather than being
+  // handed to somebody as an instruction to wait and try again. Being
+  // told to retry by hand is the site asking a person to do a thing it
+  // could obviously do itself.
+  const res = await queued(async () => {
+    const first = await cachedFetch(url, ttl);
+    // 403 as well as 429: Google returns rateLimitExceeded under both,
+    // and reading only the number is the mistake failureFromBody exists
+    // to stop being made. The BODY says which, so it is read.
+    if (!first || (first.status !== 429 && first.status !== 403)) return first;
+    const body = await first.clone().text().catch(() => "");
+    if (failureFromBody(first.status, body).reason !== "rate-limited") return first;
+    await new Promise((r) => setTimeout(r, BURST_BACKOFF_MS));
+    return (await cachedFetch(url, ttl)) ?? first;
+  });
   if (!res) {
     // A network failure is not a reason to show nothing if there is an
     // older answer sitting right there.
