@@ -6,6 +6,7 @@ import { friendlyDbError, isMissingSchema } from "@/lib/dbError";
 import { withoutOptionalFields } from "@/lib/postQuery";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
+import { searchVideosDetailed } from "@/lib/youtube";
 import { isGenreFor } from "@/lib/genres";
 import { findOrCreateClub } from "@/lib/clubs";
 import { findOrCreateWork } from "@/lib/works";
@@ -165,6 +166,35 @@ export async function createPost(
     coverUrl = (await searchItunesArt(title, artist).catch(() => null)) ?? "";
   }
 
+  // The video for a review that never went through the search box.
+  //
+  // This is why reviews had no player. The form resolves a video when
+  // somebody PICKS a song from the search results - but a review started
+  // from Discover, the Crate or a shelf arrives with the title and the
+  // artist already in the URL and never touches that box. Which is most
+  // reviews, and every one of them saved with no video and rendered
+  // with no player: a review of a song, with no way to hear the song.
+  //
+  // Resolved here instead, where every path meets. One search per review
+  // WRITTEN - not per view, not per page - so this is a handful of
+  // requests a day against ten thousand units, and it is the most
+  // worthwhile handful on the site: a review nobody can play is a review
+  // half the point of.
+  let videoId = youtubeVideoId;
+  if (!videoId && !spotifyTrackId && mediaType === "music" && title) {
+    const { videos } = await searchVideosDetailed(
+      artist ? `${artist} ${title}` : title,
+      1,
+      // Somebody pressed Post and is watching a spinner, so this comes
+      // out of the part of the day's allowance the shelves cannot touch.
+      { priority: "user" }
+    ).catch(() => ({ videos: [] }));
+    // Not finding one is not a reason to refuse the review. It keeps its
+    // title, its artwork and its words, and simply has no player - which
+    // is what every review had before this.
+    videoId = videos[0]?.id ?? "";
+  }
+
   const row = {
     user_id: user.id,
     media_type: mediaType,
@@ -174,7 +204,7 @@ export async function createPost(
     artist: artist || null,
     cover_url: coverUrl || null,
     spotify_track_id: spotifyTrackId || null,
-    youtube_video_id: youtubeVideoId || null,
+    youtube_video_id: videoId || null,
     club_id: clubId,
     work_id: workId,
     genre: isGenreFor(mediaType as MediaType, rawGenre) ? rawGenre : null,
@@ -407,18 +437,58 @@ export async function updatePost(
   // than posted, so the form cannot assert a category it doesn't own.
   const { data: existing } = await supabase
     .from("posts")
-    .select("media_type")
+    .select("media_type, artist, youtube_video_id, spotify_track_id")
     .eq("id", postId)
-    .maybeSingle<{ media_type: MediaType }>();
+    .maybeSingle<{
+      media_type: MediaType;
+      artist: string | null;
+      youtube_video_id: string | null;
+      spotify_track_id: string | null;
+    }>();
   const rawGenre = formData.get("genre");
   const genre = existing && isGenreFor(existing.media_type, rawGenre) ? rawGenre : null;
+
+  // And this is how a review written before any of that gets its player.
+  //
+  // Every review started from Discover, the Crate or a shelf was saved
+  // with no video, because only the search box ever resolved one. Those
+  // are already written and nothing renders a player for them. Editing
+  // is the one moment their author is already here, already saving, and
+  // already expecting the post to change - so a music review that still
+  // has nothing to play gets looked up on the way through.
+  //
+  // Costs one search per edit of a review that has no video yet, and
+  // exactly nothing on every other edit.
+  let foundVideo: string | null = null;
+  if (
+    existing &&
+    existing.media_type === "music" &&
+    !existing.youtube_video_id &&
+    !existing.spotify_track_id
+  ) {
+    const { videos } = await searchVideosDetailed(
+      existing.artist ? `${existing.artist} ${title}` : title,
+      1,
+      { priority: "user" }
+    ).catch(() => ({ videos: [] }));
+    foundVideo = videos[0]?.id ?? null;
+  }
 
   // Admins can edit anyone's post - title, body, rating and genre - which
   // is what makes a bot's wording fixable without deleting and
   // regenerating it. Same RLS reason as deletePost: the update policy is
   // `using (auth.uid() = user_id)`, so the admin path needs the
   // service-role client or Postgres quietly matches no rows.
-  const fields = { title, body, rating, genre };
+  const fields = {
+    title,
+    body,
+    rating,
+    genre,
+    // Only when one was found. Writing null over an existing id on every
+    // edit would take the player OFF the reviews that have one, which is
+    // the opposite of the point.
+    ...(foundVideo ? { youtube_video_id: foundVideo } : {}),
+  };
   const admin = await isAdmin(supabase, user.id);
   const save = (values: Record<string, unknown>) =>
     admin

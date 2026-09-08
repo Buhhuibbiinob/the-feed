@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { deleteArtistPost, reportArtistPost } from "@/app/actions/artistPosts";
+import { artistEmbed, artistEmbedSrc } from "@/lib/artistEmbed";
 import { ARTIST_PLATFORM_LABELS, type ArtistPlatform } from "@/lib/artistPlatforms";
 import { adminBanArtistPost, adminUnbanArtistPost, adminDeleteArtistPost } from "@/app/actions/admin";
 import { ArtistPostComments, type ArtistCommentData } from "@/components/ArtistPostComments";
@@ -66,6 +67,11 @@ export default async function ArtistPostPage({ params }: { params: Promise<{ id:
 
   const isOwner = user?.id === post.user_id;
 
+  // Nothing to embed is a real answer: a link to somebody's profile
+  // rather than to a record has no player, and those keep the button
+  // alone rather than showing an empty frame.
+  const embed = artistEmbed(post.platform, post.link_url);
+
   return (
     <>
       <div className="page-header">
@@ -89,8 +95,32 @@ export default async function ArtistPostPage({ params }: { params: Promise<{ id:
         </div>
         <div className="panel-body">
           {post.description && <p>{post.description}</p>}
+          {/* It plays here.
+              This page was a badge, a name and a button that took you off
+              the site - for the one thing on here that is not a
+              catalogue. A member's own track is the reason somebody
+              joined, and it was the only music you could not hear
+              without leaving. All four services publish a keyless
+              embed, so it plays where it is.
+              A shelf is a different question and gets a different
+              answer: a wall of records to look through is no place for
+              a video player. A page about one track somebody made is
+              exactly where the thing should play. */}
+          {embed && (
+            <div className="artist-post-player">
+              <iframe
+                title={`${post.artist_name} on ${ARTIST_PLATFORM_LABELS[post.platform]}`}
+                src={artistEmbedSrc(embed)}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                loading="lazy"
+              />
+            </div>
+          )}
           <p>
             <a href={post.link_url} target="_blank" rel="noopener noreferrer" className="btn">
+              {/* Kept even when it plays: an embed is a preview and the
+                  real page is where somebody follows, saves or buys. */}
               Open on {ARTIST_PLATFORM_LABELS[post.platform]}
             </a>
           </p>

@@ -16028,6 +16028,30 @@ button.btn-ghost {
   color: #6f6f76;
   background-image: linear-gradient(180deg, #e9e9ec 0%, #d3d3d8 50%, #b4b4ba 100%);
 }
+/* A member's own track, playing on its own page.
+   Sized for the two shapes these embeds come in: SoundCloud and Spotify
+   are short and wide, a YouTube video is 16:9. One box, and the aspect
+   ratio left to the service inside it. */
+.artist-post-player {
+  margin: 0 0 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.09);
+}
+.artist-post-player iframe {
+  display: block;
+  width: 100%;
+  height: 360px;
+  max-height: 60vh;
+  border: 0;
+}
+@media (max-width: 600px) {
+  .artist-post-player iframe {
+    height: 240px;
+  }
+}
+
 /* The name on a record nobody has a picture of.
    A white label: plain paper, the artist stamped across it, the title
    under it. This is what those records actually looked like, and it is

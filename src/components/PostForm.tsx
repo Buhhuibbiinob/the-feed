@@ -57,6 +57,8 @@ export function PostForm({
   const [videoResults, setVideoResults] = useState<MediaResult[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<MediaResult | null>(null);
   const [resolving, setResolving] = useState(false);
+  /** Said out loud when a picked song could not be given a player. */
+  const [videoNote, setVideoNote] = useState<string | null>(null);
   const [videoSearching, setVideoSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const isMusic = mediaType === "music";
@@ -122,7 +124,7 @@ export function PostForm({
     let chosen = picked;
     if (isMusic && !picked.youtubeId) {
       setResolving(true);
-      const { video } = await resolveTrackVideo({
+      const { video, error } = await resolveTrackVideo({
         id: "",
         title: picked.title,
         artist: picked.subtitle,
@@ -133,6 +135,21 @@ export function PostForm({
       // No video found is not a reason to refuse the review. The post
       // keeps Apple's title and artwork and simply has no player.
       if (video) chosen = { ...picked, youtubeId: video.id };
+      // But it should SAY so, which it never did.
+      //
+      // This failed silently: a song was picked, the video lookup came
+      // back with nothing, and the review posted with no player and no
+      // hint that anything had gone wrong. Which reads as the site
+      // deciding songs do not get players - rather than as one lookup
+      // failing, usually because the day's YouTube allowance is spent
+      // or the key is not set.
+      //
+      // The server has one more go when the post is saved, so this is a
+      // warning rather than an error: it says what happened without
+      // implying the review cannot be written.
+      setVideoNote(video ? null : error ?? "No video found for that one. Posting it anyway.");
+    } else {
+      setVideoNote(null);
     }
 
     setSelectedVideo(chosen);
@@ -392,6 +409,7 @@ export function PostForm({
           />
           <input type="hidden" name="cover_url" value={selectedVideo?.thumbnailUrl ?? posterUrl} />
           <input type="hidden" name="youtube_video_id" value={selectedVideo?.youtubeId ?? ""} />
+          {videoNote && <div className="field-hint">{videoNote}</div>}
 
           <div className="field">
             <label htmlFor="title">Title</label>
