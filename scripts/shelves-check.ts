@@ -407,5 +407,50 @@ check(
 }
 
 
+// ---- a scene shelf does not depend on one service ----
+//
+// The sixteen internet scenes were built from YouTube alone, and
+// YouTube failed three different ways in three days: no key, a spent
+// daily allowance, and a burst limit that survived being queued AND
+// retried. Each time the shelf was empty with an apology on it.
+//
+// A shelf that only works when one service is happy is a shelf that is
+// empty whenever it is not. There are four sources behind it now, and
+// the order matters: YouTube names a scene best, Deezer is the one that
+// is always up, Last.fm is thin here but real, and the site's own posts
+// cannot fail at all.
+{
+  const shelves = readFileSync("src/lib/shelves.ts", "utf8");
+  // The CALL, not the import. The first version of this matched the
+  // import line and stayed green with the fallback deleted, which is the
+  // same mistake the Deezer matching check made - a check that passes
+  // while the thing it checks is gone is worse than no check.
+  check(
+    "a scene shelf falls back to Deezer",
+    /await getDeezerSceneShelf\(tag,/.test(shelves)
+  );
+  check(
+    "and Deezer is tried before giving up on the catalogues",
+    shelves.indexOf("getDeezerSceneShelf") < shelves.indexOf("getTracksByTag(tag, 120)")
+  );
+  const deezer = readFileSync("src/lib/deezer.ts", "utf8");
+  // Deezer's rank IS its popularity score, and these shelves exist for
+  // the people who do not have an audience yet.
+  check(
+    "the Deezer shelf leads with the least popular",
+    /\(a\.rank \?\? 0\) - \(b\.rank \?\? 0\)/.test(deezer)
+  );
+  check("and holds three to an artist like the others", /already >= 3/.test(deezer));
+
+  // "Wait a few seconds and try again" must not be shown on a shelf
+  // that has already tried three other sources. Waiting would not help.
+  const page = readFileSync("src/app/shelves/page.tsx", "utf8");
+  check(
+    "only a fixable failure is reported to the reader",
+    /reason === "not-configured" \|\| shelf\.failure\.reason === "key-rejected"/.test(page)
+  );
+}
+
+
 console.log(failures === 0 ? "\nYou pick the shelf; it does not pick for you." : `\n${failures} failing.`);
 process.exit(failures === 0 ? 0 : 1);

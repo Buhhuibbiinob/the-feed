@@ -39,6 +39,8 @@ export type DeezerTrack = {
 
 type DeezerSearch = { data?: DeezerTrack[]; error?: unknown };
 
+type DeezerSceneTrack = DeezerTrack & { id?: number; rank?: number };
+
 function normalize(s: string): string {
   return s
     .toLowerCase()
@@ -144,5 +146,138 @@ export async function lookupDeezerTrack(
     };
   } catch {
     return empty;
+  }
+}
+
+
+/**
+ * A scene's shelf, from Deezer.
+ *
+ * The sixteen internet scenes were built from YouTube, and YouTube kept
+ * refusing - three different failures in three days, the last of which I
+ * could not reproduce or diagnose from outside the deployment. A shelf
+ * that only works when one service is happy is a shelf that is empty
+ * whenever it is not.
+ *
+ * So there is another way to fill it, and this one needs no key, has no
+ * daily allowance to run out, and is not rate limited by whoever else
+ * happens to share a serverless IP with us - the three ways YouTube has
+ * failed so far.
+ *
+ * It is not as good at naming a scene: Deezer has no "digicore" tag, so
+ * this is a text search and it will be approximate at the edges. What it
+ * gives in exchange is that every record on it is a real record with a
+ * real cover and a real thirty-second clip, which is more than an empty
+ * board with an apology on it.
+ *
+ * Ranked lowest-first on purpose. Deezer's rank IS its popularity
+ * score, and the whole point of these shelves is the people who do not
+ * have an audience yet.
+ */
+export async function getDeezerSceneShelf(
+  sceneText: string,
+  limit: number,
+  rotateBy = 0
+): Promise<{ name: string; artist: string; imageUrl: string | null; previewUrl: string | null; trackUrl: string | null }[]> {
+  try {
+    const res = await cachedFetch(
+      `https://api.deezer.com/search?q=${encodeURIComponent(sceneText)}&limit=100`,
+      3600
+    );
+    if (!res || !res.ok) return [];
+    const data = (await res.json()) as { data?: DeezerSceneTrack[]; error?: unknown };
+    if (data.error || !Array.isArray(data.data)) return [];
+
+    // Least popular first. A text search puts the biggest names on top,
+    // which is the same repetition problem every other source has.
+    const ranked = [...data.data].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
+    const start = ranked.length ? Math.abs(rotateBy) % ranked.length : 0;
+    const ordered = [...ranked.slice(start), ...ranked.slice(0, start)];
+
+    const seen = new Set<string>();
+    const perArtist = new Map<string, number>();
+    const out: {
+      name: string;
+      artist: string;
+      imageUrl: string | null;
+      previewUrl: string | null;
+      trackUrl: string | null;
+    }[] = [];
+    for (const track of ordered) {
+      const name = (track.title_short ?? track.title ?? "").trim();
+      const artist = (track.artist?.name ?? "").trim();
+      if (!name || !artist) continue;
+      const key = `${name.toLowerCase()}|${artist.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      // Three each, the same rule every other shelf uses.
+      const artistKey = artist.toLowerCase();
+      const already = perArtist.get(artistKey) ?? 0;
+      if (already >= 3) continue;
+      perArtist.set(artistKey, already + 1);
+      seen.add(key);
+      out.push({
+        name,
+        artist,
+        imageUrl:
+          track.album?.cover_xl ?? track.album?.cover_big ?? track.album?.cover_medium ?? null,
+        previewUrl: track.preview ?? null,
+        trackUrl: track.link ?? null,
+      });
+      if (out.length >= limit) break;
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+
+/**
+ * Songs for a search box, from Deezer.
+ *
+ * The post form's track search was Apple only, so "The music catalogue
+ * is busy. Give it a couple of seconds." is what somebody got whenever
+ * a shelf happened to be loading - Apple allows about twenty calls a
+ * minute for the entire site, and a person typing a song name loses that
+ * race to a page full of covers every time.
+ *
+ * Deezer answers the same question with about thirty times the headroom,
+ * and returns the cover and the clip in the same response. So the box
+ * has somewhere to go instead of telling somebody to wait.
+ *
+ * Shaped exactly like Apple's result so the caller cannot tell which one
+ * answered - the id is prefixed, because it is a Deezer id and something
+ * downstream would otherwise treat it as Apple's.
+ */
+export async function searchDeezerSongs(
+  query: string,
+  limit = 10
+): Promise<{
+  id: string;
+  title: string;
+  artist: string;
+  artworkUrl: string | null;
+  previewUrl: string | null;
+}[]> {
+  try {
+    const res = await cachedFetch(
+      `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+      600
+    );
+    if (!res || !res.ok) return [];
+    const data = (await res.json()) as { data?: (DeezerTrack & { id?: number })[]; error?: unknown };
+    if (data.error || !Array.isArray(data.data)) return [];
+    return data.data
+      .filter((track) => (track.title ?? track.title_short) && track.artist?.name)
+      .map((track) => ({
+        id: `dz-${track.id ?? track.link ?? Math.random().toString(36).slice(2)}`,
+        title: (track.title_short ?? track.title ?? "").trim(),
+        artist: (track.artist?.name ?? "").trim(),
+        artworkUrl:
+          track.album?.cover_big ?? track.album?.cover_medium ?? track.album?.cover_xl ?? null,
+        previewUrl: track.preview ?? null,
+      }));
+  } catch {
+    return [];
   }
 }

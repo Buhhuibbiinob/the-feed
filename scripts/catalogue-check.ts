@@ -159,6 +159,40 @@ check("a 200 carrying an error is not treated as an answer", /data\.error/.test(
   check("a cached row with no year gets dated when a year shelf needs one", /undated/.test(batch));
 }
 
+// ---- the search box has somewhere to go ----
+//
+// "The music catalogue is busy. Give it a couple of seconds." is what
+// the post form's track search said whenever a shelf happened to be
+// loading. Apple allows about twenty calls a minute for the entire
+// site, and a person typing a song name loses that race to a page full
+// of covers every time. Telling them to wait was the honest version of
+// a bad answer.
+{
+  const route = readFileSync("src/app/api/music/search/route.ts", "utf8");
+  // Both paths, counted. Written as a single match first, which stayed
+  // green when the fallback was deleted from the SUCCESS path because
+  // the one in the catch block still matched - Apple coming back empty
+  // and Apple throwing are two different failures and both need
+  // somewhere to go.
+  const deezerCalls = route.split("searchDeezerSongs(query)").length - 1;
+  check(
+    "the search box asks Deezer when Apple is empty AND when it throws",
+    deezerCalls >= 2,
+    `${deezerCalls} of 2`
+  );
+  check(
+    "and skips Apple entirely while it is refusing",
+    /appleIsBusy\(\) \? \[\] :/.test(route)
+  );
+  // A throttle on the way in has to be recorded, or every keystroke
+  // walks into the same wall for the next forty-five seconds.
+  check("a refusal is remembered for the next search", /noteAppleThrottled\(\)/.test(route));
+  const deezer = readFileSync("src/lib/deezer.ts", "utf8");
+  // A Deezer id is not an Apple id and something downstream would treat
+  // it as one.
+  check("a Deezer result is not mistakable for an Apple one", /`dz-\$\{/.test(deezer));
+}
+
 console.log(
   failures === 0
     ? "\nApple for all three, Deezer the moment Apple says no, Spotify for the year."

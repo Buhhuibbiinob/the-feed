@@ -2,6 +2,7 @@ import { GENRES, genreLabel } from "@/lib/genres";
 import { excludeHits, getTracksByTag, tagText, type LastfmTrack } from "@/lib/lastfm";
 import { dayIndex, rotate } from "@/lib/musicDiscovery";
 import { getYoutubeSceneShelf, isYoutubeScene } from "@/lib/youtubeScenes";
+import { getDeezerSceneShelf } from "@/lib/deezer";
 import type { SearchFailure } from "@/lib/youtube";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
@@ -600,7 +601,7 @@ export function fillShelf(
 }
 
 /** Where a shelf's records came from, so the page can say the truth. */
-export type ShelfSource = "youtube" | "lastfm" | "posts" | "none";
+export type ShelfSource = "youtube" | "deezer" | "lastfm" | "posts" | "none";
 
 export type ShelfResult = {
   records: Sleeve[];
@@ -656,10 +657,40 @@ export async function getShelf(
     if (fromYoutube.records.length > 0) {
       return { records: fromYoutube.records, source: "youtube" };
     }
-    // Nothing from YouTube. Last.fm is still worth asking - it is thin
-    // for these scenes rather than empty - but the reason YouTube had
-    // nothing is carried on in case Last.fm has nothing either, so the
-    // page can say which thing failed instead of shrugging.
+    // Nothing from YouTube, which by now has happened three different
+    // ways: no key, a spent daily allowance, and a burst limit that
+    // survived being queued and retried. A shelf that only works when
+    // one service is happy is a shelf that is empty whenever it is not.
+    //
+    // Deezer needs no key, has no daily allowance to run out, and is
+    // not rate limited by whoever else shares a serverless IP with us -
+    // which is all three of the ways this has failed. It is worse at
+    // naming a scene, because it has no tag for one and this is a text
+    // search. It is far better at being available, and every record it
+    // returns has a real cover and a real clip.
+    const fromDeezer = await getDeezerSceneShelf(tag, SHELF_SIZE + SHELF_SPARE, rotateBy);
+    if (fromDeezer.length > 0) {
+      const records: Sleeve[] = [];
+      const seen = new Set<string>();
+      for (const track of fromDeezer) {
+        const key = workKey(track.name, track.artist);
+        if (seen.has(key) || known.works.has(key)) continue;
+        seen.add(key);
+        records.push({
+          key,
+          name: track.name,
+          artist: track.artist,
+          imageUrl: track.imageUrl,
+          previewUrl: track.previewUrl,
+          storeUrl: track.trackUrl,
+        });
+      }
+      if (records.length > 0) return { records, source: "deezer" };
+    }
+    // Last.fm is still worth asking after that - it is thin for these
+    // scenes rather than empty - and the reason YouTube had nothing is
+    // carried on in case nothing else has anything either, so the page
+    // can say which thing failed instead of shrugging.
     youtubeFailure = fromYoutube.failure;
   }
 
