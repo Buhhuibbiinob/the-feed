@@ -45,16 +45,44 @@ const DEADLINE_MS = 2500;
 
 export async function backfillCovers<T extends StorePost>(posts: T[]): Promise<T[]> {
   const wanted: number[] = [];
+  /** Films, which get their trailer's thumbnail rather than a lookup. */
+  const posterOnly: number[] = [];
+  const out0 = [...posts];
   for (let i = 0; i < posts.length && wanted.length < MAX_LOOKUPS; i++) {
     const post = posts[i];
     if (post.cover_url) continue;
+    if (!post.title?.trim()) continue;
+    // A film with a trailer already has a picture of itself, and it costs
+    // nothing to use: a YouTube thumbnail needs no key, no quota and no
+    // lookup. Films were skipped entirely before, which is why a movie
+    // review sat there as a blank square with no way to ever get one.
+    if (post.media_type === "movie_tv") {
+      if (post.youtube_video_id) {
+        posterOnly.push(i);
+      }
+      continue;
+    }
     if (post.media_type && post.media_type !== "music") continue;
-    if (!post.title?.trim() || !post.artist?.trim()) continue;
+    // The artist used to be required. "Hello by Dragonette, Martin
+    // Solveig" is a real review on the site whose artist field is empty
+    // because the whole thing went in as a title - and requiring one
+    // meant it could never get a cover, forever, while a search on the
+    // title alone finds it immediately.
     wanted.push(i);
   }
-  if (wanted.length === 0) return posts;
+  // Free, so done first and outside every budget below.
+  for (const index of posterOnly) {
+    const post = posts[index];
+    if (post.youtube_video_id) {
+      out0[index] = {
+        ...post,
+        cover_url: `https://i.ytimg.com/vi/${post.youtube_video_id}/hqdefault.jpg`,
+      };
+    }
+  }
+  if (wanted.length === 0) return out0;
 
-  const out = [...posts];
+  const out = out0;
 
   // What the site already knows, before anybody troubles a catalogue.
   //

@@ -35,6 +35,7 @@ import { HouseAdForm } from "@/components/HouseAdForm";
 import { SendSignInLinksButton } from "@/components/SendSignInLinksButton";
 import { BotAdminPanel } from "@/components/BotAdminPanel";
 import { BackfillWorksButton } from "@/components/BackfillWorksButton";
+import { BackfillPlayersButton } from "@/components/BackfillPlayersButton";
 import { AnnouncementAdmin } from "@/components/AnnouncementAdmin";
 import { ProfileLabelsForm } from "@/components/ProfileLabelsForm";
 import { listBots } from "@/app/actions/bots";
@@ -636,6 +637,7 @@ export default async function AdminPage() {
         <div className="panel-head">Link Reviews to Works</div>
         <div className="panel-body">
           <BackfillWorksButton />
+          <BackfillPlayersButton />
         </div>
       </div>
 

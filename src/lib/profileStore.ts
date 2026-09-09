@@ -20,6 +20,14 @@ export type StorePost = {
   created_at: string;
   genre?: string | null;
   media_type?: string | null;
+  /**
+   * Present on feed rows, absent on the store's own trimmed ones.
+   *
+   * Here so the cover backfill can give a film its trailer's thumbnail,
+   * which costs nothing and is the only picture a film review is ever
+   * going to have without a paid catalogue behind it.
+   */
+  youtube_video_id?: string | null;
 };
 
 export type StoreItem = {
