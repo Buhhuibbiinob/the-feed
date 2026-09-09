@@ -161,7 +161,9 @@ for (const file of MUSIC_SURFACES) {
   const action = readFileSync("src/app/actions/posts.ts", "utf8");
   check(
     "a review started from a link is given one too",
-    /!videoId && !spotifyTrackId && mediaType === "music"/.test(action)
+    /!videoId && !spotifyTrackId && title && \(mediaType === "music" \|\| mediaType === "movie_tv"\)/.test(
+      action
+    )
   );
   // And when YouTube cannot answer at all. The day's quota being spent
   // meant every review posted after it ran out was saved with no player
@@ -182,6 +184,34 @@ for (const file of MUSIC_SURFACES) {
   check(
     "the player can render a Spotify embed",
     /open\.spotify\.com\/embed\/track/.test(readFileSync("src/components/PreviewPlayer.tsx", "utf8"))
+  );
+
+  // A film gets its trailer. This branch only ever considered music, so
+  // every film review on the site was saved with no player at all.
+  check(
+    "a film review gets its trailer",
+    /mediaType === "movie_tv"\s*\n?\s*\? `\$\{title\} trailer`/.test(action)
+  );
+
+  // And the cover, which is the blank white square in the corner of
+  // every feed row. Most reviews are written from Discover or a shelf
+  // with the title already filled in, and nothing ever looked one up.
+  check("a review is given a cover when it has none", /found\?\.artworkUrl/.test(action));
+  check(
+    "and a film borrows its trailer's thumbnail",
+    /i\.ytimg\.com\/vi\/\$\{videoId\}/.test(action)
+  );
+
+  // The feed does what the profile page has done for months.
+  const feed = readFileSync("src/app/page.tsx", "utf8");
+  check("the feed fills in missing covers too", /await backfillCovers\(/.test(feed));
+  // And it reads the shared cache first, which is what makes doing it on
+  // a twenty-row feed affordable at all.
+  const backfill = readFileSync("src/lib/coverBackfill.ts", "utf8");
+  check("the backfill reads the cache before asking anybody", /await readCovers\(/.test(backfill));
+  check(
+    "and asks all three catalogues rather than the throttled one",
+    /await lookupTrack\(/.test(backfill) && !/searchItunesArt/.test(backfill)
   );
 
   // A member's own uploaded track plays on its own page rather than

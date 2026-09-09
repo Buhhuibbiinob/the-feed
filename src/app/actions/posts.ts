@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, type MediaType } from "@/lib/media";
 import { searchVideosDetailed } from "@/lib/youtube";
 import { lookupSpotifyTrack } from "@/lib/spotify";
+import { lookupTrack } from "@/lib/catalogue";
 import { isGenreFor } from "@/lib/genres";
 import { findOrCreateClub } from "@/lib/clubs";
 import { findOrCreateWork } from "@/lib/works";
@@ -182,9 +183,19 @@ export async function createPost(
   // worthwhile handful on the site: a review nobody can play is a review
   // half the point of.
   let videoId = youtubeVideoId;
-  if (!videoId && !spotifyTrackId && mediaType === "music" && title) {
+  if (!videoId && !spotifyTrackId && title && (mediaType === "music" || mediaType === "movie_tv")) {
+    // A film gets its trailer, which is that medium's version of the
+    // same thing and was never asked for at all - every film review on
+    // the site was saved with no player because this branch only ever
+    // considered music.
+    const query =
+      mediaType === "movie_tv"
+        ? `${title} trailer`
+        : artist
+          ? `${artist} ${title}`
+          : title;
     const { videos } = await searchVideosDetailed(
-      artist ? `${artist} ${title}` : title,
+      query,
       1,
       // Somebody pressed Post and is watching a spinner, so this comes
       // out of the part of the day's allowance the shelves cannot touch.
@@ -212,6 +223,32 @@ export async function createPost(
   // Neither is not a reason to refuse the review. It keeps its title, its
   // artwork and its words, and simply has no player.
 
+  // And the cover, which is the thing actually missing from the feed.
+  //
+  // A review carries whatever artwork was attached when it was written,
+  // and most are written without any: somebody arrives from Discover or
+  // a shelf with the title already filled in, says what they think, and
+  // posts. Nothing ever looked up a cover for those, so the feed is a
+  // column of blank white squares - the little thing in the corner of
+  // every row, empty.
+  //
+  // The profile page has papered over this for months by looking covers
+  // up at render time, which the feed never did and which only ever
+  // asked Apple - the one catalogue that throttles. Written down here
+  // instead: once, when the post is made, from whichever of the three
+  // catalogues has it, and then it is simply part of the post forever.
+  let cover = coverUrl;
+  if (!cover && mediaType === "music" && title) {
+    const found = await lookupTrack(title, artist || "").catch(() => null);
+    cover = found?.artworkUrl ?? "";
+  }
+  // A film has no entry in a record catalogue, but the video it just got
+  // has a thumbnail, and a thumbnail of the trailer is a perfectly good
+  // picture of the film.
+  if (!cover && mediaType === "movie_tv" && videoId) {
+    cover = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  }
+
   const row = {
     user_id: user.id,
     media_type: mediaType,
@@ -219,7 +256,7 @@ export async function createPost(
     body,
     rating,
     artist: artist || null,
-    cover_url: coverUrl || null,
+    cover_url: cover || null,
     spotify_track_id: spotifyId || null,
     youtube_video_id: videoId || null,
     club_id: clubId,

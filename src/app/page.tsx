@@ -22,6 +22,7 @@ import { isMissingSchema } from "@/lib/dbError";
 import { toPlaylists, type Playlist, type PlaylistRow } from "@/lib/playlists";
 import { isGenreFor, genreLabel } from "@/lib/genres";
 import { selectPosts } from "@/lib/postQuery";
+import { backfillCovers } from "@/lib/coverBackfill";
 import { highestBadge } from "@/lib/badges";
 import { getPublishedIssues } from "@/lib/newsletter";
 import { getSiteFlags } from "@/lib/siteFlags";
@@ -484,7 +485,22 @@ export default async function FeedPage({
     Math.max(Number.isFinite(requestedPage) ? requestedPage : 1, 1),
     totalPages
   );
-  const pagePosts = feedPosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  // Covers for the page being looked at.
+  //
+  // The blank white square in the corner of nearly every row. A review
+  // carries whatever artwork was attached when it was written and most
+  // were written without any, so the feed was a column of empty squares
+  // while the profile page - which has done this for months - showed the
+  // same reviews with their covers on.
+  //
+  // Only the page's own rows, which is what makes it affordable: twenty
+  // at a time rather than every review on the site, and most of them
+  // answered by one read of the shared cover cache rather than by asking
+  // anybody. Posts written from now on arrive with a cover already on
+  // them; this is for the ones already written.
+  const pagePosts = await backfillCovers(
+    feedPosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  ).catch(() => feedPosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
 
   // One query for the page's reactions rather than one per card.
   const answered = await loadAnswered(supabase, pagePosts);

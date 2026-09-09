@@ -1,4 +1,5 @@
-import { searchItunesArt } from "@/lib/itunes";
+import { lookupTrack } from "@/lib/catalogue";
+import { coverKeyFor, readCovers, writeCovers } from "@/lib/coverCache";
 import type { StorePost } from "@/lib/profileStore";
 
 /**
@@ -54,21 +55,50 @@ export async function backfillCovers<T extends StorePost>(posts: T[]): Promise<T
   if (wanted.length === 0) return posts;
 
   const out = [...posts];
+
+  // What the site already knows, before anybody troubles a catalogue.
+  //
+  // track_covers is filled by every shelf, every crate and every post
+  // written, and a cover is a cover wherever it was learned - so most of
+  // these are answered by one database query costing nothing. That is
+  // also what makes this cheap enough for the FEED, which never had it
+  // and which is where the blank squares were most visible.
+  const keys = wanted.map((i) => coverKeyFor(out[i].title, out[i].artist ?? ""));
+  const known = await readCovers([...new Set(keys)]);
+  const stillWanted: number[] = [];
+  for (let n = 0; n < wanted.length; n++) {
+    const hit = known.get(keys[n]);
+    if (hit?.artworkUrl) out[wanted[n]] = { ...out[wanted[n]], cover_url: hit.artworkUrl };
+    else stillWanted.push(wanted[n]);
+  }
+  if (stillWanted.length === 0) return out;
+
+  const learned: { key: string; info: Awaited<ReturnType<typeof lookupTrack>> }[] = [];
   let cursor = 0;
   async function worker() {
-    while (cursor < wanted.length) {
-      const index = wanted[cursor++];
+    while (cursor < stillWanted.length) {
+      const index = stillWanted[cursor++];
       const post = out[index];
-      // A miss is a miss. The lettered sleeve is still there for
-      // anything the catalogue genuinely does not have, which is the
-      // right answer for a track nobody has released.
-      const art = await searchItunesArt(post.title, post.artist ?? "").catch(() => null);
-      if (art) out[index] = { ...post, cover_url: art };
+      // Three catalogues rather than one. This asked Apple alone, which
+      // is the one that throttles at twenty calls a minute, so on a busy
+      // page most of these came back empty and the squares stayed blank.
+      //
+      // A miss is still a miss: the lettered sleeve remains the right
+      // answer for a track nobody has released.
+      const info = await lookupTrack(post.title, post.artist ?? "").catch(() => null);
+      if (!info) continue;
+      if (info.artworkUrl) out[index] = { ...post, cover_url: info.artworkUrl };
+      if (!info.throttled) {
+        learned.push({ key: coverKeyFor(post.title, post.artist ?? ""), info });
+      }
     }
   }
   await Promise.race([
-    Promise.all(Array.from({ length: Math.min(CONCURRENCY, wanted.length) }, worker)),
+    Promise.all(Array.from({ length: Math.min(CONCURRENCY, stillWanted.length) }, worker)),
     new Promise((resolve) => setTimeout(resolve, DEADLINE_MS)),
   ]);
+  // Written down, so the next page that shows any of these - a feed, a
+  // profile, a shelf - pays nothing for them at all.
+  await writeCovers(learned).catch(() => {});
   return out;
 }
