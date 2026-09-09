@@ -148,7 +148,9 @@ for (const file of MUSIC_SURFACES) {
   const card = readFileSync("src/components/PostCard.tsx", "utf8");
   check("a review still carries a player", /PreviewPlayer/.test(card));
   const player = readFileSync("src/components/PreviewPlayer.tsx", "utf8");
-  check("and that player plays video", /youtube-nocookie\.com\/embed/.test(player));
+  // Through YoutubeSlot now rather than a bare iframe, so the assertion
+  // is that it still plays video at all - not which tag it uses.
+  check("and that player plays video", /<YoutubeSlot/.test(player));
   const form = readFileSync("src/components/PostForm.tsx", "utf8");
   check(
     "a song picked for a review is given its video",
@@ -213,6 +215,39 @@ for (const file of MUSIC_SURFACES) {
     "and asks all three catalogues rather than the throttled one",
     /await lookupTrack\(/.test(backfill) && !/searchItunesArt/.test(backfill)
   );
+
+  // ---- a refused embed is a picture, not a red box ----
+  //
+  // The profiles were showing YouTube's error screen where a video
+  // should be. That is not the daily quota - an embed costs no quota at
+  // all - it is YouTube refusing to play THAT video in an iframe:
+  // embedding disabled by the uploader, blocked by a label, taken down,
+  // or an id that now points somewhere else. None of those is fixable
+  // from here and no amount of retrying touches them.
+  //
+  // Every video has one thing that always loads, needs no key and asks
+  // nobody's permission: its thumbnail. So a video that will not play
+  // becomes a picture of itself with a link on it.
+  const slot = readFileSync("src/components/YoutubeSlot.tsx", "utf8");
+  check("a refused embed falls back to the video's own poster", /i\.ytimg\.com\/vi\//.test(slot));
+  check(
+    "and the poster is there from the first paint, so the slot is never empty",
+    (slot.match(/backgroundImage: `url\(\$\{poster\}\)`/g) ?? []).length >= 2
+  );
+  // 101 and 150 are "the owner does not allow this video to be played in
+  // embedded players", which is the common one.
+  check("the codes it listens for include embedding-disabled", /101, 150/.test(slot));
+  check("it needs enablejsapi to hear them at all", /enablejsapi: "1"/.test(slot));
+  // Messages from anywhere else must not be able to blank a video.
+  check(
+    "and it only believes messages from YouTube",
+    /event\.origin/.test(slot) && /event\.source !== frame\.current\.contentWindow/.test(slot)
+  );
+  for (const file of ["src/components/ProfileStore.tsx", "src/components/PreviewPlayer.tsx"]) {
+    const src = readFileSync(file, "utf8");
+    check(`${file} goes through it`, /<YoutubeSlot/.test(src));
+    check(`${file} has no bare embed left`, !/youtube(-nocookie)?\.com\/embed/.test(src));
+  }
 
   // A member's own uploaded track plays on its own page rather than
   // being a link off the site - it is the one piece of music here that

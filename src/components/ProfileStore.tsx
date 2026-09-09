@@ -5,6 +5,7 @@ import Link from "next/link";
 import { HERO_SLOTS, type StoreItem } from "@/lib/profileStore";
 import type { ProfileLabels } from "@/lib/profileLabels";
 import { isMediaSlot, type MediaSlot } from "@/lib/mediaSlots";
+import { YoutubeSlot } from "@/components/YoutubeSlot";
 
 // The iTunes Music Store front page, built out of one member's reviews.
 //
@@ -28,13 +29,17 @@ import { isMediaSlot, type MediaSlot } from "@/lib/mediaSlots";
  */
 function SlotMedia({ slot }: { slot: MediaSlot }) {
   if (slot.kind === "video" && slot.youtubeId) {
+    // Through YoutubeSlot, which has a poster behind it and swaps to
+    // that poster outright when YouTube refuses to play the video here.
+    // A red error box on somebody's profile was the single worst thing
+    // on the site, and it is not a failure anything on this end can fix
+    // - only one it can stop showing.
     return (
-      <iframe
+      <YoutubeSlot
         className="store-art store-art-video"
-        src={`https://www.youtube.com/embed/${slot.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${slot.youtubeId}&controls=0&playsinline=1&modestbranding=1&rel=0`}
-        allow="autoplay; encrypted-media"
+        videoId={slot.youtubeId}
         title={slot.title ?? "Profile video"}
-        tabIndex={-1}
+        ambient
       />
     );
   }

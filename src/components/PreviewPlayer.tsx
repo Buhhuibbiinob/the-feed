@@ -1,3 +1,7 @@
+"use client";
+
+import { YoutubeSlot } from "@/components/YoutubeSlot";
+
 // The embed is framed as a little media player window: a brushed chrome
 // strip across the top carrying what's loaded, then the iframe recessed
 // into the body below it.
@@ -55,15 +59,14 @@ export function PreviewPlayer({
   }
 
   if (youtubeVideoId) {
+    // Same treatment as the profile slots. A review whose video the
+    // uploader has blocked from embedding showed a red error screen
+    // where the record should be - not something waiting or loading,
+    // just a refusal. It becomes the video's own thumbnail with a link
+    // on it, which is a review that looks finished.
     return (
       <PlayerFrame kind="video" label={label}>
-        <iframe
-          title={`${label} trailer`}
-          src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}${autoplay ? "?autoplay=1" : ""}`}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          loading="lazy"
-        />
+        <YoutubeSlot videoId={youtubeVideoId} title={`${label} video`} autoplay={autoplay} />
       </PlayerFrame>
     );
   }
