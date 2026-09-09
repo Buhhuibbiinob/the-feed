@@ -85,6 +85,12 @@ const ALLOWED_TO_ASK = [
   // way to hear the song is half a review. Somebody is watching a
   // spinner when this runs.
   "src/app/actions/posts.ts",
+  // The admin backfill, which is the same job for reviews already
+  // written. An admin standing at the page having deliberately pressed
+  // a button is as much a person waiting as anybody typing in a search
+  // box, and it is capped at ten posts a press so it cannot quietly
+  // become a background drain.
+  "src/lib/playerBackfill.ts",
 ];
 const claiming = SOURCES.filter(
   (f) => !f.endsWith("youtube.ts") && /priority:\s*"user"/.test(readFileSync(f, "utf8"))
@@ -96,7 +102,7 @@ check(
   wrong.join(", ")
 );
 check(
-  "and the routes that should claim it still do",
+  "and the places that should claim it still do",
   ALLOWED_TO_ASK.every((f) => claiming.includes(f)),
   `${claiming.length} of ${ALLOWED_TO_ASK.length}`
 );

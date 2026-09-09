@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { backfillPlayers, type BackfillReport } from "@/lib/playerBackfill";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
@@ -291,6 +292,24 @@ export type BackfillState = { error?: string; result?: BackfillResult };
 export async function adminBackfillWorks(): Promise<BackfillState> {
   await requireAdmin();
   const result = await backfillWorks(createAdminClient());
+  revalidatePath("/");
+  return { result };
+}
+
+
+export type PlayerBackfillState = { error?: string; result?: BackfillReport };
+
+/**
+ * Gives already-written reviews the player they never got.
+ *
+ * Ten at a time, deliberately. Every one costs a YouTube search out of a
+ * ten-thousand-unit day, so this is a job somebody chooses to run rather
+ * than something a page does on its own - and the report says how many
+ * are left, so the cost of finishing is visible before it is spent.
+ */
+export async function adminBackfillPlayers(): Promise<PlayerBackfillState> {
+  await requireAdmin();
+  const result = await backfillPlayers(createAdminClient());
   revalidatePath("/");
   return { result };
 }

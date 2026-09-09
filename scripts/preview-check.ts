@@ -249,6 +249,45 @@ for (const file of MUSIC_SURFACES) {
     check(`${file} has no bare embed left`, !/youtube(-nocookie)?\.com\/embed/.test(src));
   }
 
+  // ---- and the reviews already written ----
+  //
+  // Posting fixes reviews from now on. The ones already in the database
+  // cannot fix themselves: nothing at render time may spend a YouTube
+  // search, because a feed of twenty would be two thousand units per
+  // page view against a ten-thousand-unit day.
+  const backfillPlayers = readFileSync("src/lib/playerBackfill.ts", "utf8");
+  check("there is a way to fix reviews already written", /backfillPlayers/.test(backfillPlayers));
+  check(
+    "it goes a few at a time rather than all at once",
+    /BATCH = 10/.test(backfillPlayers)
+  );
+  check(
+    "it says how many are left, so the cost of finishing is visible",
+    /remaining/.test(backfillPlayers)
+  );
+  // Films get a trailer; music that YouTube cannot answer for gets
+  // Spotify. Both, or the backfill has the same blind spots the posting
+  // path just had fixed.
+  check("it handles films too", /\$\{title\} trailer/.test(backfillPlayers));
+  check("and falls back to Spotify", /lookupSpotifyTrack/.test(backfillPlayers));
+  // Only reachable by an admin pressing a button, never by a page.
+  const adminAction = readFileSync("src/app/actions/admin.ts", "utf8");
+  check(
+    "and only an admin can run it",
+    /adminBackfillPlayers[\s\S]{0,200}?requireAdmin\(\)/.test(adminAction)
+  );
+
+  // The two reasons a cover stayed blank on a row that had every chance.
+  const covers = readFileSync("src/lib/coverBackfill.ts", "utf8");
+  check(
+    "a review with no artist can still get a cover",
+    !/!post\.artist\?\.trim\(\)/.test(covers)
+  );
+  check(
+    "and a film borrows its trailer's thumbnail rather than being skipped",
+    /movie_tv/.test(covers) && /hqdefault/.test(covers)
+  );
+
   // A member's own uploaded track plays on its own page rather than
   // being a link off the site - it is the one piece of music here that
   // is not in anybody's catalogue.
