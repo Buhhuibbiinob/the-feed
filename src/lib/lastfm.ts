@@ -76,6 +76,49 @@ export const MUSIC_ERAS = [
 export type MusicEraId = (typeof MUSIC_ERAS)[number]["id"];
 
 /**
+ * Artists people have actually tagged with this genre.
+ *
+ * The difference between this and a search is the whole point.
+ *
+ * A text search for "uk r&b" returns records whose TITLE contains those
+ * words - which is why a shelf built that way comes back with things
+ * that are not the genre at all, and reads as though somebody typed the
+ * filter into a search box and shipped the results. That is exactly what
+ * it was doing.
+ *
+ * A tag is a statement by a person that this artist IS that thing.
+ * Thousands of people have made those statements over twenty years, and
+ * they are the only real genre data any of these free services has. So
+ * the shelf is built from the artists a tag names, and then from those
+ * artists' own catalogues - every record on it is by somebody the crowd
+ * says belongs there, rather than by somebody whose song title happened
+ * to match.
+ *
+ * Deeper than the track chart, too: a tag's track chart is a few hundred
+ * songs, while its artist list times each artist's catalogue is
+ * thousands.
+ */
+export async function getArtistsByTag(tag: string, limit = 50, page = 1): Promise<string[]> {
+  const apiKey = process.env.LASTFM_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const res = await cachedFetch(
+      `https://ws.audioscrobbler.com/2.0/?method=tag.gettopartists&tag=${encodeURIComponent(
+        tag
+      )}&api_key=${apiKey}&format=json&limit=${limit}&page=${page}`,
+      86400
+    );
+    if (!res || !res.ok) return [];
+    const data = (await res.json()) as { topartists?: { artist?: { name?: string }[] } };
+    return (data.topartists?.artist ?? [])
+      .map((a) => a.name)
+      .filter((n): n is string => Boolean(n && n.trim()));
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Top tracks for one Last.fm tag. Used for the decade buckets, so a bot can
  * review a 1977 record as readily as something from this week.
  *

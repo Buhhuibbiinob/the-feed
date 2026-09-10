@@ -1,8 +1,14 @@
 import { GENRES, genreLabel } from "@/lib/genres";
-import { excludeHits, getTracksByTag, tagText, type LastfmTrack } from "@/lib/lastfm";
+import {
+  excludeHits,
+  getArtistTopTracks,
+  getArtistsByTag,
+  getTracksByTag,
+  tagText,
+  type LastfmTrack,
+} from "@/lib/lastfm";
 import { dayIndex, rotate } from "@/lib/musicDiscovery";
 import { getYoutubeSceneShelf, isYoutubeScene } from "@/lib/youtubeScenes";
-import { getDeezerSceneShelf } from "@/lib/deezer";
 import type { SearchFailure } from "@/lib/youtube";
 import { workKey } from "@/lib/taste";
 import type { Known } from "@/lib/musicDiscovery";
@@ -610,6 +616,63 @@ export type ShelfResult = {
   failure?: SearchFailure;
 };
 
+/**
+ * A scene's shelf, built from the artists the tag names.
+ *
+ * The order is what makes it deep rather than repetitive: the artist
+ * list is rotated so a different corner of the scene leads each time,
+ * and each artist contributes at most three records, so fifty artists
+ * make a shelf of fifty rather than one artist making it twice over.
+ *
+ * Their top tracks are trimmed at the front, the same as everywhere
+ * else here: an artist's most-played song is the one somebody browsing
+ * this scene has already heard.
+ */
+async function sceneShelfFromArtists(
+  tag: string,
+  known: Known,
+  rotateBy: number
+): Promise<Sleeve[]> {
+  const artists = await getArtistsByTag(tag, 100).catch(() => []);
+  if (artists.length === 0) return [];
+
+  // Least famous first. tag.getTopArtists is ordered by popularity, so
+  // the back of the list is where the people with no audience are - and
+  // that is what these shelves are for.
+  const ordered = rotate([...artists].reverse(), rotateBy);
+
+  const seen = new Set<string>();
+  const shelf: Sleeve[] = [];
+  // Sequential on purpose. Last.fm answers these from its own cache in
+  // milliseconds and there is no rate limit worth racing, while firing
+  // fifty at once is how a page starts timing out.
+  for (const artist of ordered) {
+    if (shelf.length >= SHELF_SIZE + SHELF_SPARE) break;
+    const tracks = await getArtistTopTracks(artist, 12).catch(() => []);
+    if (tracks.length === 0) continue;
+    // Past the hits, then anything still not a hit by listener count.
+    const deep = excludeHits(tracks.slice(2));
+    let taken = 0;
+    for (const track of deep) {
+      if (taken >= 3) break;
+      if (!track.name || !track.artist) continue;
+      const key = workKey(track.name, track.artist);
+      if (seen.has(key) || known.works.has(key)) continue;
+      seen.add(key);
+      taken++;
+      shelf.push({
+        key,
+        name: track.name,
+        artist: track.artist,
+        imageUrl: track.imageUrl,
+        previewUrl: null,
+        storeUrl: null,
+      });
+    }
+  }
+  return shelf;
+}
+
 /** Everything on one shelf, fetched. */
 export async function getShelf(
   axis: AxisId,
@@ -657,36 +720,31 @@ export async function getShelf(
     if (fromYoutube.records.length > 0) {
       return { records: fromYoutube.records, source: "youtube" };
     }
-    // Nothing from YouTube, which by now has happened three different
-    // ways: no key, a spent daily allowance, and a burst limit that
-    // survived being queued and retried. A shelf that only works when
-    // one service is happy is a shelf that is empty whenever it is not.
+    // Nothing from YouTube. What used to happen here was a Deezer TEXT
+    // SEARCH on the scene's name, and it was wrong in a way worth
+    // spelling out, because it is the difference between a shelf and a
+    // search results page.
     //
-    // Deezer needs no key, has no daily allowance to run out, and is
-    // not rate limited by whoever else shares a serverless IP with us -
-    // which is all three of the ways this has failed. It is worse at
-    // naming a scene, because it has no tag for one and this is a text
-    // search. It is far better at being available, and every record it
-    // returns has a real cover and a real clip.
-    const fromDeezer = await getDeezerSceneShelf(tag, SHELF_SIZE + SHELF_SPARE, rotateBy);
-    if (fromDeezer.length > 0) {
-      const records: Sleeve[] = [];
-      const seen = new Set<string>();
-      for (const track of fromDeezer) {
-        const key = workKey(track.name, track.artist);
-        if (seen.has(key) || known.works.has(key)) continue;
-        seen.add(key);
-        records.push({
-          key,
-          name: track.name,
-          artist: track.artist,
-          imageUrl: track.imageUrl,
-          previewUrl: track.previewUrl,
-          storeUrl: track.trackUrl,
-        });
-      }
-      if (records.length > 0) return { records, source: "deezer" };
-    }
+    // Searching Deezer for "uk r&b" returns records whose TITLE contains
+    // those words. It does not return UK R&B. So the shelf filled up
+    // with things that are not the genre at all and read exactly as it
+    // was: somebody typed the filter into a search box and shipped the
+    // results.
+    //
+    // A tag is different in kind. It is a statement by a person that
+    // this artist IS that thing, and thousands of people have made those
+    // statements over twenty years - it is the only real genre data any
+    // free service has. So the fallback walks the tag to its ARTISTS and
+    // then into their catalogues: every record is by somebody the crowd
+    // says belongs in that scene, rather than by somebody whose song
+    // title happened to match.
+    //
+    // It is also far deeper than the tag's own track chart. A chart is a
+    // few hundred songs; fifty artists times their catalogues is
+    // thousands, which is where the records nobody has heard live.
+    const fromArtists = await sceneShelfFromArtists(tag, known, rotateBy);
+    if (fromArtists.length > 0) return { records: fromArtists, source: "lastfm" };
+
     // Last.fm is still worth asking after that - it is thin for these
     // scenes rather than empty - and the reason YouTube had nothing is
     // carried on in case nothing else has anything either, so the page
@@ -736,6 +794,29 @@ export async function getShelf(
   // finds out, so the tail is the supply of replacements. Costs nothing:
   // the tracks were already in the answer.
   const shelf = fillShelf(tracks, known, SHELF_SIZE + SHELF_SPARE, rotateBy);
+
+  // A thin scene goes to the artists rather than going short.
+  //
+  // A tag's track chart is a few hundred songs and for anything below
+  // the top hundred genres it is far fewer - so most of these shelves
+  // were half empty, and the half that was there was the same handful
+  // every time. The tag's ARTIST list times their catalogues is
+  // thousands of records, all of them by somebody the crowd has actually
+  // said belongs in that scene.
+  //
+  // Only for scenes. A year or a place is not a thing an artist IS: an
+  // artist tagged "1994" is not a 1994 artist, they are somebody who
+  // released a record that year, so walking into their catalogue would
+  // return records from every other year they ever worked.
+  if (axis === "scene" && shelf.length < SHELF_SIZE) {
+    const seen = new Set(shelf.map((r) => r.key));
+    for (const record of await sceneShelfFromArtists(tag, known, rotateBy)) {
+      if (seen.has(record.key)) continue;
+      seen.add(record.key);
+      shelf.push(record);
+      if (shelf.length >= SHELF_SIZE + SHELF_SPARE) break;
+    }
+  }
 
   // Nothing is enriched here any more, and that is the whole speed fix.
   //
