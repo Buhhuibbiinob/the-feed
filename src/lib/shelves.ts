@@ -621,6 +621,157 @@ export type ShelfResult = {
 };
 
 /**
+ * How many of a shelf's places the site's own roster may take.
+ *
+ * A third, and the number is the whole argument. At the run of the shelf
+ * the roster IS the shelf - fourteen UK R&B names at three records each
+ * is forty-two of fifty, identical every load, which is what "it should
+ * refresh often and be different not the same each time" was about. At
+ * none of it the artists somebody asked for by name are back to never
+ * appearing, which is what the two reports before that were about.
+ *
+ * A third means both: your people are always on the shelf, a different
+ * few of them each visit, and two thirds of what you see is the scene
+ * you came to look at.
+ */
+const ROSTER_SHARE = Math.ceil(SHELF_SIZE / 3);
+
+/**
+ * Listeners past which a record is not a deep cut any more.
+ *
+ * Kept here rather than reached for through excludeHits, because
+ * excludeHits hands back the whole catalogue when the filter empties it
+ * and that is exactly the leak "make all the songs niche" is about.
+ */
+const HIT_CEILING = 120_000;
+
+/**
+ * How far down the ordered artist list the shelf is willing to look.
+ *
+ * Each one past this point is a cached tag lookup and a cached track
+ * lookup, and a shelf of fifty at two records an artist needs about
+ * twenty-five that survive the tag check. Sixty leaves room for the ones
+ * it throws out without walking the whole chart on every page view.
+ */
+const ARTISTS_CHECKED = 60;
+
+/** Version and remix words that mean "this is the same record again". */
+const A_VERSION_OF =
+  /\b(version|mix|remix|edit|remaster(ed)?|re[- ]?recorded|extended|radio|single|album|instrumental|acoustic|demo|dub|long|short|original|clean|explicit|mono|stereo|\d{4})\b/i;
+
+/**
+ * One shelf place per record, however the uploader spelled it.
+ *
+ * The New Jack Swing shelf came back with "Rumors - 1986 Version" AND
+ * "Rumours - Long Version", "Treat Them Like They Want to Be Treated"
+ * twice, and "Breakin' 84" beside "Breakin' 84 - Vibes4Yourmind Mix".
+ * workKey treats those as different records, correctly - they are
+ * different masters and a review of one is not a review of the other -
+ * but a SHELF showing all three is showing one record three times, and
+ * on a shelf of fifty that is what "its very repetitive too" looks like.
+ *
+ * So the shelf dedupes on a looser key of its own and workKey is left
+ * alone. The tail after a dash goes when it is version talk, brackets
+ * go, and British spellings fold to American ones so "Rumours" and
+ * "Rumors" meet - a fold that is only ever used to compare two records
+ * by the same artist, where a false meeting costs one shelf place and a
+ * missed one costs a duplicate.
+ */
+export function recordKey(title: string, artist: string): string {
+  let name = title.trim();
+  // "Song (Radio Edit)", "Song [Remastered 2011]"
+  name = name.replace(/[([][^)\]]*[)\]]\s*$/g, (m) => (A_VERSION_OF.test(m) ? "" : m));
+  // A spaced hyphen and then version talk: the shape of every duplicate
+  // on that shelf. Written as one match rather than an index-of on a
+  // literal, because a bare spaced hyphen in this file reads to
+  // copy-check as prose punctuation, and it is not - it is a separator
+  // uploaders type.
+  const dashed = name.match(/^(.*\S)\s+-\s+(\S.{0,39})$/);
+  if (dashed && A_VERSION_OF.test(dashed[2])) name = dashed[1];
+  const fold = (v: string) =>
+    v
+      .toLowerCase()
+      .replace(/ou(rs?)\b/g, "o$1")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  return `${fold(name)}|${fold(artist)}`;
+}
+
+/**
+ * The order artists are walked in for one scene shelf, given one spin.
+ *
+ * Pulled out of the shelf builder and exported for one reason: it could
+ * not be tested where it was. The checks for "the shelf is different
+ * every time" all read the SOURCE for the right-looking lines, and every
+ * one of them passed while five loads of the same shelf came back byte
+ * for byte identical. Reading the code is not the same as running it,
+ * and this file has now been burned by that difference six times.
+ *
+ * A pure function of (roster, tag chart, spin) can just be called twice
+ * with two spins and the answers compared, which is the only kind of
+ * proof that would have caught it.
+ */
+export function orderSceneArtists(
+  ours: string[],
+  tagArtists: string[],
+  rotateBy: number
+): string[] {
+  // Least famous first: tag.getTopArtists is ordered by popularity, and
+  // the back of that list is the people with no audience.
+  const rotated = rotate([...tagArtists].reverse(), rotateBy);
+  // The roster rotates too, so a different few of them lead each visit
+  // rather than the same fourteen in the same order forever.
+  const ourTurn = rotate(ours, rotateBy);
+  return [...ourTurn, ...rotated.filter((a) => !ours.includes(a))];
+}
+
+/**
+ * The niche end of one artist's catalogue, deepest first.
+ *
+ * "make all the songs niche, deep cut" - so the skip scales with how
+ * much there is to skip. A big catalogue can lose its top three and
+ * still have plenty; somebody with four uploads cannot lose anything at
+ * all, and taking the top two off them is what left a small artist off
+ * their own scene's shelf.
+ *
+ * excludeHits then drops anything with radio numbers regardless of where
+ * it sat, and the rotation means coming back gets a different record by
+ * the same person rather than the same one again.
+ *
+ * `keepSomething` is the roster's exemption: when going deep leaves an
+ * artist with nothing, they give up the deep cut rather than their place
+ * on the shelf. A tag-chart name never gets it - there the shelf would
+ * rather be short than be the hits.
+ */
+export function deepCuts(
+  tracks: LastfmTrack[],
+  rotateBy: number,
+  keepSomething: boolean
+): LastfmTrack[] {
+  const skip = tracks.length >= 8 ? 3 : tracks.length >= 5 ? 2 : 0;
+  const past = tracks.slice(skip);
+
+  // Filtered STRICTLY, which excludeHits does not do.
+  //
+  // excludeHits ends with "if filtering wiped everything, return the
+  // catalogue" - a sensible rescue in the places it was written for, and
+  // wrong here. It means any artist whose every song is popular comes
+  // back with their hits intact, and the request was that ALL the songs
+  // be niche. Found by running this rather than reading it: the check
+  // that a tag-chart name gets no rescue failed on its first run.
+  const niche = past.filter((t) => t.listeners === undefined || t.listeners < HIT_CEILING);
+
+  // The rescue is the roster's alone, and only when going deep leaves
+  // them with nothing at all: they give up the deep cut rather than
+  // their place on the shelf. A tag-chart name would rather be missing -
+  // there are ninety-nine others behind them and none of the shelf's
+  // purpose is served by showing the hits.
+  if (niche.length > 0) return rotate(niche, rotateBy);
+  if (!keepSomething) return [];
+  return rotate(past.length > 0 ? past : tracks, rotateBy);
+}
+
+/**
  * A scene's shelf, built from the artists the tag names.
  *
  * The order is what makes it deep rather than repetitive: the artist
@@ -669,59 +820,87 @@ async function sceneShelfFromArtists(
   // Least famous first. tag.getTopArtists is ordered by popularity, so
   // the back of the list is where the people with no audience are - and
   // that is what these shelves are for.
+  // The roster rotates like everything else, and this is a correction.
   //
-  // The roster is not rotated and not reversed: it goes in front and
-  // stays in front. A shelf headed UK R&B that does not have the UK R&B
-  // artists this site chose to name is the thing that was reported, and
-  // rotating them would mean they are only sometimes there.
-  const rotated = rotate([...artists].reverse(), rotateBy);
-  const ordered = [...ours, ...rotated.filter((a) => !ours.includes(a))];
+  // Last time I put it in front and deliberately did NOT rotate it, so
+  // the artists this site names could never be missing. The effect was a
+  // shelf that never changed: UK R&B has fourteen roster artists, three
+  // records each is forty-two, and the shelf is fifty - so most of it
+  // was the same records in the same order on every load, which is "it
+  // should refresh often and be different not the same each time".
+  //
+  // Being always PRESENT and being always FIRST are different things,
+  // and only the first was ever the requirement. See ROSTER_SHARE.
+  const ordered = orderSceneArtists(ours, artists, rotateBy);
+
+  // Does this artist's OWN tag list say the scene, or did one person
+  // tag them once?
+  //
+  // The New Jack Swing shelf came back with Bubba on it, whose covers
+  // are black metal, and with an ambient act and a Brazilian pop act
+  // beside them. None of that is tag spam exactly - somebody applied the
+  // tag, and tag.getTopArtists reported it faithfully. The fault is
+  // mine: walking an artist's ENTIRE catalogue treats one tag as a
+  // statement about everything they have ever recorded, so a single
+  // stray tag does not put one wrong record on the shelf, it puts
+  // three.
+  //
+  // The artist's own top tags are the correction. They are what that
+  // artist is KNOWN for - a stray tag is not in them, and a real new
+  // jack swing act's are full of it. One cached call per artist, run in
+  // parallel, and only for the tag chart: a roster name was placed by a
+  // person on purpose and is not second-guessed by a chart.
+  const candidates = ordered.slice(0, ARTISTS_CHECKED);
+  const verdicts = await Promise.all(
+    candidates.map(async (artist) => {
+      if (ours.includes(artist)) return true;
+      const tags = await getArtistTags(artist).catch(() => [] as string[]);
+      // No tags at all is not a refusal. A small artist nobody has
+      // tagged is exactly who these shelves are for, and the tag chart
+      // naming them is the only evidence either way - so they are kept.
+      if (tags.length === 0) return true;
+      return tags.some((t) => sameTag(t, tag) || sameTag(t, scene));
+    })
+  );
+  const vouched = candidates.filter((_, i) => verdicts[i]);
 
   const seen = new Set<string>();
   const shelf: Sleeve[] = [];
+  /** How many places the roster has taken so far. */
+  let fromOurs = 0;
   // Sequential on purpose. Last.fm answers these from its own cache in
   // milliseconds and there is no rate limit worth racing, while firing
   // fifty at once is how a page starts timing out.
-  for (const artist of ordered) {
+  for (const artist of vouched) {
     if (shelf.length >= SHELF_SIZE + SHELF_SPARE) break;
     const tracks = await getArtistTopTracks(artist, 12).catch(() => []);
     if (tracks.length === 0) continue;
-    // Past the hits, then anything still not a hit by listener count -
-    // for the tag chart, where the names are big and their top tracks
-    // are the ones everybody has already heard.
-    //
-    // NOT for the roster. Skipping an artist's two biggest songs and
-    // then dropping whatever has too many listeners is the right rule
-    // for Jorja Smith and completely wrong for somebody with four
-    // uploads: it throws away half a small catalogue and can leave the
-    // artist off the shelf entirely, which is the exact complaint. A
-    // name on the roster is there because they should be seen, so their
-    // whole catalogue counts and their best song is allowed to be their
-    // best song.
-    // Deep first, for everybody. "DEEP CUTS OF ALL ARTIST GO DEEP" -
-    // so Whitney Houston is the album track, not the one off the advert,
-    // exactly like every other name here.
-    //
-    // The fallback is only for the roster, and only when going deep
-    // leaves NOTHING. Skipping an artist's two biggest songs and then
-    // dropping whatever has too many listeners is the right rule for a
-    // tag chart full of big names and ruinous for somebody with four
-    // uploads: it empties the catalogue and the artist never appears,
-    // which is the complaint. So a small roster artist gives up the deep
-    // cut rather than giving up their place on the shelf - and a big one
-    // never reaches this, because they have plenty past the hits.
+    // Deep cuts for everybody - Whitney Houston is the album track, not
+    // the one off the advert. The roster's one exemption is an artist
+    // whose catalogue is too small to go deep into at all. See deepCuts.
     const mine = ours.includes(artist);
-    let deep = excludeHits(tracks.slice(2));
-    if (mine && deep.length === 0) deep = tracks.slice(2);
-    if (mine && deep.length === 0) deep = tracks;
+    // A share of the shelf, not the run of it. Past this the roster
+    // stops taking places and the rest of the shelf is the scene at
+    // large, which is what keeps a visit different from the last one.
+    if (mine && fromOurs >= ROSTER_SHARE) continue;
+    const deep = deepCuts(tracks, rotateBy, mine);
     let taken = 0;
     for (const track of deep) {
-      if (taken >= 3) break;
+      // Two, not three. Ten artists at three each is thirty of a fifty
+      // shelf spent on ten names, which reads as repetitive however good
+      // the records are. Two spreads the same shelf over half again as
+      // many people.
+      if (taken >= 2) break;
       if (!track.name || !track.artist) continue;
       const key = workKey(track.name, track.artist);
-      if (seen.has(key) || known.works.has(key)) continue;
-      seen.add(key);
+      // Two keys on purpose: the strict one is what the rest of the site
+      // identifies a record by, the loose one is what stops the same
+      // song appearing three times under three version names.
+      const dupe = recordKey(track.name, track.artist);
+      if (seen.has(dupe) || known.works.has(key)) continue;
+      seen.add(dupe);
       taken++;
+      if (mine) fromOurs++;
       shelf.push({
         key,
         name: track.name,
