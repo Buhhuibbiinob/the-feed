@@ -14,6 +14,9 @@ import {
   SHELF_SIZE,
   axes,
   fillShelf,
+  recordKey,
+  orderSceneArtists,
+  deepCuts,
   isAxis,
   isShelfValue,
   shelfTitle,
@@ -23,6 +26,7 @@ import {
   filmPlaceTerm,
 } from "../src/lib/shelves";
 import { tagText, rosterFor, sameTag, SCENE_ROSTER, ROSTER_UNPLACED } from "../src/lib/lastfm";
+import { rotate } from "../src/lib/musicDiscovery";
 import { isGenreFor } from "../src/lib/genres";
 import { belongsOnShelf } from "../src/lib/shelfSpan";
 import { NOTHING_KNOWN, alreadyKnown, type SeedPost } from "../src/lib/musicDiscovery";
@@ -515,12 +519,15 @@ check(
   // people that maybe don't even have an audience".
   check(
     "the shelf leads with the least famous of the scene",
-    /rotate\(\[\.\.\.artists\]\.reverse\(\), rotateBy\)/.test(shelves)
+    /rotate\(\[\.\.\.tagArtists\]\.reverse\(\), rotateBy\)/.test(shelves)
   );
   // Anchored at the end. Without the boundary this matched `taken >= 30`
   // happily, so the cap could be lifted to thirty - one artist filling
   // the whole shelf - and the check would still say three.
-  check("and holds three to an artist like the others", /taken >= 3\)/.test(shelves));
+  // Two, not three. Ten artists at three each is thirty of a fifty-place
+  // shelf spent on ten names, which is what "its very repetitive too"
+  // was looking at.
+  check("and holds two to an artist, not three", /if \(taken >= 2\) break;/.test(shelves));
 
   // ---- the site's own artists are on their own scene's shelf ----
   //
@@ -572,24 +579,199 @@ check(
       sameTag("UK R&B", "uk-rnb") &&
       !sameTag("plugg", "pluggnb")
   );
+  // ---- the shelf is different every time you come back ----
+  //
+  // "it should refresh often and be different not the same each time."
+  //
+  // The spin is already random per request, so the tag chart was moving.
+  // The roster was not: I had pinned it to the front unrotated so it
+  // could never be missing, and fourteen UK R&B names at three records
+  // each is forty-two of a fifty-record shelf - identical, in identical
+  // order, on every load. Always PRESENT and always FIRST are different
+  // things and only the first was ever the requirement.
+  // RUN, not read. Every check below used to read the source for the
+  // right-looking lines, and all of them passed while five loads of the
+  // same shelf came back byte for byte identical. The ordering is a pure
+  // function now precisely so it can be called twice and compared.
+  {
+    const ours = ["KWN", "Sasha Keable", "Cleo Sol", "Mahalia"];
+    const chart = Array.from({ length: 40 }, (_, i) => `chart${i}`);
+    const runs = [1, 2, 3, 4, 5].map((seed) => orderSceneArtists(ours, chart, seed));
+
+    check("two spins do not give the same shelf", new Set(runs.map((r) => r.join(","))).size === 5);
+    check(
+      "a different one of ours leads each time",
+      new Set(runs.map((r) => r[0])).size > 1
+    );
+    check(
+      "but every one of ours is always on it",
+      runs.every((r) => ours.every((a) => r.includes(a)))
+    );
+    check(
+      "and nobody is listed twice",
+      runs.every((r) => new Set(r).size === r.length)
+    );
+    check(
+      "and the whole scene is still reachable",
+      runs.every((r) => r.length === ours.length + chart.length)
+    );
+  }
+
+  // ---- one stray tag does not put three wrong records on a shelf ----
+  //
+  // Bubba, whose covers are black metal, was on the New Jack Swing
+  // shelf with three records, beside an ambient act and a Brazilian pop
+  // act with three each. tag.getTopArtists reported them faithfully -
+  // somebody really did apply that tag. The fault was walking the
+  // artist's WHOLE catalogue on the strength of it, which turns one
+  // stray tag into three wrong sleeves.
   check(
-    "and it is not rotated away on some days",
-    /\[\.\.\.ours, \.\.\.rotated\.filter\(/.test(shelves)
+    "an artist off the chart is checked against their own tags",
+    /const verdicts = await Promise\.all\(/.test(shelves) &&
+      /return tags\.some\(\(t\) => sameTag\(t, tag\) \|\| sameTag\(t, scene\)\)/.test(shelves)
   );
+  check(
+    "and only the ones that survive are walked",
+    /for \(const artist of vouched\) \{/.test(shelves)
+  );
+  // A roster name was placed by a person on purpose. A chart does not
+  // get to overrule that.
+  check(
+    "a roster name is not second-guessed by the chart",
+    /if \(ours\.includes\(artist\)\) return true;/.test(shelves)
+  );
+  // An artist nobody has tagged is exactly who these shelves are for.
+  // Silence must not be read as a refusal, or the check deletes the
+  // unknown artists it exists to protect.
+  check(
+    "an untagged artist is kept, not thrown out",
+    /if \(tags\.length === 0\) return true;/.test(shelves)
+  );
+
+  // ---- the New Jack Swing shelf, record by record ----
+  //
+  // "like some of this stuff is not new jack swing" and "its very
+  // repetitive too", with a screenshot. Every case below is off that
+  // shelf, so a regression here is a shelf somebody has already seen go
+  // wrong.
+  {
+    // One record, three sleeves. All three pairs were on the shelf at
+    // once.
+    // The shelf has to USE it. Every check below tests recordKey
+    // directly, and all of them stayed green with the shelf switched
+    // back to the strict key and the duplicates on it again - the
+    // seventh time in this file a check has passed while the thing it
+    // checks was gone.
+    check(
+      "the shelf dedupes on the loose key",
+      /const dupe = recordKey\(track\.name, track\.artist\);/.test(shelves) &&
+        /if \(seen\.has\(dupe\) \|\| known\.works\.has\(key\)\) continue;/.test(shelves) &&
+        /seen\.add\(dupe\);/.test(shelves)
+    );
+
+    const same = (a: [string, string], b: [string, string]) =>
+      recordKey(a[0], a[1]) === recordKey(b[0], b[1]);
+    check(
+      "Rumors and Rumours are one record",
+      same(["Rumors - 1986 Version", "Timex Social Club"], ["Rumours - Long Version", "Timex Social Club"])
+    );
+    check(
+      "Breakin' 84 and its mix are one record",
+      same(["Breakin' 84", "1-900"], ["Breakin' 84 - Vibes4Yourmind Mix", "1-900"])
+    );
+    check(
+      "and a re-recording is not a second record",
+      same(["I'll Do 4 U", "Father MC"], ["I'll Do 4 U (Re-Recorded)", "Father MC"])
+    );
+    // But two genuinely different songs must stay two.
+    check(
+      "two different songs stay two",
+      !same(["Tell Me", "Keith Washington"], ["Love Me", "Keith Washington"])
+    );
+    check(
+      "and the same title by two artists stays two",
+      !same(["Dedicated", "R. Kelly"], ["Dedicated", "Damian Dame"])
+    );
+    // A dash that is part of the title is not version talk.
+    check(
+      "a dash that is part of the name survives",
+      !same(["Push It - Part 2", "X"], ["Push It", "X"])
+    );
+  }
+
+  // The deep-cut rule, also run rather than read.
+  {
+    const t = (name: string, listeners: number) => ({
+      id: name,
+      name,
+      artist: "A",
+      imageUrl: null,
+      listeners,
+    });
+    // Every one of these is UNDER the ceiling, so the filter cannot
+    // remove them and only the skip can. The first version of this used
+    // a catalogue of millions, where the filter dropped the top songs
+    // anyway and the check passed with the skip set to zero - green for
+    // a reason that had nothing to do with what it claimed to test.
+    const modest = Array.from({ length: 12 }, (_, i) => t(`song${i}`, 90_000 - i * 1_000));
+    const skipped = deepCuts(modest, 0, false);
+    check(
+      "an artist's biggest songs are skipped even when they are not hits",
+      !skipped.some((x) => x.name === "song0" || x.name === "song1" || x.name === "song2")
+    );
+    check("and the rest of the catalogue is kept", skipped.length === 9);
+    // A short catalogue has nothing to skip and must not be emptied.
+    const short = [t("a", 50), t("b", 40), t("c", 30)];
+    check("a short catalogue is not skipped into nothing", deepCuts(short, 0, false).length === 3);
+
+    const big = Array.from({ length: 12 }, (_, i) => t(`song${i}`, 1_000_000 - i * 90_000));
+    const cut = deepCuts(big, 0, false);
+    check("and anything with radio numbers is dropped", cut.every((x) => (x.listeners ?? 0) < 120_000));
+
+    // Same artist, different visit, different record.
+    const first = deepCuts(big, 1, false)[0]?.name;
+    const second = deepCuts(big, 2, false)[0]?.name;
+    check("a returning artist brings a different record", Boolean(first) && first !== second);
+
+    // A tiny catalogue must survive the filter, or the artist vanishes.
+    const tiny = [t("only1", 4_000_000), t("only2", 3_000_000)];
+    check("a small roster artist still appears", deepCuts(tiny, 0, true).length > 0);
+    check("and a tag-chart name does not get that rescue", deepCuts(tiny, 0, false).length === 0);
+  }
+  check(
+    "and it takes a share of the shelf rather than the run of it",
+    /if \(mine && fromOurs >= ROSTER_SHARE\) continue;/.test(shelves) &&
+      /const ROSTER_SHARE = Math\.ceil\(SHELF_SIZE \/ 3\);/.test(shelves)
+  );
+  // The share has to leave most of the shelf to the scene, or "different
+  // each time" quietly stops being true again.
+  check(
+    "and that share is a minority of the shelf",
+    Math.ceil(SHELF_SIZE / 3) * 2 < SHELF_SIZE
+  );
+  // Same artist, different record. Otherwise a rotated roster still
+  // shows KWN's same three songs in a different order.
+  // And the spin itself must stay per-request. Pinned to the day, every
+  // one of the above changes once at midnight and never again.
+  const page = readFileSync("src/app/shelves/page.tsx", "utf8");
+  check("the spin is fresh per request, not per day", /const spin = shuffleSeed\(\);/.test(page));
+  check(
+    "and shuffleSeed really is random",
+    /Math\.floor\(Math\.random\(\) \* 1_000_000\)/.test(
+      readFileSync("src/lib/musicDiscovery.ts", "utf8")
+    )
+  );
+  // rotate has to actually move things, or every seed lands identically.
+  {
+    const list = ["a", "b", "c", "d", "e"];
+    const seeds = new Set([0, 1, 2, 3, 4].map((n) => rotate(list, n).join("")));
+    check("and rotate genuinely reorders", seeds.size === 5);
+  }
   // "DEEP CUTS OF ALL ARTIST GO DEEP" - so the hits are skipped for
   // everybody, roster included: Whitney Houston is the album track.
-  check(
-    "deep cuts are the rule for everyone, roster included",
-    /let deep = excludeHits\(tracks\.slice\(2\)\);/.test(shelves)
-  );
   // But going deep on somebody with four uploads empties the catalogue
   // and the artist never appears at all, which is the complaint. They
   // give up the deep cut rather than their place on the shelf.
-  check(
-    "and a small roster artist appears rather than going deep into nothing",
-    /if \(mine && deep\.length === 0\) deep = tracks\.slice\(2\);/.test(shelves) &&
-      /if \(mine && deep\.length === 0\) deep = tracks;/.test(shelves)
-  );
   // The fallback is the ROSTER's alone. A big name off the tag chart
   // must never reach it, or the shelf fills with the hits it exists to
   // avoid.
