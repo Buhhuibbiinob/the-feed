@@ -3,6 +3,7 @@ import {
   excludeHits,
   getArtistTopTracks,
   getArtistsByTag,
+  rosterFor,
   getTracksByTag,
   tagText,
   type LastfmTrack,
@@ -629,17 +630,28 @@ export type ShelfResult = {
  * this scene has already heard.
  */
 async function sceneShelfFromArtists(
+  scene: string,
   tag: string,
   known: Known,
   rotateBy: number
 ): Promise<Sleeve[]> {
   const artists = await getArtistsByTag(tag, 100).catch(() => []);
-  if (artists.length === 0) return [];
+  // The site's own roster leads, and it leads even when Last.fm has
+  // nothing for the tag at all - which is the case that matters, because
+  // it is the small artists whose scenes are thin.
+  const ours = rosterFor(scene);
+  if (artists.length === 0 && ours.length === 0) return [];
 
   // Least famous first. tag.getTopArtists is ordered by popularity, so
   // the back of the list is where the people with no audience are - and
   // that is what these shelves are for.
-  const ordered = rotate([...artists].reverse(), rotateBy);
+  //
+  // The roster is not rotated and not reversed: it goes in front and
+  // stays in front. A shelf headed UK R&B that does not have the UK R&B
+  // artists this site chose to name is the thing that was reported, and
+  // rotating them would mean they are only sometimes there.
+  const rotated = rotate([...artists].reverse(), rotateBy);
+  const ordered = [...ours, ...rotated.filter((a) => !ours.includes(a))];
 
   const seen = new Set<string>();
   const shelf: Sleeve[] = [];
@@ -650,8 +662,34 @@ async function sceneShelfFromArtists(
     if (shelf.length >= SHELF_SIZE + SHELF_SPARE) break;
     const tracks = await getArtistTopTracks(artist, 12).catch(() => []);
     if (tracks.length === 0) continue;
-    // Past the hits, then anything still not a hit by listener count.
-    const deep = excludeHits(tracks.slice(2));
+    // Past the hits, then anything still not a hit by listener count -
+    // for the tag chart, where the names are big and their top tracks
+    // are the ones everybody has already heard.
+    //
+    // NOT for the roster. Skipping an artist's two biggest songs and
+    // then dropping whatever has too many listeners is the right rule
+    // for Jorja Smith and completely wrong for somebody with four
+    // uploads: it throws away half a small catalogue and can leave the
+    // artist off the shelf entirely, which is the exact complaint. A
+    // name on the roster is there because they should be seen, so their
+    // whole catalogue counts and their best song is allowed to be their
+    // best song.
+    // Deep first, for everybody. "DEEP CUTS OF ALL ARTIST GO DEEP" -
+    // so Whitney Houston is the album track, not the one off the advert,
+    // exactly like every other name here.
+    //
+    // The fallback is only for the roster, and only when going deep
+    // leaves NOTHING. Skipping an artist's two biggest songs and then
+    // dropping whatever has too many listeners is the right rule for a
+    // tag chart full of big names and ruinous for somebody with four
+    // uploads: it empties the catalogue and the artist never appears,
+    // which is the complaint. So a small roster artist gives up the deep
+    // cut rather than giving up their place on the shelf - and a big one
+    // never reaches this, because they have plenty past the hits.
+    const mine = ours.includes(artist);
+    let deep = excludeHits(tracks.slice(2));
+    if (mine && deep.length === 0) deep = tracks.slice(2);
+    if (mine && deep.length === 0) deep = tracks;
     let taken = 0;
     for (const track of deep) {
       if (taken >= 3) break;
@@ -706,50 +744,65 @@ export async function getShelf(
   // and the records arrive with their own artwork and their own player,
   // so they are also the only shelves where nothing has to be looked up
   // afterwards to be seen or heard. See lib/youtubeScenes.
-  if (axis === "scene" && isYoutubeScene(value)) {
-    const fromYoutube = await getYoutubeSceneShelf(
-      tag,
-      known,
-      SHELF_SIZE + SHELF_SPARE,
-      rotateBy,
-      dayIndex()
-    );
-    // A quota that has run out, or a key that is not set, must not leave
-    // a scene with no shelf at all - so it falls through to Last.fm,
-    // which will be thin for these but is better than empty.
-    if (fromYoutube.records.length > 0) {
-      return { records: fromYoutube.records, source: "youtube" };
+  if (axis === "scene") {
+    // The tag FIRST, and this is the correction to the last fix.
+    //
+    // Reported twice, the second time after I had supposedly fixed it:
+    // "the genres up here and the jams up here not the jams at all. It
+    // looks like they just used the filter to find the names."
+    //
+    // The first fix replaced the Deezer text search that sat BELOW this
+    // with real tag data, and it was the right fix aimed at the wrong
+    // source. YouTube ran first, and asking YouTube for "uk r&b" is the
+    // same text search wearing a different logo - it returns whatever
+    // ranks for that phrase. So on every shelf where YouTube had budget,
+    // which after the budgeting work is all of them, the fallback never
+    // ran and nothing changed. The reader was right both times.
+    //
+    // A tag is a different kind of claim. It is a person saying this
+    // artist IS this thing, and it is the only real genre data any free
+    // service has. So it leads now, for every scene, and a shelf is
+    // built from artists the crowd put in that scene rather than from
+    // whatever matched a phrase.
+    const fromArtists = await sceneShelfFromArtists(value, tag, known, rotateBy);
+    if (fromArtists.length >= SHELF_SIZE) {
+      return { records: fromArtists, source: "lastfm" };
     }
-    // Nothing from YouTube. What used to happen here was a Deezer TEXT
-    // SEARCH on the scene's name, and it was wrong in a way worth
-    // spelling out, because it is the difference between a shelf and a
-    // search results page.
-    //
-    // Searching Deezer for "uk r&b" returns records whose TITLE contains
-    // those words. It does not return UK R&B. So the shelf filled up
-    // with things that are not the genre at all and read exactly as it
-    // was: somebody typed the filter into a search box and shipped the
-    // results.
-    //
-    // A tag is different in kind. It is a statement by a person that
-    // this artist IS that thing, and thousands of people have made those
-    // statements over twenty years - it is the only real genre data any
-    // free service has. So the fallback walks the tag to its ARTISTS and
-    // then into their catalogues: every record is by somebody the crowd
-    // says belongs in that scene, rather than by somebody whose song
-    // title happened to match.
-    //
-    // It is also far deeper than the tag's own track chart. A chart is a
-    // few hundred songs; fifty artists times their catalogues is
-    // thousands, which is where the records nobody has heard live.
-    const fromArtists = await sceneShelfFromArtists(tag, known, rotateBy);
-    if (fromArtists.length > 0) return { records: fromArtists, source: "lastfm" };
 
-    // Last.fm is still worth asking after that - it is thin for these
-    // scenes rather than empty - and the reason YouTube had nothing is
-    // carried on in case nothing else has anything either, so the page
-    // can say which thing failed instead of shrugging.
-    youtubeFailure = fromYoutube.failure;
+    // YouTube second, and only for what the tags could not fill.
+    //
+    // Still worth having, because it is genuinely the only source for
+    // some of these. Last.fm has twenty years of people tagging "uk r&b"
+    // and almost nobody tagging "dariacore" - those scenes live on
+    // YouTube and nowhere else, and for them a phrase search is the best
+    // available answer rather than a lazy one. See looksLikeScene, which
+    // is what keeps that answer honest.
+    if (isYoutubeScene(value)) {
+      const fromYoutube = await getYoutubeSceneShelf(
+        tag,
+        known,
+        SHELF_SIZE + SHELF_SPARE,
+        rotateBy,
+        dayIndex()
+      );
+      if (fromYoutube.records.length > 0) {
+        const seen = new Set(fromArtists.map((r) => r.key));
+        const records = [...fromArtists];
+        for (const record of fromYoutube.records) {
+          if (seen.has(record.key)) continue;
+          seen.add(record.key);
+          records.push(record);
+          if (records.length >= SHELF_SIZE + SHELF_SPARE) break;
+        }
+        return { records, source: fromArtists.length > 0 ? "lastfm" : "youtube" };
+      }
+      // The reason YouTube had nothing is carried on in case nothing
+      // else has anything either, so the page can say which thing failed
+      // instead of shrugging.
+      youtubeFailure = fromYoutube.failure;
+    }
+
+    if (fromArtists.length > 0) return { records: fromArtists, source: "lastfm" };
   }
 
   // Two pages, in parallel, and the second one moves.
@@ -810,7 +863,7 @@ export async function getShelf(
   // return records from every other year they ever worked.
   if (axis === "scene" && shelf.length < SHELF_SIZE) {
     const seen = new Set(shelf.map((r) => r.key));
-    for (const record of await sceneShelfFromArtists(tag, known, rotateBy)) {
+    for (const record of await sceneShelfFromArtists(value, tag, known, rotateBy)) {
       if (seen.has(record.key)) continue;
       seen.add(record.key);
       shelf.push(record);

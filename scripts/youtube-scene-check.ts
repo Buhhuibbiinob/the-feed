@@ -164,11 +164,38 @@ check("a scene is searched as words, not as a slug", !sceneQuery(tagText("uk-rnb
     "but a real hexd record stays",
     looksLikeScene(real, "hexd") && parseVideoTitle(real) !== null
   );
-  // A scene named in two words describes itself and is left alone - "uk
-  // r&b" does not collide with anything the way "drain" does.
+  // ---- a multi-word scene is filtered too ----
+  //
+  // This check used to assert the OPPOSITE: that "uk r&b" describes
+  // itself and needs no filtering. That was a guess, it was wrong, and
+  // it is why the UK R&B shelf kept coming back full of records that
+  // were not UK R&B even after the tag fix - nothing whatsoever was
+  // checking them.
   check(
-    "a two-word scene is not word-filtered",
-    looksLikeScene(v("Some Artist - Some Song"), "uk r&b")
+    "a record that says nothing about the scene is not claimed for it",
+    !looksLikeScene(v("Some Artist - Some Song"), "uk r&b")
+  );
+  // The whole point of cutting both sides on punctuation: as a string
+  // "uk r&b" matches none of these, as pieces it matches all of them.
+  for (const title of [
+    "Sample Artist - Nightdrive (UK R&B)",
+    "sample artist // uk rnb // new",
+    "SAMPLE ARTIST - LATE [UK-R&B]",
+  ]) {
+    check(`a real uk r&b record stays - ${JSON.stringify(title.slice(0, 30))}`,
+      looksLikeScene(v(title), "uk r&b"));
+  }
+  // And the collision the old exemption let straight through: "uk" is
+  // the start of "Ukrainian", not the word.
+  check(
+    "a longer word that merely starts with the scene's is not a match",
+    !looksLikeScene(v("Ukrainian Rap Battle - R B Session"), "uk r&b")
+  );
+  // Two-word scenes, same rule.
+  check(
+    "jersey club needs both words",
+    looksLikeScene(v("DJ Sample - Knuck (Jersey Club)"), "jersey club") &&
+      !looksLikeScene(v("DJ Sample - New Jersey Sunset"), "jersey club")
   );
 }
 

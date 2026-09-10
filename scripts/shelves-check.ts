@@ -22,7 +22,8 @@ import {
   isMedium,
   filmPlaceTerm,
 } from "../src/lib/shelves";
-import { tagText } from "../src/lib/lastfm";
+import { tagText, rosterFor, SCENE_ROSTER } from "../src/lib/lastfm";
+import { isGenreFor } from "../src/lib/genres";
 import { belongsOnShelf } from "../src/lib/shelfSpan";
 import { NOTHING_KNOWN, alreadyKnown, type SeedPost } from "../src/lib/musicDiscovery";
 import type { LastfmTrack } from "../src/lib/lastfm";
@@ -424,22 +425,20 @@ check(
   // import line and stayed green with the fallback deleted, which is the
   // same mistake the Deezer matching check made - a check that passes
   // while the thing it checks is gone is worse than no check.
-  // The RETURN, not just the call. The first version of this matched
-  // `await sceneShelfFromArtists(...)` and stayed green with the whole
-  // fallback deleted, because the thin-scene top-up further down calls
-  // the same function - the fifth time in this file a check has passed
-  // while the thing it checks was gone. Matched on the line that can
-  // only exist at the fallback site.
+  // The ORDER, which is the whole of the second fix.
+  //
+  // The first fix replaced a Deezer text search with real tag data and
+  // aimed it at the wrong source: YouTube ran first, and asking YouTube
+  // for "uk r&b" is the same text search wearing a different logo. With
+  // budget in hand YouTube always answered, so the tag path never ran
+  // and the reader saw no change at all. The tag has to LEAD.
+  const tagAt = shelves.indexOf("await sceneShelfFromArtists(value, tag, known, rotateBy)");
+  const youtubeAt = shelves.indexOf("await getYoutubeSceneShelf(");
+  check("a scene shelf is built from the tag's artists", tagAt !== -1);
+  check("and the tag is asked BEFORE the YouTube phrase search", tagAt !== -1 && tagAt < youtubeAt);
   check(
-    "a scene shelf falls back to the tag's artists",
-    /const fromArtists = await sceneShelfFromArtists\(tag, known, rotateBy\);/.test(shelves) &&
-      /if \(fromArtists\.length > 0\) return \{ records: fromArtists, source: "lastfm" \};/.test(
-        shelves
-      )
-  );
-  check(
-    "and that is tried before giving up on the catalogues",
-    shelves.indexOf("await sceneShelfFromArtists") < shelves.indexOf("getTracksByTag(tag, 120)")
+    "and before giving up on the catalogues",
+    tagAt !== -1 && tagAt < shelves.indexOf("getTracksByTag(tag, 120)")
   );
 
   // "Wait a few seconds and try again" must not be shown on a shelf
@@ -522,6 +521,56 @@ check(
   // happily, so the cap could be lifted to thirty - one artist filling
   // the whole shelf - and the check would still say three.
   check("and holds three to an artist like the others", /taken >= 3\)/.test(shelves));
+
+  // ---- the site's own artists are on their own scene's shelf ----
+  //
+  // "i dont see kwn in sasha keable", after asking for them twice
+  // before. They were in SEED_ARTISTS, which ONLY the Discover engine
+  // reads - the shelves had never looked at it, so a small artist could
+  // sit in this repo forever and never reach the one shelf they belong
+  // on, because Last.fm's tag chart is ordered by popularity and does
+  // not name them.
+  check("the roster leads its scene's shelf", /const ours = rosterFor\(scene\);/.test(shelves));
+  check(
+    "and it is not rotated away on some days",
+    /\[\.\.\.ours, \.\.\.rotated\.filter\(/.test(shelves)
+  );
+  // "DEEP CUTS OF ALL ARTIST GO DEEP" - so the hits are skipped for
+  // everybody, roster included: Whitney Houston is the album track.
+  check(
+    "deep cuts are the rule for everyone, roster included",
+    /let deep = excludeHits\(tracks\.slice\(2\)\);/.test(shelves)
+  );
+  // But going deep on somebody with four uploads empties the catalogue
+  // and the artist never appears at all, which is the complaint. They
+  // give up the deep cut rather than their place on the shelf.
+  check(
+    "and a small roster artist appears rather than going deep into nothing",
+    /if \(mine && deep\.length === 0\) deep = tracks\.slice\(2\);/.test(shelves) &&
+      /if \(mine && deep\.length === 0\) deep = tracks;/.test(shelves)
+  );
+  // The fallback is the ROSTER's alone. A big name off the tag chart
+  // must never reach it, or the shelf fills with the hits it exists to
+  // avoid.
+  check(
+    "and a tag-chart name never gets that fallback",
+    !/if \(deep\.length === 0\) deep = tracks;/.test(shelves)
+  );
+  check(
+    "and the shelf still fills even when the tag chart is empty",
+    /if \(artists\.length === 0 && ours\.length === 0\) return \[\];/.test(shelves)
+  );
+  // The names that were actually asked for, on the shelf they were
+  // asked for.
+  check(
+    "KWN and Sasha Keable are filed under UK R&B",
+    rosterFor("uk-rnb").includes("KWN") && rosterFor("uk-rnb").includes("Sasha Keable")
+  );
+  // Every roster scene has to be a real genre slug, or its artists are
+  // filed under a shelf that does not exist and silently never appear.
+  for (const scene of Object.keys(SCENE_ROSTER)) {
+    check(`the roster scene ${scene} is a real genre`, isGenreFor("music", scene));
+  }
 }
 
 
