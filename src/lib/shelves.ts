@@ -3,7 +3,10 @@ import {
   excludeHits,
   getArtistTopTracks,
   getArtistsByTag,
+  getArtistTags,
   rosterFor,
+  sameTag,
+  ROSTER_UNPLACED,
   getTracksByTag,
   tagText,
   type LastfmTrack,
@@ -635,11 +638,32 @@ async function sceneShelfFromArtists(
   known: Known,
   rotateBy: number
 ): Promise<Sleeve[]> {
-  const artists = await getArtistsByTag(tag, 100).catch(() => []);
+  // Asked together: the tag's own artists, and the tags of everyone on
+  // the site whose scene nobody could name.
+  const [artists, unplaced] = await Promise.all([
+    getArtistsByTag(tag, 100).catch(() => []),
+    // Nobody knew what Tezzus fits under, including the person who asked
+    // for him. So he is not assigned a scene - the people who listen to
+    // him are, and their tags are checked here against the shelf being
+    // built. An artist nobody has tagged yet simply is not claimed by
+    // this, and keeps the broad placement in SCENE_ROSTER.
+    Promise.all(
+      ROSTER_UNPLACED.map(async (artist) => ({
+        artist,
+        tags: await getArtistTags(artist).catch(() => [] as string[]),
+      }))
+    ).catch(() => []),
+  ]);
+
+  const claimed = unplaced
+    .filter(({ tags }) => tags.some((t) => sameTag(t, tag) || sameTag(t, scene)))
+    .map(({ artist }) => artist);
+
   // The site's own roster leads, and it leads even when Last.fm has
   // nothing for the tag at all - which is the case that matters, because
   // it is the small artists whose scenes are thin.
-  const ours = rosterFor(scene);
+  const placed = rosterFor(scene);
+  const ours = [...claimed, ...placed.filter((a) => !claimed.includes(a))];
   if (artists.length === 0 && ours.length === 0) return [];
 
   // Least famous first. tag.getTopArtists is ordered by popularity, so

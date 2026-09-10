@@ -22,7 +22,7 @@ import {
   isMedium,
   filmPlaceTerm,
 } from "../src/lib/shelves";
-import { tagText, rosterFor, SCENE_ROSTER } from "../src/lib/lastfm";
+import { tagText, rosterFor, sameTag, SCENE_ROSTER, ROSTER_UNPLACED } from "../src/lib/lastfm";
 import { isGenreFor } from "../src/lib/genres";
 import { belongsOnShelf } from "../src/lib/shelfSpan";
 import { NOTHING_KNOWN, alreadyKnown, type SeedPost } from "../src/lib/musicDiscovery";
@@ -530,7 +530,48 @@ check(
   // sit in this repo forever and never reach the one shelf they belong
   // on, because Last.fm's tag chart is ordered by popularity and does
   // not name them.
-  check("the roster leads its scene's shelf", /const ours = rosterFor\(scene\);/.test(shelves));
+  check("the roster leads its scene's shelf", /const placed = rosterFor\(scene\);/.test(shelves));
+
+  // ---- an artist nobody could place is placed by the people who listen ----
+  //
+  // "i meant braker and tezzus idk what he fits under". Neither did I,
+  // and a guess here puts a real person on a shelf they are not on -
+  // which is the failure this area has been fixed for twice already. So
+  // the artist is asked ABOUT rather than assigned: if people have
+  // tagged Tezzus with the scene being built, he leads it.
+  check(
+    "an unplaced artist's own tags are asked for",
+    /ROSTER_UNPLACED\.map\(async \(artist\) => \(\{/.test(shelves) &&
+      /await getArtistTags\(artist\)/.test(shelves)
+  );
+  check(
+    "and they lead the shelf their tags name",
+    /tags\.some\(\(t\) => sameTag\(t, tag\) \|\| sameTag\(t, scene\)\)/.test(shelves)
+  );
+  check(
+    "and they are asked alongside the tag chart, not after it",
+    /await Promise\.all\(\[\s*\n\s*getArtistsByTag\(tag, 100\)/.test(shelves)
+  );
+  // Tezzus is NOT filed under a specific scene by me.
+  check(
+    "Tezzus and Braker are unplaced rather than guessed",
+    ROSTER_UNPLACED.includes("Tezzus") && ROSTER_UNPLACED.includes("Braker")
+  );
+  // But they are not invisible while nobody has tagged them either.
+  check(
+    "and they still have a broad shelf in the meantime",
+    rosterFor("underground-hip-hop").includes("Tezzus") &&
+      rosterFor("underground-hip-hop").includes("Braker")
+  );
+  // The comparison has to survive punctuation, or a tag reading
+  // "underground hip hop" never matches the slug "underground-hip-hop"
+  // and none of this does anything at all.
+  check(
+    "a tag matches its slug through the punctuation",
+    sameTag("underground hip hop", "underground-hip-hop") &&
+      sameTag("UK R&B", "uk-rnb") &&
+      !sameTag("plugg", "pluggnb")
+  );
   check(
     "and it is not rotated away on some days",
     /\[\.\.\.ours, \.\.\.rotated\.filter\(/.test(shelves)
