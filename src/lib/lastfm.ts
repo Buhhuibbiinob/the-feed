@@ -449,6 +449,7 @@ export const SCENE_ROSTER: Record<string, string[]> = {
   // of them the moment somebody who knows says otherwise.
   "underground-hip-hop": [
     "Tezzus",
+    "Braker",
     "Nine Vicious",
     "Rommulas",
     "Lucy Bedroque",
@@ -464,6 +465,29 @@ export const SCENE_ROSTER: Record<string, string[]> = {
   hyperpop: ["Alice Longyu Gao", "Frost Children", "f5ve", "underscores"],
   trap: ["Kevin Gates"],
 };
+/**
+ * On the site, scene unknown.
+ *
+ * Names somebody asked for whose genre neither of us can name - "tezzus
+ * idk what he fits under" - plus anyone else who arrived in a message
+ * without one. They are NOT guessed into a specific scene, because a
+ * wrong guess puts a real person on a shelf they are not on.
+ *
+ * Instead their own Last.fm tags decide, per shelf, at the time the
+ * shelf is built: if people have tagged Tezzus with the scene being
+ * looked at, he leads it, and if nobody has tagged him at all he keeps
+ * the broad placement in SCENE_ROSTER so he is somewhere rather than
+ * nowhere. Move a name out of here the moment somebody who knows the
+ * music says where it goes.
+ */
+export const ROSTER_UNPLACED = [
+  "Tezzus",
+  "Braker",
+  "Nine Vicious",
+  "Rommulas",
+  "Lucy Bedroque",
+];
+
 /** The site's own artists for one scene, or none. */
 export function rosterFor(scene: string): string[] {
   return SCENE_ROSTER[scene] ?? [];
@@ -492,6 +516,47 @@ export async function getSimilarArtists(artist: string, limit = 20): Promise<str
   } catch {
     return [];
   }
+}
+
+/**
+ * The tags people have put on one artist.
+ *
+ * The other half of the same idea as getArtistsByTag, asked from the
+ * other end, and it exists because of a question nobody could answer:
+ * "tezzus idk what he fits under". Neither did I. Guessing a scene for a
+ * real person is the exact failure these shelves have now been fixed for
+ * twice, so instead the artist is asked about rather than assigned.
+ *
+ * If people have tagged them, that is a real answer from people who know
+ * the music, and it beats anything either of us would have picked. If
+ * nobody has tagged them yet - which is normal for somebody with a few
+ * hundred plays - it returns nothing, and the caller keeps the broad
+ * placement so the artist is still somewhere rather than nowhere.
+ */
+export async function getArtistTags(artist: string): Promise<string[]> {
+  const apiKey = process.env.LASTFM_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const res = await cachedFetch(
+      `https://ws.audioscrobbler.com/2.0/?method=artist.gettoptags&artist=${encodeURIComponent(
+        artist
+      )}&api_key=${apiKey}&format=json`,
+      86400
+    );
+    if (!res || !res.ok) return [];
+    const data = (await res.json()) as { toptags?: { tag?: { name?: string }[] } };
+    return (data.toptags?.tag ?? [])
+      .map((t) => t.name)
+      .filter((n): n is string => Boolean(n && n.trim()));
+  } catch {
+    return [];
+  }
+}
+
+/** Two genre names compared with the punctuation taken out. */
+export function sameTag(a: string, b: string): boolean {
+  const flat = (v: string) => v.toLowerCase().replace(/\br(?:n|and)b\b/g, "rb").replace(/[^a-z0-9]/g, "");
+  return flat(a) === flat(b);
 }
 
 /** One artist's top tracks, most played first. */
