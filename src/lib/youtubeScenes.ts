@@ -159,6 +159,27 @@ export type ParsedTrack = { name: string; artist: string };
  * because it is indistinguishable from a real one until you press it.
  */
 /**
+ * A string cut into comparable pieces.
+ *
+ * Cut on anything that is not a letter or a digit, so punctuation stops
+ * mattering - "uk r&b", "UK-R&B" and "uk r & b" all become the same
+ * three pieces.
+ *
+ * The one spelling that needs saying out loud is rnb. Uploaders write
+ * this genre four ways and "rnb" is the commonest of them, but as a
+ * piece it is a single token that lines up with nothing, so a correctly
+ * labelled "uk rnb" upload was being thrown off the UK R&B shelf for not
+ * mentioning UK R&B. It is spelled back out before the cut.
+ */
+function pieces(value: string): string[] {
+  return value
+    .toLowerCase()
+    .replace(/\br(?:n|and)b\b/g, "r b")
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+}
+
+/**
  * Whether this result is plausibly about the scene that was asked for.
  *
  * A search for "hexd" returned Hex, Hexed, HEX BLOOD and Hex Girls -
@@ -168,17 +189,30 @@ export type ParsedTrack = { name: string; artist: string };
  * scene's own words have to appear as WHOLE words in the title, the
  * channel or the description of what came back.
  *
- * Only applied to one-word scene names. "uk r&b" and "jersey club"
- * describe themselves; "drain" and "hexd" are the ones that collide with
- * ordinary English and with other artists' names.
+ * It used to apply to ONE-WORD scene names only, on the reasoning that
+ * "uk r&b" and "jersey club" describe themselves. They do not. Nothing
+ * whatever was filtering the UK R&B shelf, which is a large part of why
+ * it kept coming back full of records that were not UK R&B, and the
+ * exemption was a guess dressed up as a rule.
+ *
+ * Every scene is checked now. A phrase search is the loosest question
+ * this site asks anything, so it gets the strictest reading of the
+ * answer: if the scene's own words are not there, the record is not
+ * claimed to be of that scene. The cost of being wrong here is a sleeve
+ * that lies about what it is, and a shorter shelf is cheaper than that -
+ * doubly so now that YouTube only fills in behind the tags.
  */
 export function looksLikeScene(video: YoutubeVideo, sceneText: string): boolean {
-  const words = sceneText.split(/\s+/).filter(Boolean);
-  if (words.length !== 1) return true;
-  const word = words[0].replace(/[^a-z0-9]/gi, "");
-  if (word.length < 3) return true;
-  const haystack = `${video.title} ${video.channelTitle}`.toLowerCase();
-  return new RegExp(`(^|[^a-z0-9])${word}([^a-z0-9]|$)`, "i").test(haystack);
+  // Both sides cut the same way, on anything that is not a letter or a
+  // digit. That is what lets "uk r&b" be compared at all: as a string it
+  // never matches, but as the pieces uk / r / b it lines up with "UK
+  // R&B", "UK RnB" and "uk-r&b" alike, and does NOT line up with
+  // "Ukrainian Rap", where "uk" is only the start of a longer word.
+  const want = pieces(sceneText);
+  if (want.length === 0) return true;
+
+  const haystack = new Set(pieces(`${video.title} ${video.channelTitle}`));
+  return want.every((piece) => haystack.has(piece));
 }
 
 export function parseVideoTitle(video: YoutubeVideo): ParsedTrack | null {

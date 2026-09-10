@@ -356,6 +356,119 @@ const SEEDS_RNB = [
 
 export const SEED_ARTISTS = [...SEEDS_UNDERGROUND, ...SEEDS_RNB];
 
+/**
+ * The site's own roster, filed by scene, and read by the SHELVES.
+ *
+ * Asked three times now, the last time as "i dont see kwn in sasha
+ * keable", and the reason is worth stating plainly because it was not a
+ * bug so much as a thing that was never built.
+ *
+ * SEED_ARTISTS above is read by ONE consumer: the Discover engine, which
+ * picks a name at random to walk out from. The shelves have never looked
+ * at it. So a shelf headed UK R&B was built entirely from whoever
+ * Last.fm's tag chart names - and Last.fm's tag chart is ordered by
+ * popularity, so a small artist is not on it at all. KWN could be in
+ * this file forever and never appear on the one shelf they belong on.
+ *
+ * This list is the shelves' half. An artist here leads their scene's
+ * shelf, ahead of the tag chart, which is the right way round for a site
+ * about the people on it rather than the people with the plays.
+ *
+ * Only where the scene is actually known. Several of these were added
+ * because somebody named them in a message, not because I know the
+ * music, and putting an artist on the wrong shelf is the same failure
+ * this whole area was just fixed for - so anyone I could not place is
+ * left off rather than guessed at, and still reaches Discover through
+ * SEED_ARTISTS exactly as before. It is a hand-kept list: add a name to
+ * a scene and they are on that shelf.
+ */
+export const SCENE_ROSTER: Record<string, string[]> = {
+  // Asked for by name, repeatedly. A name may appear under more than one
+  // scene - most artists do belong to more than one - and every scene
+  // here is checked against the real genre list by shelves-check, so a
+  // typo files somebody under a shelf that does not exist rather than
+  // failing loudly.
+  "uk-rnb": [
+    "KWN",
+    "Sasha Keable",
+    "Cleo Sol",
+    "Tiana Major9",
+    "Mahalia",
+    "Jorja Smith",
+    "Ama Lou",
+    "RAY BLK",
+    "Sinead Harnett",
+    "Bellah",
+    "Greentea Peng",
+    "Olivia Dean",
+    "Léa Sen",
+    "Kadeem Tyrell",
+  ],
+  "trap-soul": [
+    "Isaiah Falls",
+    "Kehlani",
+    "Snoh Aalegra",
+    "UMI",
+    "Alex Isley",
+    "Baby Rose",
+    "Joyce Wrice",
+    "Amaria",
+  ],
+  "contemporary-rnb": [
+    "Victoria Monét",
+    "Whitney Houston",
+    "Kehlani",
+    "Snoh Aalegra",
+    "Joyce Wrice",
+    "Alex Isley",
+  ],
+  soul: ["Whitney Houston", "Cleo Sol", "Greentea Peng"],
+  "neo-soul": ["Cleo Sol", "Tiana Major9", "Alex Isley", "Baby Rose"],
+  digicore: [
+    "2hollis",
+    "Jane Remover",
+    "underscores",
+    "quannnic",
+    "brakence",
+    "glaive",
+    "midwxst",
+    "ericdoa",
+    "aldn",
+    "8485",
+    "Blackwinterwells",
+    "osquinn",
+  ],
+  // The lane somebody's friends are in.
+  //
+  // Deliberately the BROAD bucket rather than a precise one. These names
+  // arrived in a message grouped together, and I do not know the music -
+  // so filing them under "digicore" or "sigilkore" specifically would be
+  // a guess, and a wrong guess here puts a real person on a shelf they
+  // are not on, which is the failure this whole area was just fixed for
+  // twice. Underground hip-hop is a claim I can stand behind. Move any
+  // of them the moment somebody who knows says otherwise.
+  "underground-hip-hop": [
+    "Tezzus",
+    "Nine Vicious",
+    "Rommulas",
+    "Lucy Bedroque",
+    "2hollis",
+    "Nettspend",
+    "osamason",
+    "xaviersobased",
+  ],
+  plugg: ["Jaydes"],
+  pluggnb: ["Jaydes"],
+  drain: ["Bladee", "Ecco2k"],
+  sigilkore: ["Sematary"],
+  hyperpop: ["Alice Longyu Gao", "Frost Children", "f5ve", "underscores"],
+  trap: ["Kevin Gates"],
+};
+/** The site's own artists for one scene, or none. */
+export function rosterFor(scene: string): string[] {
+  return SCENE_ROSTER[scene] ?? [];
+}
+
 type RawArtist = { name?: string };
 
 /** Artists Last.fm considers adjacent to this one. The engine behind
