@@ -415,32 +415,32 @@ check(
 // retried. Each time the shelf was empty with an apology on it.
 //
 // A shelf that only works when one service is happy is a shelf that is
-// empty whenever it is not. There are four sources behind it now, and
-// the order matters: YouTube names a scene best, Deezer is the one that
-// is always up, Last.fm is thin here but real, and the site's own posts
-// cannot fail at all.
+// empty whenever it is not. There are three sources behind it now:
+// YouTube names a scene best, Last.fm's tags are the only real genre
+// data going, and the site's own posts cannot fail at all.
 {
   const shelves = readFileSync("src/lib/shelves.ts", "utf8");
   // The CALL, not the import. The first version of this matched the
   // import line and stayed green with the fallback deleted, which is the
   // same mistake the Deezer matching check made - a check that passes
   // while the thing it checks is gone is worse than no check.
+  // The RETURN, not just the call. The first version of this matched
+  // `await sceneShelfFromArtists(...)` and stayed green with the whole
+  // fallback deleted, because the thin-scene top-up further down calls
+  // the same function - the fifth time in this file a check has passed
+  // while the thing it checks was gone. Matched on the line that can
+  // only exist at the fallback site.
   check(
-    "a scene shelf falls back to Deezer",
-    /await getDeezerSceneShelf\(tag,/.test(shelves)
+    "a scene shelf falls back to the tag's artists",
+    /const fromArtists = await sceneShelfFromArtists\(tag, known, rotateBy\);/.test(shelves) &&
+      /if \(fromArtists\.length > 0\) return \{ records: fromArtists, source: "lastfm" \};/.test(
+        shelves
+      )
   );
   check(
-    "and Deezer is tried before giving up on the catalogues",
-    shelves.indexOf("getDeezerSceneShelf") < shelves.indexOf("getTracksByTag(tag, 120)")
+    "and that is tried before giving up on the catalogues",
+    shelves.indexOf("await sceneShelfFromArtists") < shelves.indexOf("getTracksByTag(tag, 120)")
   );
-  const deezer = readFileSync("src/lib/deezer.ts", "utf8");
-  // Deezer's rank IS its popularity score, and these shelves exist for
-  // the people who do not have an audience yet.
-  check(
-    "the Deezer shelf leads with the least popular",
-    /\(a\.rank \?\? 0\) - \(b\.rank \?\? 0\)/.test(deezer)
-  );
-  check("and holds three to an artist like the others", /already >= 3/.test(deezer));
 
   // "Wait a few seconds and try again" must not be shown on a shelf
   // that has already tried three other sources. Waiting would not help.
@@ -449,6 +449,79 @@ check(
     "only a fixable failure is reported to the reader",
     /reason === "not-configured" \|\| shelf\.failure\.reason === "key-rejected"/.test(page)
   );
+}
+
+
+// ---- the records on a genre shelf are actually of that genre ----
+//
+// Reported, and correctly: "I went through the genres up here and the
+// jams up here not the jams at all. It looks like they just used the
+// filter to find the names." That is exactly what it was doing. The
+// fallback SEARCHED Deezer for the scene's name, and searching for
+// "uk r&b" returns records whose title contains those words rather than
+// records that are UK R&B.
+//
+// A tag is a different question: it is a person saying this artist IS
+// this thing. So the shelf walks the tag to its artists and then into
+// their catalogues, and every record on it is by somebody the crowd put
+// in that scene.
+{
+  const shelves = readFileSync("src/lib/shelves.ts", "utf8");
+  const lastfm = readFileSync("src/lib/lastfm.ts", "utf8");
+  const deezer = readFileSync("src/lib/deezer.ts", "utf8");
+
+  check(
+    "a scene shelf is built from artists a tag names",
+    /getArtistsByTag\(tag, 100\)/.test(shelves)
+  );
+  check(
+    "and from those artists' own catalogues",
+    /getArtistTopTracks\(artist, 12\)/.test(shelves)
+  );
+  // The function, not the import or a mention in a comment. A signature
+  // is the one thing a deletion cannot leave behind.
+  check(
+    "tag.getTopArtists is what answers that",
+    /export async function getArtistsByTag\(/.test(lastfm) &&
+      /method=tag\.gettopartists/.test(lastfm)
+  );
+
+  // The whole bug, gone rather than unused. Left in the file, the next
+  // person looking for a way to fill an empty shelf finds it and reaches
+  // for it, and the shelves fill up with search results again.
+  check(
+    "the text-search scene shelf no longer exists",
+    !/export async function getDeezerSceneShelf/.test(deezer)
+  );
+  check("and nothing calls it", !/await getDeezerSceneShelf\(/.test(shelves));
+
+  // A thin tag goes deeper into the scene rather than showing six
+  // records - but only a scene. An artist tagged "1994" is not a 1994
+  // artist, they are somebody who released a record that year, so
+  // walking their catalogue would hand a Year shelf every other year
+  // they ever worked.
+  check(
+    "a thin scene tops up from its artists",
+    /axis === "scene" && shelf\.length < SHELF_SIZE/.test(shelves)
+  );
+  check(
+    "and a year or a place does not",
+    !/axis === "year" && shelf\.length < SHELF_SIZE/.test(shelves) &&
+      !/axis === "place" && shelf\.length < SHELF_SIZE/.test(shelves)
+  );
+
+  // Popularity order, reversed. tag.getTopArtists leads with the names
+  // everybody already knows, and these shelves exist for the people who
+  // do not have an audience yet - which is what was asked for: "find
+  // people that maybe don't even have an audience".
+  check(
+    "the shelf leads with the least famous of the scene",
+    /rotate\(\[\.\.\.artists\]\.reverse\(\), rotateBy\)/.test(shelves)
+  );
+  // Anchored at the end. Without the boundary this matched `taken >= 30`
+  // happily, so the cap could be lifted to thirty - one artist filling
+  // the whole shelf - and the check would still say three.
+  check("and holds three to an artist like the others", /taken >= 3\)/.test(shelves));
 }
 
 

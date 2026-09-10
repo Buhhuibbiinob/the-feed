@@ -39,7 +39,6 @@ export type DeezerTrack = {
 
 type DeezerSearch = { data?: DeezerTrack[]; error?: unknown };
 
-type DeezerSceneTrack = DeezerTrack & { id?: number; rank?: number };
 
 function normalize(s: string): string {
   return s
@@ -150,86 +149,31 @@ export async function lookupDeezerTrack(
 }
 
 
-/**
- * A scene's shelf, from Deezer.
+/*
+ * There was a getDeezerSceneShelf here and it is the bug the shelves
+ * were reported for.
  *
- * The sixteen internet scenes were built from YouTube, and YouTube kept
- * refusing - three different failures in three days, the last of which I
- * could not reproduce or diagnose from outside the deployment. A shelf
- * that only works when one service is happy is a shelf that is empty
- * whenever it is not.
+ * It filled a scene's shelf by SEARCHING Deezer for the scene's name.
+ * Searching for "uk r&b" returns records whose title or artist contains
+ * those words; it does not return UK R&B. So the shelves came back full
+ * of things that were not the genre at all, and read exactly as what
+ * they were - somebody typing the filter into a search box and shipping
+ * the results.
  *
- * So there is another way to fill it, and this one needs no key, has no
- * daily allowance to run out, and is not rate limited by whoever else
- * happens to share a serverless IP with us - the three ways YouTube has
- * failed so far.
+ * The weakness was written down in its own comment ("it is a text search
+ * and it will be approximate at the edges") and shipped anyway. It is
+ * not approximate at the edges. It is a different question.
  *
- * It is not as good at naming a scene: Deezer has no "digicore" tag, so
- * this is a text search and it will be approximate at the edges. What it
- * gives in exchange is that every record on it is a real record with a
- * real cover and a real thirty-second clip, which is more than an empty
- * board with an apology on it.
+ * Deleted rather than left unused, because the next person looking for a
+ * way to fill an empty shelf would find it and reach for it. Scene
+ * shelves now walk a tag to its ARTISTS - a tag is somebody saying this
+ * artist IS this thing - and into their catalogues. See
+ * sceneShelfFromArtists in lib/shelves.
  *
- * Ranked lowest-first on purpose. Deezer's rank IS its popularity
- * score, and the whole point of these shelves is the people who do not
- * have an audience yet.
+ * Deezer is still here for what it is genuinely good at, below and in
+ * lib/catalogue: given a record's real name and artist, it finds that
+ * record's cover and clip with thirty times Apple's headroom.
  */
-export async function getDeezerSceneShelf(
-  sceneText: string,
-  limit: number,
-  rotateBy = 0
-): Promise<{ name: string; artist: string; imageUrl: string | null; previewUrl: string | null; trackUrl: string | null }[]> {
-  try {
-    const res = await cachedFetch(
-      `https://api.deezer.com/search?q=${encodeURIComponent(sceneText)}&limit=100`,
-      3600
-    );
-    if (!res || !res.ok) return [];
-    const data = (await res.json()) as { data?: DeezerSceneTrack[]; error?: unknown };
-    if (data.error || !Array.isArray(data.data)) return [];
-
-    // Least popular first. A text search puts the biggest names on top,
-    // which is the same repetition problem every other source has.
-    const ranked = [...data.data].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
-    const start = ranked.length ? Math.abs(rotateBy) % ranked.length : 0;
-    const ordered = [...ranked.slice(start), ...ranked.slice(0, start)];
-
-    const seen = new Set<string>();
-    const perArtist = new Map<string, number>();
-    const out: {
-      name: string;
-      artist: string;
-      imageUrl: string | null;
-      previewUrl: string | null;
-      trackUrl: string | null;
-    }[] = [];
-    for (const track of ordered) {
-      const name = (track.title_short ?? track.title ?? "").trim();
-      const artist = (track.artist?.name ?? "").trim();
-      if (!name || !artist) continue;
-      const key = `${name.toLowerCase()}|${artist.toLowerCase()}`;
-      if (seen.has(key)) continue;
-      // Three each, the same rule every other shelf uses.
-      const artistKey = artist.toLowerCase();
-      const already = perArtist.get(artistKey) ?? 0;
-      if (already >= 3) continue;
-      perArtist.set(artistKey, already + 1);
-      seen.add(key);
-      out.push({
-        name,
-        artist,
-        imageUrl:
-          track.album?.cover_xl ?? track.album?.cover_big ?? track.album?.cover_medium ?? null,
-        previewUrl: track.preview ?? null,
-        trackUrl: track.link ?? null,
-      });
-      if (out.length >= limit) break;
-    }
-    return out;
-  } catch {
-    return [];
-  }
-}
 
 
 /**
