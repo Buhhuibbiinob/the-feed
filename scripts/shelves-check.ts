@@ -628,7 +628,9 @@ check(
   check(
     "an artist off the chart is checked against their own tags",
     /const verdicts = await Promise\.all\(/.test(shelves) &&
-      /return tags\.some\(\(t\) => sameTag\(t, tag\) \|\| sameTag\(t, scene\)\)/.test(shelves)
+      /if \(tags\.some\(\(t\) => sameTag\(t, tag\) \|\| sameTag\(t, scene\)\)\) return "yes";/.test(
+        shelves
+      )
   );
   check(
     "and only the ones that survive are walked",
@@ -643,9 +645,41 @@ check(
   // An artist nobody has tagged is exactly who these shelves are for.
   // Silence must not be read as a refusal, or the check deletes the
   // unknown artists it exists to protect.
+  // Silence is not the same answer as the wrong tags - an artist nobody
+  // has tagged is who these shelves are for.
   check(
-    "an untagged artist is kept, not thrown out",
-    /if \(tags\.length === 0\) return true;/.test(shelves)
+    "an untagged artist is not thrown out for being untagged",
+    /return tags\.length === 0 \? "unknown" : "no";/.test(shelves) &&
+      /verdicts\[i\] !== "no"/.test(shelves)
+  );
+  // But "nobody tagged them" and "the lookup failed" look identical, and
+  // that door put an established Khaleeji singer and a Polish rave
+  // collective on the Drain shelf. Undiscovered is measurable, and the
+  // listener counts come back with the tracks for free.
+  check(
+    "and an untagged artist with a real audience is not mistaken for an undiscovered one",
+    /if \(unproven\.has\(artist\)\) \{/.test(shelves) &&
+      /if \(best > STILL_UNKNOWN\) continue;/.test(shelves)
+  );
+  // Measured from tracks the shelf already fetched. If this ever needs
+  // its own request, the cost of the check has outgrown the bug.
+  check(
+    "and that costs no extra lookup",
+    /const best = Math\.max\(0, \.\.\.tracks\.map\(\(t\) => t\.listeners \?\? 0\)\);/.test(shelves)
+  );
+  // ---- more of the scene to draw from ----
+  //
+  // "it could be more variety". One page is a hundred names of which a
+  // shelf reaches about twenty-five, so the spin only ever moved inside
+  // the same quarter.
+  check(
+    "the shelf draws from two pages of the tag, not one",
+    /getArtistsByTag\(tag, 100, 2\)/.test(shelves) &&
+      /const pool = \[\.\.\.new Set\(\[\.\.\.artists, \.\.\.deeperArtists\]\)\];/.test(shelves)
+  );
+  check(
+    "and a name on both pages does not get two turns",
+    /new Set\(\[\.\.\.artists, \.\.\.deeperArtists\]\)/.test(shelves)
   );
 
   // ---- the New Jack Swing shelf, record by record ----
@@ -781,7 +815,7 @@ check(
   );
   check(
     "and the shelf still fills even when the tag chart is empty",
-    /if \(artists\.length === 0 && ours\.length === 0\) return \[\];/.test(shelves)
+    /if \(pool\.length === 0 && ours\.length === 0\) return \[\];/.test(shelves)
   );
   // The names that were actually asked for, on the shelf they were
   // asked for.
