@@ -15,6 +15,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { PreviewPlayer } from "@/components/PreviewPlayer";
 import { SpoilerText } from "@/components/SpoilerText";
 import { AlertModal } from "@/components/AlertModal";
+import { FollowButton } from "@/components/FollowButton";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 import { Stars } from "@/components/Stars";
@@ -118,6 +119,7 @@ export function PostCard({
   reactions,
   myReaction = null,
   answering = null,
+  following,
 }: {
   post: PostCardData;
   currentUserId: string | null;
@@ -137,6 +139,14 @@ export function PostCard({
   myReaction?: string | null;
   /** Set when this post answers another one. */
   answering?: { id: string; title: string; username: string } | null;
+  /** Whether the viewer already follows this post's author.
+   *
+   *  Undefined on surfaces that have not loaded the viewer's follow
+   *  list, where the button simply does not appear rather than showing
+   *  a state it does not know. Never guessed as false: a Follow button
+   *  on somebody you already follow is worse than no button, because
+   *  pressing it unfollows them. */
+  following?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -307,6 +317,21 @@ export function PostCard({
             <span>{post.username}</span>
           </Link>
           {post.isVerified && <VerifiedBadge />}
+          {/* Follow, from where you actually met them.
+              The feed can already be filtered to people you follow, but
+              the only place to FOLLOW anybody was their profile page -
+              a door with nothing behind it. Your own posts and signed
+              out visitors get nothing, and a card that does not know
+              whether you follow this person shows nothing rather than
+              guessing. */}
+          {following !== undefined && currentUserId && currentUserId !== post.userId && (
+            <FollowButton
+              followedId={post.userId}
+              username={post.username}
+              following={following}
+              compact
+            />
+          )}
           {post.authorRank && <span className="author-rank">{post.authorRank}</span>} ·{" "}
           {timeAgo(post.createdAt)}
           {/* Points at the thing itself now, where all of those reviews
