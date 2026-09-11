@@ -417,16 +417,31 @@ export default async function FeedPage({
   const wideAd = pickAds("wide", 1)[0] ?? null;
   const artistSpotlights = pickAds("feature", 2);
 
-  let followedIds: Set<string> | null = null;
-  if (user && followingOnly) {
+  // Who this member follows, fetched once for the whole page.
+  //
+  // It used to be fetched only when the Following tab was open, and then
+  // again inside For You - so every OTHER view of the feed had no idea
+  // and could not draw a follow button. That is a large part of why the
+  // following system went quiet: the filter existed, and the only way to
+  // put anybody behind it was to already know their profile URL.
+  //
+  // One query, reused by the filter, by For You's scoring, and by every
+  // card's button.
+  let following: Set<string> | null = null;
+  if (user) {
     const { data: followRows } = await supabase
       .from("follows")
       .select("followed_id")
       .eq("follower_id", user.id);
-    followedIds = new Set((followRows ?? []).map((r) => r.followed_id));
+    // A failed query is "not known", not "follows nobody". Null keeps
+    // the buttons off the cards rather than drawing Follow next to
+    // people this member already follows, where pressing it would
+    // unfollow them.
+    following = followRows ? new Set(followRows.map((r) => r.followed_id as string)) : null;
   }
 
-  const allPosts = followedIds ? posts.filter((p) => followedIds!.has(p.user_id)) : posts;
+  const followedIds = user && followingOnly ? (following ?? new Set<string>()) : null;
+  const allPosts = followedIds ? posts.filter((p) => followedIds.has(p.user_id)) : posts;
   // The category chips filter the list you're reading, not the whole page.
   // allPosts still feeds Top Reviewer, Trending, Now Watching, Feed TV and
   // the rest, so picking "Photography" must not empty the sidebar.
@@ -439,10 +454,10 @@ export default async function FeedPage({
   // with recency as the tie-breaker so the top of the feed still moves.
   let feedPosts = typeFiltered;
   if (user && forYouOnly) {
-    const [{ data: myPostRows }, { data: myFollowRows }] = await Promise.all([
-      supabase.from("posts").select("title, artist, media_type, rating").eq("user_id", user.id),
-      supabase.from("follows").select("followed_id").eq("follower_id", user.id),
-    ]);
+    const { data: myPostRows } = await supabase
+      .from("posts")
+      .select("title, artist, media_type, rating")
+      .eq("user_id", user.id);
 
     const lovedWorks = new Set<string>();
     const typeAffinity = new Map<string, number>();
@@ -452,7 +467,9 @@ export default async function FeedPage({
         typeAffinity.set(row.media_type as string, (typeAffinity.get(row.media_type as string) ?? 0) + 1);
       }
     }
-    const followed = new Set((myFollowRows ?? []).map((r) => r.followed_id as string));
+    // The same set the buttons use, rather than a second query for the
+    // same rows.
+    const followed = following ?? new Set<string>();
 
     const score = (post: (typeof typeFiltered)[number]) => {
       let value = 0;
@@ -1000,6 +1017,7 @@ export default async function FeedPage({
                   workId: post.work_id ?? null,
                   authorRank: highestBadge(authorPostCounts.get(post.user_id) ?? 0)?.label ?? null,
                 }}
+                following={following ? following.has(post.user_id) : undefined}
                 currentUserId={user?.id ?? null}
                 viewerIsAdmin={viewerIsAdmin}
                 liked={likedByMe.has(post.id)}
