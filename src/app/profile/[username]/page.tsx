@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { selectPosts } from "@/lib/postQuery";
 import { PostCard } from "@/components/PostCard";
 import { FollowButton } from "@/components/FollowButton";
+import { followCounts } from "@/lib/follows";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { ProfileCustomize } from "@/components/ProfileCustomize";
 import { ObsessedPicker } from "@/components/ObsessedPicker";
@@ -596,6 +597,9 @@ export default async function ProfilePage({
   const storeArtists = featuredArtists(posts);
   const storeGenres = genresPresent(posts);
   const showStore = hasStorefront(posts);
+  // Counted by the database rather than fetched and measured - see
+  // lib/follows.
+  const counts = await followCounts(supabase, profile.id);
   // Six boxes: the member's choice where they made one, the store's own
   // pick where they didn't. Slot 0 is their profile tile by default.
   const resolvedSlots = resolveSlots(mediaSlots, [
@@ -1285,6 +1289,21 @@ export default async function ProfilePage({
                   </span>
                   <span>
                     <b>{totalLikesReceived}</b> ratings
+                  </span>
+                  {/* Following means something you can see.
+                      The follows table has been in the schema the whole
+                      time and nothing ever read it back, so following
+                      somebody made no number go up anywhere - a button
+                      that did nothing visible, which is the same as a
+                      button that does nothing. Both counts link to the
+                      list behind them. */}
+                  <span className="store-statusbar-links">
+                    <Link href={`/profile/${profile.username}/followers`}>
+                      <b>{counts.followers}</b> followers
+                    </Link>
+                    <Link href={`/profile/${profile.username}/following`}>
+                      <b>{counts.following}</b> following
+                    </Link>
                   </span>
                   {streak > 1 && (
                     <span>

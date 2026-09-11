@@ -69,6 +69,64 @@ check(
   /\.follow-chip\.is-following \{/.test(css)
 );
 
+// ---- following means something you can see ----
+//
+// The follows table has been in the schema the whole time and nothing
+// ever read it back: no count anywhere went up, no list you appeared on,
+// no way to see who had followed you. A button whose effect is invisible
+// is the same as a button that does nothing, which is the other half of
+// why this system went quiet.
+{
+  const lib = readFileSync("src/lib/follows.ts", "utf8");
+  const list = readFileSync("src/components/FollowList.tsx", "utf8");
+
+  check("a profile shows how many follow it", /followCounts\(supabase, profile\.id\)/.test(profile));
+  check(
+    "and both counts lead to the list behind them",
+    /\/followers`\}/.test(profile) && /\/following`\}/.test(profile)
+  );
+
+  // Counted BY the database. Selecting the rows to measure their length
+  // moves every follower across the wire to print one number.
+  // Scoped to the function it is about. The first version read from
+  // "followCounts" to the end of the file and tripped over
+  // `data.length` inside followList - a check failing for a reason that
+  // has nothing to do with what it claims.
+  const countsBody = lib.slice(
+    lib.indexOf("export async function followCounts"),
+    lib.indexOf("export type FollowPerson")
+  );
+  check(
+    "counts are counted by the database, not fetched and measured",
+    /count: "exact", head: true/.test(countsBody) && !/\.length/.test(countsBody)
+  );
+
+  // A count that cannot load must not take the profile down with it.
+  check("a failed count is a zero, not a broken page", /return \{ followers: 0, following: 0 \};/.test(lib));
+
+  // Newest first is the whole point: it is how you see who just
+  // followed you. The profiles query returns them in any order it likes.
+  check(
+    "the list is newest first",
+    /\.order\("created_at", \{ ascending: false \}\)/.test(lib)
+  );
+  check("and is put back into that order after the join", /Put back into follow order/.test(lib));
+
+  // One query for the people, not one per person.
+  check("the profiles are fetched in one query", /\.in\("id", ids\)/.test(lib));
+
+  // Both directions are one page. Two copies drift.
+  check(
+    "followers and following are one component, not two",
+    /direction: "followers" \| "following"/.test(list)
+  );
+  check(
+    "and each page can reach the other",
+    /direction === "followers" \? "is-on" : ""/.test(list) &&
+      /direction === "following" \? "is-on" : ""/.test(list)
+  );
+}
+
 console.log(
   failures === 0
     ? "\nYou can follow someone from where you found them."
