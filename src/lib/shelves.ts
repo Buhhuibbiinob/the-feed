@@ -653,7 +653,16 @@ const HIT_CEILING = 120_000;
  * twenty-five that survive the tag check. Sixty leaves room for the ones
  * it throws out without walking the whole chart on every page view.
  */
-const ARTISTS_CHECKED = 60;
+const ARTISTS_CHECKED = 90;
+
+/**
+ * Listeners under which "nobody has tagged them" is believable.
+ *
+ * Above it, an artist with no tags is not undiscovered - they are a
+ * lookup that did not work, and trusting the chart about them is what
+ * put an established Khaleeji singer on the Drain shelf.
+ */
+const STILL_UNKNOWN = 50_000;
 
 /** Version and remix words that mean "this is the same record again". */
 const A_VERSION_OF =
@@ -791,8 +800,21 @@ async function sceneShelfFromArtists(
 ): Promise<Sleeve[]> {
   // Asked together: the tag's own artists, and the tags of everyone on
   // the site whose scene nobody could name.
-  const [artists, unplaced] = await Promise.all([
+  const [artists, deeperArtists, unplaced] = await Promise.all([
     getArtistsByTag(tag, 100).catch(() => []),
+    // A second page, for variety.
+    //
+    // "the underground hiphop was perfection it could be more variety",
+    // and one page is a hundred names - of which the shelf reaches maybe
+    // twenty-five, so the same quarter of the list every time however
+    // hard it is rotated. Two pages is two hundred, and the spin has
+    // somewhere new to land.
+    //
+    // One request, cached a day, shared by everybody who opens that
+    // scene - so the variety costs one call per scene per day, not one
+    // per visit. Last.fm is the cheap source here; this is deliberately
+    // NOT how YouTube is treated, where a page costs real budget.
+    getArtistsByTag(tag, 100, 2).catch(() => []),
     // Nobody knew what Tezzus fits under, including the person who asked
     // for him. So he is not assigned a scene - the people who listen to
     // him are, and their tags are checked here against the shelf being
@@ -815,7 +837,11 @@ async function sceneShelfFromArtists(
   // it is the small artists whose scenes are thin.
   const placed = rosterFor(scene);
   const ours = [...claimed, ...placed.filter((a) => !claimed.includes(a))];
-  if (artists.length === 0 && ours.length === 0) return [];
+  // Both pages, deduplicated: page two repeats page one on a tag that
+  // does not have two hundred artists, and a name listed twice would
+  // take two turns at the shelf.
+  const pool = [...new Set([...artists, ...deeperArtists])];
+  if (pool.length === 0 && ours.length === 0) return [];
 
   // Least famous first. tag.getTopArtists is ordered by popularity, so
   // the back of the list is where the people with no audience are - and
@@ -831,7 +857,7 @@ async function sceneShelfFromArtists(
   //
   // Being always PRESENT and being always FIRST are different things,
   // and only the first was ever the requirement. See ROSTER_SHARE.
-  const ordered = orderSceneArtists(ours, artists, rotateBy);
+  const ordered = orderSceneArtists(ours, pool, rotateBy);
 
   // Does this artist's OWN tag list say the scene, or did one person
   // tag them once?
@@ -855,14 +881,26 @@ async function sceneShelfFromArtists(
     candidates.map(async (artist) => {
       if (ours.includes(artist)) return true;
       const tags = await getArtistTags(artist).catch(() => [] as string[]);
-      // No tags at all is not a refusal. A small artist nobody has
-      // tagged is exactly who these shelves are for, and the tag chart
-      // naming them is the only evidence either way - so they are kept.
-      if (tags.length === 0) return true;
-      return tags.some((t) => sameTag(t, tag) || sameTag(t, scene));
+      if (tags.some((t) => sameTag(t, tag) || sameTag(t, scene))) return "yes";
+      // No tags at all is not the same answer as the wrong tags.
+      //
+      // A small artist nobody has tagged is exactly who these shelves
+      // are for, so silence cannot be read as a refusal. But a FAILED
+      // lookup is also silence, and a misspelled name is silence, and
+      // that door let Rashed Al Majed - an established singer with a
+      // catalogue - onto the Drain shelf, because "no tags" was taken as
+      // "undiscovered".
+      //
+      // Undiscovered is a thing that can be measured, and it is measured
+      // below from the listener counts that come back with the tracks:
+      // free, because the shelf fetches those anyway. Somebody with real
+      // numbers and no tags is not undiscovered, they are a lookup that
+      // did not work.
+      return tags.length === 0 ? "unknown" : "no";
     })
   );
-  const vouched = candidates.filter((_, i) => verdicts[i]);
+  const vouched = candidates.filter((_, i) => verdicts[i] !== "no");
+  const unproven = new Set(candidates.filter((_, i) => verdicts[i] === "unknown"));
 
   const seen = new Set<string>();
   const shelf: Sleeve[] = [];
@@ -875,6 +913,16 @@ async function sceneShelfFromArtists(
     if (shelf.length >= SHELF_SIZE + SHELF_SPARE) break;
     const tracks = await getArtistTopTracks(artist, 12).catch(() => []);
     if (tracks.length === 0) continue;
+    // The measurement promised above. An artist the tag chart named,
+    // whose own tags said nothing, is kept only if they are genuinely
+    // obscure - because that is the case the silence was meant to
+    // protect. Somebody with a real audience and no tags is a lookup
+    // that failed, and taking their word for the scene is how a Khaleeji
+    // singer and a Polish rave collective got onto a Drain shelf.
+    if (unproven.has(artist)) {
+      const best = Math.max(0, ...tracks.map((t) => t.listeners ?? 0));
+      if (best > STILL_UNKNOWN) continue;
+    }
     // Deep cuts for everybody - Whitney Houston is the album track, not
     // the one off the advert. The roster's one exemption is an artist
     // whose catalogue is too small to go deep into at all. See deepCuts.
