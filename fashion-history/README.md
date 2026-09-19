@@ -8,13 +8,11 @@ maisonmartinmargiela.com's directory index.
 Plain HTML and one stylesheet. No build step, no dependencies, nothing to
 install. It does not touch the Next.js app in this repo.
 
-It is deliberately low quality: bitmap type that never anti-aliases, a 1-bit
-dither under the page, hard one-pixel borders, drop shadows with no blur, the
-checkerboard a transparent GIF used to show through as, and a scanline over the
-lot. That is the whole `LOW-QUALITY PASS` block at the foot of `style.css` —
-delete it and the site goes back to being smooth. The pixel face is Silkscreen,
-loaded from Google Fonts; with no network it falls back to Courier and still
-reads as a bitmap.
+The look is taken straight from the three reference screenshots: ELLE.com's
+2001 channel rail and masthead, Mary Ping's bold navy captions and Times
+navigation, and Margiela's Apache directory index. Plain, anti-aliased, mostly
+white — those sites were simple, not degraded; the low quality was in the
+images, not the interface.
 
 ## Look at it
 

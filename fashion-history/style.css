@@ -286,318 +286,173 @@ form.signup button{
 .railfoot a{ display:block; color:#111; }
 .railfoot .name{ font-family:"Times New Roman", Times, serif; font-size:16px; }
 
-/* ==========================================================================
-   LOW-QUALITY PASS
-   The look these sites had for a reason: bitmap type that never anti-aliased,
-   GIFs quantised to 256 colours and dithered, borders one hard pixel wide, and
-   nothing on the page that could blur. Everything below is that, on purpose.
-   Remove this whole block and the site goes back to being smooth.
-   ========================================================================== */
 
-/* 1 — no smoothing anywhere. Type sits on the pixel grid or not at all. */
-html{
-  -webkit-font-smoothing:none;
-  -moz-osx-font-smoothing:unset;
-  font-smooth:never;
-  text-rendering:optimizeSpeed;
-}
+/* ==========================================================================
+   REFERENCE PASS
+   Tuned against the three screenshots this site is built from, so the new
+   pages sit in the same typography as the old ones:
+
+   ELLE.com (2001)  — Helvetica/Arial at 12–13px, flat greys, one navy, a huge
+                      serif wordmark, small bold nav, centred small print.
+   maryping.com     — Times serif for navigation, captions set BOLD NAVY in
+                      Arial, bracketed plate numbers, acres of white.
+   maisonmartinmargiela.com — Courier throughout, blue underlined links, one
+                      grey rule, a server line at the foot.
+
+   Anti-aliased, no dither, no scanline, no pixel type. These sites were plain,
+   not degraded — the low quality came from the images, not the interface.
+   ========================================================================== */
 
 body{
-  font-family:"Silkscreen", "Courier New", Courier, monospace;
-  font-size:11px;
-  line-height:1.65;
-  letter-spacing:0;
-  /* the 1-bit dither the background of every 90s page was hiding under */
-  background-color:#fff;
-  background-image:
-    repeating-conic-gradient(#f2f2f2 0% 25%, #ffffff 0% 50%);
-  background-size:4px 4px;
-  image-rendering:pixelated;
+  font-family:Arial, Helvetica, "Helvetica Neue", sans-serif;
+  font-size:12px;
+  line-height:1.5;
+  background:#fff;
 }
 
-/* 2 — every image and placeholder scales with hard edges, never interpolated */
-img, .plate, .shot, .cover, .swatchbox, .swatch{
-  image-rendering:pixelated;
-  image-rendering:crisp-edges;
+/* Mary Ping's navigation: Times, underlined, black, generously spaced */
+.railfoot a, .railfoot .name{
+  font-family:"Times New Roman", Times, serif;
+  font-size:15px; line-height:1.35;
 }
+.railfoot{ margin-top:40px; }
 
-/* 3 — headings: chunky bitmap, tight, with the 1px drop shadow a GIF would have
-   had baked into it. No blur radius anywhere on the page. */
-.wordmark h1{
-  font-family:"Silkscreen", "Courier New", monospace;
-  font-size:56px; line-height:1.1; font-weight:700; letter-spacing:0.02em;
-  text-shadow:3px 3px 0 #c9c9e6;
-}
-.wordmark .dotcom{ font-size:11px; letter-spacing:0.3em; }
-.wordmark .tagline{ font-size:15px; text-shadow:2px 2px 0 #d8d8ec; }
-.wordmark .tagline span{ font-size:12px; text-shadow:none; }
-.wordmark .dateline{ font-size:10px; }
+/* ELLE's small print: centred, Arial, 11px, tight grey */
+.sitefoot{ font-size:11px; line-height:1.55; }
+.footnav a{ font-family:"Times New Roman", Times, serif; font-size:13px; }
 
-.section-head h2, .entry h3, .block h4, .dir h1,
-.lookbook h2, .lookbook h3, .label-hero h2, .rack .item h4{
-  font-family:"Silkscreen", "Courier New", monospace;
-  letter-spacing:0;
-}
-.section-head h2{ font-size:14px; }
-.entry h3{ font-size:13px; line-height:1.4; }
-.block h4{ font-size:11px; }
-.dir h1{ font-size:20px; text-shadow:2px 2px 0 #ddd; }
-.label-hero h2{ font-size:22px; letter-spacing:0.08em; }
-.channels a{ font-size:15px; font-weight:400; }
-.channels a.spotlight{ font-size:12px; }
-.railfoot .name{ font-family:"Silkscreen", monospace; font-size:12px; }
-
-/* 4 — body copy in a bitmap-ish monospace, set narrow. Pixel type at small
-   sizes needs the line length short or it stops being readable. */
-.entry p, .block .caption, .label-hero p, table.index td.desc, .plate-row .cap{
-  font-family:"Courier New", Courier, monospace;
-  font-size:12px; line-height:1.6;
-}
-.entry p{ max-width:none; }  /* the float does the measure; a ch cap fights it */
-
-/* 5 — borders go hard: one pixel, one colour, square corners, offset shadows
-   with zero blur so they read as a second row of pixels rather than a glow. */
-.masthead, .figure-slot .plate, .entry .plate, .block .cover, .plate-row .shot,
-.rack .item .shot, .swatchbox, .label-hero, .thumbstrip .swatch{
-  border:1px solid #000 !important;
-  border-radius:0;
-}
-.entry .plate, .plate-row .shot, .rack .item .shot, .block .cover, .swatchbox,
-.figure-slot .plate{
-  /* the checkerboard a transparent GIF showed through as */
-  background-color:#fff;
-  background-image:
-    repeating-conic-gradient(#e3e3e3 0% 25%, #ffffff 0% 50%);
-  background-size:8px 8px;
-  box-shadow:3px 3px 0 #cfcfcf;
-  color:#777;
-  font-family:"Courier New", monospace;
-  font-size:10px;
-}
-
-/* 6 — chrome: flat fills, dithered rails, buttons that look pressed out of
-   two colours rather than shaded between them. */
-.channelbar, .channels{
-  background-color:#d9d9d9;
-  background-image:repeating-conic-gradient(#d0d0d0 0% 25%, #e2e2e2 0% 50%);
-  background-size:4px 4px;
-  border-bottom:1px solid #000;
-}
-.channelbar{ font-family:"Silkscreen", monospace; font-size:9px; }
-.worldwide{
-  background-color:#8f8f8f;
-  background-image:repeating-conic-gradient(#8a8a8a 0% 25%, #999 0% 50%);
-  background-size:4px 4px;
-  font-family:"Silkscreen", monospace; font-size:9px;
-  border-bottom:1px solid #000;
-}
-.side{
-  background-color:#ececec;
-  background-image:repeating-conic-gradient(#e6e6e6 0% 25%, #f2f2f2 0% 50%);
-  background-size:4px 4px;
-  border-left:1px solid #000;
-}
-.section-head{ border-bottom:2px solid #000; }
-.entry{ border-bottom:1px solid #b5b5b5; }
-
-.utility button, .composer button, form.signup button{
-  font-family:"Silkscreen", monospace;
-  border:1px solid #000;
-  background:#3a6ea5;
-  box-shadow:2px 2px 0 #1b3b5c;
-  border-radius:0;
-  letter-spacing:0;
-}
-.utility button:active, .composer button:active, form.signup button:active{
-  box-shadow:0 0 0 #1b3b5c; transform:translate(2px,2px);
-}
-.utility input[type="search"], form.signup input, .composer input,
-.composer select, .composer textarea{
-  border:1px solid #000;
-  border-radius:0;
-  box-shadow:inset 2px 2px 0 #dcdcdc;
-  font-family:"Courier New", monospace;
-}
-.utility label{ font-family:"Silkscreen", monospace; font-size:9px; }
-.utility-links, .footnav, .railfoot, .reactions, .entry .meta, .entry .byline,
-.entry .tags, .section-head .note, .sitefoot{
-  font-family:"Silkscreen", monospace;
-  letter-spacing:0;
-}
-.entry .meta, .entry .byline, .entry .tags, .reactions,
-.section-head .note{ font-size:9px; }
-.sitefoot{ font-size:9px; line-height:2; border-top:1px solid #000; }
-.railfoot{ font-size:10px; border-top:1px solid #000; }
-.footnav{ font-size:9px; }
-
-/* 7 — links underlined the old way: a hard 1px rule, not a font-aware stroke */
-a{ text-underline-offset:2px; text-decoration-thickness:1px; }
-
-/* 8 — the swatch strip as five flat quantised chips with a pixel shadow */
-.thumbstrip .swatch{ box-shadow:2px 2px 0 #c4c4c4; }
-
-/* 9 — the scanline. One pixel on, one pixel off, across the whole document,
-   at an opacity you notice only once you turn it off. */
-body::after{
-  content:"";
-  position:fixed; inset:0; z-index:9999; pointer-events:none;
-  background:repeating-linear-gradient(
-    180deg,
-    rgba(0,0,0,0.045) 0px, rgba(0,0,0,0.045) 1px,
-    rgba(0,0,0,0) 1px, rgba(0,0,0,0) 2px
-  );
-}
-
-/* ==========================================================================
-   TIGHTENING — the 8-bit treatment pulled in closer to the body copy, so the
-   pixel look and the text read as one thing rather than a frame around prose.
-   Narrower measure, less air, everything snapped to a 4px grid.
-   ========================================================================== */
-.page{ width:960px; }
-.main{ padding:14px 16px 0 12px; }
-.side{ padding:14px 12px; }
-.dirwrap{ margin:0 12px; }
-.entry{ padding-bottom:12px; margin-bottom:12px; }
-.section-head{ padding-bottom:4px; margin-bottom:12px; }
-.entry p, .block .caption, .label-hero p, table.index td.desc, .plate-row .cap{
-  font-size:11px; line-height:1.55;
-}
+/* Mary Ping's captions and headings: bold, navy, Arial */
 .lede{
-  font-family:"Courier New", monospace; font-size:12px; line-height:1.6;
-  max-width:68ch; margin:0 0 16px;
+  font-family:Arial, Helvetica, sans-serif; font-size:12px;
+  max-width:70ch; margin:0 0 16px; line-height:1.55;
 }
+.entry p, .block .caption, .label-hero p, table.index td.desc, .plate-row .cap{
+  font-family:Arial, Helvetica, sans-serif; font-size:12px; line-height:1.5;
+}
+.plate-row .cap, .lookbook .credit{ font-weight:700; color:var(--blue); }
+.plate-row .no{ font-family:Arial, Helvetica, sans-serif; }
+
+/* Margiela's directory stays Courier — it is a server listing, not a page */
+table.index, table.index td, table.index th, .dir h1, .dir .server{
+  font-family:"Courier New", Courier, monospace;
+}
+table.index td, table.index th{ font-size:12px; }
+.dir h1{ font-size:28px; letter-spacing:0.04em; }
 
 /* ==========================================================================
-   THE GADGETS — analyser, directory, threadle, profile
+   THE GADGETS, in the same plain dress: hairline borders, flat fills,
+   navy links, nothing raised off the page.
    ========================================================================== */
-
-/* chips: the subgenre picker. Two-tone, no gradient, pressed state moves. */
 .chips{ display:flex; flex-wrap:wrap; gap:4px; margin:4px 0 0; }
 .chip{
-  font-family:"Silkscreen", monospace; font-size:9px;
-  border:1px solid #000; background:#ededed; color:#222;
-  padding:4px 6px; cursor:pointer; border-radius:0;
-  box-shadow:2px 2px 0 #c4c4c4;
+  font-family:Arial, Helvetica, sans-serif; font-size:11px;
+  border:1px solid #bbb; background:#f2f2f2; color:#222;
+  padding:3px 7px; cursor:pointer; border-radius:0;
 }
-.chip:hover{ background:#fff; }
-.chip.on{
-  background:#3a6ea5; color:#fff; box-shadow:2px 2px 0 #1b3b5c;
-}
-.chip.on:active{ box-shadow:0 0 0; transform:translate(2px,2px); }
+.chip:hover{ background:#fff; border-color:#888; }
+.chip.on{ background:var(--blue); border-color:var(--blue); color:#fff; }
 
-/* the two-column gadget frame */
 .gadget{
-  display:grid; grid-template-columns:300px 1fr; gap:16px;
-  border:1px solid #000; padding:12px; margin-bottom:20px;
-  background:#fff;
-  box-shadow:4px 4px 0 #d5d5d5;
+  display:grid; grid-template-columns:300px 1fr; gap:22px;
+  border:1px solid var(--rule); padding:16px; margin-bottom:22px; background:#fff;
 }
-.gadget-col h4{
-  font-family:"Silkscreen", monospace; font-size:10px; margin:0 0 6px;
-}
+.gadget-col h4{ font-size:13px; font-weight:700; margin:0 0 6px; }
 
-/* dropzone: the checkerboard a missing image showed as */
 .dropzone{
-  border:1px solid #000; min-height:200px;
+  border:1px solid #ccc; min-height:210px; background:#fafafa;
   display:flex; align-items:center; justify-content:center;
-  background-color:#fff;
-  background-image:repeating-conic-gradient(#e3e3e3 0% 25%, #ffffff 0% 50%);
-  background-size:8px 8px;
-  color:#777; font-family:"Courier New", monospace; font-size:10px;
-  box-shadow:3px 3px 0 #cfcfcf; margin-bottom:6px; overflow:hidden;
+  color:#999; font-size:11px; margin-bottom:6px; overflow:hidden;
 }
-.dropzone.has-image{ background-image:none; }
-.dropzone img{ max-width:100%; max-height:280px; display:block; image-rendering:pixelated; }
-.dropzone.avatar{ width:150px; min-height:150px; }
-input[type="file"]{ font-family:"Courier New", monospace; font-size:10px; max-width:100%; }
+.dropzone.has-image{ background:#fff; }
+.dropzone img{ max-width:100%; max-height:300px; display:block; }
+.dropzone.avatar{ width:160px; min-height:160px; }
+input[type="file"]{ font-size:11px; max-width:100%; }
 
 .locrow{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
-.locrow select, .locrow button{
-  font-family:"Silkscreen", monospace; font-size:9px;
-  border:1px solid #000; border-radius:0; padding:4px 6px; background:#ededed;
-  box-shadow:2px 2px 0 #c4c4c4; cursor:pointer;
+.locrow select{
+  font-family:inherit; font-size:12px; border:1px solid #9a9a9a; padding:2px 4px;
 }
-.locrow button{ background:#3a6ea5; color:#fff; box-shadow:2px 2px 0 #1b3b5c; }
-.locrow button:active{ box-shadow:0 0 0; transform:translate(2px,2px); }
+.locrow button{
+  font-family:inherit; font-size:11px; font-weight:700;
+  border:1px solid #1e4f8f; background:#2f6fbf; color:#fff;
+  padding:3px 12px; cursor:pointer;
+}
 
-/* the results list */
-.shoplist{ list-style:none; margin:0 0 20px; padding:0; }
-.shoplist .shop{
-  border:1px solid #000; padding:8px; margin-bottom:6px; background:#fff;
-  box-shadow:3px 3px 0 #dcdcdc;
+/* results: Mary Ping's caption block — bold navy title, plain body under it */
+.shoplist{ list-style:none; margin:0 0 22px; padding:0; }
+.shoplist .shop{ border-bottom:1px solid #ddd; padding:10px 0; }
+.shop-head{
+  display:flex; justify-content:space-between; gap:10px;
+  font-size:14px; font-weight:700; color:var(--blue);
 }
-.shoplist.tight .shop, .shoplist.tight li{ box-shadow:none; }
-.shop-head{ font-family:"Silkscreen", monospace; font-size:11px; display:flex; justify-content:space-between; gap:8px; }
-.shop-head .dist{ font-size:9px; color:#3a6ea5; }
-.shop-city{ font-family:"Silkscreen", monospace; font-size:9px; color:#666; margin:2px 0 4px; }
-.shoplist p{ font-family:"Courier New", monospace; font-size:11px; margin:0 0 4px; }
-.shop-tags{ font-family:"Silkscreen", monospace; font-size:8px; color:#3a6ea5; }
-.shoplist li.empty{
-  font-family:"Courier New", monospace; font-size:11px; color:#666;
-  border:1px dashed #999; padding:8px;
+.shop-head .dist{ font-size:11px; font-weight:400; color:#666; }
+.shop-city{
+  font-size:11px; color:#666; text-transform:uppercase;
+  letter-spacing:0.06em; margin:1px 0 4px;
 }
+.shoplist p{ font-size:12px; margin:0 0 3px; max-width:76ch; }
+.shop-tags{ font-size:11px; color:var(--blue-dim); }
+.shoplist li.empty{ font-size:12px; color:#666; padding:10px 0; }
 .shoplist.tight li{
-  border:1px solid #000; padding:6px 8px; margin-bottom:4px;
-  font-family:"Silkscreen", monospace; font-size:10px; background:#fff;
+  border-bottom:1px solid #eee; padding:6px 0; font-size:12px;
 }
+.shoplist.tight li b{ color:var(--blue); }
 
 /* threadle */
-.game{ border:1px solid #000; padding:14px; box-shadow:4px 4px 0 #d5d5d5; background:#fff; margin-bottom:22px; width:340px; }
+.game{ border:1px solid var(--rule); padding:16px; background:#fff; margin-bottom:24px; width:330px; }
 .board .row{ display:flex; gap:4px; margin-bottom:4px; }
 .board .cell{
-  width:40px; height:40px; border:1px solid #000;
+  width:42px; height:42px; border:1px solid #bbb;
   display:flex; align-items:center; justify-content:center;
-  font-family:"Silkscreen", monospace; font-size:16px;
+  font-family:Arial, Helvetica, sans-serif; font-size:19px; font-weight:700;
   background:#fff; color:#111;
 }
-.board .cell.hit{  background:#2f3b2f; color:#fff; }
-.board .cell.near{ background:#b9b98a; color:#111; }
-.board .cell.miss{ background:#cfcfcf; color:#555; }
-.guessrow{ display:flex; gap:4px; margin:10px 0 6px; }
+.board .cell.hit{  background:var(--blue); border-color:var(--blue); color:#fff; }
+.board .cell.near{ background:#c9c9de; border-color:#b3b3cc; color:#1a1a1a; }
+.board .cell.miss{ background:#e8e8e8; border-color:#d5d5d5; color:#777; }
+.guessrow{ display:flex; gap:6px; margin:12px 0 6px; }
 .guessrow input{
-  width:150px; border:1px solid #000; border-radius:0; padding:4px 6px;
-  font-family:"Silkscreen", monospace; font-size:13px; text-transform:uppercase;
-  box-shadow:inset 2px 2px 0 #dcdcdc;
+  width:150px; border:1px solid #9a9a9a; padding:3px 6px;
+  font-family:Arial, Helvetica, sans-serif; font-size:15px; text-transform:uppercase;
+  letter-spacing:0.14em;
 }
 .guessrow button{
-  font-family:"Silkscreen", monospace; font-size:10px; border:1px solid #000;
-  background:#3a6ea5; color:#fff; box-shadow:2px 2px 0 #1b3b5c; padding:0 12px; cursor:pointer;
+  font-family:inherit; font-size:11px; font-weight:700;
+  border:1px solid #1e4f8f; background:#2f6fbf; color:#fff; padding:0 16px; cursor:pointer;
 }
-.guessrow button:active{ box-shadow:0 0 0; transform:translate(2px,2px); }
-.guessrow button:disabled, .guessrow input:disabled{ opacity:0.5; }
+.guessrow button:disabled, .guessrow input:disabled{ opacity:0.45; }
 
 /* forum */
-table.index.forum td, table.index.forum th{ font-size:11px; }
 .soon{
-  border:1px dashed #000; padding:10px; margin:16px 0 26px;
-  font-family:"Courier New", monospace; font-size:11px;
-  background:repeating-conic-gradient(#f4f4f4 0% 25%, #ffffff 0% 50%);
-  background-size:8px 8px;
+  border:1px solid var(--rule); background:#f4f4f4;
+  padding:12px; margin:18px 0 28px; font-size:12px;
 }
-.soon b{ font-family:"Silkscreen", monospace; font-size:10px; }
+.soon b{ font-weight:700; }
 
 /* profile */
-.profile-top{ display:grid; grid-template-columns:170px 1fr; gap:16px; margin-bottom:20px; }
+.profile-top{ display:grid; grid-template-columns:180px 1fr; gap:22px; margin-bottom:24px; }
 .profile-fields .field{ margin-bottom:8px; }
 .profile-fields label, .addfit label{
-  font-family:"Silkscreen", monospace; font-size:9px; text-transform:none; letter-spacing:0;
+  display:block; font-size:11px; color:#666;
+  text-transform:uppercase; letter-spacing:0.06em; margin-bottom:2px;
 }
 .profile-fields input{
-  width:100%; border:1px solid #000; border-radius:0; padding:4px 6px;
-  font-family:"Courier New", monospace; font-size:12px;
-  box-shadow:inset 2px 2px 0 #dcdcdc;
+  width:100%; border:1px solid #9a9a9a; padding:4px 6px;
+  font-family:Arial, Helvetica, sans-serif; font-size:13px;
 }
-.addfit{ display:flex; gap:6px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+.addfit{ display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
 .addfit input[type="text"]{
-  width:320px; border:1px solid #000; border-radius:0; padding:4px 6px;
-  font-family:"Courier New", monospace; font-size:12px;
-  box-shadow:inset 2px 2px 0 #dcdcdc;
+  width:340px; border:1px solid #9a9a9a; padding:4px 6px;
+  font-family:Arial, Helvetica, sans-serif; font-size:13px;
 }
-.fitgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
-.fit{ margin:0; border:1px solid #000; padding:4px; background:#fff; box-shadow:3px 3px 0 #dcdcdc; }
-.fit img{ width:100%; display:block; image-rendering:pixelated; }
-.fit figcaption{ font-family:"Silkscreen", monospace; font-size:8px; margin-top:4px; line-height:1.5; }
+.fitgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+.fit{ margin:0; }
+.fit img{ width:100%; display:block; border:1px solid #ccc; }
+.fit figcaption{
+  font-size:12px; font-weight:700; color:var(--blue);
+  margin-top:6px; line-height:1.4;
+}
 .linky{
-  background:none; border:0; padding:0; cursor:pointer; color:#3a6ea5;
-  font-family:"Silkscreen", monospace; font-size:8px; text-decoration:underline;
+  background:none; border:0; padding:0; cursor:pointer; color:var(--blue-dim);
+  font-family:inherit; font-size:11px; font-weight:400; text-decoration:underline;
 }
