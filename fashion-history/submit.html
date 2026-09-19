@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Submit an entry — THE CUT ROOM</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+  <nav class="channelbar">
+    <span class="label">the channels</span>
+    <a href="index.html">the feed</a>
+    <a href="archive.html">the archive</a>
+    <a href="entry.html">an entry</a>
+    <a href="label.html">the label</a>
+    <a href="submit.html">submit</a>
+  </nav>
+
+  <div class="composer">
+    <div class="section-head" style="margin-top:20px;">
+      <h2>file an entry</h2>
+      <span class="note">an entry without a source is a caption, not an entry</span>
+    </div>
+
+    <form onsubmit="return false;">
+      <div class="field">
+        <label for="t">title</label>
+        <input type="text" id="t" placeholder="say the claim, not the topic">
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="era">era</label>
+          <input type="text" id="era" placeholder="1947, or 1962–1975">
+        </div>
+        <div class="field">
+          <label for="place">place</label>
+          <input type="text" id="place" placeholder="Paris, Kingston, Kano…">
+        </div>
+        <div class="field">
+          <label for="chan">channel</label>
+          <select id="chan">
+            <option>silhouette</option>
+            <option>construction</option>
+            <option>cloth &amp; dye</option>
+            <option>subculture</option>
+            <option>houses</option>
+            <option>patterns</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="body">the entry</label>
+        <textarea id="body" placeholder="What was made, how it was made, who made it, and what the usual telling gets wrong."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="src">sources — one per line</label>
+        <textarea id="src" style="min-height:80px;" placeholder="Object records, contemporary press, a pattern you drafted yourself."></textarea>
+      </div>
+
+      <button type="submit">file it</button>
+      <p class="formnote">Static for now — nothing is posted. Wiring this to a real
+      backend is the next step; see <code>README.md</code>.</p>
+    </form>
+  </div>
+
+  <div class="railfoot">
+    <span class="name">Cut Room</span>
+    <a href="archive.html">Index<br>Eras</a>
+    <a href="archive.html">Houses<br>Makers</a>
+    <a href="archive.html">Cloth<br>Dye</a>
+    <a href="submit.html">Submit<br>Corrections</a>
+    <a href="label.html">The Label<br>Mailing list</a>
+    <a href="archive.html">Sources<br>Links</a>
+  </div>
+
+  <div class="sitefoot">THE CUT ROOM © 2026</div>
+
+</div>
+</body>
+</html>

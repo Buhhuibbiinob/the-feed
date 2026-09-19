@@ -1,0 +1,287 @@
+/* THE CUT ROOM — fashion history / make culture
+   Visual language borrowed from three places, on purpose:
+   ELLE.com (2001): the grey channel rail, the serif-lite masthead, the date line.
+   maryping.com: unstyled blue links, lookbook captions, bracketed plate numbers.
+   maisonmartinmargiela.com: an Apache directory index used as navigation.
+   Nothing here is responsive-first. It is a 1024px page, like they were. */
+
+:root{
+  --paper:#ffffff;
+  --rail:#e4e4e4;
+  --rule:#b8b8b8;
+  --ink:#1a1a1a;
+  --muted:#666;
+  --blue:#2b2b8f;
+  --blue-dim:#5a5ab0;
+  --pink:#d6247a;
+}
+
+*{ box-sizing:border-box; }
+
+html,body{ min-width:1000px; }
+
+body{
+  margin:0;
+  background:#fff;
+  color:var(--ink);
+  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:13px;
+  line-height:1.45;
+}
+
+a{ color:var(--blue); text-decoration:underline; }
+a:hover{ color:var(--pink); }
+
+.page{ width:1000px; margin:0 auto; padding:0 0 60px; }
+
+/* ---- the strip above everything, ELLE's search + utility line ---- */
+.utility{
+  display:flex; align-items:center; justify-content:flex-end; gap:14px;
+  padding:26px 14px 6px; font-size:12px;
+}
+.utility label{ letter-spacing:0.02em; }
+.utility input[type="search"]{
+  width:210px; height:20px; border:1px solid #9a9a9a; padding:0 4px;
+  font-family:inherit; font-size:12px;
+}
+.utility button{
+  height:20px; padding:0 12px; border:1px solid #1e4f8f;
+  background:#2f6fbf; color:#fff; font:700 11px/1 inherit; cursor:pointer;
+}
+.utility-links{
+  display:flex; justify-content:flex-end; gap:34px;
+  padding:0 14px 14px; font-size:12px; font-weight:700;
+}
+.utility-links a{ color:var(--ink); text-decoration:none; }
+.utility-links a:hover{ text-decoration:underline; }
+
+/* ---- channels bar + masthead ---- */
+.channelbar{
+  display:flex; align-items:center; gap:26px;
+  background:var(--rail); padding:5px 14px;
+  font-size:11.5px; font-weight:700;
+}
+.channelbar .label{ font-weight:400; color:#333; }
+.channelbar a{ color:#222; text-decoration:none; }
+.channelbar a:hover{ text-decoration:underline; }
+
+.masthead{
+  display:grid; grid-template-columns:200px 1fr 250px;
+  border-bottom:1px solid var(--rule);
+}
+
+.channels{ background:var(--rail); padding:14px 0 22px 14px; }
+.channels li{ list-style:none; }
+.channels ul{ margin:0; padding:0; }
+.channels a{
+  display:block; padding:2px 0;
+  font-size:22px; font-weight:300; letter-spacing:-0.01em;
+  color:#111; text-decoration:none;
+}
+.channels a:hover{ color:var(--pink); }
+.channels a.spotlight{ font-size:17px; font-weight:800; text-transform:uppercase; letter-spacing:0.01em; }
+
+.wordmark{ text-align:center; padding:10px 0 8px; }
+.wordmark h1{
+  margin:0; font-size:96px; line-height:0.86; letter-spacing:-0.02em;
+  font-weight:400; color:var(--blue); font-family:"Times New Roman", Times, serif;
+}
+.wordmark .dotcom{
+  display:block; font-size:15px; letter-spacing:0.36em; color:var(--blue);
+  text-transform:uppercase; margin-top:6px;
+}
+.wordmark .dateline{ margin:10px 0 0; font-size:12px; font-weight:700; }
+.wordmark .tagline{
+  margin:6px 0 0; font-size:20px; color:var(--blue); font-weight:800;
+  letter-spacing:0.01em;
+}
+.wordmark .tagline span{ font-weight:400; display:block; font-size:16px; }
+
+.thumbstrip{ display:flex; justify-content:center; gap:3px; margin-top:10px; }
+.thumbstrip .swatch{
+  width:56px; height:62px; border:1px solid #ccc;
+}
+
+.figure-slot{
+  border-left:1px solid #e7e7e7;
+  display:flex; align-items:flex-end; justify-content:center;
+  padding:8px;
+}
+.figure-slot .plate{
+  width:100%; height:100%; min-height:250px;
+  border:1px solid #ddd;
+  display:flex; align-items:center; justify-content:center;
+  text-align:center; color:#999; font-size:11px; padding:10px;
+}
+
+/* ---- worldwide rail, ELLE's grey band of editions ---- */
+.worldwide{
+  display:flex; align-items:center; gap:12px;
+  background:#9a9a9a; color:#fff; padding:5px 14px; font-size:11.5px;
+}
+.worldwide .label{ font-weight:400; margin-right:20px; }
+.worldwide a{ color:#fff; text-decoration:none; }
+.worldwide a:hover{ text-decoration:underline; }
+
+/* ---- the feed ---- */
+.columns{ display:grid; grid-template-columns:1fr 320px; gap:0; }
+.main{ padding:20px 22px 0 14px; }
+.side{ background:#f0f0f0; border-left:1px solid var(--rule); padding:18px 16px; }
+
+.section-head{
+  display:flex; align-items:baseline; justify-content:space-between;
+  border-bottom:2px solid var(--ink); padding-bottom:4px; margin-bottom:16px;
+}
+.section-head h2{
+  margin:0; font-size:20px; font-weight:800; letter-spacing:-0.01em;
+}
+.section-head .note{ font-size:11px; color:var(--muted); }
+
+/* one entry in the feed */
+.entry{ border-bottom:1px solid #ddd; padding:0 0 18px; margin:0 0 18px; }
+.entry .meta{
+  font-size:11px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:0.06em; margin-bottom:5px;
+}
+.entry .meta .era{ color:var(--blue); font-weight:700; }
+.entry h3{ margin:0 0 4px; font-size:18px; font-weight:700; letter-spacing:-0.01em; }
+.entry h3 a{ color:var(--ink); text-decoration:none; }
+.entry h3 a:hover{ color:var(--pink); text-decoration:underline; }
+.entry .byline{ font-size:11px; color:var(--muted); margin:0 0 8px; }
+.entry p{ margin:0 0 8px; }
+.entry .tags{ font-size:11px; }
+.entry .tags a{ color:var(--blue-dim); }
+.entry .plate{
+  float:left; width:150px; height:150px; margin:2px 14px 6px 0;
+  border:1px solid #ccc; background:#fafafa;
+  display:flex; align-items:center; justify-content:center;
+  color:#aaa; font-size:10px; text-align:center; padding:8px;
+}
+.entry::after{ content:""; display:block; clear:both; }
+
+.reactions{
+  margin-top:8px; font-size:11px; color:var(--muted);
+  display:flex; gap:16px; align-items:center;
+}
+.reactions b{ color:var(--ink); }
+
+/* side column blocks */
+.block{ margin:0 0 26px; }
+.block h4{
+  margin:0 0 8px; font-size:14px; font-weight:800;
+}
+.block h4 em{ font-style:normal; font-weight:400; }
+.block ol, .block ul{ margin:0; padding-left:18px; }
+.block li{ margin-bottom:5px; }
+.block .caption{ font-size:11px; color:var(--muted); }
+.block .cover{
+  width:100%; height:190px; border:1px solid #bbb; background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  color:#aaa; font-size:11px; text-align:center; padding:10px; margin-bottom:8px;
+}
+
+/* ---- Margiela-style directory index ---- */
+.dirwrap{ margin:0 14px; }
+.dir h1{
+  font-family:"Courier New", Courier, monospace;
+  font-size:30px; font-weight:400; letter-spacing:0.04em; margin:22px 0 14px;
+}
+table.index{
+  width:100%; border-collapse:collapse;
+  font-family:"Courier New", Courier, monospace; font-size:12px;
+}
+table.index th{
+  text-align:left; font-weight:400; color:var(--blue);
+  text-decoration:underline; padding:4px 10px 6px 0;
+}
+table.index tbody tr:first-child td{ padding-top:8px; }
+table.index td{ padding:2px 10px 2px 0; vertical-align:top; white-space:nowrap; }
+table.index td.desc{ white-space:normal; color:#444; }
+table.index .rule td{ border-top:1px solid #999; padding:0; height:8px; }
+.dir .icon{ display:inline-block; width:16px; color:#888; }
+.dir .server{
+  margin-top:30px; padding-top:8px; border-top:1px solid #ccc;
+  font-family:"Courier New", Courier, monospace; font-size:11px; color:#888;
+}
+
+/* ---- lookbook (Mary Ping) ---- */
+.lookbook{ text-align:center; padding:10px 0 0; }
+.lookbook h2{ color:var(--blue); font-size:26px; font-weight:800; margin:26px 0 4px; }
+.lookbook h3{ color:var(--blue); font-size:18px; font-weight:700; margin:0 0 14px; }
+.lookbook .credit{ color:var(--blue); font-weight:700; font-size:13px; margin-bottom:18px; }
+.plate-row{
+  display:grid; grid-template-columns:70px 1fr; gap:18px;
+  align-items:start; text-align:left; margin:0 0 34px;
+}
+.plate-row .no{ color:var(--blue); font-size:13px; padding-top:4px; }
+.plate-row .shot{
+  width:360px; height:250px; border:1px solid #ccc; background:#fafafa;
+  display:flex; align-items:center; justify-content:center;
+  color:#aaa; font-size:11px; text-align:center; padding:10px;
+}
+.plate-row .cap{ color:var(--blue); font-size:13px; margin-top:8px; max-width:360px; }
+
+/* ---- the label pages ---- */
+.label-hero{
+  border:1px solid var(--rule); padding:26px; margin:20px 14px;
+  display:grid; grid-template-columns:1fr 300px; gap:26px; align-items:center;
+}
+.label-hero h2{ margin:0 0 10px; font-size:34px; font-weight:300; letter-spacing:0.14em; text-transform:uppercase; }
+.label-hero p{ margin:0 0 10px; max-width:52ch; }
+.label-hero .swatchbox{
+  height:230px; border:1px solid #ccc; display:flex; align-items:center;
+  justify-content:center; color:#aaa; font-size:11px; text-align:center; padding:10px;
+}
+.rack{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:0 14px; }
+.rack .item .shot{
+  height:220px; border:1px solid #ccc; background:#fafafa;
+  display:flex; align-items:center; justify-content:center;
+  color:#aaa; font-size:10px; text-align:center; padding:8px;
+}
+.rack .item h4{ margin:8px 0 2px; font-size:13px; font-weight:700; }
+.rack .item p{ margin:0; font-size:11px; color:var(--muted); }
+
+form.signup{ display:flex; gap:6px; margin-top:12px; }
+form.signup input{
+  height:24px; width:240px; border:1px solid #9a9a9a; padding:0 6px;
+  font-family:inherit; font-size:12px;
+}
+form.signup button{
+  height:24px; padding:0 14px; border:1px solid #1e4f8f; background:#2f6fbf;
+  color:#fff; font:700 11px/1 inherit; cursor:pointer;
+}
+.formnote{ font-size:11px; color:var(--muted); margin-top:6px; }
+
+/* ---- submit / post an entry ---- */
+.composer{ margin:0 14px; }
+.composer .field{ margin-bottom:14px; }
+.composer label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:3px; }
+.composer input[type="text"], .composer select, .composer textarea{
+  width:100%; border:1px solid #9a9a9a; padding:5px; font-family:inherit; font-size:13px;
+}
+.composer textarea{ min-height:150px; }
+.composer .row{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+.composer button{
+  height:28px; padding:0 20px; border:1px solid #1e4f8f; background:#2f6fbf;
+  color:#fff; font:700 12px/1 inherit; cursor:pointer;
+}
+
+/* ---- footer, ELLE's centred small print ---- */
+.sitefoot{
+  margin:34px 14px 0; padding-top:14px; border-top:1px solid var(--rule);
+  text-align:center; font-size:11px; color:#555; line-height:1.6;
+}
+.footnav{
+  display:flex; justify-content:center; gap:26px; margin-bottom:12px;
+  font-size:12px;
+}
+.footnav a{ color:#222; text-decoration:underline; }
+
+/* the Mary Ping bottom rail: underlined links in two rows, spread wide */
+.railfoot{
+  display:grid; grid-template-columns:repeat(7,1fr); gap:10px;
+  margin:30px 14px 0; padding-top:12px; border-top:1px solid var(--rule);
+  font-size:13px;
+}
+.railfoot a{ display:block; color:#111; }
+.railfoot .name{ font-family:"Times New Roman", Times, serif; font-size:16px; }
