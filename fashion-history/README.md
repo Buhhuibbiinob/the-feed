@@ -8,6 +8,14 @@ maisonmartinmargiela.com's directory index.
 Plain HTML and one stylesheet. No build step, no dependencies, nothing to
 install. It does not touch the Next.js app in this repo.
 
+It is deliberately low quality: bitmap type that never anti-aliases, a 1-bit
+dither under the page, hard one-pixel borders, drop shadows with no blur, the
+checkerboard a transparent GIF used to show through as, and a scanline over the
+lot. That is the whole `LOW-QUALITY PASS` block at the foot of `style.css` —
+delete it and the site goes back to being smooth. The pixel face is Silkscreen,
+loaded from Google Fonts; with no network it falls back to Courier and still
+reads as a bitmap.
+
 ## Look at it
 
 Open `fashion-history/index.html` in a browser. That's it. Or:
@@ -37,8 +45,13 @@ cd fashion-history && python3 -m http.server 8080   # http://localhost:8080
    then swap the `<div class="plate">` / `.shot` / `.cover` boxes for
    `<img src="img/…">`. Sizes are set in `style.css`.
 3. **Wordmark and colour.** The top of `style.css` has the palette; the masthead
-   name is in `index.html` under `.wordmark`.
-4. **Entries.** Copy an `<article class="entry">` block in `index.html` and edit
+   name is in `index.html` under `.wordmark`. Keep colours flat and few — the
+   look depends on them reading as quantised, not blended.
+4. **Images.** Save them small and let the CSS blow them up: everything carries
+   `image-rendering: pixelated`, so a 300px JPEG scaled to 600 looks intended
+   rather than broken. A photo downsized to ~40% and posterised to 8 or 16
+   colours will sit right in.
+5. **Entries.** Copy an `<article class="entry">` block in `index.html` and edit
    it. Each one wants: era, channel, place, a claim in the headline, and sources.
 
 ## Not wired up yet
