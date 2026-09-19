@@ -1,19 +1,18 @@
 /* LastThread: where the site finds its database.
 
-   Both values below are meant to be public. The anon key is designed to sit in
-   a web page; what it can actually do is decided by the row level security
-   policies in supabase/migrations/020-lastthread.sql, not by keeping it secret.
-   Never put the service role key here. That one is a skeleton key.
+   On the live site you do not need to touch this file. /lastthread/env.js is
+   served by the app from the project's own environment variables, and it runs
+   first. This file only fills in the gap when that is not available, which
+   means opening the pages straight off your disk.
 
-   To switch accounts on:
-     1. Supabase dashboard, Settings, API.
-     2. Copy the Project URL and the anon public key into the two lines below.
-     3. Run supabase/migrations/020-lastthread.sql in the SQL editor.
+   If you ever do want to hardcode them, both values are safe to publish: the
+   URL is an address, and the publishable (anon) key can only do what the row
+   level security policies in supabase/migrations/020-lastthread.sql allow.
+   Never put a secret or service_role key here. */
 
-   Left blank, the site still works exactly as it did before: everything saves
-   in your own browser and nothing is shared. */
-
-window.LASTTHREAD_CONFIG = {
-  supabaseUrl: '',
-  supabaseAnonKey: ''
-};
+window.LASTTHREAD_CONFIG = (window.LASTTHREAD_CONFIG && window.LASTTHREAD_CONFIG.supabaseUrl)
+  ? window.LASTTHREAD_CONFIG
+  : {
+      supabaseUrl: '',
+      supabaseAnonKey: ''
+    };
