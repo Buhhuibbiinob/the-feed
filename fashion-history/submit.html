@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Submit an entry — LastThread</title>
+<title>Submit an entry: LastThread</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -26,7 +26,7 @@
       <span class="note">an entry without a source is a caption, not an entry</span>
     </div>
 
-    <form onsubmit="return false;">
+    <form id="entryform" onsubmit="return false;">
       <div class="field">
         <label for="t">title</label>
         <input type="text" id="t" placeholder="say the claim, not the topic">
@@ -60,13 +60,19 @@
       </div>
 
       <div class="field">
-        <label for="src">sources — one per line</label>
+        <label for="src">sources, one per line</label>
         <textarea id="src" style="min-height:80px;" placeholder="Object records, contemporary press, a pattern you drafted yourself."></textarea>
       </div>
 
-      <button type="submit">file it</button>
-      <p class="formnote">Static for now — nothing is posted. Wiring this to a real
-      backend is the next step; see <code>README.md</code>.</p>
+      <div class="field">
+        <label for="pic">picture, optional</label>
+        <input type="file" id="pic" accept="image/*">
+      </div>
+      <button type="submit" id="filebtn">file it</button>
+      <p class="formnote" id="filenote">The entry goes straight to the top of the feed
+      and gets its own page. It is saved in this browser. To publish it for everyone,
+      open the feed and use "save page as HTML" in the bar at the foot of the window,
+      then put that file in the repo.</p>
     </form>
   </div>
 
@@ -84,5 +90,48 @@
 
 </div>
 <script src="app.js"></script>
+<script src="editor.js"></script>
+<script>
+/* the submit page writes into the same store the edit bar uses, so an entry
+   filed here behaves exactly like one written from the bar */
+document.addEventListener('DOMContentLoaded', function () {
+  var pic = '';
+  document.getElementById('pic').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      var im = new Image();
+      im.onload = function () {
+        var scale = Math.min(1, 900 / Math.max(im.width, im.height));
+        var cv = document.createElement('canvas');
+        cv.width = Math.round(im.width * scale); cv.height = Math.round(im.height * scale);
+        cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+        pic = cv.toDataURL('image/jpeg', 0.82);
+      };
+      im.src = r.result;
+    };
+    r.readAsDataURL(f);
+  });
+
+  document.getElementById('filebtn').addEventListener('click', function () {
+    var val = function (id) { var el = document.getElementById(id); return (el.value || '').trim(); };
+    if (!val('t')) { alert('Give it a title.'); return; }
+    var list;
+    try { list = JSON.parse(localStorage.getItem('lt-posts') || '[]'); } catch (e) { list = []; }
+    list.unshift({
+      id: 'p' + Date.now(),
+      title: val('t'), era: val('era'), place: val('place'),
+      channel: document.getElementById('chan').value,
+      author: 'you', body: val('body'), sources: val('src'),
+      picture: pic, date: new Date().toISOString().slice(0, 10)
+    });
+    try { localStorage.setItem('lt-posts', JSON.stringify(list)); }
+    catch (e) { alert('This browser will not save any more. Export your posts from the bar, then try again.'); return; }
+    document.getElementById('entryform').reset();
+    document.getElementById('filenote').innerHTML =
+      'Filed. <a href="index.html">See it at the top of the feed</a>.';
+  });
+});
+</script>
 </body>
 </html>

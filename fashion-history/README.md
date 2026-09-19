@@ -1,7 +1,7 @@
 # LastThread
 
-A fashion history / make-culture site, built in the same format as the feed —
-dated entries, channels, an archive, margins you can write in — and dressed in
+A fashion history / make-culture site, built in the same format as the feed -
+dated entries, channels, an archive, margins you can write in, and dressed in
 the early-web fashion aesthetic of ELLE.com (2001), maryping.com and
 maisonmartinmargiela.com's directory index.
 
@@ -42,41 +42,75 @@ cd fashion-history && python3 -m http.server 8080   # http://localhost:8080
 
 | File | What it is | Borrowed from |
 |---|---|---|
-| `index.html` | the feed — channel rail, masthead, dated entries, side column | ELLE.com, June 2001 |
+| `index.html` | the feed, channel rail, masthead, dated entries, side column | ELLE.com, June 2001 |
 | `archive.html` | the whole index as an Apache directory listing | maisonmartinmargiela.com |
 | `entry.html` | one entry, with numbered plates and captions, plus the margin | maryping.com lookbooks |
-| `label.html` | **your clothing line** — shopfront, first run, workroom notes | — |
-| `find-your-style.html` | upload a fit, tag the subgenre, get shops near you + a shopping list | — |
-| `stores.html` | the whole shop directory, filtered by subgenre and region | — |
-| `threadle.html` | the fashion word game — five letters, six guesses, one a day | — |
-| `forum.html` | the boards (reading only for now) | — |
-| `profile.html` | your picture, your subgenres, your fits | — |
-| `submit.html` | file an entry or a correction | — |
-| `style.css` | all of it, commented by section | — |
-| `app.js` | the working parts — shop data, analyser, directory, threadle, profile | — |
+| `label.html` | **your clothing line**, shopfront, first run, workroom notes |, |
+| `find-your-style.html` | upload a fit, tag the subgenre, get shops near you + a shopping list |, |
+| `stores.html` | the whole shop directory, filtered by subgenre and region |, |
+| `threadle.html` | the fashion word game, five letters, six guesses, one a day |, |
+| `forum.html` | the boards (reading only for now) |, |
+| `profile.html` | your picture, your subgenres, your fits |, |
+| `submit.html` | file an entry or a correction |, |
+| `style.css` | all of it, commented by section |, |
+| `app.js` | the working parts, shop data, analyser, directory, threadle, profile |, |
+
+## Editing the site without touching code
+
+Every page carries a grey bar at the foot of the window. That bar is the whole
+content system.
+
+| Button | What it does |
+|---|---|
+| **edit this page** | Every heading, paragraph, list item and caption becomes typeable. Click one and type. Click any picture or grey placeholder to replace it with a file from your computer. Click the button again to stop. |
+| **write a post** | Headline, era, place, channel, body, sources and a picture. It goes to the top of the feed and gets its own page. |
+| **save page as HTML** | Downloads the page with your edits baked into the file. **This is how a change becomes permanent.** |
+| **export** / **import** | All your edits and posts as one JSON file, to move between computers or keep as a backup. |
+| **undo all** | Throws away every edit on the current page. Posts are kept. |
+
+`submit.html` files an entry the same way, if you would rather use a form than
+the bar.
+
+### How the saving works, and its one catch
+
+Edits live in your browser's own storage, under this site's address. Nothing is
+uploaded, because there is no server. So:
+
+- Your edits are visible **to you, on that browser**, straight away.
+- To publish them to everybody, press **save page as HTML** and put the
+  downloaded file into `fashion-history/` in the repo, replacing the old one.
+  That is a real code change made without writing code.
+- Export regularly. Clearing your browser data clears the edits.
+- An edit is pinned to an element's position in the page. If that page's HTML is
+  later rewritten, an edit pinned to something that no longer exists is dropped.
+
+### What is still in the files rather than the bar
+
+Shops, subgenres and Threadle words live in `app.js`, in three plainly named
+lists at the top. They are one line each to add.
 
 ## The working parts
 
 All of it runs in your browser. Nothing is uploaded, because there is no server
 yet; anything you save lives in that browser's localStorage only.
 
-- **Find your style** — you upload a photo, it displays, and you tag the
+- **Find your style**, you upload a photo, it displays, and you tag the
   subgenre yourself. The matching, the store results, the distance sort and the
   shopping list are all real. *Automatic* detection of what is in the photo needs
   a server and an image model, so it is marked coming soon rather than faked.
-- **Location** — real browser GPS, used once to sort by nearest city and never
+- **Location**, real browser GPS, used once to sort by nearest city and never
   stored. It needs the site served over http/https; opened as a `file://` it
   will refuse, so there is a region dropdown that always works.
-- **The shops** — real independent places: vintage floors, archive resale, small
+- **The shops**, real independent places: vintage floors, archive resale, small
   stockists, markets, and the online sources worth the postage. Listed by city,
   not street address, because hours and addresses change and cannot be verified
   from here. **Check a shop's own site before you travel.** They live in the
-  `SHOPS` array at the top of `app.js` — add your own the same shape.
-- **Subgenres** — the `SUBGENRES` array in `app.js`. Add one there and it appears
+  `SHOPS` array at the top of `app.js`, add your own the same shape.
+- **Subgenres**, the `SUBGENRES` array in `app.js`. Add one there and it appears
   in the analyser, the store filter and the profile picker at once.
-- **Threadle** — the answer is derived from the date, so everyone gets the same
+- **Threadle**, the answer is derived from the date, so everyone gets the same
   word. Words are in `THREADLE_WORDS`.
-- **Profile** — pictures are downscaled to 420px before saving, because
+- **Profile**, pictures are downscaled to 420px before saving, because
   full-size photos fill localStorage in about four uploads.
 
 ### Archived, not deleted
@@ -92,7 +126,7 @@ They are marked coming soon on the pages rather than mocked up as working.
 
 ## Making it yours
 
-1. **The label.** `label.html` — replace "Your label goes here", the four pieces
+1. **The label.** `label.html`, replace "Your label goes here", the four pieces
    and the workroom notes. That page is built to be the shopfront when there is
    something to sell.
 2. **Images.** Every grey box is a placeholder with its intended filename in it.
@@ -100,7 +134,7 @@ They are marked coming soon on the pages rather than mocked up as working.
    then swap the `<div class="plate">` / `.shot` / `.cover` boxes for
    `<img src="img/…">`. Sizes are set in `style.css`.
 3. **Wordmark and colour.** The top of `style.css` has the palette; the masthead
-   name is in `index.html` under `.wordmark`. Keep colours flat and few — the
+   name is in `index.html` under `.wordmark`. Keep colours flat and few, the
    look depends on them reading as quantised, not blended.
 4. **Images.** Save them small and let the CSS blow them up: everything carries
    `image-rendering: pixelated`, so a 300px JPEG scaled to 600 looks intended
@@ -111,7 +145,7 @@ They are marked coming soon on the pages rather than mocked up as working.
 
 ## Not wired up yet
 
-The search box, both email forms and the submit form are static — they don't post
+The search box, both email forms and the submit form are static, they don't post
 anywhere. When you want them live, the two straightforward routes are a hosted
 form service (one attribute change per form) or moving these pages into the
 Next.js app in this repo so they can use its Supabase database and server

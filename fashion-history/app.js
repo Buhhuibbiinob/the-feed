@@ -1,4 +1,4 @@
-/* LastThread — the working parts.
+/* LastThread. The working parts.
    No backend, no build step, no dependencies. Everything here runs in the
    browser and stores what it needs in localStorage. Each gadget checks for its
    own container first, so this one file is safe to load on every page. */
@@ -25,11 +25,11 @@ const SUBGENRES = [
 
 /* ==========================================================================
    2. SHOPS
-   Real, independent places — vintage, archive resale, and small stockists.
+   Real, independent places: vintage shops, archive resale, and small stockists.
    NOT the high street. Coordinates are CITY CENTRES, not shopfronts: this
    sorts by which city you are nearest, which is the honest resolution for a
    list built without a maps API. Addresses and opening hours are deliberately
-   absent because they change and nobody here can verify them — always check
+   absent because they change and nobody here can verify them. Always check
    the shop's own site before you travel.
    ========================================================================== */
 const SHOPS = [
@@ -116,7 +116,7 @@ const store = {
 
 /* ==========================================================================
    4. THE ANALYSER
-   You upload a photo, it shows, you tag it. The tagging is yours for now —
+   You upload a photo, it shows, you tag it. The tagging is yours for now -
    automatic detection needs a server and an image model, and saying otherwise
    would be a lie dressed as a feature. What IS real: the matching, the store
    results, the distance sort and the shopping list.
@@ -241,7 +241,7 @@ function initDirectory(){
 }
 
 /* ==========================================================================
-   6. THREADLE — the fashion word game. Five letters, six guesses, one word a
+   6. THREADLE. The fashion word game. Five letters, six guesses, one word a
    day, same word for everybody on that date.
    ========================================================================== */
 const THREADLE_WORDS = [
@@ -310,7 +310,7 @@ function initThreadle(){
 
 /* ==========================================================================
    7. PROFILE
-   Your picture, your fits, your subgenres. All of it local to this browser —
+   Your picture, your fits, your subgenres. All of it local to this browser -
    nothing is sent anywhere, because there is nowhere to send it yet.
    The social half (friends, following, followers) is built but archived; see
    profile.html, where it sits commented out until we want it.
@@ -354,7 +354,7 @@ function initProfile(){
       : '<p class="caption">Nothing here yet. Add a fit below, a whole outfit or one garment.</p>';
   }
 
-  /* read a file as a data URL, downscaled — full-size photos fill localStorage
+  /* read a file as a data URL, downscaled. Full-size photos fill localStorage
      in about four uploads, and this site is meant to look low-res anyway */
   function readSmall(file, cb){
     const r = new FileReader();
