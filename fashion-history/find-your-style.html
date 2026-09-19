@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Find your style — LastThread</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+
+  <nav class="channelbar">
+    <span class="label">the channels</span>
+    <a href="index.html">the feed</a>
+    <a href="find-your-style.html">find your style</a>
+    <a href="stores.html">where to shop</a>
+    <a href="threadle.html">threadle</a>
+    <a href="forum.html">the forum</a>
+    <a href="profile.html">your profile</a>
+    <a href="archive.html">the archive</a>
+    <a href="label.html">the label</a>
+  </nav>
+
+
+  <div class="dirwrap" id="analyser">
+    <div class="section-head" style="margin-top:18px;">
+      <h2>find your style</h2>
+      <span class="note">put a picture in · tag it · get somewhere to actually buy it</span>
+    </div>
+
+    <p class="lede">Upload an outfit — yours, a photo you saved, a runway shot, one
+    garment. Tag what it is. LastThread matches the tags against a directory of
+    independent shops, archive resale and online sources, and sorts them by how
+    near you are. No high street, no chain stores.</p>
+
+    <div class="gadget">
+      <div class="gadget-col">
+        <h4>1 — the picture</h4>
+        <div id="preview" class="dropzone">nothing yet</div>
+        <input type="file" id="photo" accept="image/*">
+        <p class="caption">Read in your browser and never uploaded. Automatic
+        detection of the garments is <b>coming soon</b> — it needs a server, and
+        pretending otherwise would just be a loading spinner that lies.</p>
+      </div>
+
+      <div class="gadget-col">
+        <h4>2 — the subgenre</h4>
+        <p class="caption">Tap everything that applies. Hover for what each one means.</p>
+        <div id="chips" class="chips"></div>
+
+        <h4 style="margin-top:16px;">3 — where you are</h4>
+        <div class="locrow">
+          <button type="button" id="locate">use my location</button>
+          <select id="region">
+            <option value="all">everywhere</option>
+            <option value="Online">online only</option>
+            <option value="Europe">Europe</option>
+            <option value="Asia">Asia</option>
+            <option value="Americas">Americas</option>
+            <option value="Africa">Africa</option>
+          </select>
+        </div>
+        <p class="caption" id="locstatus"></p>
+        <p class="caption">Location is asked for by your browser, used once to sort
+        the list, and never stored or sent anywhere.</p>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>where to find it</h2><span class="note" id="resultcount"></span></div>
+    <ul class="shoplist" id="results"></ul>
+
+    <div class="section-head"><h2>your shopping list</h2><span class="note">what to look for, not what to buy</span></div>
+    <ul class="shoplist tight" id="shoplist"></ul>
+
+    <p class="caption" style="margin-bottom:26px;">Shops are real and independently
+    run, listed by city rather than street address because hours and addresses
+    change and nobody here can verify them. Check the shop before you travel.</p>
+  </div>
+
+  <div class="railfoot">
+    <span class="name">LastThread</span>
+    <a href="archive.html">Index<br>Eras</a>
+    <a href="find-your-style.html">Find your style<br>Subgenres</a>
+    <a href="stores.html">Where to shop<br>Online</a>
+    <a href="threadle.html">Threadle<br>Forum</a>
+    <a href="profile.html">Your profile<br>Your fits</a>
+    <a href="label.html">The Label<br>Mailing list</a>
+  </div>
+
+  <div class="sitefoot">
+    <div class="footnav">
+      <a href="index.html">the feed</a>
+      <a href="find-your-style.html">find your style</a>
+      <a href="stores.html">where to shop</a>
+      <a href="threadle.html">threadle</a>
+      <a href="forum.html">the forum</a>
+      <a href="profile.html">your profile</a>
+      <a href="archive.html">the archive</a>
+      <a href="label.html">the label</a>
+    </div>
+    Entries are written by members and corrected in public.<br>
+    Cite your sources or expect to be asked for them.<br>
+    LastThread © 2026 — a fashion history and make-culture site.
+  </div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

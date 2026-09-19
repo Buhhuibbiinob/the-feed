@@ -447,3 +447,157 @@ body::after{
     rgba(0,0,0,0) 1px, rgba(0,0,0,0) 2px
   );
 }
+
+/* ==========================================================================
+   TIGHTENING — the 8-bit treatment pulled in closer to the body copy, so the
+   pixel look and the text read as one thing rather than a frame around prose.
+   Narrower measure, less air, everything snapped to a 4px grid.
+   ========================================================================== */
+.page{ width:960px; }
+.main{ padding:14px 16px 0 12px; }
+.side{ padding:14px 12px; }
+.dirwrap{ margin:0 12px; }
+.entry{ padding-bottom:12px; margin-bottom:12px; }
+.section-head{ padding-bottom:4px; margin-bottom:12px; }
+.entry p, .block .caption, .label-hero p, table.index td.desc, .plate-row .cap{
+  font-size:11px; line-height:1.55;
+}
+.lede{
+  font-family:"Courier New", monospace; font-size:12px; line-height:1.6;
+  max-width:68ch; margin:0 0 16px;
+}
+
+/* ==========================================================================
+   THE GADGETS — analyser, directory, threadle, profile
+   ========================================================================== */
+
+/* chips: the subgenre picker. Two-tone, no gradient, pressed state moves. */
+.chips{ display:flex; flex-wrap:wrap; gap:4px; margin:4px 0 0; }
+.chip{
+  font-family:"Silkscreen", monospace; font-size:9px;
+  border:1px solid #000; background:#ededed; color:#222;
+  padding:4px 6px; cursor:pointer; border-radius:0;
+  box-shadow:2px 2px 0 #c4c4c4;
+}
+.chip:hover{ background:#fff; }
+.chip.on{
+  background:#3a6ea5; color:#fff; box-shadow:2px 2px 0 #1b3b5c;
+}
+.chip.on:active{ box-shadow:0 0 0; transform:translate(2px,2px); }
+
+/* the two-column gadget frame */
+.gadget{
+  display:grid; grid-template-columns:300px 1fr; gap:16px;
+  border:1px solid #000; padding:12px; margin-bottom:20px;
+  background:#fff;
+  box-shadow:4px 4px 0 #d5d5d5;
+}
+.gadget-col h4{
+  font-family:"Silkscreen", monospace; font-size:10px; margin:0 0 6px;
+}
+
+/* dropzone: the checkerboard a missing image showed as */
+.dropzone{
+  border:1px solid #000; min-height:200px;
+  display:flex; align-items:center; justify-content:center;
+  background-color:#fff;
+  background-image:repeating-conic-gradient(#e3e3e3 0% 25%, #ffffff 0% 50%);
+  background-size:8px 8px;
+  color:#777; font-family:"Courier New", monospace; font-size:10px;
+  box-shadow:3px 3px 0 #cfcfcf; margin-bottom:6px; overflow:hidden;
+}
+.dropzone.has-image{ background-image:none; }
+.dropzone img{ max-width:100%; max-height:280px; display:block; image-rendering:pixelated; }
+.dropzone.avatar{ width:150px; min-height:150px; }
+input[type="file"]{ font-family:"Courier New", monospace; font-size:10px; max-width:100%; }
+
+.locrow{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.locrow select, .locrow button{
+  font-family:"Silkscreen", monospace; font-size:9px;
+  border:1px solid #000; border-radius:0; padding:4px 6px; background:#ededed;
+  box-shadow:2px 2px 0 #c4c4c4; cursor:pointer;
+}
+.locrow button{ background:#3a6ea5; color:#fff; box-shadow:2px 2px 0 #1b3b5c; }
+.locrow button:active{ box-shadow:0 0 0; transform:translate(2px,2px); }
+
+/* the results list */
+.shoplist{ list-style:none; margin:0 0 20px; padding:0; }
+.shoplist .shop{
+  border:1px solid #000; padding:8px; margin-bottom:6px; background:#fff;
+  box-shadow:3px 3px 0 #dcdcdc;
+}
+.shoplist.tight .shop, .shoplist.tight li{ box-shadow:none; }
+.shop-head{ font-family:"Silkscreen", monospace; font-size:11px; display:flex; justify-content:space-between; gap:8px; }
+.shop-head .dist{ font-size:9px; color:#3a6ea5; }
+.shop-city{ font-family:"Silkscreen", monospace; font-size:9px; color:#666; margin:2px 0 4px; }
+.shoplist p{ font-family:"Courier New", monospace; font-size:11px; margin:0 0 4px; }
+.shop-tags{ font-family:"Silkscreen", monospace; font-size:8px; color:#3a6ea5; }
+.shoplist li.empty{
+  font-family:"Courier New", monospace; font-size:11px; color:#666;
+  border:1px dashed #999; padding:8px;
+}
+.shoplist.tight li{
+  border:1px solid #000; padding:6px 8px; margin-bottom:4px;
+  font-family:"Silkscreen", monospace; font-size:10px; background:#fff;
+}
+
+/* threadle */
+.game{ border:1px solid #000; padding:14px; box-shadow:4px 4px 0 #d5d5d5; background:#fff; margin-bottom:22px; width:340px; }
+.board .row{ display:flex; gap:4px; margin-bottom:4px; }
+.board .cell{
+  width:40px; height:40px; border:1px solid #000;
+  display:flex; align-items:center; justify-content:center;
+  font-family:"Silkscreen", monospace; font-size:16px;
+  background:#fff; color:#111;
+}
+.board .cell.hit{  background:#2f3b2f; color:#fff; }
+.board .cell.near{ background:#b9b98a; color:#111; }
+.board .cell.miss{ background:#cfcfcf; color:#555; }
+.guessrow{ display:flex; gap:4px; margin:10px 0 6px; }
+.guessrow input{
+  width:150px; border:1px solid #000; border-radius:0; padding:4px 6px;
+  font-family:"Silkscreen", monospace; font-size:13px; text-transform:uppercase;
+  box-shadow:inset 2px 2px 0 #dcdcdc;
+}
+.guessrow button{
+  font-family:"Silkscreen", monospace; font-size:10px; border:1px solid #000;
+  background:#3a6ea5; color:#fff; box-shadow:2px 2px 0 #1b3b5c; padding:0 12px; cursor:pointer;
+}
+.guessrow button:active{ box-shadow:0 0 0; transform:translate(2px,2px); }
+.guessrow button:disabled, .guessrow input:disabled{ opacity:0.5; }
+
+/* forum */
+table.index.forum td, table.index.forum th{ font-size:11px; }
+.soon{
+  border:1px dashed #000; padding:10px; margin:16px 0 26px;
+  font-family:"Courier New", monospace; font-size:11px;
+  background:repeating-conic-gradient(#f4f4f4 0% 25%, #ffffff 0% 50%);
+  background-size:8px 8px;
+}
+.soon b{ font-family:"Silkscreen", monospace; font-size:10px; }
+
+/* profile */
+.profile-top{ display:grid; grid-template-columns:170px 1fr; gap:16px; margin-bottom:20px; }
+.profile-fields .field{ margin-bottom:8px; }
+.profile-fields label, .addfit label{
+  font-family:"Silkscreen", monospace; font-size:9px; text-transform:none; letter-spacing:0;
+}
+.profile-fields input{
+  width:100%; border:1px solid #000; border-radius:0; padding:4px 6px;
+  font-family:"Courier New", monospace; font-size:12px;
+  box-shadow:inset 2px 2px 0 #dcdcdc;
+}
+.addfit{ display:flex; gap:6px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+.addfit input[type="text"]{
+  width:320px; border:1px solid #000; border-radius:0; padding:4px 6px;
+  font-family:"Courier New", monospace; font-size:12px;
+  box-shadow:inset 2px 2px 0 #dcdcdc;
+}
+.fitgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
+.fit{ margin:0; border:1px solid #000; padding:4px; background:#fff; box-shadow:3px 3px 0 #dcdcdc; }
+.fit img{ width:100%; display:block; image-rendering:pixelated; }
+.fit figcaption{ font-family:"Silkscreen", monospace; font-size:8px; margin-top:4px; line-height:1.5; }
+.linky{
+  background:none; border:0; padding:0; cursor:pointer; color:#3a6ea5;
+  font-family:"Silkscreen", monospace; font-size:8px; text-decoration:underline;
+}

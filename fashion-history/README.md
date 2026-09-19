@@ -32,8 +32,49 @@ cd fashion-history && python3 -m http.server 8080   # http://localhost:8080
 | `archive.html` | the whole index as an Apache directory listing | maisonmartinmargiela.com |
 | `entry.html` | one entry, with numbered plates and captions, plus the margin | maryping.com lookbooks |
 | `label.html` | **your clothing line** — shopfront, first run, workroom notes | — |
+| `find-your-style.html` | upload a fit, tag the subgenre, get shops near you + a shopping list | — |
+| `stores.html` | the whole shop directory, filtered by subgenre and region | — |
+| `threadle.html` | the fashion word game — five letters, six guesses, one a day | — |
+| `forum.html` | the boards (reading only for now) | — |
+| `profile.html` | your picture, your subgenres, your fits | — |
 | `submit.html` | file an entry or a correction | — |
 | `style.css` | all of it, commented by section | — |
+| `app.js` | the working parts — shop data, analyser, directory, threadle, profile | — |
+
+## The working parts
+
+All of it runs in your browser. Nothing is uploaded, because there is no server
+yet; anything you save lives in that browser's localStorage only.
+
+- **Find your style** — you upload a photo, it displays, and you tag the
+  subgenre yourself. The matching, the store results, the distance sort and the
+  shopping list are all real. *Automatic* detection of what is in the photo needs
+  a server and an image model, so it is marked coming soon rather than faked.
+- **Location** — real browser GPS, used once to sort by nearest city and never
+  stored. It needs the site served over http/https; opened as a `file://` it
+  will refuse, so there is a region dropdown that always works.
+- **The shops** — real independent places: vintage floors, archive resale, small
+  stockists, markets, and the online sources worth the postage. Listed by city,
+  not street address, because hours and addresses change and cannot be verified
+  from here. **Check a shop's own site before you travel.** They live in the
+  `SHOPS` array at the top of `app.js` — add your own the same shape.
+- **Subgenres** — the `SUBGENRES` array in `app.js`. Add one there and it appears
+  in the analyser, the store filter and the profile picker at once.
+- **Threadle** — the answer is derived from the date, so everyone gets the same
+  word. Words are in `THREADLE_WORDS`.
+- **Profile** — pictures are downscaled to 420px before saving, because
+  full-size photos fill localStorage in about four uploads.
+
+### Archived, not deleted
+
+Friends / following / followers are written and ready on `profile.html`, sitting
+inside an HTML comment. A social feature with nobody in it looks broken, so it is
+switched off until there are accounts. Uncomment that block to bring it back.
+
+### Coming soon, honestly labelled
+
+Posting to the forum, accounts, and automatic photo analysis all need a backend.
+They are marked coming soon on the pages rather than mocked up as working.
 
 ## Making it yours
 
