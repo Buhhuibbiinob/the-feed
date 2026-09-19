@@ -8,5 +8,15 @@
       "path": "/api/bots/run",
       "schedule": "0 13 * * *"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/lastthread",
+      "destination": "/lastthread/index.html"
+    },
+    {
+      "source": "/lastthread/",
+      "destination": "/lastthread/index.html"
+    }
   ]
 }

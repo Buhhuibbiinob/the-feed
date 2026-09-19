@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Your profile: LastThread</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+
+  <nav class="channelbar">
+    <span class="label">the channels</span>
+    <a href="index.html">the feed</a>
+    <a href="find-your-style.html">find your style</a>
+    <a href="stores.html">where to shop</a>
+    <a href="threadle.html">threadle</a>
+    <a href="forum.html">the forum</a>
+    <a href="profile.html">your profile</a>
+    <a href="archive.html">the archive</a>
+    <a href="label.html">the label</a>
+  </nav>
+
+
+  <div class="dirwrap" id="profile">
+    <div class="section-head" style="margin-top:18px;">
+      <h2>your profile</h2>
+      <span class="note" id="savestate"></span>
+    </div>
+
+    <div class="profile-top">
+      <div>
+        <div id="avatar" class="dropzone avatar">no picture yet</div>
+        <input type="file" id="avatarfile" accept="image/*">
+        <p class="caption">A photo of you, or of a garment. Plenty of people use a
+        jacket.</p>
+      </div>
+
+      <div class="profile-fields">
+        <div class="field"><label for="p-name">name</label><input type="text" id="p-name"></div>
+        <div class="field"><label for="p-handle">handle</label><input type="text" id="p-handle"></div>
+        <div class="field"><label for="p-bio">one line</label><input type="text" id="p-bio"></div>
+        <label>your subgenres</label>
+        <div id="p-tags" class="chips"></div>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>your fits</h2><span class="note">a whole outfit, or one garment</span></div>
+    <div class="addfit">
+      <input type="text" id="fitcap" placeholder="caption: what it is, where it came from">
+      <input type="file" id="fitfile" accept="image/*">
+    </div>
+    <div id="fits" class="fitgrid"></div>
+
+    <!-- ARCHIVED, NOT DELETED. The social half.
+         Friends, following and followers are designed and ready to switch on;
+         they are hidden for now because a social feature with nobody in it
+         looks broken. Uncomment this block when there are accounts to follow.
+
+    <div class="section-head"><h2>people</h2><span class="note">following · followers</span></div>
+    <div class="people">
+      <div class="block"><h4>following</h4><ul id="following"></ul></div>
+      <div class="block"><h4>followers</h4><ul id="followers"></ul></div>
+      <div class="block"><h4>friends</h4><ul id="friends"></ul></div>
+    </div>
+    -->
+
+    <p class="caption" style="margin-bottom:26px;">Everything on this page is saved
+    in <b>this browser only</b>. Nothing is uploaded or shared, and nobody else can
+    see it. Accounts that work across devices come with the forum.</p>
+  </div>
+
+  <div class="railfoot">
+    <span class="name">LastThread</span>
+    <a href="archive.html">Index<br>Eras</a>
+    <a href="find-your-style.html">Find your style<br>Subgenres</a>
+    <a href="stores.html">Where to shop<br>Online</a>
+    <a href="threadle.html">Threadle<br>Forum</a>
+    <a href="profile.html">Your profile<br>Your fits</a>
+    <a href="label.html">The Label<br>Mailing list</a>
+  </div>
+
+  <div class="sitefoot">
+    <div class="footnav">
+      <a href="index.html">the feed</a>
+      <a href="find-your-style.html">find your style</a>
+      <a href="stores.html">where to shop</a>
+      <a href="threadle.html">threadle</a>
+      <a href="forum.html">the forum</a>
+      <a href="profile.html">your profile</a>
+      <a href="archive.html">the archive</a>
+      <a href="label.html">the label</a>
+    </div>
+    Entries are written by members and corrected in public.<br>
+    Cite your sources or expect to be asked for them.<br>
+    LastThread © 2026. Fashion history and make culture.
+  </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script src="editor.js"></script>
+</body>
+</html>
