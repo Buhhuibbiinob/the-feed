@@ -1,4 +1,4 @@
-# THE CUT ROOM
+# LastThread
 
 A fashion history / make-culture site, built in the same format as the feed —
 dated entries, channels, an archive, margins you can write in — and dressed in
