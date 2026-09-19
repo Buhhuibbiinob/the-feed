@@ -208,9 +208,10 @@
       document.execCommand('styleWithCSS', false, true);
       document.execCommand(cmd, false, val);
     }
-    texts[addressOf(host)] = host.innerHTML;
+    const addr = addressOf(host);
+    texts[addr] = host.innerHTML;
     write(TEXT_KEY, texts);
-    note('saved');
+    shareEdit(addr, 'text', host.innerHTML);
   }
 
   /* the editable block a selection sits inside */
@@ -295,9 +296,21 @@
 
   function onTextBlur(e) {
     const el = e.currentTarget;
-    texts[addressOf(el)] = el.innerHTML;
+    const addr = addressOf(el);
+    texts[addr] = el.innerHTML;
     write(TEXT_KEY, texts);
-    note('saved');
+    shareEdit(addr, 'text', el.innerHTML);
+  }
+
+  /* An owner's edit goes to the database as well as this browser, so it is
+     the site that changed rather than one screen. */
+  function shareEdit(address, kind, value) {
+    const s = window.LT && window.LT.state();
+    if (!s || !s.isOwner) { note('saved in this browser'); return; }
+    note('saving to the site...');
+    window.LT.saveEdit(PAGE, address, kind, value).then(r => {
+      note(r.error ? 'saved here, but the site refused it: ' + r.error : 'saved to the site, for everybody');
+    });
   }
 
   function onImageClick(e) {
@@ -310,15 +323,18 @@
       const f = input.files[0];
       if (!f) return;
       readImage(f, data => {
-        imgs[addressOf(el)] = data;
-        if (write(IMG_KEY, imgs)) { setPicture(el, data); note('picture replaced'); }
+        const addr = addressOf(el);
+        imgs[addr] = data;
+        if (write(IMG_KEY, imgs)) { setPicture(el, data); shareEdit(addr, 'image', data); }
       });
     };
     input.click();
   }
 
   /* ---------- posts: articles, blogs, anything you write ---------- */
-  function posts() { return read(POST_KEY, []); }
+  let remotePosts = [];
+  function posts() { return remotePosts.concat(read(POST_KEY, [])); }
+  function localPosts() { return read(POST_KEY, []); }
   function savePosts(list) { return write(POST_KEY, list); }
 
   function postForm() {
@@ -354,17 +370,36 @@
     p.querySelector('#lt-publish').onclick = () => {
       const v = id => (p.querySelector('#lt-' + id).value || '').trim();
       if (!v('title')) { alert('Give it a headline.'); return; }
-      const list = posts();
-      list.unshift({
+      const post = {
         id: 'p' + Date.now(),
         title: v('title'), era: v('era'), place: v('place'), channel: v('channel'),
         author: v('author') || 'you', body: v('body'), sources: v('sources'),
         picture: picture, date: new Date().toISOString().slice(0, 10)
-      });
-      if (savePosts(list)) {
+      };
+
+      const signedIn = window.LT && window.LT.state().user;
+      if (signedIn) {
+        window.LT.createPost(post).then(r => {
+          if (r.error) { alert('Could not publish it: ' + r.error + '\nIt has been kept in this browser instead.'); keepLocally(); return; }
+          post.id = r.id; post.remote = true;
+          remotePosts.unshift(post);
+          finish('Published to the site. Everybody can read it.');
+        });
+      } else {
+        keepLocally();
+      }
+
+      function keepLocally() {
+        const list = localPosts();
+        list.unshift(post);
+        if (savePosts(list)) finish('Saved in this browser. Sign in to publish it to the site.');
+      }
+
+      function finish(msg) {
         p.style.display = 'none';
+        note(msg);
         if (PAGE === 'index.html' || PAGE === '') { renderPosts(); window.scrollTo(0, 0); }
-        else if (confirm('Published. Go to the feed and look at it?')) location.href = 'index.html';
+        else if (confirm(msg + ' Go and look at the feed?')) location.href = 'index.html';
       }
     };
   }
@@ -392,7 +427,17 @@
     document.querySelectorAll('.lt-del').forEach(a => a.onclick = e => {
       e.preventDefault();
       if (!confirm('Delete this post?')) return;
-      savePosts(posts().filter(p => p.id !== a.dataset.id));
+      const id = a.dataset.id;
+      const remote = remotePosts.find(p => p.id === id);
+      if (remote && window.LT) {
+        window.LT.deletePost(id).then(r => {
+          if (r.error) { alert('Could not delete it: ' + r.error); return; }
+          remotePosts = remotePosts.filter(p => p.id !== id);
+          renderPosts();
+        });
+        return;
+      }
+      savePosts(localPosts().filter(p => p.id !== id));
       renderPosts();
     });
   }
@@ -408,9 +453,19 @@
     const id = new URLSearchParams(location.search).get('id');
     const post = posts().find(p => p.id === id);
     if (!post) {
-      holder.innerHTML = '<p class="lede">No post with that address. It may have been deleted, or it was written in a different browser. <a href="index.html">Back to the feed</a>.</p>';
+      holder.dataset.missing = '1';
+      holder.innerHTML = '<p class="lede">Looking for that post...</p>';
+      setTimeout(() => {
+        if (holder.dataset.missing) {
+          holder.innerHTML = '<p class="lede">No post with that address. It may have been deleted, or written in a different browser. <a href="index.html">Back to the feed</a>.</p>';
+        }
+      }, 2500);
       return;
     }
+    paintSingle(holder, post);
+  }
+
+  function paintSingle(holder, post) {
     document.title = post.title + ': LastThread';
     holder.innerHTML = `
       <div class="section-head" style="margin-top:18px;">
@@ -509,6 +564,7 @@
       <button id="lt-export" class="lt-btn lt-quiet">export</button>
       <button id="lt-import" class="lt-btn lt-quiet">import</button>
       <button id="lt-reset" class="lt-btn lt-quiet">undo all</button>
+      <button id="lt-account" class="lt-btn lt-quiet">sign in</button>
       <span id="lt-note"></span>`;
     document.body.appendChild(barEl);
 
@@ -522,6 +578,41 @@
     barEl.querySelector('#lt-export').onclick = exportAll;
     barEl.querySelector('#lt-import').onclick = importAll;
     barEl.querySelector('#lt-reset').onclick  = resetPage;
+    barEl.querySelector('#lt-account').onclick = () => window.LT && window.LT.authPanel();
+
+    /* the bar reflects who you are, once accounts answer */
+    if (window.LT) window.LT.onChange(s => {
+      const btn = barEl.querySelector('#lt-account');
+      if (!s.configured) { btn.textContent = 'accounts off'; return; }
+      btn.textContent = s.user ? 'signed in' : 'sign in';
+      if (s.user && s.isOwner) note('Signed in as the site owner. Page edits save for everybody.');
+    });
+  }
+
+  /* Shared first, local second. A post that reached the database belongs to
+     the site; a post that did not is still yours, so both are shown, with the
+     shared ones on top. */
+  async function loadRemote() {
+    if (!window.LT || !window.LT.state().configured) return;
+    try {
+      const shared = await window.LT.listPosts();
+      if (shared && shared.length) { remotePosts = shared; renderPosts(); }
+      const edits = await window.LT.loadEdits(PAGE);
+      if (edits) {
+        Object.keys(edits.text).forEach(a => { if (!(a in texts)) texts[a] = edits.text[a]; });
+        Object.keys(edits.image).forEach(a => { if (!(a in imgs)) imgs[a] = edits.image[a]; });
+        applyEdits();
+      }
+      if (typeof renderSinglePost === 'function') await renderSingleRemote();
+    } catch (e) { /* offline, or the database is not reachable. The local site still works. */ }
+  }
+
+  async function renderSingleRemote() {
+    const holder = document.getElementById('lt-single');
+    if (!holder || !holder.dataset.missing) return;
+    const id = new URLSearchParams(location.search).get('id');
+    const post = await window.LT.getPost(id);
+    if (post) { delete holder.dataset.missing; paintSingle(holder, post); }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -530,5 +621,6 @@
     applyEdits();
     renderPosts();
     renderSinglePost();
+    loadRemote();
   });
 })();

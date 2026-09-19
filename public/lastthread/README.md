@@ -30,13 +30,53 @@ The writing is meant to be flat and factual. Short sentences, no em dashes in
 prose, no aphorisms, sources named. If a line sounds like it is selling
 something, rewrite it.
 
-## Look at it
+## Where it lives
 
-Open `fashion-history/index.html` in a browser. That's it. Or:
+The site is `public/lastthread/` in this repo, which is the folder Vercel
+serves as static files. So once this branch is merged it is live at:
+
+    https://mythefeed.com/lastthread
+
+No build step and no separate hosting account. `vercel.json` has a rewrite so
+`/lastthread` works as well as `/lastthread/index.html`.
+
+**Its own domain.** Buy one, add it in Vercel under the project's Domains, and
+point it at this path. Until then the path above is a real, public address you
+can send to anyone.
+
+To look at it on your own machine:
 
 ```bash
-cd fashion-history && python3 -m http.server 8080   # http://localhost:8080
+cd public/lastthread && python3 -m http.server 8080   # http://localhost:8080
 ```
+
+Opening the files directly also works, except for browser location, which every
+browser refuses on `file://`.
+
+## Accounts
+
+Signed out, the site behaves as it always has: what you write is saved in your
+own browser. Signed in, posts go to the database and everybody can read them.
+
+Switching it on takes two steps.
+
+1. **The tables.** Run `supabase/migrations/020-lastthread.sql` in the Supabase
+   SQL editor. It adds four tables (`lastthread_profiles`, `lastthread_posts`,
+   `lastthread_owners`, `lastthread_edits`), touches nothing that already
+   exists, and can be run more than once.
+2. **The keys.** Supabase dashboard, Settings, API. Copy the Project URL and
+   the **anon public** key into `config.js`. Both are meant to be public: what
+   that key can do is decided by the row level security policies in the
+   migration. Never put the service role key there.
+
+Then sign up on the site once with your own email, and make yourself the owner
+by running the two lines at the foot of the migration file. Owners are the only
+people whose page edits save for everyone; everybody else's edits stay in their
+own browser.
+
+**Say this out loud before anyone writes anything:** a published post is
+readable by the whole internet, signed in or not. That is the point of the
+site, but it should not be a surprise.
 
 ## The pages
 
@@ -53,7 +93,11 @@ cd fashion-history && python3 -m http.server 8080   # http://localhost:8080
 | `profile.html` | your picture, your subgenres, your fits |, |
 | `submit.html` | file an entry or a correction |, |
 | `style.css` | all of it, commented by section |, |
-| `app.js` | the working parts, shop data, analyser, directory, threadle, profile |, |
+| `app.js` | the working parts, shop data, analyser, directory, threadle, profile | |
+| `editor.js` | edit mode: the bar, the formatting toolbar, posts, site colours | |
+| `auth.js` | accounts, and posts and edits kept on the server | |
+| `config.js` | the two Supabase values, blank until you fill them in | |
+| `post.html` | one post that somebody wrote on the site | |
 
 ## Editing the site without touching code
 
@@ -89,10 +133,12 @@ the bar.
 Edits live in your browser's own storage, under this site's address. Nothing is
 uploaded, because there is no server. So:
 
-- Your edits are visible **to you, on that browser**, straight away.
-- To publish them to everybody, press **save page as HTML** and put the
-  downloaded file into `fashion-history/` in the repo, replacing the old one.
-  That is a real code change made without writing code.
+- Signed in as the site owner, with the database configured, your text and
+  picture edits save to the site and everybody sees them.
+- Otherwise they are visible **to you, on that browser**, straight away, and to
+  publish them you press **save page as HTML** and put the downloaded file into
+  `public/lastthread/` in the repo, replacing the old one. That is a real code
+  change made without writing code.
 - Export regularly. Clearing your browser data clears the edits.
 - An edit is pinned to an element's position in the page. If that page's HTML is
   later rewritten, an edit pinned to something that no longer exists is dropped.
