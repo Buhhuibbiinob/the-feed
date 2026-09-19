@@ -22,9 +22,28 @@
   const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; }
                             catch { alert('This browser will not save any more. Export your edits, then reset.'); return false; } };
 
+  const THEME_KEY = 'lt-theme';
+
   let texts = read(TEXT_KEY, {});
   let imgs  = read(IMG_KEY, {});
   let editing = false;
+
+  /* The colours the whole site is built from. Each one maps to a custom
+     property in style.css, so changing it here changes every page at once. */
+  const THEME_FIELDS = [
+    { var: '--navy',       label: 'links, headings, wordmark', fallback: '#2a2a8c' },
+    { var: '--ink',        label: 'body text',                 fallback: '#111111' },
+    { var: '--grey-rail',  label: 'channel bar and column',    fallback: '#e9e9e9' },
+    { var: '--grey-band',  label: 'the rooms band',            fallback: '#9d9d9d' },
+    { var: '--grey-panel', label: 'side panel',                fallback: '#e2e2e2' },
+    { var: '--page-bg',    label: 'page background',           fallback: '#ffffff' }
+  ];
+
+  function applyTheme() {
+    const t = read(THEME_KEY, {});
+    Object.keys(t).forEach(v => document.documentElement.style.setProperty(v, t[v]));
+    if (t['--page-bg']) document.body.style.background = t['--page-bg'];
+  }
 
   /* A stable address for an element: its ancestry by tag and position.
      Independent of class names, so restyling does not break saved edits. */
@@ -100,6 +119,144 @@
     r.readAsDataURL(file);
   }
 
+  /* ---------- the formatting toolbar ----------
+     Colour, size, weight and alignment for whatever text you have selected.
+     It uses the browser's own rich-text commands, then saves the block it
+     touched, because those commands do not fire a blur event. */
+
+  const SWATCHES = ['#111111','#2a2a8c','#8d1f2d','#2f3b2f','#7a5c2e','#666666','#9d9d9d','#ffffff'];
+
+  let toolbarEl = null;
+  function buildToolbar() {
+    if (toolbarEl) return toolbarEl;
+    toolbarEl = document.createElement('div');
+    toolbarEl.id = 'lt-tools';
+    toolbarEl.innerHTML =
+      '<span class="lt-tgroup"><b>text</b>' +
+        SWATCHES.map(c => '<button class="lt-sw" data-cmd="foreColor" data-val="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('') +
+        '<input type="color" class="lt-pick" data-cmd="foreColor" value="#2a2a8c" title="any colour">' +
+      '</span>' +
+      '<span class="lt-tgroup"><b>highlight</b>' +
+        '<button class="lt-sw" data-cmd="hiliteColor" data-val="#fff3a3" style="background:#fff3a3"></button>' +
+        '<button class="lt-sw" data-cmd="hiliteColor" data-val="#e2e2e2" style="background:#e2e2e2"></button>' +
+        '<button class="lt-sw" data-cmd="hiliteColor" data-val="transparent" style="background:#fff" title="none"></button>' +
+      '</span>' +
+      '<span class="lt-tgroup">' +
+        '<button class="lt-t" data-cmd="bold"><b>B</b></button>' +
+        '<button class="lt-t" data-cmd="italic"><i>I</i></button>' +
+        '<button class="lt-t" data-cmd="underline"><u>U</u></button>' +
+      '</span>' +
+      '<span class="lt-tgroup"><b>size</b>' +
+        '<select class="lt-sel" data-cmd="fontSize">' +
+          '<option value="">size</option><option value="1">tiny</option><option value="2">small</option>' +
+          '<option value="3">normal</option><option value="4">large</option><option value="5">bigger</option>' +
+          '<option value="6">huge</option><option value="7">headline</option>' +
+        '</select>' +
+      '</span>' +
+      '<span class="lt-tgroup"><b>font</b>' +
+        '<select class="lt-sel" data-cmd="fontName">' +
+          '<option value="">font</option>' +
+          '<option value="Arial, Helvetica, sans-serif">Arial</option>' +
+          '<option value="&quot;Times New Roman&quot;, Times, serif">Times</option>' +
+          '<option value="&quot;Courier New&quot;, Courier, monospace">Courier</option>' +
+          '<option value="Georgia, serif">Georgia</option>' +
+          '<option value="&quot;Helvetica Neue&quot;, Helvetica, sans-serif">Helvetica</option>' +
+        '</select>' +
+      '</span>' +
+      '<span class="lt-tgroup">' +
+        '<button class="lt-t" data-cmd="justifyLeft">left</button>' +
+        '<button class="lt-t" data-cmd="justifyCenter">centre</button>' +
+        '<button class="lt-t" data-cmd="justifyRight">right</button>' +
+      '</span>' +
+      '<span class="lt-tgroup">' +
+        '<button class="lt-t" data-cmd="createLink">link</button>' +
+        '<button class="lt-t" data-cmd="removeFormat">clear</button>' +
+      '</span>' +
+      '<span class="lt-tgroup"><button class="lt-t" id="lt-colours">site colours</button></span>';
+    document.body.appendChild(toolbarEl);
+
+    /* mousedown, not click: keep the selection in the page while the button
+       is pressed, otherwise the browser drops it and the command does nothing */
+    toolbarEl.addEventListener('mousedown', e => {
+      const b = e.target.closest('[data-cmd]');
+      if (!b || b.tagName === 'SELECT' || b.type === 'color') return;
+      e.preventDefault();
+      run(b.dataset.cmd, b.dataset.val);
+    });
+    toolbarEl.querySelectorAll('select[data-cmd]').forEach(sel => {
+      sel.addEventListener('change', () => { run(sel.dataset.cmd, sel.value); sel.selectedIndex = 0; });
+    });
+    toolbarEl.querySelectorAll('input[type="color"]').forEach(inp => {
+      inp.addEventListener('input', () => run(inp.dataset.cmd, inp.value));
+    });
+    toolbarEl.querySelector('#lt-colours').addEventListener('mousedown', e => {
+      e.preventDefault(); themePanel();
+    });
+    return toolbarEl;
+  }
+
+  function run(cmd, val) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) { note('select some text first'); return; }
+    const host = hostOf(sel.anchorNode);
+    if (!host) { note('select text inside the page, not the bar'); return; }
+    if (cmd === 'createLink') {
+      const url = prompt('Link to where?', 'https://');
+      if (!url) return;
+      document.execCommand('createLink', false, url);
+    } else {
+      document.execCommand('styleWithCSS', false, true);
+      document.execCommand(cmd, false, val);
+    }
+    texts[addressOf(host)] = host.innerHTML;
+    write(TEXT_KEY, texts);
+    note('saved');
+  }
+
+  /* the editable block a selection sits inside */
+  function hostOf(node) {
+    let el = node && node.nodeType === 3 ? node.parentNode : node;
+    while (el && el !== document.body) {
+      if (el.getAttribute && el.getAttribute('contenteditable') === 'true') return el;
+      el = el.parentNode;
+    }
+    return null;
+  }
+
+  /* ---------- site colours ---------- */
+  function themePanel() {
+    const t = read(THEME_KEY, {});
+    const p = panel();
+    p.innerHTML = '<h4>Site colours</h4>' +
+      '<p class="lt-note" style="margin:0 0 10px;">These apply to every page. They are saved in this browser, and are included when you save a page as HTML.</p>' +
+      THEME_FIELDS.map(f =>
+        '<div class="lt-field lt-colourrow">' +
+          '<label>' + f.label + '</label>' +
+          '<input type="color" data-var="' + f.var + '" value="' + (t[f.var] || f.fallback) + '">' +
+          '<code>' + f.var + '</code>' +
+        '</div>').join('') +
+      '<button id="lt-theme-reset" class="lt-btn lt-quiet">back to the original colours</button> ' +
+      '<button id="lt-theme-close" class="lt-btn">done</button>';
+    p.style.display = 'block';
+
+    p.querySelectorAll('input[type="color"][data-var]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const theme = read(THEME_KEY, {});
+        theme[inp.dataset.var] = inp.value;
+        write(THEME_KEY, theme);
+        applyTheme();
+      });
+    });
+    p.querySelector('#lt-theme-reset').onclick = () => {
+      localStorage.removeItem(THEME_KEY);
+      THEME_FIELDS.forEach(f => document.documentElement.style.removeProperty(f.var));
+      document.body.style.background = '';
+      themePanel();
+      note('colours back to the original');
+    };
+    p.querySelector('#lt-theme-close').onclick = () => { p.style.display = 'none'; };
+  }
+
   /* ---------- edit mode on and off ---------- */
   function startEditing() {
     editing = true;
@@ -115,8 +272,9 @@
       el.addEventListener('click', onImageClick);
     });
 
+    buildToolbar().style.display = 'flex';
     bar().querySelector('#lt-toggle').textContent = 'stop editing';
-    note(editableTexts().length + ' text blocks and ' + editableImages().length + ' pictures on this page are editable. Click one and type. Click a picture to replace it.');
+    note(editableTexts().length + ' text blocks and ' + editableImages().length + ' pictures are editable here. Type in any of them. Select text to colour or resize it. Click a picture to replace it.');
   }
 
   function stopEditing() {
@@ -130,6 +288,7 @@
       el.classList.remove('lt-img-edit');
       el.removeEventListener('click', onImageClick);
     });
+    if (toolbarEl) toolbarEl.style.display = 'none';
     bar().querySelector('#lt-toggle').textContent = 'edit this page';
     note('Edits saved in this browser. Use "save page as HTML" to make them permanent.');
   }
@@ -267,7 +426,8 @@
 
   /* ---------- export, import, save as HTML, reset ---------- */
   function exportAll() {
-    const bundle = { site: 'LastThread', exported: new Date().toISOString(), pages: {}, posts: posts() };
+    const bundle = { site: 'LastThread', exported: new Date().toISOString(),
+                     pages: {}, posts: posts(), theme: read(THEME_KEY, {}) };
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (k.startsWith('lt-text-') || k.startsWith('lt-img-')) bundle.pages[k] = read(k, {});
@@ -287,6 +447,7 @@
           const b = JSON.parse(r.result);
           Object.keys(b.pages || {}).forEach(k => write(k, b.pages[k]));
           if (b.posts) savePosts(b.posts);
+          if (b.theme) write(THEME_KEY, b.theme);
           alert('Imported. The page will reload.');
           location.reload();
         } catch { alert('That file is not a LastThread export.'); }
@@ -300,7 +461,14 @@
      replace the file in the repo. This is how an edit becomes permanent. */
   function savePageHtml() {
     const clone = document.documentElement.cloneNode(true);
-    clone.querySelectorAll('#lt-bar,#lt-panel,script[src="editor.js"]').forEach(n => n.remove());
+    clone.querySelectorAll('#lt-bar,#lt-panel,#lt-tools,script[src="editor.js"]').forEach(n => n.remove());
+    const theme = read(THEME_KEY, {});
+    if (Object.keys(theme).length) {
+      const st = document.createElement('style');
+      st.textContent = ':root{' + Object.keys(theme).map(v => v + ':' + theme[v] + ';').join('') + '}' +
+                       (theme['--page-bg'] ? 'body{background:' + theme['--page-bg'] + ';}' : '');
+      clone.querySelector('head').appendChild(st);
+    }
     clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
     clone.querySelectorAll('.lt-img-edit').forEach(n => n.classList.remove('lt-img-edit'));
     clone.querySelectorAll('.lt-post').forEach(n => n.classList.remove('lt-post'));
@@ -358,6 +526,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     buildBar();
+    applyTheme();
     applyEdits();
     renderPosts();
     renderSinglePost();

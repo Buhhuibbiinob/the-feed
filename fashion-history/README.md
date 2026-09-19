@@ -62,11 +62,24 @@ content system.
 
 | Button | What it does |
 |---|---|
-| **edit this page** | Every heading, paragraph, list item and caption becomes typeable. Click one and type. Click any picture or grey placeholder to replace it with a file from your computer. Click the button again to stop. |
+| **edit this page** | Every heading, paragraph, list item and caption becomes typeable. Click one and type. Click any picture or grey placeholder to replace it with a file from your computer. A formatting toolbar appears above the bar while this is on. Click the button again to stop. |
 | **write a post** | Headline, era, place, channel, body, sources and a picture. It goes to the top of the feed and gets its own page. |
-| **save page as HTML** | Downloads the page with your edits baked into the file. **This is how a change becomes permanent.** |
+| **save page as HTML** | Downloads the page with your edits, formatting and colours baked into the file. **This is how a change becomes permanent.** |
 | **export** / **import** | All your edits and posts as one JSON file, to move between computers or keep as a backup. |
 | **undo all** | Throws away every edit on the current page. Posts are kept. |
+
+### Formatting, while edit mode is on
+
+Select some text and use the toolbar: eight colour swatches plus a full colour
+picker, three highlight colours, bold, italic, underline, seven text sizes, five
+fonts (Arial, Times, Courier, Georgia, Helvetica), left/centre/right, add a
+link, and clear formatting. Each change saves as soon as you make it.
+
+**site colours** on the toolbar opens the scheme for the whole site: the navy
+used by links, headings and the wordmark; the body text colour; the channel bar;
+the rooms band; the side panel; and the page background. Those six feed the
+custom properties at the top of `style.css`, so changing one changes every page
+at once. There is a button to put them all back.
 
 `submit.html` files an entry the same way, if you would rather use a form than
 the bar.
