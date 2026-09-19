@@ -9,18 +9,18 @@
    analyser, the store filter and the profile picker at once.
    ========================================================================== */
 const SUBGENRES = [
-  { id:'archive',    name:'archive / deconstruction', blurb:'Exposed seams, raw hems, a garment that shows its own making. Margiela, early Demeulemeester, Helmut Lang before 2005.' },
-  { id:'minimal',    name:'90s minimalism',           blurb:'Nothing decorative. Weight, drape and one colour. Jil Sander, Calvin Klein Collection, Prada nylon.' },
-  { id:'workwear',   name:'workwear / utility',       blurb:'Moleskin, duck canvas, bar tacks, four pockets. Bought to be repaired rather than replaced.' },
-  { id:'tailoring',  name:'tailoring',                blurb:'Cut from a block and fitted to a body. Suits, coats, trousers with a real waistband.' },
-  { id:'punk',       name:'punk / DIY',               blurb:'Cut up, safety-pinned, screened by hand. The garment is a statement you made yourself.' },
-  { id:'y2k',        name:'Y2K',                      blurb:'Low rise, logo hardware, shine, tiny bags. 1998 to about 2004, and back again.' },
-  { id:'denim',      name:'vintage denim',            blurb:'Selvedge, repro cuts, fades that were earned. Japanese repro and American originals.' },
-  { id:'ivy',        name:'ivy / prep',               blurb:'Oxford cloth, repp stripe, loafers. Sack jacket, undarted, three-roll-two.' },
-  { id:'gorp',       name:'gorpcore / technical',     blurb:'Shell fabric, taped seams, hardware that does a job. Outdoor kit worn in a city.' },
-  { id:'afromodern', name:'Afro-modernist',           blurb:'Ankara, aso-oke, adire and strip-weave cut into contemporary silhouettes.' },
-  { id:'avant',      name:'avant-garde',              blurb:'Volume that argues with the body. Yohji, Comme des Garçons, Rick Owens.' },
-  { id:'street',     name:'streetwear',               blurb:'Graphic, logo, sneaker-led. Skate and hip-hop lineage, made industrial.' }
+  { id:'archive',    name:'archive / deconstruction', blurb:'Exposed seams, raw hems, linings on the outside. Margiela, early Demeulemeester, Helmut Lang before 2005.' },
+  { id:'minimal',    name:'90s minimalism',           blurb:'No decoration. Weight, drape, one colour. Jil Sander, Calvin Klein Collection, Prada nylon.' },
+  { id:'workwear',   name:'workwear / utility',       blurb:'Moleskin, duck canvas, bar tacks, four pockets. Made to be mended.' },
+  { id:'tailoring',  name:'tailoring',                blurb:'Cut from a block and fitted. Suits, coats, trousers with a proper waistband.' },
+  { id:'punk',       name:'punk / DIY',               blurb:'Cut up, safety-pinned, screen printed at home.' },
+  { id:'y2k',        name:'Y2K',                      blurb:'Low rise, logo hardware, shine, small bags. 1998 to about 2004.' },
+  { id:'denim',      name:'vintage denim',            blurb:'Selvedge, repro cuts, worn-in fades. Japanese repro and American originals.' },
+  { id:'ivy',        name:'ivy / prep',               blurb:'Oxford cloth, repp stripe, loafers. Undarted sack jacket, three-roll-two.' },
+  { id:'gorp',       name:'gorpcore / technical',     blurb:'Shell fabric, taped seams, working hardware. Outdoor kit worn in town.' },
+  { id:'afromodern', name:'Afro-modernist',           blurb:'Ankara, aso-oke, adire and strip-weave cut into modern shapes.' },
+  { id:'avant',      name:'avant-garde',              blurb:'Volume worked away from the body. Yohji, Comme des Garçons, Rick Owens.' },
+  { id:'street',     name:'streetwear',               blurb:'Graphics, logos, sneakers. Out of skate and hip-hop.' }
 ];
 
 /* ==========================================================================
@@ -34,50 +34,50 @@ const SUBGENRES = [
    ========================================================================== */
 const SHOPS = [
   // ---- online first, since most people shop from where they are ----
-  { name:'Grailed',              city:'online', region:'Online', lat:null, lon:null, tags:['archive','minimal','street','denim','y2k','avant'], note:'Peer-to-peer resale. Deepest pool for archive menswear; search by designer and year.' },
-  { name:'Vestiaire Collective', city:'online', region:'Online', lat:null, lon:null, tags:['archive','minimal','tailoring','y2k','avant'], note:'Resale, global, authenticated. Strong on European houses.' },
-  { name:'Depop',                city:'online', region:'Online', lat:null, lon:null, tags:['y2k','punk','street','denim'], note:'Seller-led and young. Best for Y2K and reworked pieces, worst for sizing accuracy.' },
-  { name:'eBay + a Japan proxy', city:'online', region:'Online', lat:null, lon:null, tags:['archive','denim','avant','minimal'], note:'Japanese auction sites hold the deepest archive stock. Reached through a proxy buyer such as Buyee or ZenMarket.' },
-  { name:'Etsy (vintage filter)',city:'online', region:'Online', lat:null, lon:null, tags:['workwear','denim','afromodern','punk'], note:'Set the filter to vintage. Small sellers, real garments, patchy photography.' },
-  { name:'The RealReal',         city:'online', region:'Online', lat:null, lon:null, tags:['tailoring','minimal','archive'], note:'Consignment, authenticated, US-weighted.' },
-  { name:'Byronesque',           city:'online', region:'Online', lat:null, lon:null, tags:['archive','avant','minimal'], note:'Curated vintage from a narrow, serious set of designers.' },
+  { name:'Grailed',              city:'online', region:'Online', lat:null, lon:null, tags:['archive','minimal','street','denim','y2k','avant'], note:'Peer to peer resale. The biggest pool of archive menswear. Search by designer and year.' },
+  { name:'Vestiaire Collective', city:'online', region:'Online', lat:null, lon:null, tags:['archive','minimal','tailoring','y2k','avant'], note:'Resale, worldwide, authenticated. Strong on European houses.' },
+  { name:'Depop',                city:'online', region:'Online', lat:null, lon:null, tags:['y2k','punk','street','denim'], note:'Mostly young sellers. Good for Y2K and reworked pieces. Sizing is often wrong.' },
+  { name:'eBay + a Japan proxy', city:'online', region:'Online', lat:null, lon:null, tags:['archive','denim','avant','minimal'], note:'Japanese auction sites hold the most archive stock. You need a proxy buyer such as Buyee or ZenMarket to reach them.' },
+  { name:'Etsy (vintage filter)',city:'online', region:'Online', lat:null, lon:null, tags:['workwear','denim','afromodern','punk'], note:'Set the filter to vintage. Small sellers, real garments, bad photos.' },
+  { name:'The RealReal',         city:'online', region:'Online', lat:null, lon:null, tags:['tailoring','minimal','archive'], note:'Consignment, authenticated, mostly US stock.' },
+  { name:'Byronesque',           city:'online', region:'Online', lat:null, lon:null, tags:['archive','avant','minimal'], note:'Vintage from a small, tightly chosen set of designers.' },
 
   // ---- Europe ----
-  { name:'Machine-A',           city:'London',    region:'Europe', lat:51.5127, lon:-0.1350, tags:['avant','archive','street'], note:'Soho stockist of young avant-garde designers. Ships.' },
-  { name:'Rellik',              city:'London',    region:'Europe', lat:51.5210, lon:-0.2060, tags:['archive','punk','avant'], note:'Long-running vintage specialist under Trellick Tower.' },
-  { name:'Blitz',               city:'London',    region:'Europe', lat:51.5230, lon:-0.0730, tags:['denim','y2k','workwear','punk'], note:'Large sorted vintage department store in the East End.' },
+  { name:'Machine-A',           city:'London',    region:'Europe', lat:51.5127, lon:-0.1350, tags:['avant','archive','street'], note:'Soho. Stocks young avant-garde designers. Ships.' },
+  { name:'Rellik',              city:'London',    region:'Europe', lat:51.5210, lon:-0.2060, tags:['archive','punk','avant'], note:'Vintage specialist under Trellick Tower, open since the 1990s.' },
+  { name:'Blitz',               city:'London',    region:'Europe', lat:51.5230, lon:-0.0730, tags:['denim','y2k','workwear','punk'], note:'Big sorted vintage store in the East End.' },
   { name:'Goodhood',            city:'London',    region:'Europe', lat:51.5280, lon:-0.0840, tags:['street','gorp','workwear'], note:'Independent, Japanese and technical labels.' },
-  { name:'Thanx God I\'m a VIP', city:'Paris',    region:'Europe', lat:48.8700, lon:2.3670, tags:['archive','minimal','y2k'], note:'Vintage racked by colour and designer rather than decade.' },
-  { name:'Free\'P\'Star',        city:'Paris',    region:'Europe', lat:48.8580, lon:2.3560, tags:['y2k','punk','denim'], note:'Cheap, dense, dig-it-yourself vintage in the Marais.' },
-  { name:'RA',                  city:'Antwerp',   region:'Europe', lat:51.2180, lon:4.4000, tags:['avant','archive','minimal'], note:'Concept store from the city that produced the Antwerp Six.' },
-  { name:'Graanmarkt 13',       city:'Antwerp',   region:'Europe', lat:51.2150, lon:4.4090, tags:['minimal','tailoring','avant'], note:'Quiet, considered, Belgian-weighted selection.' },
-  { name:'Cavalli e Nastri',    city:'Milan',     region:'Europe', lat:45.4640, lon:9.1860, tags:['archive','tailoring','y2k'], note:'Italian vintage, strong on 60s–90s house pieces.' },
-  { name:'Voo Store',           city:'Berlin',    region:'Europe', lat:52.5010, lon:13.4230, tags:['street','gorp','minimal'], note:'Kreuzberg courtyard store, independent labels.' },
-  { name:'Sing Blackbird',      city:'Berlin',    region:'Europe', lat:52.4930, lon:13.4270, tags:['y2k','denim','punk'], note:'Small curated vintage, Neukölln.' },
-  { name:'Episode',             city:'Amsterdam', region:'Europe', lat:52.3720, lon:4.8930, tags:['workwear','denim','y2k'], note:'Chain of large sorted vintage warehouses across NL and BE.' },
-  { name:'Prag Vintage',        city:'Copenhagen',region:'Europe', lat:55.6790, lon:12.5620, tags:['minimal','denim','workwear'], note:'Scandinavian vintage, restrained selection.' },
+  { name:'Thanx God I\'m a VIP', city:'Paris',    region:'Europe', lat:48.8700, lon:2.3670, tags:['archive','minimal','y2k'], note:'Vintage racked by colour and designer instead of decade.' },
+  { name:'Free\'P\'Star',        city:'Paris',    region:'Europe', lat:48.8580, lon:2.3560, tags:['y2k','punk','denim'], note:'Cheap and crowded. You dig through it yourself. Marais.' },
+  { name:'RA',                  city:'Antwerp',   region:'Europe', lat:51.2180, lon:4.4000, tags:['avant','archive','minimal'], note:'Concept store in the city the Antwerp Six came from.' },
+  { name:'Graanmarkt 13',       city:'Antwerp',   region:'Europe', lat:51.2150, lon:4.4090, tags:['minimal','tailoring','avant'], note:'Quiet shop, mostly Belgian designers.' },
+  { name:'Cavalli e Nastri',    city:'Milan',     region:'Europe', lat:45.4640, lon:9.1860, tags:['archive','tailoring','y2k'], note:'Italian vintage. Strong on house pieces from the 60s to the 90s.' },
+  { name:'Voo Store',           city:'Berlin',    region:'Europe', lat:52.5010, lon:13.4230, tags:['street','gorp','minimal'], note:'Courtyard store in Kreuzberg. Independent labels.' },
+  { name:'Sing Blackbird',      city:'Berlin',    region:'Europe', lat:52.4930, lon:13.4270, tags:['y2k','denim','punk'], note:'Small vintage shop in Neukölln.' },
+  { name:'Episode',             city:'Amsterdam', region:'Europe', lat:52.3720, lon:4.8930, tags:['workwear','denim','y2k'], note:'Chain of big sorted vintage warehouses in the Netherlands and Belgium.' },
+  { name:'Prag Vintage',        city:'Copenhagen',region:'Europe', lat:55.6790, lon:12.5620, tags:['minimal','denim','workwear'], note:'Scandinavian vintage, small selection.' },
 
   // ---- Asia ----
-  { name:'Berberjin',           city:'Tokyo',     region:'Asia', lat:35.6640, lon:139.6980, tags:['denim','workwear'], note:'Harajuku. Vintage American denim at collector level.' },
-  { name:'Ragtag',              city:'Tokyo',     region:'Asia', lat:35.6660, lon:139.7000, tags:['archive','avant','minimal'], note:'Multi-floor designer resale. The most reliable archive stock anywhere.' },
-  { name:'Kindal',              city:'Tokyo',     region:'Asia', lat:35.6620, lon:139.6990, tags:['archive','street','avant'], note:'Second-hand designer across many branches.' },
-  { name:'Dover Street Market', city:'Tokyo',     region:'Asia', lat:35.6720, lon:139.7650, tags:['avant','street','archive'], note:'Ginza. Comme des Garçons\' own department store.' },
-  { name:'Dongmyo flea market', city:'Seoul',     region:'Asia', lat:37.5720, lon:127.0160, tags:['y2k','workwear','denim','street'], note:'Open-air. Enormous, cheap, unsorted — go early.' },
-  { name:'Ader Error Space',    city:'Seoul',     region:'Asia', lat:37.5560, lon:126.9230, tags:['street','minimal'], note:'Flagship of the Korean label, worth it for the merchandising alone.' },
+  { name:'Berberjin',           city:'Tokyo',     region:'Asia', lat:35.6640, lon:139.6980, tags:['denim','workwear'], note:'Harajuku. Vintage American denim, collector prices.' },
+  { name:'Ragtag',              city:'Tokyo',     region:'Asia', lat:35.6660, lon:139.7000, tags:['archive','avant','minimal'], note:'Several floors of designer resale. The most reliable archive stock anywhere.' },
+  { name:'Kindal',              city:'Tokyo',     region:'Asia', lat:35.6620, lon:139.6990, tags:['archive','street','avant'], note:'Second-hand designer, many branches.' },
+  { name:'Dover Street Market', city:'Tokyo',     region:'Asia', lat:35.6720, lon:139.7650, tags:['avant','street','archive'], note:'Ginza. The Comme des Garçons department store.' },
+  { name:'Dongmyo flea market', city:'Seoul',     region:'Asia', lat:37.5720, lon:127.0160, tags:['y2k','workwear','denim','street'], note:'Open air, huge, cheap and unsorted. Go early.' },
+  { name:'Ader Error Space',    city:'Seoul',     region:'Asia', lat:37.5560, lon:126.9230, tags:['street','minimal'], note:'Flagship of the Korean label. Worth seeing for the shop itself.' },
 
   // ---- Americas ----
-  { name:'James Veloria',       city:'New York',  region:'Americas', lat:40.7160, lon:-73.9970, tags:['archive','y2k','avant'], note:'Curated archive designer, Manhattan. Ships.' },
-  { name:'Procell',             city:'New York',  region:'Americas', lat:40.7190, lon:-73.9890, tags:['punk','street','y2k'], note:'Band tees and subcultural vintage, seriously sourced.' },
-  { name:'Front General Store', city:'New York',  region:'Americas', lat:40.7030, lon:-73.9900, tags:['workwear','denim','ivy'], note:'Dumbo. Japanese-American vintage and workwear.' },
-  { name:'Wasteland',           city:'Los Angeles',region:'Americas',lat:34.0830, lon:-118.3720, tags:['y2k','punk','denim'], note:'Melrose. Big, sorted, consistently stocked.' },
-  { name:'Departamento',        city:'Los Angeles',region:'Americas',lat:34.0640, lon:-118.2370, tags:['avant','minimal','street'], note:'Chinatown. Independent designers, quiet space.' },
-  { name:'Goodbye Folk',        city:'Mexico City',region:'Americas',lat:19.4160, lon:-99.1650, tags:['denim','y2k','workwear'], note:'Roma. Vintage plus a shoemaker at the back.' },
+  { name:'James Veloria',       city:'New York',  region:'Americas', lat:40.7160, lon:-73.9970, tags:['archive','y2k','avant'], note:'Archive designer pieces, chosen tightly. Manhattan. Ships.' },
+  { name:'Procell',             city:'New York',  region:'Americas', lat:40.7190, lon:-73.9890, tags:['punk','street','y2k'], note:'Band shirts and subculture vintage, properly sourced.' },
+  { name:'Front General Store', city:'New York',  region:'Americas', lat:40.7030, lon:-73.9900, tags:['workwear','denim','ivy'], note:'Dumbo. Japanese and American vintage, plus workwear.' },
+  { name:'Wasteland',           city:'Los Angeles',region:'Americas',lat:34.0830, lon:-118.3720, tags:['y2k','punk','denim'], note:'Melrose. Big, sorted, always stocked.' },
+  { name:'Departamento',        city:'Los Angeles',region:'Americas',lat:34.0640, lon:-118.2370, tags:['avant','minimal','street'], note:'Chinatown. Independent designers.' },
+  { name:'Goodbye Folk',        city:'Mexico City',region:'Americas',lat:19.4160, lon:-99.1650, tags:['denim','y2k','workwear'], note:'Roma. Vintage, with a shoemaker at the back.' },
 
   // ---- Africa ----
-  { name:'Alára',               city:'Lagos',     region:'Africa', lat:6.4370, lon:3.4350, tags:['afromodern','avant','tailoring'], note:'Victoria Island concept store in an Adjaye building. African designers at the top end.' },
-  { name:'Katangua market',     city:'Lagos',     region:'Africa', lat:6.5270, lon:3.3200, tags:['y2k','denim','workwear'], note:'Vast second-hand market. The other end of the global vintage chain — bargain hard.' },
-  { name:'Kofar Mata dye pits', city:'Kano',      region:'Africa', lat:12.0000, lon:8.5160, tags:['afromodern'], note:'Working indigo pits, centuries old. Cloth, not clothing — take it to a tailor.' },
-  { name:'Merchants on Long',   city:'Cape Town', region:'Africa', lat:-33.9220, lon:18.4180, tags:['afromodern','tailoring','minimal'], note:'Pan-African designers, curated small.' }
+  { name:'Alára',               city:'Lagos',     region:'Africa', lat:6.4370, lon:3.4350, tags:['afromodern','avant','tailoring'], note:'Concept store on Victoria Island, in a building by David Adjaye. African designers, high end.' },
+  { name:'Katangua market',     city:'Lagos',     region:'Africa', lat:6.5270, lon:3.3200, tags:['y2k','denim','workwear'], note:'Very large second-hand market, and the far end of the global vintage trade. Bargain hard.' },
+  { name:'Kofar Mata dye pits', city:'Kano',      region:'Africa', lat:12.0000, lon:8.5160, tags:['afromodern'], note:'Working indigo pits, centuries old. They sell cloth, not clothes. Take it to a tailor.' },
+  { name:'Merchants on Long',   city:'Cape Town', region:'Africa', lat:-33.9220, lon:18.4180, tags:['afromodern','tailoring','minimal'], note:'A small selection of pan-African designers.' }
 ];
 
 /* ==========================================================================
@@ -161,12 +161,12 @@ function initAnalyser(){
     navigator.geolocation.getCurrentPosition(
       pos => {
         here = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        out.textContent = 'located — results now sort by nearest city';
+        out.textContent = 'located. results now sort by nearest city';
         render();
       },
       err => {
         out.textContent = err.code === 1
-          ? 'you said no, which is fine — use the region list'
+          ? 'no problem. use the region list instead'
           : 'no fix (this needs the site served over http/https, not a file). Use the region list.';
       },
       { timeout: 8000 }
@@ -282,7 +282,7 @@ function initThreadle(){
       const won = state.guesses.includes(answer);
       msg.innerHTML = won
         ? `<b>got it in ${state.guesses.length}.</b> come back tomorrow.`
-        : `<b>out of guesses — it was ${answer}.</b> come back tomorrow.`;
+        : `<b>out of guesses. it was ${answer}.</b> come back tomorrow.`;
       $('#guess').disabled = true;
       $('#guessbtn').disabled = true;
     } else {
@@ -326,7 +326,7 @@ function initProfile(){
 
   function save(){ 
     if (!store.set('lastthread-profile', me)){
-      $('#savestate').textContent = 'could not save — this browser is blocking storage';
+      $('#savestate').textContent = 'could not save. this browser is blocking storage';
       return;
     }
     $('#savestate').textContent = 'saved to this browser';
@@ -351,7 +351,7 @@ function initProfile(){
           <img src="${f.src}" alt="${f.cap || 'a fit'}">
           <figcaption>${f.cap || 'untitled'}<br><button type="button" class="linky" data-del="${i}">remove</button></figcaption>
         </figure>`).join('')
-      : '<p class="caption">Nothing here yet. Add a fit below — a whole outfit, or one garment.</p>';
+      : '<p class="caption">Nothing here yet. Add a fit below, a whole outfit or one garment.</p>';
   }
 
   /* read a file as a data URL, downscaled — full-size photos fill localStorage

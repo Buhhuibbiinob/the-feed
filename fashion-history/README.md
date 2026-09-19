@@ -8,11 +8,27 @@ maisonmartinmargiela.com's directory index.
 Plain HTML and one stylesheet. No build step, no dependencies, nothing to
 install. It does not touch the Next.js app in this repo.
 
-The look is taken straight from the three reference screenshots: ELLE.com's
-2001 channel rail and masthead, Mary Ping's bold navy captions and Times
-navigation, and Margiela's Apache directory index. Plain, anti-aliased, mostly
-white — those sites were simple, not degraded; the low quality was in the
-images, not the interface.
+The look is read off the three reference screenshots, closely.
+
+- **ELLE.com, June 2001.** Grey channel bar and channel column (#e9e9e9), big
+  navy Times wordmark with `.com` set vertically beside it, swatch strip, bold
+  date line, the grey edition band (#9d9d9d), a grey panel down the right
+  (#e2e2e2), and centred legal small print at the foot.
+- **maryping.com.** Wide rows of Times links, underlined, black. Bracketed
+  plate numbers in the left margin. Captions in bold navy Arial under each
+  photo. Lots of white space. See `entry.html`.
+- **maisonmartinmargiela.com.** Courier throughout, blue underlined links,
+  folder icons, one grey rule under the column heads, and a server line at the
+  foot. See `archive.html`.
+
+One navy (#2a2a8c), a few flat greys, white everywhere else. Arial at 12px for
+body copy, Times for navigation, Courier for the directory. No pixel fonts, no
+dither, no scanline: those sites were plain, and the rough quality in the
+screenshots is in the photographs, not the interface.
+
+The writing is meant to be flat and factual. Short sentences, no em dashes in
+prose, no aphorisms, sources named. If a line sounds like it is selling
+something, rewrite it.
 
 ## Look at it
 

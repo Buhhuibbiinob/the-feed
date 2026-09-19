@@ -1,365 +1,316 @@
-/* LastThread — fashion history / make culture
-   Visual language borrowed from three places, on purpose:
-   ELLE.com (2001): the grey channel rail, the serif-lite masthead, the date line.
-   maryping.com: unstyled blue links, lookbook captions, bracketed plate numbers.
-   maisonmartinmargiela.com: an Apache directory index used as navigation.
-   Nothing here is responsive-first. It is a 1024px page, like they were. */
+/* LastThread
+   Built to match three pages, closely:
+     ELLE.com, June 2001      grey channel rail, huge navy serif wordmark,
+                              vertical .com, grey edition band, grey panel
+                              below, centred legal small print.
+     maryping.com             Times serif links, underlined, in wide rows.
+                              Navy bold Arial captions. Bracketed plate
+                              numbers in the left margin. White space.
+     maisonmartinmargiela.com Courier, an Apache index, blue underlined
+                              links, one grey rule, a server line at the foot.
+   Colours, sizes and weights below are read off those screenshots. */
 
 :root{
-  --paper:#ffffff;
-  --rail:#e4e4e4;
-  --rule:#b8b8b8;
-  --ink:#1a1a1a;
+  --navy:#2a2a8c;          /* ELLE wordmark, Mary Ping captions, Margiela links */
+  --navy-soft:#4a4aa0;
+  --ink:#111;
+  --grey-rail:#e9e9e9;     /* channel bar and channel column */
+  --grey-band:#9d9d9d;     /* elle worldwide band */
+  --grey-panel:#e2e2e2;    /* the panel under the masthead */
+  --rule:#b9b9b9;
   --muted:#666;
-  --blue:#2b2b8f;
-  --blue-dim:#5a5ab0;
-  --pink:#d6247a;
 }
 
 *{ box-sizing:border-box; }
-
 html,body{ min-width:1000px; }
 
 body{
   margin:0;
   background:#fff;
   color:var(--ink);
-  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size:13px;
+  font-family:Arial, Helvetica, sans-serif;
+  font-size:12px;
   line-height:1.45;
 }
 
-a{ color:var(--blue); text-decoration:underline; }
-a:hover{ color:var(--pink); }
+a{ color:var(--navy); text-decoration:underline; }
+a:visited{ color:var(--navy); }
 
-.page{ width:1000px; margin:0 auto; padding:0 0 60px; }
+.page{ width:1010px; margin:0 auto; padding:0 0 40px; }
 
-/* ---- the strip above everything, ELLE's search + utility line ---- */
+/* ---------------------------------------------------------------- ELLE
+   Top right: search, then three utility links, both right-aligned. */
 .utility{
-  display:flex; align-items:center; justify-content:flex-end; gap:14px;
-  padding:26px 14px 6px; font-size:12px;
+  display:flex; align-items:center; justify-content:flex-end; gap:10px;
+  padding:28px 16px 8px; font-size:12px; font-weight:700;
 }
-.utility label{ letter-spacing:0.02em; }
 .utility input[type="search"]{
-  width:210px; height:20px; border:1px solid #9a9a9a; padding:0 4px;
-  font-family:inherit; font-size:12px;
+  width:215px; height:21px; border:1px solid #808080; padding:0 4px;
+  font-family:Arial, sans-serif; font-size:12px;
 }
 .utility button{
-  height:20px; padding:0 12px; border:1px solid #1e4f8f;
-  background:#2f6fbf; color:#fff; font:700 11px/1 inherit; cursor:pointer;
+  height:21px; padding:0 14px; border:0; background:#1d4f9c;
+  color:#fff; font:700 12px/1 Arial, sans-serif; cursor:pointer;
 }
 .utility-links{
-  display:flex; justify-content:flex-end; gap:34px;
-  padding:0 14px 14px; font-size:12px; font-weight:700;
+  display:flex; justify-content:flex-end; gap:40px;
+  padding:0 16px 12px; font-size:13px; font-weight:700;
 }
-.utility-links a{ color:var(--ink); text-decoration:none; }
-.utility-links a:hover{ text-decoration:underline; }
+.utility-links a{ color:#000; text-decoration:none; }
 
-/* ---- channels bar + masthead ---- */
+/* the grey bar: "the channels" light, the rest bold */
 .channelbar{
-  display:flex; align-items:center; gap:26px;
-  background:var(--rail); padding:5px 14px;
+  display:flex; align-items:center; gap:28px;
+  background:var(--grey-rail); padding:6px 16px;
   font-size:11.5px; font-weight:700;
 }
-.channelbar .label{ font-weight:400; color:#333; }
-.channelbar a{ color:#222; text-decoration:none; }
-.channelbar a:hover{ text-decoration:underline; }
+.channelbar .label{ font-weight:400; color:#000; }
+.channelbar a{ color:#000; text-decoration:none; }
 
-.masthead{
-  display:grid; grid-template-columns:200px 1fr 250px;
-  border-bottom:1px solid var(--rule);
-}
+.masthead{ display:grid; grid-template-columns:215px 1fr 235px; }
 
-.channels{ background:var(--rail); padding:14px 0 22px 14px; }
-.channels li{ list-style:none; }
+/* the channel column: light Helvetica, lowercase, large, tight */
+.channels{ background:var(--grey-rail); padding:12px 0 26px 16px; }
 .channels ul{ margin:0; padding:0; }
+.channels li{ list-style:none; }
 .channels a{
-  display:block; padding:2px 0;
-  font-size:22px; font-weight:300; letter-spacing:-0.01em;
+  display:block; padding:1px 0;
+  font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:26px; font-weight:300; line-height:1.28;
   color:#111; text-decoration:none;
 }
-.channels a:hover{ color:var(--pink); }
-.channels a.spotlight{ font-size:17px; font-weight:800; text-transform:uppercase; letter-spacing:0.01em; }
+.channels a.spotlight{
+  font-size:18px; font-weight:700; text-transform:uppercase; padding-top:6px;
+}
 
-.wordmark{ text-align:center; padding:10px 0 8px; }
+/* the wordmark: navy Times, very large, with .com set vertically beside it */
+.wordmark{ text-align:center; padding:6px 0 0; position:relative; }
+.markrow{ display:flex; align-items:flex-start; justify-content:center; gap:2px; }
 .wordmark h1{
-  margin:0; font-size:96px; line-height:0.86; letter-spacing:-0.02em;
-  font-weight:400; color:var(--blue); font-family:"Times New Roman", Times, serif;
+  margin:0; font-family:"Times New Roman", Times, serif;
+  font-size:104px; line-height:0.92; font-weight:400;
+  color:var(--navy); letter-spacing:-0.01em;
 }
-.wordmark .dotcom{
-  display:block; font-size:15px; letter-spacing:0.36em; color:var(--blue);
-  text-transform:uppercase; margin-top:6px;
+.dotcom-v{
+  writing-mode:vertical-rl;
+  font-family:"Times New Roman", Times, serif;
+  font-size:30px; color:var(--navy); letter-spacing:0.02em;
+  padding-top:6px;
 }
-.wordmark .dateline{ margin:10px 0 0; font-size:12px; font-weight:700; }
+.thumbstrip{ display:flex; justify-content:center; gap:2px; margin-top:8px; }
+.thumbstrip .swatch{ width:58px; height:64px; }
+.wordmark .dateline{ margin:8px 0 0; font-size:12px; font-weight:700; color:#000; }
 .wordmark .tagline{
-  margin:6px 0 0; font-size:20px; color:var(--blue); font-weight:800;
-  letter-spacing:0.01em;
+  margin:12px 0 0; font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:30px; font-weight:300; color:var(--navy); line-height:1.02;
 }
-.wordmark .tagline span{ font-weight:400; display:block; font-size:16px; }
+.wordmark .tagline span{ display:block; font-weight:700; }
 
-.thumbstrip{ display:flex; justify-content:center; gap:3px; margin-top:10px; }
-.thumbstrip .swatch{
-  width:56px; height:62px; border:1px solid #ccc;
-}
-
-.figure-slot{
-  border-left:1px solid #e7e7e7;
-  display:flex; align-items:flex-end; justify-content:center;
-  padding:8px;
-}
+.figure-slot{ display:flex; align-items:flex-end; justify-content:center; padding:6px; }
 .figure-slot .plate{
-  width:100%; height:100%; min-height:250px;
-  border:1px solid #ddd;
+  width:100%; min-height:270px; border:1px solid #ddd; background:#fafafa;
   display:flex; align-items:center; justify-content:center;
   text-align:center; color:#999; font-size:11px; padding:10px;
 }
 
-/* ---- worldwide rail, ELLE's grey band of editions ---- */
+/* elle worldwide: solid mid grey, white text, label lighter */
 .worldwide{
-  display:flex; align-items:center; gap:12px;
-  background:#9a9a9a; color:#fff; padding:5px 14px; font-size:11.5px;
+  display:flex; align-items:center; gap:13px;
+  background:var(--grey-band); color:#fff; padding:6px 16px; font-size:11.5px;
 }
-.worldwide .label{ font-weight:400; margin-right:20px; }
+.worldwide .label{ font-weight:400; margin-right:22px; }
 .worldwide a{ color:#fff; text-decoration:none; }
-.worldwide a:hover{ text-decoration:underline; }
 
-/* ---- the feed ---- */
-.columns{ display:grid; grid-template-columns:1fr 320px; gap:0; }
-.main{ padding:20px 22px 0 14px; }
-.side{ background:#f0f0f0; border-left:1px solid var(--rule); padding:18px 16px; }
+/* ---- the grey panel: ELLE put its three columns on #e2e2e2, divided by
+   white gaps rather than rules ---- */
+.columns{ display:grid; grid-template-columns:1fr 322px; gap:3px; background:#fff; }
+.main{ background:#fff; padding:18px 20px 0 16px; }
+.side{ background:var(--grey-panel); padding:16px 16px 22px; }
 
 .section-head{
   display:flex; align-items:baseline; justify-content:space-between;
-  border-bottom:2px solid var(--ink); padding-bottom:4px; margin-bottom:16px;
+  border-bottom:1px solid #000; padding-bottom:3px; margin-bottom:14px;
 }
 .section-head h2{
-  margin:0; font-size:20px; font-weight:800; letter-spacing:-0.01em;
+  margin:0; font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:20px; font-weight:700; letter-spacing:-0.01em;
 }
-.section-head .note{ font-size:11px; color:var(--muted); }
+.section-head .note{ font-size:11px; color:var(--muted); font-weight:400; }
 
-/* one entry in the feed */
-.entry{ border-bottom:1px solid #ddd; padding:0 0 18px; margin:0 0 18px; }
-.entry .meta{
-  font-size:11px; color:var(--muted); text-transform:uppercase;
-  letter-spacing:0.06em; margin-bottom:5px;
+/* ---- a feed entry, captioned the way Mary Ping captions a plate ---- */
+.entry{ border-bottom:1px solid #d6d6d6; padding-bottom:14px; margin-bottom:14px; }
+.entry .meta{ font-size:11px; color:var(--muted); margin-bottom:3px; }
+.entry .meta .era{ color:var(--navy); font-weight:700; }
+.entry h3{
+  margin:0 0 3px; font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:17px; font-weight:700; line-height:1.2;
 }
-.entry .meta .era{ color:var(--blue); font-weight:700; }
-.entry h3{ margin:0 0 4px; font-size:18px; font-weight:700; letter-spacing:-0.01em; }
-.entry h3 a{ color:var(--ink); text-decoration:none; }
-.entry h3 a:hover{ color:var(--pink); text-decoration:underline; }
-.entry .byline{ font-size:11px; color:var(--muted); margin:0 0 8px; }
-.entry p{ margin:0 0 8px; }
+.entry h3 a{ color:#000; text-decoration:none; }
+.entry h3 a:hover{ text-decoration:underline; }
+.entry .byline{ font-size:11px; color:var(--muted); margin:0 0 7px; }
+.entry p{ margin:0 0 7px; font-size:12px; }
 .entry .tags{ font-size:11px; }
-.entry .tags a{ color:var(--blue-dim); }
 .entry .plate{
-  float:left; width:150px; height:150px; margin:2px 14px 6px 0;
+  float:left; width:148px; height:148px; margin:2px 13px 5px 0;
   border:1px solid #ccc; background:#fafafa;
   display:flex; align-items:center; justify-content:center;
   color:#aaa; font-size:10px; text-align:center; padding:8px;
 }
 .entry::after{ content:""; display:block; clear:both; }
+.reactions{ margin-top:6px; font-size:11px; color:var(--muted); display:flex; gap:16px; }
+.reactions b{ color:#000; }
 
-.reactions{
-  margin-top:8px; font-size:11px; color:var(--muted);
-  display:flex; gap:16px; align-items:center;
-}
-.reactions b{ color:var(--ink); }
-
-/* side column blocks */
-.block{ margin:0 0 26px; }
+/* side column */
+.block{ margin:0 0 24px; }
 .block h4{
-  margin:0 0 8px; font-size:14px; font-weight:800;
+  margin:0 0 7px; font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:19px; font-weight:700; line-height:1.15;
 }
-.block h4 em{ font-style:normal; font-weight:400; }
-.block ol, .block ul{ margin:0; padding-left:18px; }
-.block li{ margin-bottom:5px; }
-.block .caption{ font-size:11px; color:var(--muted); }
+.block h4 em{ font-style:normal; font-weight:300; }
+.block ul, .block ol{ margin:0; padding-left:0; list-style:none; }
+.block ul li, .block ol li{ font-size:15px; font-weight:300; margin-bottom:3px; }
+.block ol{ counter-reset:n; }
+.block ol li::before{ counter-increment:n; content:counter(n) ". "; }
+.block .caption{ font-size:12px; color:#333; }
 .block .cover{
-  width:100%; height:190px; border:1px solid #bbb; background:#fff;
+  width:100%; height:195px; border:1px solid #bbb; background:#fff;
   display:flex; align-items:center; justify-content:center;
   color:#aaa; font-size:11px; text-align:center; padding:10px; margin-bottom:8px;
 }
 
-/* ---- Margiela-style directory index ---- */
-.dirwrap{ margin:0 14px; }
+/* ---------------------------------------------------------- MARY PING
+   Wide rows of Times links, bracketed plate numbers in the margin,
+   navy bold captions, images centred with a lot of air. */
+.collections{
+  display:grid; grid-template-columns:120px repeat(6,1fr);
+  gap:4px 18px; padding:14px 16px 6px;
+  font-family:"Times New Roman", Times, serif; font-size:17px;
+}
+.collections .head{ font-family:"Times New Roman", Times, serif; }
+.collections a{ color:#000; text-decoration:underline; display:block; }
+
+.lookbook{ text-align:center; padding:6px 0 0; }
+.lookbook h2{
+  color:var(--navy); font-size:19px; font-weight:700; margin:34px 0 10px;
+  text-align:left; padding-left:150px;
+}
+.lookbook h3{ color:var(--navy); font-size:17px; font-weight:700; margin:0 0 18px; }
+.lookbook .credit{ color:var(--navy); font-size:13px; font-weight:700; margin-bottom:26px; }
+.plate-row{ display:grid; grid-template-columns:110px 1fr; gap:20px; margin:0 0 40px; text-align:left; }
+.plate-row .no{ color:var(--navy); font-size:13px; text-align:right; padding-top:2px; }
+.plate-row .shot{
+  width:360px; height:240px; border:1px solid #ddd; background:#fafafa;
+  display:flex; align-items:center; justify-content:center;
+  color:#aaa; font-size:11px;
+}
+.plate-row .cap{
+  color:var(--navy); font-size:13px; font-weight:700;
+  margin-top:8px; max-width:360px; line-height:1.35;
+}
+
+/* the bottom rail: Times, underlined, two lines per column, spread wide */
+.railfoot{
+  display:grid; grid-template-columns:repeat(7,1fr); gap:12px;
+  margin:46px 16px 0; padding-top:14px;
+  font-family:"Times New Roman", Times, serif; font-size:17px; line-height:1.35;
+}
+.railfoot a{ display:block; color:#000; text-decoration:underline; }
+.railfoot .name{ font-size:18px; }
+
+/* --------------------------------------------------------- MARGIELA
+   An Apache directory index: Courier everywhere, blue underlined links,
+   one grey rule under the column heads, a server line at the foot. */
+.dirwrap{ margin:0 16px; }
 .dir h1{
   font-family:"Courier New", Courier, monospace;
-  font-size:30px; font-weight:400; letter-spacing:0.04em; margin:22px 0 14px;
+  font-size:26px; font-weight:400; letter-spacing:0.08em; margin:20px 0 22px;
 }
 table.index{
   width:100%; border-collapse:collapse;
   font-family:"Courier New", Courier, monospace; font-size:12px;
 }
 table.index th{
-  text-align:left; font-weight:400; color:var(--blue);
-  text-decoration:underline; padding:4px 10px 6px 0;
+  text-align:left; font-weight:400; font-size:11px;
+  color:var(--navy); text-decoration:underline; padding:0 12px 10px 0;
 }
-table.index tbody tr:first-child td{ padding-top:8px; }
-table.index td{ padding:2px 10px 2px 0; vertical-align:top; white-space:nowrap; }
-table.index td.desc{ white-space:normal; color:#444; }
-table.index .rule td{ border-top:1px solid #999; padding:0; height:8px; }
-.dir .icon{ display:inline-block; width:16px; color:#888; }
+table.index td{ padding:2px 12px 2px 0; vertical-align:top; white-space:nowrap; color:#111; }
+table.index td.desc{ white-space:normal; color:#333; }
+table.index td a{ color:var(--navy); text-decoration:underline; }
+table.index .rule td{ border-top:1px solid #b5b5b5; padding:0; height:10px; }
+.dir .icon{ display:inline-block; width:17px; color:#c8a45a; }
 .dir .server{
-  margin-top:30px; padding-top:8px; border-top:1px solid #ccc;
-  font-family:"Courier New", Courier, monospace; font-size:11px; color:#888;
+  margin-top:44px; padding-top:6px; border-top:1px solid #d5d5d5;
+  font-family:"Courier New", Courier, monospace; font-size:11px; color:#555;
 }
 
-/* ---- lookbook (Mary Ping) ---- */
-.lookbook{ text-align:center; padding:10px 0 0; }
-.lookbook h2{ color:var(--blue); font-size:26px; font-weight:800; margin:26px 0 4px; }
-.lookbook h3{ color:var(--blue); font-size:18px; font-weight:700; margin:0 0 14px; }
-.lookbook .credit{ color:var(--blue); font-weight:700; font-size:13px; margin-bottom:18px; }
-.plate-row{
-  display:grid; grid-template-columns:70px 1fr; gap:18px;
-  align-items:start; text-align:left; margin:0 0 34px;
-}
-.plate-row .no{ color:var(--blue); font-size:13px; padding-top:4px; }
-.plate-row .shot{
-  width:360px; height:250px; border:1px solid #ccc; background:#fafafa;
-  display:flex; align-items:center; justify-content:center;
-  color:#aaa; font-size:11px; text-align:center; padding:10px;
-}
-.plate-row .cap{ color:var(--blue); font-size:13px; margin-top:8px; max-width:360px; }
-
-/* ---- the label pages ---- */
+/* ------------------------------------------------------------ the label */
 .label-hero{
-  border:1px solid var(--rule); padding:26px; margin:20px 14px;
-  display:grid; grid-template-columns:1fr 300px; gap:26px; align-items:center;
+  display:grid; grid-template-columns:1fr 300px; gap:26px; align-items:start;
+  padding:20px 16px 0;
 }
-.label-hero h2{ margin:0 0 10px; font-size:34px; font-weight:300; letter-spacing:0.14em; text-transform:uppercase; }
-.label-hero p{ margin:0 0 10px; max-width:52ch; }
+.label-hero h2{
+  margin:0 0 10px; font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size:32px; font-weight:300; letter-spacing:0.1em; text-transform:uppercase;
+}
+.label-hero p{ margin:0 0 9px; max-width:56ch; font-size:12px; }
 .label-hero .swatchbox{
-  height:230px; border:1px solid #ccc; display:flex; align-items:center;
-  justify-content:center; color:#aaa; font-size:11px; text-align:center; padding:10px;
+  height:240px; border:1px solid #ddd; background:#fafafa;
+  display:flex; align-items:center; justify-content:center; color:#aaa; font-size:11px;
 }
-.rack{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:0 14px; }
+.rack{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin:0 16px; }
 .rack .item .shot{
-  height:220px; border:1px solid #ccc; background:#fafafa;
-  display:flex; align-items:center; justify-content:center;
-  color:#aaa; font-size:10px; text-align:center; padding:8px;
+  height:230px; border:1px solid #ddd; background:#fafafa;
+  display:flex; align-items:center; justify-content:center; color:#aaa; font-size:10px;
 }
-.rack .item h4{ margin:8px 0 2px; font-size:13px; font-weight:700; }
-.rack .item p{ margin:0; font-size:11px; color:var(--muted); }
+.rack .item h4{ margin:8px 0 3px; font-size:13px; font-weight:700; color:var(--navy); }
+.rack .item p{ margin:0; font-size:12px; }
 
-form.signup{ display:flex; gap:6px; margin-top:12px; }
-form.signup input{
-  height:24px; width:240px; border:1px solid #9a9a9a; padding:0 6px;
-  font-family:inherit; font-size:12px;
-}
-form.signup button{
-  height:24px; padding:0 14px; border:1px solid #1e4f8f; background:#2f6fbf;
-  color:#fff; font:700 11px/1 inherit; cursor:pointer;
-}
-.formnote{ font-size:11px; color:var(--muted); margin-top:6px; }
+/* forms */
+form.signup{ display:flex; gap:5px; margin-top:10px; }
+form.signup input{ height:22px; width:200px; border:1px solid #808080; padding:0 5px; font:12px Arial, sans-serif; }
+form.signup button{ height:22px; padding:0 14px; border:0; background:#1d4f9c; color:#fff; font:700 12px/1 Arial, sans-serif; cursor:pointer; }
+.formnote{ font-size:11px; color:var(--muted); margin-top:5px; }
 
-/* ---- submit / post an entry ---- */
-.composer{ margin:0 14px; }
-.composer .field{ margin-bottom:14px; }
-.composer label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:3px; }
+.composer{ margin:0 16px; }
+.composer .field{ margin-bottom:12px; }
+.composer label{ display:block; font-size:11px; color:var(--muted); margin-bottom:2px; }
 .composer input[type="text"], .composer select, .composer textarea{
-  width:100%; border:1px solid #9a9a9a; padding:5px; font-family:inherit; font-size:13px;
+  width:100%; border:1px solid #808080; padding:4px; font:12px Arial, sans-serif;
 }
 .composer textarea{ min-height:150px; }
 .composer .row{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
-.composer button{
-  height:28px; padding:0 20px; border:1px solid #1e4f8f; background:#2f6fbf;
-  color:#fff; font:700 12px/1 inherit; cursor:pointer;
-}
+.composer button{ height:25px; padding:0 18px; border:0; background:#1d4f9c; color:#fff; font:700 12px/1 Arial, sans-serif; cursor:pointer; }
 
-/* ---- footer, ELLE's centred small print ---- */
+/* ELLE's footer: centred, small, a few short lines, one underlined link */
 .sitefoot{
-  margin:34px 14px 0; padding-top:14px; border-top:1px solid var(--rule);
-  text-align:center; font-size:11px; color:#555; line-height:1.6;
+  margin:30px 16px 0; padding-top:12px;
+  text-align:center; font-size:11px; color:#333; line-height:1.6;
 }
 .footnav{
   display:flex; justify-content:center; gap:26px; margin-bottom:12px;
-  font-size:12px;
+  font-family:"Times New Roman", Times, serif; font-size:15px;
 }
-.footnav a{ color:#222; text-decoration:underline; }
+.footnav a{ color:#000; text-decoration:underline; }
+.legal{ font-size:11px; color:#333; margin-top:10px; line-height:1.55; }
 
-/* the Mary Ping bottom rail: underlined links in two rows, spread wide */
-.railfoot{
-  display:grid; grid-template-columns:repeat(7,1fr); gap:10px;
-  margin:30px 14px 0; padding-top:12px; border-top:1px solid var(--rule);
-  font-size:13px;
-}
-.railfoot a{ display:block; color:#111; }
-.railfoot .name{ font-family:"Times New Roman", Times, serif; font-size:16px; }
+/* =========================================================== the gadgets
+   Kept in the same dress: navy links, hairline rules, no boxes that sit
+   above the page. */
+.lede{ font-size:12px; max-width:74ch; margin:0 0 16px; }
 
-
-/* ==========================================================================
-   REFERENCE PASS
-   Tuned against the three screenshots this site is built from, so the new
-   pages sit in the same typography as the old ones:
-
-   ELLE.com (2001)  — Helvetica/Arial at 12–13px, flat greys, one navy, a huge
-                      serif wordmark, small bold nav, centred small print.
-   maryping.com     — Times serif for navigation, captions set BOLD NAVY in
-                      Arial, bracketed plate numbers, acres of white.
-   maisonmartinmargiela.com — Courier throughout, blue underlined links, one
-                      grey rule, a server line at the foot.
-
-   Anti-aliased, no dither, no scanline, no pixel type. These sites were plain,
-   not degraded — the low quality came from the images, not the interface.
-   ========================================================================== */
-
-body{
-  font-family:Arial, Helvetica, "Helvetica Neue", sans-serif;
-  font-size:12px;
-  line-height:1.5;
-  background:#fff;
-}
-
-/* Mary Ping's navigation: Times, underlined, black, generously spaced */
-.railfoot a, .railfoot .name{
-  font-family:"Times New Roman", Times, serif;
-  font-size:15px; line-height:1.35;
-}
-.railfoot{ margin-top:40px; }
-
-/* ELLE's small print: centred, Arial, 11px, tight grey */
-.sitefoot{ font-size:11px; line-height:1.55; }
-.footnav a{ font-family:"Times New Roman", Times, serif; font-size:13px; }
-
-/* Mary Ping's captions and headings: bold, navy, Arial */
-.lede{
-  font-family:Arial, Helvetica, sans-serif; font-size:12px;
-  max-width:70ch; margin:0 0 16px; line-height:1.55;
-}
-.entry p, .block .caption, .label-hero p, table.index td.desc, .plate-row .cap{
-  font-family:Arial, Helvetica, sans-serif; font-size:12px; line-height:1.5;
-}
-.plate-row .cap, .lookbook .credit{ font-weight:700; color:var(--blue); }
-.plate-row .no{ font-family:Arial, Helvetica, sans-serif; }
-
-/* Margiela's directory stays Courier — it is a server listing, not a page */
-table.index, table.index td, table.index th, .dir h1, .dir .server{
-  font-family:"Courier New", Courier, monospace;
-}
-table.index td, table.index th{ font-size:12px; }
-.dir h1{ font-size:28px; letter-spacing:0.04em; }
-
-/* ==========================================================================
-   THE GADGETS, in the same plain dress: hairline borders, flat fills,
-   navy links, nothing raised off the page.
-   ========================================================================== */
 .chips{ display:flex; flex-wrap:wrap; gap:4px; margin:4px 0 0; }
 .chip{
-  font-family:Arial, Helvetica, sans-serif; font-size:11px;
-  border:1px solid #bbb; background:#f2f2f2; color:#222;
-  padding:3px 7px; cursor:pointer; border-radius:0;
+  font:12px Arial, sans-serif; border:1px solid #b5b5b5; background:#f1f1f1;
+  color:#111; padding:3px 8px; cursor:pointer;
 }
-.chip:hover{ background:#fff; border-color:#888; }
-.chip.on{ background:var(--blue); border-color:var(--blue); color:#fff; }
+.chip:hover{ background:#fff; }
+.chip.on{ background:var(--navy); border-color:var(--navy); color:#fff; }
 
-.gadget{
-  display:grid; grid-template-columns:300px 1fr; gap:22px;
-  border:1px solid var(--rule); padding:16px; margin-bottom:22px; background:#fff;
-}
-.gadget-col h4{ font-size:13px; font-weight:700; margin:0 0 6px; }
+.gadget{ display:grid; grid-template-columns:300px 1fr; gap:24px; margin-bottom:24px; }
+.gadget-col h4{ font-size:13px; font-weight:700; margin:0 0 6px; color:var(--navy); }
 
 .dropzone{
-  border:1px solid #ccc; min-height:210px; background:#fafafa;
+  border:1px solid #ddd; min-height:210px; background:#fafafa;
   display:flex; align-items:center; justify-content:center;
   color:#999; font-size:11px; margin-bottom:6px; overflow:hidden;
 }
@@ -369,90 +320,45 @@ table.index td, table.index th{ font-size:12px; }
 input[type="file"]{ font-size:11px; max-width:100%; }
 
 .locrow{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
-.locrow select{
-  font-family:inherit; font-size:12px; border:1px solid #9a9a9a; padding:2px 4px;
-}
-.locrow button{
-  font-family:inherit; font-size:11px; font-weight:700;
-  border:1px solid #1e4f8f; background:#2f6fbf; color:#fff;
-  padding:3px 12px; cursor:pointer;
-}
+.locrow select{ font:12px Arial, sans-serif; border:1px solid #808080; padding:2px 4px; }
+.locrow button{ font:700 12px/1 Arial, sans-serif; border:0; background:#1d4f9c; color:#fff; padding:5px 12px; cursor:pointer; }
 
-/* results: Mary Ping's caption block — bold navy title, plain body under it */
 .shoplist{ list-style:none; margin:0 0 22px; padding:0; }
 .shoplist .shop{ border-bottom:1px solid #ddd; padding:10px 0; }
-.shop-head{
-  display:flex; justify-content:space-between; gap:10px;
-  font-size:14px; font-weight:700; color:var(--blue);
-}
-.shop-head .dist{ font-size:11px; font-weight:400; color:#666; }
-.shop-city{
-  font-size:11px; color:#666; text-transform:uppercase;
-  letter-spacing:0.06em; margin:1px 0 4px;
-}
-.shoplist p{ font-size:12px; margin:0 0 3px; max-width:76ch; }
-.shop-tags{ font-size:11px; color:var(--blue-dim); }
-.shoplist li.empty{ font-size:12px; color:#666; padding:10px 0; }
-.shoplist.tight li{
-  border-bottom:1px solid #eee; padding:6px 0; font-size:12px;
-}
-.shoplist.tight li b{ color:var(--blue); }
+.shop-head{ display:flex; justify-content:space-between; gap:10px; font-size:13px; font-weight:700; color:var(--navy); }
+.shop-head .dist{ font-size:11px; font-weight:400; color:var(--muted); }
+.shop-city{ font-size:11px; color:var(--muted); margin:1px 0 4px; }
+.shoplist p{ font-size:12px; margin:0 0 3px; max-width:78ch; }
+.shop-tags{ font-size:11px; color:var(--navy-soft); }
+.shoplist li.empty{ font-size:12px; color:var(--muted); padding:10px 0; }
+.shoplist.tight li{ border-bottom:1px solid #eee; padding:6px 0; font-size:12px; }
+.shoplist.tight li b{ color:var(--navy); }
 
-/* threadle */
-.game{ border:1px solid var(--rule); padding:16px; background:#fff; margin-bottom:24px; width:330px; }
+.game{ width:330px; margin-bottom:26px; }
 .board .row{ display:flex; gap:4px; margin-bottom:4px; }
 .board .cell{
-  width:42px; height:42px; border:1px solid #bbb;
+  width:42px; height:42px; border:1px solid #bbb; background:#fff;
   display:flex; align-items:center; justify-content:center;
-  font-family:Arial, Helvetica, sans-serif; font-size:19px; font-weight:700;
-  background:#fff; color:#111;
+  font:700 19px Arial, sans-serif; color:#111;
 }
-.board .cell.hit{  background:var(--blue); border-color:var(--blue); color:#fff; }
-.board .cell.near{ background:#c9c9de; border-color:#b3b3cc; color:#1a1a1a; }
-.board .cell.miss{ background:#e8e8e8; border-color:#d5d5d5; color:#777; }
+.board .cell.hit{ background:var(--navy); border-color:var(--navy); color:#fff; }
+.board .cell.near{ background:#c9c9de; border-color:#b3b3cc; }
+.board .cell.miss{ background:#e8e8e8; border-color:#d8d8d8; color:#777; }
 .guessrow{ display:flex; gap:6px; margin:12px 0 6px; }
-.guessrow input{
-  width:150px; border:1px solid #9a9a9a; padding:3px 6px;
-  font-family:Arial, Helvetica, sans-serif; font-size:15px; text-transform:uppercase;
-  letter-spacing:0.14em;
-}
-.guessrow button{
-  font-family:inherit; font-size:11px; font-weight:700;
-  border:1px solid #1e4f8f; background:#2f6fbf; color:#fff; padding:0 16px; cursor:pointer;
-}
+.guessrow input{ width:150px; border:1px solid #808080; padding:3px 6px; font:15px Arial, sans-serif; text-transform:uppercase; letter-spacing:0.12em; }
+.guessrow button{ font:700 12px/1 Arial, sans-serif; border:0; background:#1d4f9c; color:#fff; padding:0 16px; cursor:pointer; }
 .guessrow button:disabled, .guessrow input:disabled{ opacity:0.45; }
 
-/* forum */
-.soon{
-  border:1px solid var(--rule); background:#f4f4f4;
-  padding:12px; margin:18px 0 28px; font-size:12px;
-}
-.soon b{ font-weight:700; }
+.soon{ border:1px solid var(--rule); background:#f4f4f4; padding:12px; margin:18px 0 28px; font-size:12px; }
 
-/* profile */
-.profile-top{ display:grid; grid-template-columns:180px 1fr; gap:22px; margin-bottom:24px; }
+.profile-top{ display:grid; grid-template-columns:180px 1fr; gap:24px; margin-bottom:24px; }
 .profile-fields .field{ margin-bottom:8px; }
-.profile-fields label, .addfit label{
-  display:block; font-size:11px; color:#666;
-  text-transform:uppercase; letter-spacing:0.06em; margin-bottom:2px;
-}
-.profile-fields input{
-  width:100%; border:1px solid #9a9a9a; padding:4px 6px;
-  font-family:Arial, Helvetica, sans-serif; font-size:13px;
-}
+.profile-fields label, .addfit label{ display:block; font-size:11px; color:var(--muted); margin-bottom:2px; }
+.profile-fields input{ width:100%; border:1px solid #808080; padding:4px 6px; font:13px Arial, sans-serif; }
 .addfit{ display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
-.addfit input[type="text"]{
-  width:340px; border:1px solid #9a9a9a; padding:4px 6px;
-  font-family:Arial, Helvetica, sans-serif; font-size:13px;
-}
-.fitgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+.addfit input[type="text"]{ width:340px; border:1px solid #808080; padding:4px 6px; font:13px Arial, sans-serif; }
+.fitgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:24px; }
 .fit{ margin:0; }
-.fit img{ width:100%; display:block; border:1px solid #ccc; }
-.fit figcaption{
-  font-size:12px; font-weight:700; color:var(--blue);
-  margin-top:6px; line-height:1.4;
-}
-.linky{
-  background:none; border:0; padding:0; cursor:pointer; color:var(--blue-dim);
-  font-family:inherit; font-size:11px; font-weight:400; text-decoration:underline;
-}
+.fit img{ width:100%; display:block; border:1px solid #ddd; }
+.fit figcaption{ font-size:13px; font-weight:700; color:var(--navy); margin-top:7px; line-height:1.35; }
+.linky{ background:none; border:0; padding:0; cursor:pointer; color:var(--navy-soft); font:11px Arial, sans-serif; text-decoration:underline; }
