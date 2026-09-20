@@ -251,6 +251,87 @@ function initAnalyser(){
 
   $('#region').addEventListener('change', render);
 
+
+  /* ---------- the questions ----------
+     Reading a photograph with a model costs money per picture and needs a
+     key. This does the same job for nothing: four questions about what you
+     can see, each answer voting for subgenres, the top three ticked. It is
+     cruder than a model and honest about that, but for "which shops sell
+     this" it is usually enough. */
+  const QUESTIONS = [
+    {
+      q: 'What is the main piece?',
+      a: [
+        { label: 'a jacket or suit, tailored', tags: ['tailoring', 'ivy'] },
+        { label: 'a work jacket or utility trousers', tags: ['workwear'] },
+        { label: 'denim', tags: ['denim'] },
+        { label: 'a t-shirt, hoodie or sneakers', tags: ['street'] },
+        { label: 'a shell, fleece or technical piece', tags: ['gorp'] },
+        { label: 'a dress, skirt or knitwear', tags: ['minimal', 'tailoring'] }
+      ]
+    },
+    {
+      q: 'How does it sit on the body?',
+      a: [
+        { label: 'close and structured', tags: ['tailoring'] },
+        { label: 'oversized, draped, volume away from the body', tags: ['avant'] },
+        { label: 'tight, low on the hips, shiny', tags: ['y2k'] },
+        { label: 'boxy and practical', tags: ['workwear', 'gorp'] }
+      ]
+    },
+    {
+      q: 'What is the surface like?',
+      a: [
+        { label: 'one flat colour, no decoration', tags: ['minimal'] },
+        { label: 'raw edges, exposed seams, unfinished on purpose', tags: ['archive'] },
+        { label: 'wax print, strip weave, indigo', tags: ['afromodern'] },
+        { label: 'cut up, pinned, patched, hand printed', tags: ['punk'] },
+        { label: 'logos or graphics', tags: ['street', 'y2k'] },
+        { label: 'worn in, faded, repaired', tags: ['denim', 'workwear'] }
+      ]
+    },
+    {
+      q: 'What era does it look like?',
+      a: [
+        { label: 'before 1960', tags: ['tailoring', 'workwear'] },
+        { label: '1960s or 1970s', tags: ['ivy', 'punk'] },
+        { label: '1980s or 1990s', tags: ['archive', 'minimal'] },
+        { label: 'around 2000', tags: ['y2k'] },
+        { label: 'now', tags: ['street', 'gorp'] }
+      ]
+    }
+  ];
+
+  function buildQuestions(){
+    const host = $('#questions');
+    if (!host) return;
+    host.innerHTML = QUESTIONS.map((row, i) =>
+      '<div class="qrow"><p class="qq">' + row.q + '</p>' +
+      row.a.map((ans, j) =>
+        '<button type="button" class="chip q" data-row="' + i + '" data-ans="' + j + '">' + ans.label + '</button>'
+      ).join('') + '</div>'
+    ).join('');
+
+    const answers = {};
+    host.addEventListener('click', e => {
+      const b = e.target.closest('.chip.q');
+      if (!b) return;
+      const row = Number(b.dataset.row);
+      host.querySelectorAll('.chip.q[data-row="' + row + '"]').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      answers[row] = Number(b.dataset.ans);
+
+      const votes = {};
+      Object.keys(answers).forEach(r => {
+        QUESTIONS[r].a[answers[r]].tags.forEach(t => { votes[t] = (votes[t] || 0) + 1; });
+      });
+
+      picked = new Set(Object.keys(votes).sort((x, y) => votes[y] - votes[x]).slice(0, 3));
+      $$('#chips .chip').forEach(c => c.classList.toggle('on', picked.has(c.dataset.id)));
+      render();
+    });
+  }
+
   function render(){
     const region = $('#region').value;
     const list = $('#results');
@@ -288,6 +369,7 @@ function initAnalyser(){
     }).join('');
   }
 
+  buildQuestions();
   render();
 }
 

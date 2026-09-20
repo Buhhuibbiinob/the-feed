@@ -33,26 +33,33 @@ if (location.protocol !== "file:") document.write('<base href="/lastthread/">');
       <span class="note">put a picture in · tag it · get somewhere to actually buy it</span>
     </div>
 
-    <p class="lede">Upload a photo of an outfit. Yours, one you saved, a runway
-    shot, or a single garment. Press read, and it names the garments, the cloth it
-    can see and the subgenres the look belongs to. Those tags are matched against a
-    directory of independent shops, resale sites and markets, sorted by how near
-    you are. No chain stores in the list.</p>
+    <p class="lede">Put up a photo of an outfit, then answer four questions about
+    what you can see in it. The answers are matched against a directory of
+    independent shops, resale sites and markets, sorted by how near you are. No
+    chain stores in the list. Nothing here costs anything.</p>
 
     <div class="gadget">
       <div class="gadget-col">
         <h4>1. the picture</h4>
         <div id="preview" class="dropzone">nothing yet</div>
         <input type="file" id="photo" accept="image/*">
-        <p><button type="button" id="readit" disabled>read this photograph</button></p>
-        <div id="readout"></div>
-        <p class="caption">The picture is sent to be read once, when you press the
-        button, and is not stored. Reading needs a mythefeed.com account.</p>
+        <details id="aibox">
+          <summary class="caption">have it read the photograph for you</summary>
+          <p><button type="button" id="readit" disabled>read this photograph</button></p>
+          <div id="readout"></div>
+          <p class="caption">This one costs money to run, so it is off unless the
+          site has an Anthropic key set. The questions work without it.</p>
+        </details>
       </div>
 
       <div class="gadget-col">
-        <h4>2. the subgenre</h4>
-        <p class="caption">Ticked by the reading, or tap them yourself. Hover for what each one means.</p>
+        <h4>2. what you can see</h4>
+        <p class="caption">Four questions. Answer what you can, skip what you
+        cannot, and the subgenres tick themselves.</p>
+        <div id="questions"></div>
+
+        <h4 style="margin-top:14px;">the subgenres</h4>
+        <p class="caption">Change any of these by hand. Hover for what each one means.</p>
         <div id="chips" class="chips"></div>
 
         <h4 style="margin-top:16px;">3. where you are</h4>
