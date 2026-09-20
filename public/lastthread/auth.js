@@ -20,10 +20,31 @@ window.LT = (function () {
   function fire() { const s = state(); listeners.forEach(fn => fn(s)); }
   function state() { return { configured, user, isOwner, client: sb }; }
 
+  /* One account for the whole of mythefeed.com.
+     The feed signs people in with @supabase/ssr, which keeps the session in a
+     cookie. Plain supabase-js keeps it in localStorage. Same project, same
+     users, but two different drawers, so a person signed in on the feed would
+     arrive here signed out.
+     Loading the same library the feed uses puts LastThread in the same drawer:
+     sign in on either and you are signed in on both, and it is remembered
+     between visits because a cookie outlives the tab. If that import fails
+     (offline, a blocked CDN) fall back to localStorage, which still works on
+     its own terms. */
+  async function makeClient() {
+    try {
+      const ssr = await import('https://cdn.jsdelivr.net/npm/@supabase/ssr@0.12.4/+esm');
+      return ssr.createBrowserClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    } catch (e) {
+      console.warn('LastThread: falling back to a local session.', e && e.message);
+      if (!window.supabase) return null;
+      return window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    }
+  }
+
   async function init() {
     if (!configured) { fire(); return; }
-    if (!window.supabase) { console.warn('LastThread: the Supabase library did not load.'); fire(); return; }
-    sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    sb = await makeClient();
+    if (!sb) { console.warn('LastThread: no Supabase client could be created.'); fire(); return; }
 
     const { data } = await sb.auth.getSession();
     user = data.session ? data.session.user : null;
@@ -61,7 +82,8 @@ window.LT = (function () {
     if (user) {
       p.innerHTML =
         '<h4>Signed in</h4>' +
-        '<p class="lt-note">' + esc(user.email) + (isOwner ? ' (site owner: your page edits save for everybody)' : '') + '</p>' +
+        '<p class="lt-note">' + esc(user.email) + (isOwner ? ' (site owner: your edits and posts save for everybody)' : '') + '</p>' +
+        '<p class="lt-note">This is your mythefeed.com account. Signing out here signs you out there too.</p>' +
         '<button id="lt-signout" class="lt-btn">sign out</button> ' +
         '<button id="lt-auth-close" class="lt-btn lt-quiet">close</button>';
       p.style.display = 'block';
@@ -74,15 +96,20 @@ window.LT = (function () {
       return;
     }
 
+    const back = encodeURIComponent(location.pathname + location.search);
     p.innerHTML =
-      '<h4>Sign in to LastThread</h4>' +
+      '<h4>Sign in</h4>' +
+      '<p class="lt-note">LastThread is part of mythefeed.com and uses the same account. ' +
+      'Signing in on either one signs you in on both.</p>' +
+      '<p><a class="lt-btn lt-link" href="/sign-in?next=' + back + '">sign in with your mythefeed.com account</a></p>' +
+      '<p class="lt-note"><a href="/sign-up">Create an account</a> if you do not have one yet. ' +
+      'Reading LastThread needs no account at all; writing and editing are the site owner\'s.</p>' +
+      '<details><summary class="lt-note">sign in here instead</summary>' +
       '<div class="lt-field"><label>email</label><input type="text" id="lt-email"></div>' +
       '<div class="lt-field"><label>password</label><input type="password" id="lt-pass"></div>' +
-      '<button id="lt-signin" class="lt-btn">sign in</button> ' +
-      '<button id="lt-signup" class="lt-btn lt-quiet">create an account</button> ' +
-      '<button id="lt-auth-close" class="lt-btn lt-quiet">close</button>' +
-      '<p class="lt-note" id="lt-authnote">Your posts are saved to the site and readable by anyone. ' +
-      'Anything you wrote before signing in stays in this browser until you move it across.</p>';
+      '<button id="lt-signin" class="lt-btn">sign in</button>' +
+      '<p class="lt-note" id="lt-authnote"></p></details> ' +
+      '<button id="lt-auth-close" class="lt-btn lt-quiet">close</button>';
     p.style.display = 'block';
 
     const note = m => { p.querySelector('#lt-authnote').textContent = m; };
@@ -99,15 +126,6 @@ window.LT = (function () {
       if (error) { note(error.message); return; }
       p.style.display = 'none';
       location.reload();
-    };
-
-    p.querySelector('#lt-signup').onclick = async () => {
-      const c = creds();
-      if (!c.email || c.password.length < 8) { note('An email, and a password of at least eight characters.'); return; }
-      note('creating the account...');
-      const { error } = await sb.auth.signUp(c);
-      if (error) { note(error.message); return; }
-      note('Account made. Check your email if confirmation is switched on, then sign in.');
     };
 
     p.querySelector('#lt-auth-close').onclick = () => { p.style.display = 'none'; };

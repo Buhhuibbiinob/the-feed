@@ -6,7 +6,18 @@ import { signIn, signInWithMagicLink, type AuthFormState } from "@/app/actions/a
 
 const initialState: AuthFormState = {};
 
-export function SignInForm({ justReset, linkError }: { justReset: boolean; linkError?: string | null }) {
+export function SignInForm({
+  justReset,
+  linkError,
+  next,
+}: {
+  justReset: boolean;
+  linkError?: string | null;
+  // Where to go after signing in. Carried through as a hidden field and
+  // validated in the action, so a bad value lands on the feed rather than
+  // anywhere else.
+  next?: string | null;
+}) {
   const [mode, setMode] = useState<"password" | "magic">("password");
   const [passwordState, passwordAction, passwordPending] = useActionState(
     signIn,
@@ -42,6 +53,7 @@ export function SignInForm({ justReset, linkError }: { justReset: boolean; linkE
 
         {mode === "password" ? (
           <form action={passwordAction}>
+            {next && <input type="hidden" name="next" value={next} />}
             <div className="field">
               <label htmlFor="email">Email</label>
               <input id="email" name="email" type="email" required autoComplete="email" />
