@@ -377,7 +377,12 @@
         picture: picture, date: new Date().toISOString().slice(0, 10)
       };
 
-      const signedIn = window.LT && window.LT.state().user;
+      const st = window.LT && window.LT.state();
+      if (st && st.configured && !st.isOwner) {
+        alert('Only the site owner can publish to LastThread.');
+        return;
+      }
+      const signedIn = st && st.user;
       if (signedIn) {
         window.LT.createPost(post).then(r => {
           if (r.error) { alert('Could not publish it: ' + r.error + '\nIt has been kept in this browser instead.'); keepLocally(); return; }
@@ -578,14 +583,36 @@
     barEl.querySelector('#lt-export').onclick = exportAll;
     barEl.querySelector('#lt-import').onclick = importAll;
     barEl.querySelector('#lt-reset').onclick  = resetPage;
+
+    /* Hidden rather than disabled: a row of greyed-out buttons invites people
+       to wonder what they are missing. Until accounts answer, assume not. */
+    function showOwnerTools(show) {
+      ['#lt-toggle', '#lt-write', '#lt-html', '#lt-export', '#lt-import', '#lt-reset']
+        .forEach(sel => { barEl.querySelector(sel).style.display = show ? '' : 'none'; });
+      barEl.classList.toggle('lt-reader', !show);
+    }
+    showOwnerTools(false);
     barEl.querySelector('#lt-account').onclick = () => window.LT && window.LT.authPanel();
 
-    /* the bar reflects who you are, once accounts answer */
+    /* The bar shows only what you are allowed to do. Writing and editing
+       belong to the site owner; everybody else gets a sign in button and a
+       site that behaves like any other site they are reading. */
     if (window.LT) window.LT.onChange(s => {
       const btn = barEl.querySelector('#lt-account');
-      if (!s.configured) { btn.textContent = 'accounts off'; return; }
+
+      if (!s.configured) {
+        // no database: it is somebody's own copy, so let them play with it
+        btn.textContent = 'accounts off';
+        showOwnerTools(true);
+        return;
+      }
+
       btn.textContent = s.user ? 'signed in' : 'sign in';
-      if (s.user && s.isOwner) note('Signed in as the site owner. Page edits save for everybody.');
+      showOwnerTools(!!s.isOwner);
+
+      if (s.isOwner) note('Signed in as the site owner. Edits and posts save for everybody.');
+      else if (s.user) note('Signed in. Writing and editing are the site owner\'s.');
+      if (!s.isOwner && editing) stopEditing();
     });
   }
 

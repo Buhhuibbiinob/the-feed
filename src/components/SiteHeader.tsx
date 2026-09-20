@@ -230,6 +230,10 @@ export function SiteHeader({
                     {link.label}
                   </Link>
                 ))}
+                {/* LastThread is a static site under public/, not a Next
+                    route, so it needs a plain anchor. <Link> would try to
+                    route to it client-side and land on a 404. */}
+                <a href="/lastthread/">LastThread</a>
               </div>
             )}
           </div>
@@ -397,6 +401,7 @@ export function SiteHeader({
                 {link.label}
               </Link>
             ))}
+            <a href="/lastthread/">LastThread</a>
             <div className="sk-more-sheet-divider" />
             {username ? (
               <>
