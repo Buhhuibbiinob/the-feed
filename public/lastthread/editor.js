@@ -379,7 +379,7 @@
 
       const st = window.LT && window.LT.state();
       if (st && st.configured && !st.isOwner) {
-        alert('Only the site owner can publish to LastThread.');
+        alert('Publishing to LastThread is the editor\'s.');
         return;
       }
       const signedIn = st && st.user;
@@ -601,8 +601,8 @@
       const btn = barEl.querySelector('#lt-account');
 
       if (!s.configured) {
-        // no database: it is somebody's own copy, so let them play with it
-        btn.textContent = 'accounts off';
+        // opened off disk: no site to publish to, so let them edit their copy
+        btn.textContent = 'your own copy';
         showOwnerTools(true);
         return;
       }
@@ -610,8 +610,7 @@
       btn.textContent = s.user ? 'signed in' : 'sign in';
       showOwnerTools(!!s.isOwner);
 
-      if (s.isOwner) note('Signed in as the site owner. Edits and posts save for everybody.');
-      else if (s.user) note('Signed in. Writing and editing are the site owner\'s.');
+      if (s.isOwner) note('Signed in as the editor. Edits and posts save for everybody.');
       if (!s.isOwner && editing) stopEditing();
     });
   }

@@ -1,196 +1,143 @@
-/* LastThread. Accounts.
+/* LastThread. One account, no setup.
 
-   Sign up, sign in, sign out, and a profile that follows you between devices.
-   Posts you write while signed in are saved to the database and are readable
-   by everyone. Signed out, the site behaves as it always has: your work is
-   kept in this browser and goes no further.
+   LastThread is part of mythefeed.com and shares its accounts. It does not
+   talk to the database itself and holds no keys: it asks two same-origin
+   routes, and the browser sends the feed's own session cookie along with the
+   request. So signing in on the feed signs you in here, it is remembered
+   between visits, and there is nothing to configure.
 
-   Everything here is optional. With no database configured in config.js, this
-   file adds one line to the bar saying so, and gets out of the way. */
+     /lastthread/session   who you are, and whether you can edit
+     /lastthread/data      the posts and page edits, public to read,
+                           admins only to write
+
+   Editing is the same admin flag that guards Admin on the feed. Everybody
+   else reads.
+
+   Opened as a file off disk there are no routes, so it falls back to saving
+   in that browser alone, which is what the edit bar has always done. */
 
 window.LT = (function () {
-  const cfg = window.LASTTHREAD_CONFIG || {};
-  const configured = !!(cfg.supabaseUrl && cfg.supabaseAnonKey);
-  let sb = null;
+  const online = location.protocol !== 'file:';
   let user = null;
   let isOwner = false;
+  let doc = { edits: {}, posts: [] };
   const listeners = [];
 
-  function onChange(fn) { listeners.push(fn); fn(state()); }
+  function state() { return { configured: online, user, isOwner, doc }; }
   function fire() { const s = state(); listeners.forEach(fn => fn(s)); }
-  function state() { return { configured, user, isOwner, client: sb }; }
-
-  /* One account for the whole of mythefeed.com.
-     The feed signs people in with @supabase/ssr, which keeps the session in a
-     cookie. Plain supabase-js keeps it in localStorage. Same project, same
-     users, but two different drawers, so a person signed in on the feed would
-     arrive here signed out.
-     Loading the same library the feed uses puts LastThread in the same drawer:
-     sign in on either and you are signed in on both, and it is remembered
-     between visits because a cookie outlives the tab. If that import fails
-     (offline, a blocked CDN) fall back to localStorage, which still works on
-     its own terms. */
-  async function makeClient() {
-    try {
-      const ssr = await import('https://cdn.jsdelivr.net/npm/@supabase/ssr@0.12.4/+esm');
-      return ssr.createBrowserClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-    } catch (e) {
-      console.warn('LastThread: falling back to a local session.', e && e.message);
-      if (!window.supabase) return null;
-      return window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-    }
-  }
+  function onChange(fn) { listeners.push(fn); fn(state()); }
 
   async function init() {
-    if (!configured) { fire(); return; }
-    sb = await makeClient();
-    if (!sb) { console.warn('LastThread: no Supabase client could be created.'); fire(); return; }
-
-    const { data } = await sb.auth.getSession();
-    user = data.session ? data.session.user : null;
-    await checkOwner();
+    if (!online) { fire(); return; }
+    try {
+      const r = await fetch('/lastthread/session', { credentials: 'same-origin' });
+      const s = await r.json();
+      user = s.signedIn ? { email: s.email } : null;
+      isOwner = !!s.isOwner;
+    } catch {
+      // The routes are not reachable. The site still reads and still saves
+      // locally; it just cannot publish.
+    }
     fire();
-
-    sb.auth.onAuthStateChange(async (_event, session) => {
-      user = session ? session.user : null;
-      await checkOwner();
-      fire();
-    });
   }
 
-  async function checkOwner() {
-    isOwner = false;
-    if (!user) return;
-    const { data } = await sb.from('lastthread_owners').select('user_id').eq('user_id', user.id).maybeSingle();
-    isOwner = !!data;
-  }
-
-  /* ---------- the sign in panel ---------- */
-  function authPanel() {
-    const p = document.getElementById('lt-panel');
-    if (!configured) {
-      p.innerHTML =
-        '<h4>Accounts are not switched on yet</h4>' +
-        '<p class="lt-note">The site is running without a database, so everything you write stays in this browser.</p>' +
-        '<p class="lt-note">To turn accounts on: open Supabase, Settings, API, and paste the Project URL and the anon public key into <code>config.js</code>. Then run <code>supabase/migrations/020-lastthread.sql</code> in the SQL editor. Full instructions are in the README.</p>' +
-        '<button id="lt-auth-close" class="lt-btn">close</button>';
-      p.style.display = 'block';
-      p.querySelector('#lt-auth-close').onclick = () => { p.style.display = 'none'; };
-      return;
+  async function post(payload) {
+    if (!online) return { error: 'not online' };
+    try {
+      const r = await fetch('/lastthread/data', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const out = await r.json();
+      return r.ok ? out : { error: out.error || ('failed: ' + r.status) };
+    } catch (e) {
+      return { error: e.message };
     }
-
-    if (user) {
-      p.innerHTML =
-        '<h4>Signed in</h4>' +
-        '<p class="lt-note">' + esc(user.email) + (isOwner ? ' (site owner: your edits and posts save for everybody)' : '') + '</p>' +
-        '<p class="lt-note">This is your mythefeed.com account. Signing out here signs you out there too.</p>' +
-        '<button id="lt-signout" class="lt-btn">sign out</button> ' +
-        '<button id="lt-auth-close" class="lt-btn lt-quiet">close</button>';
-      p.style.display = 'block';
-      p.querySelector('#lt-signout').onclick = async () => {
-        await sb.auth.signOut();
-        p.style.display = 'none';
-        location.reload();
-      };
-      p.querySelector('#lt-auth-close').onclick = () => { p.style.display = 'none'; };
-      return;
-    }
-
-    const back = encodeURIComponent(location.pathname + location.search);
-    p.innerHTML =
-      '<h4>Sign in</h4>' +
-      '<p class="lt-note">LastThread is part of mythefeed.com and uses the same account. ' +
-      'Signing in on either one signs you in on both.</p>' +
-      '<p><a class="lt-btn lt-link" href="/sign-in?next=' + back + '">sign in with your mythefeed.com account</a></p>' +
-      '<p class="lt-note"><a href="/sign-up">Create an account</a> if you do not have one yet. ' +
-      'Reading LastThread needs no account at all; writing and editing are the site owner\'s.</p>' +
-      '<details><summary class="lt-note">sign in here instead</summary>' +
-      '<div class="lt-field"><label>email</label><input type="text" id="lt-email"></div>' +
-      '<div class="lt-field"><label>password</label><input type="password" id="lt-pass"></div>' +
-      '<button id="lt-signin" class="lt-btn">sign in</button>' +
-      '<p class="lt-note" id="lt-authnote"></p></details> ' +
-      '<button id="lt-auth-close" class="lt-btn lt-quiet">close</button>';
-    p.style.display = 'block';
-
-    const note = m => { p.querySelector('#lt-authnote').textContent = m; };
-    const creds = () => ({
-      email: (p.querySelector('#lt-email').value || '').trim(),
-      password: p.querySelector('#lt-pass').value || ''
-    });
-
-    p.querySelector('#lt-signin').onclick = async () => {
-      const c = creds();
-      if (!c.email || !c.password) { note('Email and password, please.'); return; }
-      note('signing in...');
-      const { error } = await sb.auth.signInWithPassword(c);
-      if (error) { note(error.message); return; }
-      p.style.display = 'none';
-      location.reload();
-    };
-
-    p.querySelector('#lt-auth-close').onclick = () => { p.style.display = 'none'; };
   }
 
-  /* ---------- posts, on the server ---------- */
+  async function load() {
+    if (!online) return null;
+    try {
+      const r = await fetch('/lastthread/data', { credentials: 'same-origin' });
+      doc = await r.json();
+      return doc;
+    } catch {
+      return null;
+    }
+  }
+
+  /* ---------- what the edit bar calls ---------- */
+
   async function listPosts() {
-    if (!sb) return null;
-    const { data, error } = await sb
-      .from('lastthread_posts')
-      .select('id,title,body,sources,era,place,channel,picture_url,created_at,author_id')
-      .order('created_at', { ascending: false })
-      .limit(50);
-    if (error) { console.warn('LastThread posts:', error.message); return null; }
-    return data.map(row => ({
-      id: row.id, title: row.title, body: row.body || '', sources: row.sources || '',
-      era: row.era || '', place: row.place || '', channel: row.channel || '',
-      picture: row.picture_url || '', author: 'a member',
-      date: (row.created_at || '').slice(0, 10), remote: true
-    }));
-  }
-
-  async function createPost(post) {
-    if (!sb || !user) return { error: 'not signed in' };
-    const { data, error } = await sb.from('lastthread_posts').insert({
-      author_id: user.id, title: post.title, body: post.body, sources: post.sources,
-      era: post.era, place: post.place, channel: post.channel, picture_url: post.picture
-    }).select('id').single();
-    return error ? { error: error.message } : { id: data.id };
-  }
-
-  async function deletePost(id) {
-    if (!sb || !user) return { error: 'not signed in' };
-    const { error } = await sb.from('lastthread_posts').delete().eq('id', id);
-    return error ? { error: error.message } : {};
+    const d = doc.posts && doc.posts.length ? doc : (await load());
+    if (!d || !d.posts) return null;
+    return d.posts.map(p => Object.assign({}, p, { remote: true, author: p.author || 'the editor' }));
   }
 
   async function getPost(id) {
-    if (!sb) return null;
-    const { data, error } = await sb.from('lastthread_posts').select('*').eq('id', id).maybeSingle();
-    if (error || !data) return null;
-    return {
-      id: data.id, title: data.title, body: data.body || '', sources: data.sources || '',
-      era: data.era || '', place: data.place || '', channel: data.channel || '',
-      picture: data.picture_url || '', author: 'a member',
-      date: (data.created_at || '').slice(0, 10), remote: true
-    };
+    const d = await load();
+    const p = d && d.posts ? d.posts.find(x => x.id === id) : null;
+    return p ? Object.assign({}, p, { remote: true }) : null;
   }
 
-  /* ---------- page edits, shared, owners only ---------- */
+  async function createPost(p) {
+    const id = p.id || ('p' + Date.now());
+    const r = await post({ type: 'post', post: Object.assign({}, p, { id }) });
+    return r.error ? r : { id };
+  }
+
+  async function deletePost(id) { return post({ type: 'delete', id }); }
+
   async function loadEdits(page) {
-    if (!sb) return null;
-    const { data, error } = await sb.from('lastthread_edits').select('address,kind,value').eq('page', page);
-    if (error) return null;
-    const out = { text: {}, image: {} };
-    data.forEach(r => { out[r.kind][r.address] = r.value; });
-    return out;
+    const d = await load();
+    const forPage = d && d.edits ? d.edits[page] : null;
+    if (!forPage) return { text: {}, image: {} };
+    return { text: forPage.text || {}, image: forPage.image || {} };
   }
 
   async function saveEdit(page, address, kind, value) {
-    if (!sb || !isOwner) return { error: 'not an owner' };
-    const { error } = await sb.from('lastthread_edits')
-      .upsert({ page, address, kind, value, updated_by: user.id, updated_at: new Date().toISOString() },
-              { onConflict: 'page,address,kind' });
-    return error ? { error: error.message } : {};
+    return post({ type: 'edit', page, address, kind, value });
+  }
+
+  /* ---------- the panel ---------- */
+
+  function authPanel() {
+    const p = document.getElementById('lt-panel');
+    const back = encodeURIComponent(location.pathname + location.search);
+
+    if (!online) {
+      p.innerHTML =
+        '<h4>Reading this off your own disk</h4>' +
+        '<p class="lt-note">There is no site to sign in to from here, so anything you change ' +
+        'is kept in this browser. Open it at mythefeed.com/lastthread to publish.</p>' +
+        '<button id="lt-auth-close" class="lt-btn">close</button>';
+    } else if (user && isOwner) {
+      p.innerHTML =
+        '<h4>Signed in as the editor</h4>' +
+        '<p class="lt-note">' + esc(user.email || '') + '. Your edits and posts save for everybody.</p>' +
+        '<p class="lt-note">This is your mythefeed.com account. Sign out from the feed.</p>' +
+        '<button id="lt-auth-close" class="lt-btn">close</button>';
+    } else if (user) {
+      p.innerHTML =
+        '<h4>Signed in</h4>' +
+        '<p class="lt-note">' + esc(user.email || '') + ', with your mythefeed.com account.</p>' +
+        '<p class="lt-note">Writing and editing LastThread belong to the site\'s editor. ' +
+        'Everything here is yours to read.</p>' +
+        '<button id="lt-auth-close" class="lt-btn">close</button>';
+    } else {
+      p.innerHTML =
+        '<h4>Sign in</h4>' +
+        '<p class="lt-note">LastThread is part of mythefeed.com and uses the same account. ' +
+        'Sign in on either and you are signed in on both.</p>' +
+        '<p><a class="lt-btn lt-link" href="/sign-in?next=' + back + '">sign in with your mythefeed.com account</a></p>' +
+        '<p class="lt-note">Reading needs no account at all.</p>' +
+        '<button id="lt-auth-close" class="lt-btn lt-quiet">close</button>';
+    }
+
+    p.style.display = 'block';
+    p.querySelector('#lt-auth-close').onclick = () => { p.style.display = 'none'; };
   }
 
   function esc(s) {
