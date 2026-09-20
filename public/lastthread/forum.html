@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>The forum: LastThread</title>
+<script>/* served from a URL without a trailing slash, relative links would
+   otherwise resolve against the site root. Skipped on file:// so the
+   pages still work when opened straight off disk. */
+if (location.protocol !== "file:") document.write('<base href="/lastthread/">');</script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
