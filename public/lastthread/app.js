@@ -141,16 +141,92 @@ function initAnalyser(){
     render();
   });
 
-  /* the photo. Read locally, never uploaded anywhere. */
+  /* The photograph. Downscaled in the browser first, both because the page
+     shows it and because there is no point sending a 12 megapixel picture to
+     a model that reads it at a fraction of that. */
   $('#photo').addEventListener('change', e => {
     const f = e.target.files && e.target.files[0]; if (!f) return;
+    shrink(f, 1200, dataUrl => {
+      $('#preview').innerHTML = `<img src="${dataUrl}" alt="the outfit you uploaded">`;
+      $('#preview').classList.add('has-image');
+      $('#readit').disabled = false;
+      $('#readit').dataset.image = dataUrl;
+      $('#readout').innerHTML = '';
+    });
+  });
+
+  function shrink(file, max, cb) {
     const r = new FileReader();
     r.onload = () => {
-      $('#preview').innerHTML = `<img src="${r.result}" alt="the outfit you uploaded">`;
-      $('#preview').classList.add('has-image');
+      const im = new Image();
+      im.onload = () => {
+        const scale = Math.min(1, max / Math.max(im.width, im.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(im.width * scale);
+        cv.height = Math.round(im.height * scale);
+        cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+        cb(cv.toDataURL('image/jpeg', 0.85));
+      };
+      im.onerror = () => cb(r.result);
+      im.src = r.result;
     };
-    r.readAsDataURL(f);
+    r.readAsDataURL(file);
+  }
+
+  /* Read the picture. The model answers with subgenres, the garments it can
+     see, and what to search for; the chips it names are ticked for you and
+     the shop list below reacts straight away. */
+  $('#readit').addEventListener('click', async () => {
+    const btn = $('#readit');
+    const image = btn.dataset.image;
+    if (!image) return;
+    const out = $('#readout');
+    btn.disabled = true;
+    out.innerHTML = '<p class="caption">Reading the photograph. This takes a few seconds.</p>';
+
+    try {
+      const res = await fetch('/lastthread/analyze', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ image })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        out.innerHTML = '<p class="caption"><b>' + escapeHtml(data.error || 'That did not work.') + '</b>' +
+          (res.status === 401 ? ' <a href="/sign-in?next=' + encodeURIComponent(location.pathname) + '">Sign in</a> and try again.' : '') +
+          ' You can still tag it by hand below.</p>';
+        btn.disabled = false;
+        return;
+      }
+
+      (data.subgenres || []).forEach(id => {
+        const chip = $('#chips .chip[data-id="' + id + '"]');
+        if (chip && !picked.has(id)) { picked.add(id); chip.classList.add('on'); }
+      });
+
+      const garments = (data.garments || [])
+        .map(g => '<li><b>' + escapeHtml(g.name) + '</b>. ' + escapeHtml(g.detail) + '</li>').join('');
+      const search = (data.look_for || [])
+        .map(t => '<li>' + escapeHtml(t) + '</li>').join('');
+
+      out.innerHTML =
+        (data.notes ? '<p>' + escapeHtml(data.notes) + '</p>' : '') +
+        (garments ? '<h4>what is in the picture</h4><ul class="readlist">' + garments + '</ul>' : '') +
+        (search ? '<h4>what to search for</h4><ul class="readlist">' + search + '</ul>' : '') +
+        '<p class="caption">The subgenres it recognised are ticked above. Change them if it read the picture wrong.</p>';
+
+      render();
+    } catch (err) {
+      out.innerHTML = '<p class="caption">The analyser could not be reached. Tag it by hand below.</p>';
+    }
+    btn.disabled = false;
   });
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  }
 
   /* location. Real browser GPS; falls back to the region dropdown, which is
      also the only thing that works when the page is opened as a file:// */
