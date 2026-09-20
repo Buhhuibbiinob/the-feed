@@ -464,3 +464,10 @@ body.lt-can-edit .lt-ph::after{
   content:"click to add a picture"; position:absolute; margin-top:56px;
   font-size:10px; color:#999;
 }
+
+/* the four questions */
+.qrow{ margin-bottom:10px; }
+.qq{ font-size:12px; font-weight:700; margin:0 0 4px; }
+.chip.q{ font-size:11px; }
+#aibox{ margin-top:8px; }
+#aibox summary{ cursor:pointer; }
