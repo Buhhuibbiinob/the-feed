@@ -471,3 +471,14 @@ body.lt-can-edit .lt-ph::after{
 .chip.q{ font-size:11px; }
 #aibox{ margin-top:8px; }
 #aibox summary{ cursor:pointer; }
+
+/* describing what you can see */
+#describe{
+  width:100%; border:1px solid #808080; padding:5px 6px;
+  font:12px Arial, Helvetica, sans-serif;
+}
+#readdesc{
+  font:700 12px/1 Arial, sans-serif; border:0; background:#1d4f9c; color:#fff;
+  padding:6px 14px; cursor:pointer;
+}
+#described{ margin:4px 0 6px; }

@@ -149,9 +149,6 @@ function initAnalyser(){
     shrink(f, 1200, dataUrl => {
       $('#preview').innerHTML = `<img src="${dataUrl}" alt="the outfit you uploaded">`;
       $('#preview').classList.add('has-image');
-      $('#readit').disabled = false;
-      $('#readit').dataset.image = dataUrl;
-      $('#readout').innerHTML = '';
     });
   });
 
@@ -172,57 +169,6 @@ function initAnalyser(){
     };
     r.readAsDataURL(file);
   }
-
-  /* Read the picture. The model answers with subgenres, the garments it can
-     see, and what to search for; the chips it names are ticked for you and
-     the shop list below reacts straight away. */
-  $('#readit').addEventListener('click', async () => {
-    const btn = $('#readit');
-    const image = btn.dataset.image;
-    if (!image) return;
-    const out = $('#readout');
-    btn.disabled = true;
-    out.innerHTML = '<p class="caption">Reading the photograph. This takes a few seconds.</p>';
-
-    try {
-      const res = await fetch('/lastthread/analyze', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ image })
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        out.innerHTML = '<p class="caption"><b>' + escapeHtml(data.error || 'That did not work.') + '</b>' +
-          (res.status === 401 ? ' <a href="/sign-in?next=' + encodeURIComponent(location.pathname) + '">Sign in</a> and try again.' : '') +
-          ' You can still tag it by hand below.</p>';
-        btn.disabled = false;
-        return;
-      }
-
-      (data.subgenres || []).forEach(id => {
-        const chip = $('#chips .chip[data-id="' + id + '"]');
-        if (chip && !picked.has(id)) { picked.add(id); chip.classList.add('on'); }
-      });
-
-      const garments = (data.garments || [])
-        .map(g => '<li><b>' + escapeHtml(g.name) + '</b>. ' + escapeHtml(g.detail) + '</li>').join('');
-      const search = (data.look_for || [])
-        .map(t => '<li>' + escapeHtml(t) + '</li>').join('');
-
-      out.innerHTML =
-        (data.notes ? '<p>' + escapeHtml(data.notes) + '</p>' : '') +
-        (garments ? '<h4>what is in the picture</h4><ul class="readlist">' + garments + '</ul>' : '') +
-        (search ? '<h4>what to search for</h4><ul class="readlist">' + search + '</ul>' : '') +
-        '<p class="caption">The subgenres it recognised are ticked above. Change them if it read the picture wrong.</p>';
-
-      render();
-    } catch (err) {
-      out.innerHTML = '<p class="caption">The analyser could not be reached. Tag it by hand below.</p>';
-    }
-    btn.disabled = false;
-  });
 
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -251,6 +197,72 @@ function initAnalyser(){
 
   $('#region').addEventListener('change', render);
 
+
+
+  /* ---------- what you say you can see ----------
+     Words to subgenres. No model, no key, nothing sent anywhere: the
+     description is matched against the vocabulary below, in the browser.
+     It only recognises what is listed here, which is why the matches are
+     shown rather than silently applied. */
+  const WORDS = {
+    denim:      ['denim', 'jeans', 'jean', 'selvedge', 'selvage', 'indigo jeans', 'levi', 'trucker jacket'],
+    tailoring:  ['suit', 'blazer', 'tailored', 'lapel', 'trouser', 'waistcoat', 'overcoat', 'pinstripe', 'bespoke'],
+    workwear:   ['workwear', 'chore', 'moleskin', 'carhartt', 'dickies', 'duck canvas', 'boiler suit', 'coverall', 'bar tack', 'utility', 'overall'],
+    street:     ['hoodie', 'sneaker', 'trainers', 'logo', 'graphic tee', 't-shirt', 'tshirt', 'cap', 'skate', 'streetwear', 'tracksuit'],
+    gorp:       ['gore', 'goretex', 'shell jacket', 'fleece', 'technical', 'hiking', 'puffer', 'windbreaker', 'cagoule', 'arcteryx', 'patagonia'],
+    afromodern: ['ankara', 'wax print', 'kente', 'adire', 'aso oke', 'asooke', 'indigo', 'kitenge', 'dashiki', 'boubou', 'strip weave'],
+    archive:    ['raw edge', 'raw hem', 'unfinished', 'deconstructed', 'deconstruction', 'exposed seam', 'inside out', 'margiela', 'helmut lang', 'archive'],
+    minimal:    ['minimal', 'plain', 'plainsurface', 'one colour', 'one color', 'undyed', 'jil sander', 'clean lines', 'unadorned'],
+    y2k:        ['y2k', 'low rise', 'lowrise', 'rhinestone', 'butterfly', 'velour', 'baby tee', 'shiny', 'bedazzled', 'juicy'],
+    punk:       ['safety pin', 'studs', 'studded', 'patched', 'patches', 'diy', 'ripped', 'torn', 'screen print', 'punk', 'tartan'],
+    ivy:        ['oxford shirt', 'loafer', 'penny loafer', 'repp', 'prep', 'ivy', 'chino', 'varsity', 'letterman', 'argyle'],
+    avant:      ['oversized', 'draped', 'drape', 'volume', 'asymmetric', 'yohji', 'comme des', 'rick owens', 'sculptural', 'voluminous']
+  };
+
+  function readDescription(){
+    /* "no logos" is a statement about minimalism, not a mention of logos.
+       Fold the negations into one token before matching so they cannot count
+       as the thing they are denying. */
+    const text = (' ' + ($('#describe').value || '').toLowerCase() + ' ')
+      .replace(/\b(no|without|zero)\s+(logos?|branding|graphics?)\b/g, ' plainsurface ')
+      .replace(/\bunbranded\b/g, ' plainsurface ');
+    const out = $('#described');
+    if (!text.trim()) {
+      out.innerHTML = '<p class="caption">Write a line or two first.</p>';
+      return;
+    }
+
+    const hits = {};
+    Object.keys(WORDS).forEach(id => {
+      WORDS[id].forEach(word => {
+        if (text.indexOf(word) !== -1) {
+          const list = hits[id] = hits[id] || [];
+          // 'draped' already covers 'drape'; keep the longer word only
+          if (!list.some(w => w.indexOf(word) !== -1)) list.push(word);
+        }
+      });
+    });
+
+    const found = Object.keys(hits);
+    if (!found.length) {
+      out.innerHTML = '<p class="caption">Nothing in that matched the vocabulary. ' +
+        'Try naming the garment (jacket, jeans, suit), the cloth (denim, wool, wax print) ' +
+        'or the finish (raw edges, logos, studs). Or answer the questions below.</p>';
+      return;
+    }
+
+    found.forEach(id => {
+      picked.add(id);
+      const chip = $('#chips .chip[data-id="' + id + '"]');
+      if (chip) chip.classList.add('on');
+    });
+
+    out.innerHTML = '<p class="caption">Matched: ' +
+      found.map(id => '<b>' + ((subgenre(id) || {}).name || id) + '</b> (' +
+        hits[id].map(w => w === 'plainsurface' ? 'no logos' : w).join(', ') + ')').join('; ') +
+      '. Change any of them below.</p>';
+    render();
+  }
 
   /* ---------- the questions ----------
      Reading a photograph with a model costs money per picture and needs a
@@ -370,6 +382,8 @@ function initAnalyser(){
   }
 
   buildQuestions();
+  const describeBtn = $('#readdesc');
+  if (describeBtn) describeBtn.addEventListener('click', readDescription);
   render();
 }
 

@@ -33,29 +33,30 @@ if (location.protocol !== "file:") document.write('<base href="/lastthread/">');
       <span class="note">put a picture in · tag it · get somewhere to actually buy it</span>
     </div>
 
-    <p class="lede">Put up a photo of an outfit, then answer four questions about
-    what you can see in it. The answers are matched against a directory of
-    independent shops, resale sites and markets, sorted by how near you are. No
-    chain stores in the list. Nothing here costs anything.</p>
+    <p class="lede">Put up a photo of an outfit if you like, then describe what
+    you can see in it, or answer four questions instead. What you say is matched
+    against a directory of independent shops, resale sites and markets, sorted by
+    how near you are. No chain stores in the list, and nothing here costs
+    anything.</p>
 
     <div class="gadget">
       <div class="gadget-col">
         <h4>1. the picture</h4>
         <div id="preview" class="dropzone">nothing yet</div>
         <input type="file" id="photo" accept="image/*">
-        <details id="aibox">
-          <summary class="caption">have it read the photograph for you</summary>
-          <p><button type="button" id="readit" disabled>read this photograph</button></p>
-          <div id="readout"></div>
-          <p class="caption">This one costs money to run, so it is off unless the
-          site has an Anthropic key set. The questions work without it.</p>
-        </details>
+        <p class="caption">The picture stays in your browser. It is here so you
+        have something to look at while you describe it.</p>
       </div>
 
       <div class="gadget-col">
-        <h4>2. what you can see</h4>
-        <p class="caption">Four questions. Answer what you can, skip what you
-        cannot, and the subgenres tick themselves.</p>
+        <h4>2. say what you can see</h4>
+        <p class="caption">In your own words. Name the garments, the cloth, the
+        cut, the finish. "Faded denim jacket, raw hem, no logos" is plenty.</p>
+        <textarea id="describe" rows="4" placeholder="a boxy work jacket in dark moleskin, four pockets, bar tacks at the corners"></textarea>
+        <p><button type="button" id="readdesc">read what I wrote</button></p>
+        <div id="described"></div>
+
+        <h4 style="margin-top:14px;">or answer four questions</h4>
         <div id="questions"></div>
 
         <h4 style="margin-top:14px;">the subgenres</h4>
