@@ -1,3 +1,14 @@
+-- NOT NEEDED ANY MORE. Read this before running it.
+--
+-- LastThread now keeps its posts and page edits in site_content, the table
+-- the feed already uses for text an admin can change without deploying, and
+-- treats the feed's own admin flag as permission to edit. That needs no new
+-- table and no second account, so this migration has nothing left to do.
+--
+-- If you already ran it, the tables it made are sitting there unused and
+-- harmless. The undo block at the foot removes them if you would rather have
+-- them gone.
+--
 -- LastThread: only owners write.
 --
 -- Migration 020 let any signed-in person publish a post, on the assumption
