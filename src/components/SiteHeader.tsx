@@ -196,6 +196,11 @@ export function SiteHeader({
           <Link href="/" className={pathname === "/" ? "active" : ""}>
             Feed
           </Link>
+          {/* A plain anchor, not <Link>: LastThread is a static site under
+              public/, so client-side routing would land on a 404. */}
+          <a href="/lastthread/" className={pathname.startsWith("/lastthread") ? "active" : ""}>
+            LastThread
+          </a>
           {showDiscover && (
             <Link href="/recs" className={pathname.startsWith("/recs") ? "active" : ""}>
               Discover
@@ -230,10 +235,6 @@ export function SiteHeader({
                     {link.label}
                   </Link>
                 ))}
-                {/* LastThread is a static site under public/, not a Next
-                    route, so it needs a plain anchor. <Link> would try to
-                    route to it client-side and land on a 404. */}
-                <a href="/lastthread/">LastThread</a>
               </div>
             )}
           </div>
@@ -401,7 +402,6 @@ export function SiteHeader({
                 {link.label}
               </Link>
             ))}
-            <a href="/lastthread/">LastThread</a>
             <div className="sk-more-sheet-divider" />
             {username ? (
               <>

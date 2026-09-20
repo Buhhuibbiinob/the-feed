@@ -85,6 +85,7 @@
   }
 
   function setPicture(el, dataUrl) {
+    el.classList.remove('lt-ph');
     if (el.tagName === 'IMG') { el.src = dataUrl; return; }
     el.innerHTML = '';
     el.style.background = 'none';
@@ -604,11 +605,13 @@
         // opened off disk: no site to publish to, so let them edit their copy
         btn.textContent = 'your own copy';
         showOwnerTools(true);
+        document.body.classList.add('lt-can-edit');
         return;
       }
 
       btn.textContent = s.user ? 'signed in' : 'sign in';
       showOwnerTools(!!s.isOwner);
+      document.body.classList.toggle('lt-can-edit', !!s.isOwner);
 
       if (s.isOwner) note('Signed in as the editor. Edits and posts save for everybody.');
       if (!s.isOwner && editing) stopEditing();
