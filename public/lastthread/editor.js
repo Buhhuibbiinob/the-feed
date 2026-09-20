@@ -272,6 +272,7 @@
     editableImages().forEach(el => {
       el.classList.add('lt-img-edit');
       el.addEventListener('click', onImageClick);
+      if (el.classList.contains('lt-ph')) el.style.setProperty('display', 'flex', 'important');
     });
 
     buildToolbar().style.display = 'flex';
@@ -289,6 +290,7 @@
     editableImages().forEach(el => {
       el.classList.remove('lt-img-edit');
       el.removeEventListener('click', onImageClick);
+      if (el.classList.contains('lt-ph')) el.style.removeProperty('display');
     });
     if (toolbarEl) toolbarEl.style.display = 'none';
     bar().querySelector('#lt-toggle').textContent = 'edit this page';
@@ -311,6 +313,15 @@
     note('saving to the site...');
     window.LT.saveEdit(PAGE, address, kind, value).then(r => {
       note(r.error ? 'saved here, but the site refused it: ' + r.error : 'saved to the site, for everybody');
+    });
+  }
+
+  /* A picture the editor can click even when the stylesheet is stale. */
+  function revealPlaceholders(show) {
+    editableImages().forEach(el => {
+      if (!el.classList.contains('lt-ph')) return;
+      if (show) el.style.setProperty('display', 'flex', 'important');
+      else el.style.removeProperty('display');
     });
   }
 
@@ -614,6 +625,7 @@
       document.body.classList.toggle('lt-can-edit', !!s.isOwner);
 
       if (s.isOwner) note('Signed in as the editor. Edits and posts save for everybody.');
+      else if (s.user) note('Signed in, but this account is not an admin of mythefeed.com, so editing is off.');
       if (!s.isOwner && editing) stopEditing();
     });
   }

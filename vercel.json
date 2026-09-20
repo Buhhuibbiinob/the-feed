@@ -18,5 +18,16 @@
       "source": "/lastthread/",
       "destination": "/lastthread/index.html"
     }
+  ],
+  "headers": [
+    {
+      "source": "/lastthread/(.*)",
+      "headers": [
+        {
+          "key": "cache-control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
   ]
 }
