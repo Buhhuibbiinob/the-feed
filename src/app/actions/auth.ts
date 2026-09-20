@@ -172,12 +172,25 @@ async function signUpInner(formData: FormData): Promise<AuthFormState> {
   return { message: "Check your email to confirm your account. The link signs you straight in." };
 }
 
+// Where to land after signing in. Anything that is not a plain path on this
+// site is ignored and you get the feed, so a link like
+// /sign-in?next=https://evil.example cannot carry somebody off the site with
+// their session freshly minted. Protocol-relative //host is rejected for the
+// same reason: the browser reads it as another origin.
+function safeNext(raw: FormDataEntryValue | null): string {
+  const next = String(raw ?? "");
+  if (!next.startsWith("/") || next.startsWith("//")) return "/";
+  if (!/^\/[A-Za-z0-9._~\-/]*$/.test(next)) return "/";
+  return next;
+}
+
 export async function signIn(
   _prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const next = safeNext(formData.get("next"));
 
   if (!email || !password) {
     return { error: "Email and password are required." };
@@ -198,7 +211,7 @@ export async function signIn(
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect(next);
 }
 
 export async function signInWithMagicLink(
