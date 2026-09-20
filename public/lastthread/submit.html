@@ -73,10 +73,9 @@ if (location.protocol !== "file:") document.write('<base href="/lastthread/">');
         <input type="file" id="pic" accept="image/*">
       </div>
       <button type="submit" id="filebtn">file it</button>
-      <p class="formnote" id="filenote">The entry goes straight to the top of the feed
-      and gets its own page. It is saved in this browser. To publish it for everyone,
-      open the feed and use "save page as HTML" in the bar at the foot of the window,
-      then put that file in the repo.</p>
+      <p class="formnote" id="filenote">Signed in as the site owner, this publishes
+      to the feed and everybody can read it. Otherwise it is kept in your own browser
+      and goes no further.</p>
     </form>
   </div>
 
@@ -124,20 +123,37 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('filebtn').addEventListener('click', function () {
     var val = function (id) { var el = document.getElementById(id); return (el.value || '').trim(); };
     if (!val('t')) { alert('Give it a title.'); return; }
-    var list;
-    try { list = JSON.parse(localStorage.getItem('lt-posts') || '[]'); } catch (e) { list = []; }
-    list.unshift({
+    var post = {
       id: 'p' + Date.now(),
       title: val('t'), era: val('era'), place: val('place'),
       channel: document.getElementById('chan').value,
       author: 'you', body: val('body'), sources: val('src'),
       picture: pic, date: new Date().toISOString().slice(0, 10)
-    });
+    };
+    var note = document.getElementById('filenote');
+    var st = window.LT && window.LT.state();
+
+    if (st && st.isOwner) {
+      window.LT.createPost(post).then(function (r) {
+        if (r.error) { note.textContent = 'Could not publish it: ' + r.error; return; }
+        document.getElementById('entryform').reset();
+        note.innerHTML = 'Published. <a href="index.html">See it at the top of the feed</a>.';
+      });
+      return;
+    }
+
+    if (st && st.configured && st.user) {
+      note.textContent = 'Only the site owner can publish to LastThread. This entry was not filed.';
+      return;
+    }
+
+    var list;
+    try { list = JSON.parse(localStorage.getItem('lt-posts') || '[]'); } catch (e) { list = []; }
+    list.unshift(post);
     try { localStorage.setItem('lt-posts', JSON.stringify(list)); }
-    catch (e) { alert('This browser will not save any more. Export your posts from the bar, then try again.'); return; }
+    catch (e) { note.textContent = 'This browser will not save any more.'; return; }
     document.getElementById('entryform').reset();
-    document.getElementById('filenote').innerHTML =
-      'Filed. <a href="index.html">See it at the top of the feed</a>.';
+    note.innerHTML = 'Kept in this browser. <a href="index.html">See it at the top of the feed</a>. Sign in as the owner to publish it for everyone.';
   });
 });
 </script>
