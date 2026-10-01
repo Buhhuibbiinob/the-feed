@@ -9,3 +9,13 @@
 @font-face { font-family: 'Pacifico'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/pacifico-400.woff2) format('woff2'); }
 @font-face { font-family: 'Sansita'; font-style: normal; font-weight: 800; font-display: swap; src: url(fonts/sansita-800.woff2) format('woff2'); }
 @font-face { font-family: 'Sansita'; font-style: normal; font-weight: 900; font-display: swap; src: url(fonts/sansita-900.woff2) format('woff2'); }
+
+/* extra fonts for the style controls: pick any of them for any text */
+@font-face { font-family: 'Baloo 2'; font-style: normal; font-weight: 800; font-display: swap; src: url(fonts/baloo-2-800.woff2) format('woff2'); }
+@font-face { font-family: 'Bubblegum Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/bubblegum-sans-400.woff2) format('woff2'); }
+@font-face { font-family: 'Comic Neue'; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/comic-neue-700.woff2) format('woff2'); }
+@font-face { font-family: 'Dancing Script'; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/dancing-script-700.woff2) format('woff2'); }
+@font-face { font-family: 'Great Vibes'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/great-vibes-400.woff2) format('woff2'); }
+@font-face { font-family: 'Lobster'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/lobster-400.woff2) format('woff2'); }
+@font-face { font-family: 'Permanent Marker'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/permanent-marker-400.woff2) format('woff2'); }
+@font-face { font-family: 'Satisfy'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/satisfy-400.woff2) format('woff2'); }

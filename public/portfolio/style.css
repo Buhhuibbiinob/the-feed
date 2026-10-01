@@ -15,10 +15,18 @@
      Archivo Narrow  the captions under the little cases
      Pacifico        the site name in the top bar, the one bit of cursive */
 
+/* The site colours. "site colors" in edit mode overrides these, and every
+   background, flower, star and bar is drawn from them. */
+:root {
+  --lavender: #c8a2dc; --pink-panel: #e477b1; --flower-pink: #f2729f; --flower-yellow: #efd27a;
+  --frame: #94215f; --inside-pink: #f7b2d6; --big-stars: #ec5fae; --wave: #f5c22f;
+  --orange: #ef8424; --box-border: #f17fbd; --box-text: #d0601c;
+}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-body { background: #b993cf; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
-body.is-about, body.is-work { background: #f7b2d6; }
+body { background: color-mix(in srgb, var(--lavender) 92%, #000); overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+body.is-about, body.is-work { background: var(--inside-pink); }
 #viewport { margin: 0 auto; overflow: hidden; }
 #stage { position: relative; transform-origin: 0 0; overflow: hidden; font-family: 'Didact Gothic', 'Century Gothic', sans-serif; }
 #stage > * { position: absolute; }
@@ -161,7 +169,7 @@ a { color: inherit; text-decoration: none; }
 .frame {
   left: 704px; top: 56px; width: 412px; height: 572px; padding: 44px 40px 44px;
   transform: rotate(3.2deg);
-  background: var(--swirls) 0 0 / 96px 96px, linear-gradient(135deg, #b23778, #94215f 60%, #7c1a50);
+  background: var(--swirls) 0 0 / 96px 96px, linear-gradient(135deg, color-mix(in srgb, var(--frame) 80%, #fff), var(--frame) 60%, color-mix(in srgb, var(--frame) 85%, #000));
   border-radius: 4px;
   box-shadow: inset 0 0 0 4px #c9508f, inset 0 0 0 7px #6e1446, 4px 10px 0 rgba(90, 20, 60, .2), 0 16px 30px rgba(60, 10, 40, .4);
 }
@@ -257,7 +265,7 @@ a { color: inherit; text-decoration: none; }
 /* ---------------- inside pages: the orange bars across the top ---------------- */
 .topbar {
   left: 0; top: 0; width: 1200px; height: 36px; display: flex; align-items: center; gap: 14px; padding: 0 14px;
-  background: linear-gradient(180deg, #ee6a22, #d44a12); color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--orange) 90%, #e0301a), color-mix(in srgb, var(--orange) 75%, #9a2000)); color: #fff;
 }
 .site-name { font: 400 25px/1 'Pacifico', cursive; color: #ffe9a8; text-shadow: 0 2px 0 #a8360a; margin-top: -4px; white-space: nowrap; }
 .crumbs { font: 15px Arial, sans-serif; color: #fff; white-space: nowrap; overflow: hidden; }
@@ -267,7 +275,7 @@ a { color: inherit; text-decoration: none; }
 .band { left: 0; top: 36px; width: 1200px; height: 112px; display: flex; }
 .band-left {
   width: 196px; flex: none; position: relative; padding: 10px 0 0 12px;
-  background: linear-gradient(180deg, #f8a21d, #f7b733); border-right: 3px solid #fde7b0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--orange) 70%, #ffd000), color-mix(in srgb, var(--orange) 55%, #ffe060)); border-right: 3px solid #fde7b0;
 }
 .band-logo { display: flex; flex-direction: column; line-height: .9; }
 .band-logo i { font: 400 22px/1 'Pacifico', cursive; color: #fff; text-shadow: 0 2px 0 #c96a00; }
@@ -275,18 +283,18 @@ a { color: inherit; text-decoration: none; }
 .band-logo b { font: 900 25px/.98 'Nunito', sans-serif; color: #fff7c9; text-shadow: 0 2px 0 #c96a00; }
 .band-home {
   position: absolute; right: 8px; top: 30px; width: 62px; height: 62px; border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #ffb240, #f07a12); border: 3px solid #fff3c4;
+  background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--orange) 60%, #ffd060), var(--orange)); border: 3px solid #fff3c4;
   display: flex; align-items: center; justify-content: center; font: 900 14px 'Nunito', sans-serif; color: #fff;
 }
 .band-mid {
-  flex: 1; background: linear-gradient(180deg, #f39a35, #ef8424); display: flex; align-items: center; justify-content: center; overflow: hidden;
+  flex: 1; background: linear-gradient(180deg, color-mix(in srgb, var(--orange) 85%, #fff), var(--orange)); display: flex; align-items: center; justify-content: center; overflow: hidden;
   border-right: 3px solid #fde7b0;
 }
 .marquee {
   font: 400 30px/1.1 'Chewy', cursive; color: #fff; -webkit-text-stroke: 6px #c3570f; paint-order: stroke fill;
   text-align: center; padding: 0 20px;
 }
-.band-right { width: 268px; flex: none; position: relative; background: linear-gradient(180deg, #f6a03a, #f08a2a); }
+.band-right { width: 268px; flex: none; position: relative; background: linear-gradient(180deg, color-mix(in srgb, var(--orange) 80%, #fff), var(--orange)); }
 .finder {
   position: absolute; left: 84px; top: 10px; width: 150px; padding: 8px 4px; transform: rotate(-9deg);
   background: #fff; border: 3px solid #c6c6c6; border-radius: 6px; box-shadow: 2px 3px 0 rgba(150, 60, 0, .4);
@@ -295,7 +303,7 @@ a { color: inherit; text-decoration: none; }
 .finder:hover { color: #e8541a; }
 .sound-tab {
   position: absolute; left: 62px; top: 104px; width: 190px; height: 26px; border-radius: 0 0 10px 10px;
-  background: linear-gradient(180deg, #f08a2a, #e8741a); font-size: 12px; z-index: 2;
+  background: linear-gradient(180deg, var(--orange), color-mix(in srgb, var(--orange) 90%, #000)); font-size: 12px; z-index: 2;
 }
 .sound-tab br { display: none; }
 .sound-tab::after { content: ''; }
@@ -320,19 +328,19 @@ a { color: inherit; text-decoration: none; }
 /* ---------------- the white box with the orange tabs ---------------- */
 .box {
   left: 404px; top: 272px; width: 448px; height: 500px; padding: 18px 22px 0;
-  background: #fff; border: 5px solid #f17fbd; border-radius: 24px 24px 24px 24px;
+  background: #fff; border: 5px solid var(--box-border); border-radius: 24px;
   box-shadow: 0 0 0 4px #fff, 0 0 18px rgba(200, 40, 120, .35);
 }
 .tabs { display: flex; gap: 8px; }
 .tab {
   flex: 1; text-align: center; padding: 9px 4px 7px; cursor: pointer;
-  background: linear-gradient(180deg, #f39a3d, #e9761d); color: #fff; opacity: .72;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--orange) 85%, #fff), var(--orange)); color: #fff; opacity: .72;
   font: 900 17px/1 'Nunito', sans-serif; text-transform: uppercase; letter-spacing: .5px;
 }
 .tab.on { opacity: 1; box-shadow: inset 0 -3px 0 #c95a0b; }
 .box-text {
   height: 352px; margin-top: 10px; overflow-y: auto; scrollbar-width: none; padding-right: 4px;
-  font: 15.5px/1.6 'Didact Gothic', 'Century Gothic', sans-serif; color: #d0601c;
+  font: 15.5px/1.6 'Didact Gothic', 'Century Gothic', sans-serif; color: var(--box-text);
 }
 .box-text::-webkit-scrollbar { display: none; }
 .box-copy { min-height: 100%; }
@@ -407,3 +415,25 @@ a { color: inherit; text-decoration: none; }
 #pf-bar .pf-hint { font-weight: 500; font-size: 13px; padding: 0 4px; }
 #pf-bar .pf-status { font-size: 13px; min-width: 0; }
 .editing [data-bind]:empty::before { content: 'type here'; opacity: .5; }
+
+/* ---------------- style controls (edit mode) ---------------- */
+.editing .style-target { outline: 2px solid #ffcf3a !important; outline-offset: 3px; }
+.editing [data-img].mini-dvd, .editing [data-img].mini-cd { cursor: pointer; }
+.editing [data-img].mini-dvd:hover, .editing [data-img].mini-cd:hover { outline: 3px dashed #7c35a2; outline-offset: 2px; }
+.pic .clear { display: none; }
+.editing .pic:hover .clear, .editing .shelf-item:hover .clear {
+  display: block; position: absolute; right: 8px; top: 8px; z-index: 4; cursor: pointer;
+  font: 600 13px 'Fredoka', sans-serif; color: #fff; background: rgba(160, 20, 80, .9); border: 2px solid #fff; border-radius: 14px; padding: 3px 10px;
+}
+.shelf-item { position: relative; }
+.shelf-item .clear { display: none; }
+.editing .shelf-item:hover .clear { top: -10px; right: -6px; padding: 1px 7px; font-size: 11px; }
+#pf-bar .pf-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; width: 100%; }
+#pf-bar .pf-row + .pf-row { border-top: 2px solid rgba(255, 255, 255, .7); padding-top: 6px; }
+#pf-bar label { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }
+#pf-bar select { font: 500 14px 'Fredoka', sans-serif; border: 2px solid #fff; border-radius: 12px; padding: 3px 6px; max-width: 170px; }
+#pf-bar input[type=color] { width: 30px; height: 26px; padding: 0; border: 2px solid #fff; border-radius: 6px; background: none; cursor: pointer; }
+#pf-bar input[type=range] { width: 110px; accent-color: #7c35a2; }
+#pf-bar .pf-size { min-width: 38px; text-align: right; font-size: 13px; }
+#pf-bar button.pf-mini { padding: 3px 9px; }
+#pf-bar .pf-label { font-weight: 700; }

@@ -35,6 +35,15 @@ bar appears at the foot of the window.
   typed over, down to the little ones (HOME, GIG FINDER, SCROLL, the rating). Click any picture (a DVD
   cover, the framed portrait) to upload a new one from your phone or
   computer. Every change saves for everybody as soon as you click away.
+- **Styling text**: click any words and a style row opens in the bar: font
+  (the site's fonts plus extra cursive and 2000s ones), size, color, outline
+  color, bold, italic, and reset to undo it.
+- **site colors**: the background, pink panel, flowers, frame, stars, bottom
+  wave, orange bars and tabs, and the white box's border and text. Each one
+  recolors every page at once; reset colors puts them back.
+- **Pictures**: the little DVD and CD cases on the bottom shelf take uploads
+  too (that picture is the category's cover). Hover any picture for
+  **remove**.
 - **booking email**: where every Book Me button sends people.
 - On a category page: **+ add a project**, **delete this project**,
   **+ add a category**, **case: CD / DVD** (which case it sits in on the

@@ -57,6 +57,10 @@
       ]
     },
     workTabs: ['The Story', 'The Details'],
+    /* font, size, colour and outline per piece of text, keyed by the same
+       address as the text itself; and the site colours (see style.css :root) */
+    styles: {},
+    theme: {},
     bookMe: 'Book Me',
     contact: { email: '' },
     categories: [
@@ -154,7 +158,7 @@
     const inner = url
       ? `<img src="${esc(url)}" alt="" loading="lazy">`
       : `<span class="empty"><span class="empty-label">${esc(label || '')}</span></span>`;
-    return `<span class="pic ${cls || ''}" data-img="${path}">${inner}<span class="swap">change picture</span></span>`;
+    return `<span class="pic ${cls || ''}" data-img="${path}">${inner}<span class="swap">change picture</span>${url ? `<span class="clear" data-clear="${path}">remove</span>` : ''}</span>`;
   }
 
   /* The big DVD: spine, cover, a badge and title printed on the cover. */
@@ -177,9 +181,10 @@
       const caseCls = c.kind === 'cd' ? 'mini-cd' : 'mini-dvd';
       const url = safeUrl(c.cover);
       return `<a class="shelf-item" href="work.html?c=${encodeURIComponent(c.id)}">
-        <span class="${caseCls}" style="--case:${esc(c.color)}">
+        <span class="${caseCls}" style="--case:${esc(c.color)}" data-img="categories.${i}.cover">
           ${url ? `<img src="${esc(url)}" alt="">` : t('categories.' + i + '.title', 'span', 'mini-empty')}
         </span>
+        ${url ? `<span class="clear" data-clear="categories.${i}.cover">remove</span>` : ''}
         ${t('categories.' + i + '.caption', 'span', 'shelf-cap')}
       </a>`;
     }).join('') + `</div>`;
@@ -342,8 +347,80 @@
         el.spellcheck = true;
       });
     }
+    applyTheme();
+    applyStyles();
     fit();
     renderBar();
+  }
+
+  /* ---------------- text styles and site colours ---------------- */
+  const FONTS = [
+    ['', 'the original font'],
+    ['Chewy', 'Chewy (bouncy title)'], ['Fredoka', 'Fredoka (round logo)'], ['Sansita', 'Sansita (glowing menu)'],
+    ['Didact Gothic', 'Didact Gothic (box text)'], ['Nunito', 'Nunito Black'], ['Archivo Narrow', 'Archivo Narrow'],
+    ['Pacifico', 'Pacifico (cursive)'], ['Lobster', 'Lobster (cursive)'], ['Dancing Script', 'Dancing Script (cursive)'],
+    ['Satisfy', 'Satisfy (cursive)'], ['Great Vibes', 'Great Vibes (fancy cursive)'], ['Bubblegum Sans', 'Bubblegum Sans'],
+    ['Baloo 2', 'Baloo (chunky)'], ['Comic Neue', 'Comic Neue'], ['Permanent Marker', 'Permanent Marker'],
+    ['Arial Black', 'Arial Black'], ['Impact', 'Impact'], ['Georgia', 'Georgia'], ['Times New Roman', 'Times New Roman'],
+    ['Courier New', 'Courier New']
+  ];
+
+  const THEME = {
+    home: [['--lavender', 'background'], ['--pink-panel', 'pink panel'], ['--flower-pink', 'pink flowers'], ['--flower-yellow', 'yellow flower'], ['--frame', 'picture frame']],
+    inside: [['--inside-pink', 'background'], ['--big-stars', 'big stars'], ['--wave', 'bottom wave'], ['--orange', 'orange bars & tabs'], ['--box-border', 'box border'], ['--box-text', 'box text']]
+  };
+  const themeFields = () => THEME[PAGE === 'home' ? 'home' : 'inside'];
+  const safeColor = c => (/^#[0-9a-f]{6}$/i.test(c || '') ? c : '');
+
+  function applyTheme() {
+    const root = document.documentElement;
+    Object.values(THEME).flat().forEach(([v]) => {
+      const c = safeColor(doc.theme[v]);
+      if (c) root.style.setProperty(v, c); else root.style.removeProperty(v);
+    });
+  }
+
+  function applyStyles() {
+    stage.querySelectorAll('[data-bind]').forEach(el => {
+      const st = doc.styles[el.dataset.bind];
+      el.classList.toggle('style-target', editing && el.dataset.bind === styleTarget);
+      if (!st) return;
+      if (st.font && FONTS.some(f => f[0] === st.font)) el.style.fontFamily = `'${st.font}', sans-serif`;
+      if (safeColor(st.color)) el.style.color = st.color;
+      if (st.bold !== undefined) el.style.fontWeight = st.bold ? '900' : '400';
+      if (st.italic !== undefined) el.style.fontStyle = st.italic ? 'italic' : 'normal';
+      const outline = safeColor(st.outline);
+      if (outline) {
+        const cs = getComputedStyle(el);
+        if (parseFloat(cs.webkitTextStrokeWidth) > 0) el.style.webkitTextStrokeColor = outline;
+        else el.style.textShadow = [[-2, -2], [2, -2], [-2, 2], [2, 2], [0, 3]].map(([x, y]) => `${x}px ${y}px 0 ${outline}`).join(',');
+      }
+      const size = +st.size;
+      if (size && size !== 100) {
+        const base = parseFloat(getComputedStyle(el).fontSize);
+        el.style.fontSize = Math.round(base * size) / 100 + 'px';
+      }
+    });
+  }
+
+  /* When a project or category is deleted, the styles of the ones after it
+     move up with them, so nothing inherits a neighbour's look. */
+  function shiftStyles(prefix, removed) {
+    const out = {};
+    Object.keys(doc.styles).forEach(k => {
+      if (!k.startsWith(prefix)) { out[k] = doc.styles[k]; return; }
+      const rest = k.slice(prefix.length);
+      const n = parseInt(rest, 10);
+      if (n === removed) return;
+      out[n > removed ? prefix + (n - 1) + rest.slice(String(n).length) : k] = doc.styles[k];
+    });
+    doc.styles = out;
+  }
+
+  function toHex(rgb) {
+    const m = (rgb || '').match(/\d+(\.\d+)?/g);
+    if (!m) return '#000000';
+    return '#' + m.slice(0, 3).map(n => (+n | 0).toString(16).padStart(2, '0')).join('');
   }
 
   /* The stage is a fixed 2006-sized page; on a phone it is scaled to fit. */
@@ -366,6 +443,12 @@
     const soundBtn = e.target.closest('[data-sound]');
     const link = e.target.closest('a');
 
+    const clear = e.target.closest('[data-clear]');
+    if (editing && clear) {
+      e.preventDefault();
+      if (confirm('Remove this picture?')) { set(clear.dataset.clear, ''); save(); render(); }
+      return;
+    }
     if (editing && img) { e.preventDefault(); pickPicture(img.dataset.img); return; }
     /* While editing, the first click on a tab or project opens it, and a
        click on words that are already showing is for typing, not leaving. */
@@ -398,6 +481,14 @@
   stage.addEventListener('keydown', e => {
     const el = e.target.closest('[data-bind]');
     if (el && e.key === 'Enter' && !el.hasAttribute('data-multi')) { e.preventDefault(); el.blur(); }
+  });
+  stage.addEventListener('focusin', e => {
+    const el = e.target.closest && e.target.closest('[data-bind]');
+    if (!el || !editing || el.dataset.bind === styleTarget) return;
+    styleTarget = el.dataset.bind;
+    stage.querySelectorAll('.style-target').forEach(x => x.classList.remove('style-target'));
+    stage.querySelectorAll(`[data-bind="${styleTarget}"]`).forEach(x => x.classList.add('style-target'));
+    renderBar();
   });
   stage.addEventListener('focusout', e => {
     const el = e.target.closest && e.target.closest('[data-bind]');
@@ -440,23 +531,94 @@
   /* ---------------- the owner's edit bar ---------------- */
   let bar = null;
   let status = '';
+  let styleTarget = null;
+  let themeOpen = false;
+  let barKey = '';
 
+  /* The bar is only rebuilt when what it shows changes, so a colour picker
+     or font list that is open stays open while the page redraws behind it. */
   function renderBar() {
     if (!isOwner) { if (bar) bar.remove(); bar = null; return; }
     if (!bar) { bar = document.createElement('div'); bar.id = 'pf-bar'; document.body.appendChild(bar); }
+    const key = JSON.stringify([editing, itemId, catId, styleTarget, themeOpen, category(catId).kind]);
+    if (key === barKey) { setStatus(status); return; }
+    barKey = key;
     const onWork = PAGE === 'work';
     bar.innerHTML = `
-      <button type="button" data-act="edit" class="${editing ? 'on' : ''}">${editing ? '✓ done editing' : '✎ edit this page'}</button>
-      ${editing ? `
-        <button type="button" data-act="email">booking email</button>
-        ${onWork ? `<button type="button" data-act="add-item">+ add a project</button>
-          ${itemId ? `<button type="button" data-act="del-item">delete this project</button>` : ''}
-          <button type="button" data-act="add-cat">+ add a category</button>
-          <button type="button" data-act="cat-style">case: ${category(catId).kind === 'cd' ? 'CD' : 'DVD'}</button>
-          <button type="button" data-act="del-cat">delete category</button>` : ''}
-        <span class="pf-hint">click any words to type · click any picture to change it</span>` : ''}
-      <span class="pf-status">${esc(status)}</span>`;
+      <div class="pf-row">
+        <button type="button" data-act="edit" class="${editing ? 'on' : ''}">${editing ? '✓ done editing' : '✎ edit this page'}</button>
+        ${editing ? `
+          <button type="button" data-act="theme" class="${themeOpen ? 'on' : ''}">🎨 site colors</button>
+          <button type="button" data-act="email">booking email</button>
+          ${onWork ? `<button type="button" data-act="add-item">+ add a project</button>
+            ${itemId ? `<button type="button" data-act="del-item">delete this project</button>` : ''}
+            <button type="button" data-act="add-cat">+ add a category</button>
+            <button type="button" data-act="cat-style">case: ${category(catId).kind === 'cd' ? 'CD' : 'DVD'}</button>
+            <button type="button" data-act="del-cat">delete category</button>` : ''}
+          ${styleTarget ? '' : `<span class="pf-hint">click any words to type and style them · click any picture to change it</span>`}` : ''}
+        <span class="pf-status">${esc(status)}</span>
+      </div>
+      ${editing && styleTarget ? styleRow() : ''}
+      ${editing && themeOpen ? themeRow() : ''}`;
+    /* room to scroll the bottom of the page out from under the bar */
+    document.body.style.paddingBottom = bar.offsetHeight + 24 + 'px';
   }
+
+  function styleRow() {
+    const el = stage.querySelector(`[data-bind="${styleTarget}"]`);
+    if (!el) return '';
+    const st = doc.styles[styleTarget] || {};
+    const cs = getComputedStyle(el);
+    const words = (el.innerText || '').trim().replace(/\s+/g, ' ');
+    const size = +st.size || 100;
+    return `<div class="pf-row">
+      <span class="pf-label">“${esc(words.length > 18 ? words.slice(0, 18) + '…' : words || 'text')}”</span>
+      <select data-style="font" aria-label="font">${FONTS.map(([v, l]) => `<option value="${esc(v)}"${(st.font || '') === v ? ' selected' : ''} style="font-family:'${esc(v || 'inherit')}'">${esc(l)}</option>`).join('')}</select>
+      <label>size <input type="range" min="40" max="300" step="5" value="${size}" data-style="size"><span class="pf-size">${size}%</span></label>
+      <label>color <input type="color" data-style="color" value="${safeColor(st.color) || toHex(cs.color)}"></label>
+      <label>outline <input type="color" data-style="outline" value="${safeColor(st.outline) || toHex(parseFloat(cs.webkitTextStrokeWidth) > 0 ? cs.webkitTextStrokeColor : '#ffffff')}"></label>
+      <button type="button" class="pf-mini${st.bold ? ' on' : ''}" data-act="bold"><b>B</b></button>
+      <button type="button" class="pf-mini${st.italic ? ' on' : ''}" data-act="italic"><i>I</i></button>
+      <button type="button" class="pf-mini" data-act="style-reset">reset</button>
+      <button type="button" class="pf-mini" data-act="style-close" aria-label="close">✕</button>
+    </div>`;
+  }
+
+  function themeRow() {
+    const cs = getComputedStyle(document.documentElement);
+    return `<div class="pf-row">
+      ${themeFields().map(([v, label]) => `<label>${esc(label)} <input type="color" data-theme="${v}" value="${safeColor(doc.theme[v]) || toHex(colorOf(cs.getPropertyValue(v)))}"></label>`).join('')}
+      <button type="button" class="pf-mini" data-act="theme-reset">reset colors</button>
+    </div>`;
+  }
+
+  /* A colour as the browser understands it, from a custom property's text. */
+  function colorOf(value) {
+    const probe = document.createElement('span');
+    probe.style.color = value.trim();
+    document.body.appendChild(probe);
+    const c = getComputedStyle(probe).color;
+    probe.remove();
+    return c;
+  }
+
+  function styleOf(path) { return (doc.styles[path] = doc.styles[path] || {}); }
+
+  /* Dragging a slider or a colour updates the page live; letting go saves. */
+  document.addEventListener('input', e => {
+    const s = e.target.closest('#pf-bar [data-style]');
+    const th = e.target.closest('#pf-bar [data-theme]');
+    if (s && styleTarget) {
+      const key = s.dataset.style;
+      styleOf(styleTarget)[key] = key === 'size' ? +s.value : s.value;
+      if (key === 'size') bar.querySelector('.pf-size').textContent = s.value + '%';
+      render();
+    }
+    if (th) { doc.theme[th.dataset.theme] = th.value; applyTheme(); }
+  });
+  document.addEventListener('change', e => {
+    if (e.target.closest('#pf-bar [data-style], #pf-bar [data-theme]')) { save(); barKey = ''; renderBar(); }
+  });
 
   document.addEventListener('click', e => {
     const b = e.target.closest('#pf-bar [data-act]');
@@ -464,7 +626,24 @@
     const act = b.dataset.act;
     const c = category(catId);
 
-    if (act === 'edit') { editing = !editing; render(); return; }
+    if (act === 'edit') { editing = !editing; styleTarget = null; render(); return; }
+    if (act === 'theme') { themeOpen = !themeOpen; renderBar(); return; }
+    if (act === 'theme-reset') {
+      if (!confirm('Put every site color back to the original?')) return;
+      doc.theme = {}; save(); barKey = ''; render(); return;
+    }
+    if (act === 'style-close') { styleTarget = null; render(); return; }
+    if (styleTarget && (act === 'bold' || act === 'italic' || act === 'style-reset')) {
+      if (act === 'style-reset') delete doc.styles[styleTarget];
+      else {
+        const st = styleOf(styleTarget);
+        const el = stage.querySelector(`[data-bind="${styleTarget}"]`);
+        const cs = el ? getComputedStyle(el) : null;
+        if (act === 'bold') st.bold = !(cs && +cs.fontWeight >= 600);
+        if (act === 'italic') st.italic = !(cs && cs.fontStyle === 'italic');
+      }
+      save(); barKey = ''; render(); return;
+    }
     if (act === 'email') {
       const v = prompt('The email address that every "Book Me" button sends to:', doc.contact.email || '');
       if (v !== null) { doc.contact.email = v.trim(); save(); render(); }
@@ -480,7 +659,9 @@
     if (act === 'del-item') {
       const it = c.items.find(x => x.id === itemId);
       if (!it || !confirm(`Delete "${it.title}"? This cannot be undone.`)) return;
+      shiftStyles(`categories.${doc.categories.indexOf(c)}.items.`, c.items.findIndex(x => x.id === itemId));
       c.items = c.items.filter(x => x.id !== itemId);
+      styleTarget = null;
       itemId = null;
       history.replaceState(null, '', `work.html?c=${encodeURIComponent(c.id)}`);
       save(); render(); return;
@@ -498,7 +679,9 @@
     if (act === 'del-cat') {
       if (doc.categories.length < 2) { alert('Keep at least one category.'); return; }
       if (!confirm(`Delete the whole "${c.title}" category and its ${c.items.length} project(s)? This cannot be undone.`)) return;
+      shiftStyles('categories.', doc.categories.indexOf(c));
       doc.categories = doc.categories.filter(x => x !== c);
+      styleTarget = null;
       catId = doc.categories[0].id; itemId = null;
       history.replaceState(null, '', 'work.html');
       save(); render();

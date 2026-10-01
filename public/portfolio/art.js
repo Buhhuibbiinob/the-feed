@@ -7,6 +7,8 @@
 
 window.ART = (function () {
   const r1 = n => Math.round(n * 10) / 10;
+  /* A shade of one of the site colours (see "site colors" in edit mode). */
+  const mix = (v, pct, other) => `color-mix(in srgb, var(${v}) ${pct}%, ${other})`;
 
   /* An Archimedean spiral, the swirl in the corners and on the frame. */
   function spiralPath(cx, cy, size, turns) {
@@ -36,9 +38,9 @@ window.ART = (function () {
     for (let i = 0; i < n; i++) {
       const a = (360 / n) * i;
       s += `<ellipse cx="${cx}" cy="${r1(cy - size * 0.58)}" rx="${r1(size * 0.3)}" ry="${r1(size * 0.46)}"
-              fill="${petal}" stroke="${edge}" stroke-width="${r1(size * 0.05)}" transform="rotate(${a} ${cx} ${cy})"/>`;
+              style="fill:${petal};stroke:${edge}" stroke-width="${r1(size * 0.05)}" transform="rotate(${a} ${cx} ${cy})"/>`;
     }
-    s += `<circle cx="${cx}" cy="${cy}" r="${r1(size * 0.42)}" fill="${centre}"/>`;
+    s += `<circle cx="${cx}" cy="${cy}" r="${r1(size * 0.42)}" style="fill:${centre}"/>`;
     s += '</g>';
     return s;
   }
@@ -59,7 +61,7 @@ window.ART = (function () {
   function star(cx, cy, r, fill, opts) {
     opts = opts || {};
     const stroke = opts.stroke ? ` stroke="${opts.stroke}" stroke-width="${opts.width || 4}" stroke-linejoin="round"` : '';
-    return `<polygon points="${starPoints(cx, cy, r, opts.inner, opts.rotate)}" fill="${fill}"${stroke}${opts.opacity ? ` opacity="${opts.opacity}"` : ''}/>`;
+    return `<polygon points="${starPoints(cx, cy, r, opts.inner, opts.rotate)}" style="fill:${fill}"${stroke}${opts.opacity ? ` opacity="${opts.opacity}"` : ''}/>`;
   }
 
   /* The four point twinkle beside each menu item. */
@@ -90,14 +92,14 @@ window.ART = (function () {
     const panelInner = `M44 88 C 320 60, 700 72, 1158 54 L 1160 672 C 1000 682, 925 738, 760 728 C 560 715, 430 770, 300 750 C 190 732, 100 768, 42 778 Z`;
     let s = `<svg class="bg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">
       <defs>
-        <linearGradient id="lav" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9b6e8"/><stop offset=".7" stop-color="#c8a2dc"/><stop offset="1" stop-color="#bc96d2"/></linearGradient>
-        <linearGradient id="pinkpanel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d0558f"/><stop offset=".45" stop-color="#e477b1"/><stop offset="1" stop-color="#ea8fc0"/></linearGradient>
+        <linearGradient id="lav" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:${mix('--lavender', 80, '#fff')}"/><stop offset=".7" style="stop-color:var(--lavender)"/><stop offset="1" style="stop-color:${mix('--lavender', 92, '#000')}"/></linearGradient>
+        <linearGradient id="pinkpanel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:${mix('--pink-panel', 85, '#000')}"/><stop offset=".45" style="stop-color:var(--pink-panel)"/><stop offset="1" style="stop-color:${mix('--pink-panel', 85, '#fff')}"/></linearGradient>
         <radialGradient id="glowp" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="#f6a3cf" stop-opacity=".55"/><stop offset="1" stop-color="#f6a3cf" stop-opacity="0"/></radialGradient>
       </defs>
       <rect width="${w}" height="${h}" fill="url(#lav)"/>`;
     /* lavender swirls under the panel, lower left and right */
     s += `<g opacity=".55">${swirl(70, 900, 70, '#e9d3f3', 13)}${swirl(215, 960, 60, '#e9d3f3', 12)}${swirl(1080, 960, 55, '#e9d3f3', 11)}${swirl(1160, 520, 60, '#f1c6e3', 11)}</g>`;
-    s += `<path d="${panelOuter}" fill="#f7c9e3"/>`;
+    s += `<path d="${panelOuter}" style="fill:${mix('--pink-panel', 35, '#fff')}"/>`;
     s += `<path d="${panelInner}" fill="url(#pinkpanel)"/>`;
     s += `<path d="${panelInner}" fill="url(#glowp)"/>`;
     /* faint lighter leaves and swirls printed on the pink */
@@ -109,11 +111,11 @@ window.ART = (function () {
     /* the swirl that runs up the right edge behind the frame */
     s += `<g opacity=".35">${swirl(1130, 410, 46, '#f9c6e4', 9)}${swirl(1140, 240, 40, '#f9c6e4', 9)}</g>`;
     /* the big pink flower top right (the sound button sits on it) */
-    s += flower(1095, 45, 120, '#f58ab8', '#fbb5d4', '#f58ab8', { petals: 6, rotate: 12 });
+    s += flower(1095, 45, 120, mix('--flower-pink', 85, '#fff'), mix('--flower-pink', 55, '#fff'), mix('--flower-pink', 85, '#fff'), { petals: 6, rotate: 12 });
     /* lower left: pink flower, purple centre */
-    s += flower(132, 708, 150, '#f2729f', '#f9a6c3', '#9a72c9', { petals: 8, rotate: 6 });
+    s += flower(132, 708, 150, 'var(--flower-pink)', mix('--flower-pink', 60, '#fff'), '#9a72c9', { petals: 8, rotate: 6 });
     /* right: yellow flower, the magenta centre holds a link */
-    s += flower(1062, 708, 175, '#efd27a', '#f7e3a4', '#c03a86', { petals: 8, rotate: 18 });
+    s += flower(1062, 708, 175, 'var(--flower-yellow)', mix('--flower-yellow', 60, '#fff'), '#c03a86', { petals: 8, rotate: 18 });
     s += `</svg>`;
     return s;
   }
@@ -122,14 +124,14 @@ window.ART = (function () {
   function insideBackground(w, h) {
     let s = `<svg class="bg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">
       <defs>
-        <linearGradient id="pk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbd0e7"/><stop offset=".5" stop-color="#f7b2d6"/><stop offset="1" stop-color="#f294c6"/></linearGradient>
-        <linearGradient id="yl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe48a"/><stop offset="1" stop-color="#f5c22f"/></linearGradient>
-        <linearGradient id="bigstar" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f490c8"/><stop offset="1" stop-color="#ec5fae"/></linearGradient>
+        <linearGradient id="pk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:${mix('--inside-pink', 70, '#fff')}"/><stop offset=".5" style="stop-color:var(--inside-pink)"/><stop offset="1" style="stop-color:${mix('--inside-pink', 88, '#c0287a')}"/></linearGradient>
+        <linearGradient id="yl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:${mix('--wave', 55, '#fff')}"/><stop offset="1" style="stop-color:var(--wave)"/></linearGradient>
+        <linearGradient id="bigstar" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:${mix('--big-stars', 70, '#fff')}"/><stop offset="1" style="stop-color:var(--big-stars)"/></linearGradient>
       </defs>
       <rect width="${w}" height="${h}" fill="url(#pk)"/>`;
     s += star(640, 330, 330, 'url(#bigstar)', { rotate: -8, inner: .45, opacity: .55 });
     s += star(1010, 760, 250, 'url(#bigstar)', { rotate: 14, inner: .45, opacity: .8 });
-    s += star(120, 520, 200, '#f6a6d2', { rotate: -20, inner: .45, opacity: .6 });
+    s += star(120, 520, 200, mix('--big-stars', 50, '#fff'), { rotate: -20, inner: .45, opacity: .6 });
     [[380, 200, 26], [520, 260, 20], [860, 180, 30], [790, 150, 16], [310, 240, 18], [890, 290, 22], [700, 240, 14], [995, 255, 20]].forEach(([x, y, r]) => {
       s += star(x, y, r, '#fff', { opacity: .9 });
     });
