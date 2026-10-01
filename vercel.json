@@ -17,11 +17,28 @@
     {
       "source": "/lastthread/",
       "destination": "/lastthread/index.html"
+    },
+    {
+      "source": "/portfolio",
+      "destination": "/portfolio/index.html"
+    },
+    {
+      "source": "/portfolio/",
+      "destination": "/portfolio/index.html"
     }
   ],
   "headers": [
     {
       "source": "/lastthread/(.*)",
+      "headers": [
+        {
+          "key": "cache-control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/portfolio/(.*)",
       "headers": [
         {
           "key": "cache-control",
