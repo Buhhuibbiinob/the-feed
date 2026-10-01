@@ -1,0 +1,11 @@
+/* The fonts, hosted with the site so the look never depends on another
+   server. Latin only. All are SIL Open Font License, from Google Fonts. */
+
+@font-face { font-family: 'Archivo Narrow'; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/archivo-narrow-700.woff2) format('woff2'); }
+@font-face { font-family: 'Chewy'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/chewy-400.woff2) format('woff2'); }
+@font-face { font-family: 'Didact Gothic'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/didact-gothic-400.woff2) format('woff2'); }
+@font-face { font-family: 'Fredoka'; font-style: normal; font-weight: 300 700; font-display: swap; src: url(fonts/fredoka.woff2) format('woff2'); }
+@font-face { font-family: 'Nunito'; font-style: normal; font-weight: 900; font-display: swap; src: url(fonts/nunito-900.woff2) format('woff2'); }
+@font-face { font-family: 'Pacifico'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/pacifico-400.woff2) format('woff2'); }
+@font-face { font-family: 'Sansita'; font-style: normal; font-weight: 800; font-display: swap; src: url(fonts/sansita-800.woff2) format('woff2'); }
+@font-face { font-family: 'Sansita'; font-style: normal; font-weight: 900; font-display: swap; src: url(fonts/sansita-900.woff2) format('woff2'); }
