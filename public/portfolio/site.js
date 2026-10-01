@@ -21,6 +21,12 @@
   const DEFAULTS = {
     badge: { top: "that's SO", name: 'me' },
     siteName: 'My Portfolio',
+    /* the small words around the edges, so every word on the site can be typed over */
+    words: {
+      my: 'my', workPlay: 'WORK &\nPLAY', homeButton: 'HOME', finder: 'GIG\nFINDER', homeTab: 'Home',
+      allAbout: 'All About', comingSoon: 'Coming Soon', newWork: 'New Work', scroll: 'SCROLL',
+      disc: 'LIVE', ratingTop: 'TV', rating: 'A', seal: 'ALL\nAGES'
+    },
     home: {
       title: 'Portfolio Madness',
       featured: '',
@@ -154,10 +160,10 @@
   /* The big DVD: spine, cover, a badge and title printed on the cover. */
   function dvd(imgPath, titlePath, stripPath, spinePath, color, cls) {
     return `<div class="dvd ${cls || ''}" style="--case:${esc(color || '#7b3fa0')}">
-      <div class="dvd-spine"><span class="spine-badge">${esc(doc.badge.name)}</span>${spinePath ? t(spinePath, 'span', 'spine-text') : `<span class="spine-text">${esc(get(titlePath))}</span>`}</div>
+      <div class="dvd-spine">${t('badge.name', 'span', 'spine-badge')}${t(spinePath || titlePath, 'span', 'spine-text')}</div>
       <div class="dvd-front">
         ${pic(imgPath, 'your cover photo')}
-        <div class="cover-badge"><span>${esc(doc.badge.top)}</span><b>${esc(doc.badge.name)}</b></div>
+        <div class="cover-badge">${t('badge.top')}${t('badge.name', 'b')}</div>
         ${t(titlePath, 'div', 'cover-title')}
         ${t(stripPath, 'div', 'cover-strip')}
       </div>
@@ -172,7 +178,7 @@
       const url = safeUrl(c.cover);
       return `<a class="shelf-item" href="work.html?c=${encodeURIComponent(c.id)}">
         <span class="${caseCls}" style="--case:${esc(c.color)}">
-          ${url ? `<img src="${esc(url)}" alt="">` : `<span class="mini-empty">${esc(c.title)}</span>`}
+          ${url ? `<img src="${esc(url)}" alt="">` : t('categories.' + i + '.title', 'span', 'mini-empty')}
         </span>
         ${t('categories.' + i + '.caption', 'span', 'shelf-cap')}
       </a>`;
@@ -180,7 +186,7 @@
   }
 
   function rating() {
-    return `<div class="rating" title="Rated A for Available"><span class="r-g"><small>TV</small>A</span><span class="r-seal">ALL<br>AGES</span></div>`;
+    return `<div class="rating" title="Rated A for Available"><span class="r-g">${t('words.ratingTop', 'small')}${t('words.rating')}</span>${t('words.seal', 'span', 'r-seal', true)}</div>`;
   }
 
   function soundButton(cls) {
@@ -204,7 +210,7 @@
       <div class="frame" style="--swirls:${ART.frameSwirls()}">
         <div class="frame-photo">${pic('home.portrait', 'your photo')}</div>
         ${t('home.available', 'div', 'frame-caption')}
-        <span class="frame-disc">${esc(doc.badge.name)}<small>LIVE</small></span>
+        <span class="frame-disc">${t('badge.name')}${t('words.disc', 'small')}</span>
       </div>
       <a class="phone" href="${esc(bookHref())}">
         <span class="phone-body"><span class="phone-screen">${t('home.phone', 'span', 'phone-text')}${ART.smallStar(60, '#d35bd1')}</span></span>
@@ -220,30 +226,30 @@
   function insideChrome(crumbs, banner) {
     return `${ART.insideBackground(W, SIZES[PAGE])}
       <div class="topbar">
-        <a href="index.html" class="site-name">${esc(doc.siteName)}</a>
+        <a href="index.html" class="site-name">${t('siteName')}</a>
         <span class="crumbs">${crumbs}</span>
-        <a href="${esc(bookHref())}" class="topbar-right">✉ ${esc(doc.bookMe)}</a>
+        <a href="${esc(bookHref())}" class="topbar-right">✉ ${t('bookMe')}</a>
       </div>
       <div class="band">
         <div class="band-left">
-          <span class="band-logo"><i>my</i><b>WORK &amp;<br>PLAY</b></span>
-          <a href="index.html" class="band-home">HOME</a>
+          <span class="band-logo">${t('words.my', 'i')}${t('words.workPlay', 'b', '', true)}</span>
+          <a href="index.html" class="band-home">${t('words.homeButton')}</a>
         </div>
         <div class="band-mid">${banner}</div>
         <div class="band-right">
-          <a href="work.html?c=dj" class="finder">GIG<br>FINDER</a>
+          <a href="work.html?c=dj" class="finder">${t('words.finder', 'span', '', true)}</a>
           ${soundButton('sound-tab')}
         </div>
       </div>
       ${badge('badge-inside')}
-      <a href="index.html" class="home-tab">Home</a>`;
+      <a href="index.html" class="home-tab">${t('words.homeTab')}</a>`;
   }
 
   function box(tabPaths, textPaths) {
     return `<div class="box">
       <div class="tabs">${tabPaths.map((p, i) => `<a href="#" class="tab${i === tab ? ' on' : ''}" data-tab="${i}">${t(p, 'span')}</a>`).join('')}</div>
       <div class="box-text" id="box-text">${t(textPaths[tab], 'div', 'box-copy', true)}</div>
-      <div class="box-foot"><span>SCROLL</span><button type="button" data-scroll="1" aria-label="scroll down">▼</button><button type="button" data-scroll="-1" aria-label="scroll up">▲</button></div>
+      <div class="box-foot">${t('words.scroll')}<button type="button" data-scroll="1" aria-label="scroll down">▼</button><button type="button" data-scroll="-1" aria-label="scroll up">▲</button></div>
       <svg class="box-tail" viewBox="0 0 120 90" aria-hidden="true"><path d="M0 0 L120 82 L58 0Z" fill="#fff" stroke="#f17fbd" stroke-width="5" stroke-linejoin="round"/><rect x="-4" y="-8" width="66" height="10" fill="#fff"/></svg>
       <div class="box-stars">${ART.smallStar(46, '#f27cc0')}${ART.smallStar(34, '#e05aa8')}${ART.smallStar(52, '#f6a3d0')}</div>
     </div>`;
@@ -285,8 +291,8 @@
     const itemBase = ii >= 0 ? base + '.items.' + ii : null;
 
     const entries = [{
-      big: `<span class="side-big">All About</span>`,
-      small: `<span class="side-small">${esc(c.title)}</span>`,
+      big: t('words.allAbout', 'span', 'side-big'),
+      small: t(base + '.title', 'span', 'side-small'),
       href: `work.html?c=${encodeURIComponent(c.id)}`,
       data: ' data-item=""',
       on: ii < 0
@@ -297,7 +303,7 @@
       data: ` data-item="${esc(it.id)}"`,
       on: j === ii
     })));
-    if (!c.items.length && !editing) entries.push({ big: '<span class="side-big">Coming Soon</span>', small: '<span class="side-small">New Work</span>', href: '#', data: ' data-nolink' });
+    if (!c.items.length) entries.push({ big: t('words.comingSoon', 'span', 'side-big'), small: t('words.newWork', 'span', 'side-small'), href: '#', data: ' data-nolink' });
 
     const cover = itemBase
       ? dvd(itemBase + '.image', itemBase + '.title', itemBase + '.strip', null, c.color, 'dvd-inside')
@@ -305,7 +311,7 @@
     const story = itemBase ? [itemBase + '.story', itemBase + '.details'] : [base + '.story', base + '.details'];
     const crumb = `&gt; <a href="index.html">Home</a> &gt; <a href="work.html">Portfolio</a> &gt; <a href="work.html?c=${encodeURIComponent(c.id)}">${esc(c.title)}</a>`;
 
-    return `${insideChrome(crumb, `<span class="marquee">${esc(c.title)}</span>`)}
+    return `${insideChrome(crumb, t(base + '.title', 'span', 'marquee'))}
       <div class="flag">${t(base + '.title', 'span')}</div>
       ${cover}
       ${box(['workTabs.0', 'workTabs.1'], story)}

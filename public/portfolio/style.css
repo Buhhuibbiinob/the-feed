@@ -246,6 +246,7 @@ a { color: inherit; text-decoration: none; }
 
 .rating { display: flex; align-items: center; gap: 8px; color: #9b7fb5; }
 .rating .r-g { display: flex; flex-direction: column; align-items: center; font: 900 46px/.85 'Nunito', sans-serif; }
+.rating .r-g small, .rating .r-g [data-bind] { display: block; }
 .rating .r-g small { font-size: 19px; letter-spacing: 3px; margin-bottom: 2px; }
 .rating .r-seal {
   width: 46px; height: 46px; border-radius: 50%; border: 3px solid currentColor; background: #fff;
@@ -270,6 +271,7 @@ a { color: inherit; text-decoration: none; }
 }
 .band-logo { display: flex; flex-direction: column; line-height: .9; }
 .band-logo i { font: 400 22px/1 'Pacifico', cursive; color: #fff; text-shadow: 0 2px 0 #c96a00; }
+.band-logo i, .band-logo b { display: block; }
 .band-logo b { font: 900 25px/.98 'Nunito', sans-serif; color: #fff7c9; text-shadow: 0 2px 0 #c96a00; }
 .band-home {
   position: absolute; right: 8px; top: 30px; width: 62px; height: 62px; border-radius: 50%;

@@ -31,7 +31,8 @@ Domains, and point it at this path.
 Sign in on the feed with an admin account, then open the portfolio. A pink
 bar appears at the foot of the window.
 
-- **edit this page**: click any words and type. Click any picture (a DVD
+- **edit this page**: click any words and type. Every word on the site can be
+  typed over, down to the little ones (HOME, GIG FINDER, SCROLL, the rating). Click any picture (a DVD
   cover, the framed portrait) to upload a new one from your phone or
   computer. Every change saves for everybody as soon as you click away.
 - **booking email**: where every Book Me button sends people.
