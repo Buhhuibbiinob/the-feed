@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rewind Theory</title>
+<meta name="description" content="A study of nostalgia, memory and color. Coming soon. Tell me what you miss.">
+<meta property="og:title" content="Rewind Theory">
+<meta property="og:description" content="A study of nostalgia, memory and color. Coming soon.">
+<meta property="og:image" content="/rewind/girl.webp">
+<meta name="theme-color" content="#4b93e3">
+<link rel="icon" href="/rewind/girl.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yellowtail&family=Reenie+Beanie&family=Oswald:wght@500&display=swap">
+<style>
+  /* Rewind Theory - the static site behind its own domain and mythefeed.com/rewind.
+     Edited text and photos come from /rewind/data; the wall from rewind_wall.
+     See src/app/rewind/ and supabase/migrations/022-rewind-wall.sql. */
+  html,body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+
+  /* Rewind Theory. Layout: a 2005 Flash-era agency site on one fixed 760px stage, zoomed whole on phones. Full-bleed blue ground; a framed "window" with a script logo band, a dark tab bar, and a soft pillow panel; scattered polaroids and a scalloped seal; the character lies on the tab bar, breaking out of the frame. */
+  :root{
+    --blue:#4b93e3;        /* ground */
+    --blue-deep:#173a8a;   /* tab bar */
+    --blue-soft:#cfe1f6;   /* panel backdrop */
+    --yellow:#ffd23a;
+    --yellow-soft:#fff4c4;
+    --green:#1c9a4c;
+    --red:#e1262d;
+    --paper:#ffffff;
+    --ink:#2d3340;
+    --grey:#6b7280;
+    --script:"Yellowtail", "Brush Script MT", cursive;
+    --hand:"Reenie Beanie", "Bradley Hand", "Comic Sans MS", cursive;
+    --tab:"Oswald", "Arial Narrow", "Helvetica Neue", sans-serif;
+    --body:Verdana, Tahoma, "DejaVu Sans", Geneva, sans-serif;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  body{
+    background-color:var(--blue);
+    background-image:repeating-linear-gradient(35deg, rgba(255,255,255,.035) 0 2px, transparent 2px 6px);
+    background-attachment:fixed;
+    min-height:100vh;
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:13px;
+    line-height:1.5;
+    padding:16px 16px 80px;
+    overflow-x:hidden;
+  }
+  #app{width:760px;margin:0 auto;zoom:var(--fit,1);padding-top:150px;position:relative}
+
+  .frame{
+    position:relative;width:680px;margin-left:14px;
+    background:var(--paper);padding:10px;
+    box-shadow:0 8px 24px rgba(10,30,70,.35);
+  }
+  .head{
+    position:relative;height:112px;padding:22px 0 0 26px;
+    background:linear-gradient(180deg,var(--yellow-soft),#ffe58a);
+  }
+  .logo{margin:0;font-family:var(--script);font-weight:400;font-size:50px;line-height:1;color:var(--red);text-shadow:2px 2px 0 rgba(255,255,255,.8)}
+  .tagline{margin:2px 0 0 38px;font-family:Georgia, "Times New Roman", serif;font-style:italic;font-size:14px;color:var(--green)}
+  .mini{position:absolute;left:12px;top:14px;width:22px;height:48px}
+
+  .tabs{
+    display:flex;gap:4px;align-items:stretch;justify-content:flex-start;
+    background:var(--blue-deep);padding:0 0 0 150px;height:34px;
+    border-bottom:4px solid var(--yellow);
+  }
+  .tab{
+    font:500 15px/34px var(--tab);letter-spacing:.03em;text-transform:lowercase;
+    color:#dbe6ff;background:transparent;border:0;padding:0 14px;cursor:pointer;
+  }
+  .tab:hover{color:#fff}
+  .tab[aria-selected="true"]{color:var(--blue-deep);background:var(--yellow)}
+  .tab:focus-visible{outline:2px dashed #fff;outline-offset:-5px}
+
+  .stagebox{background:var(--blue-soft);padding:22px 20px 26px;position:relative}
+  .pillow{
+    position:relative;min-height:380px;padding:26px 28px;
+    background:radial-gradient(ellipse at 45% 40%, #ffffff 0%, #f2f7fd 55%, #e3eefa 100%);
+    border-radius:46px 38px 50px 42px / 34px 44px 36px 46px;
+    box-shadow:0 0 0 1px rgba(255,255,255,.9), 0 4px 18px rgba(23,58,138,.18), inset 0 -10px 24px rgba(23,58,138,.08);
+  }
+  .sparkle{position:absolute;fill:#fff;filter:drop-shadow(0 0 2px rgba(75,147,227,.8))}
+
+  /* coming soon panel */
+  .soon{display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:start}
+  .pile{position:relative;height:330px}
+  .polaroid{
+    position:absolute;width:132px;background:#fff;padding:8px 8px 26px;
+    box-shadow:1px 3px 8px rgba(0,0,0,.28);
+  }
+  .polaroid svg{display:block;width:116px;height:92px}
+  .polaroid img.photo{display:block;width:116px;height:92px;object-fit:cover;max-width:none}
+  .pol-tools{display:none;position:absolute;left:8px;right:8px;top:8px;height:92px;align-items:center;justify-content:center;flex-direction:column;gap:4px;background:rgba(23,58,138,.55)}
+  .editing .pol-tools{display:flex}
+  .pol-tools label,.pol-tools button{font:bold 11px var(--body);color:#fff;background:var(--red);border:1px solid #fff;border-radius:10px;padding:2px 8px;cursor:pointer}
+  .pol-tools button{background:#555}
+  .pol-tools input{position:absolute;width:1px;height:1px;opacity:0}
+  .polaroid span{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-family:var(--hand);font-size:21px;line-height:1;color:var(--blue-deep)}
+  .p1{left:4px;top:6px;transform:rotate(-8deg)}
+  .p2{left:150px;top:0;transform:rotate(6deg)}
+  .p3{left:22px;top:168px;transform:rotate(4deg)}
+  .p4{left:162px;top:150px;transform:rotate(-5deg)}
+  .seal{position:absolute;left:94px;top:104px;width:118px;height:118px;transform:rotate(-12deg);filter:drop-shadow(1px 3px 3px rgba(0,0,0,.3));z-index:2}
+  .seal text{font-family:"Trebuchet MS", Verdana, sans-serif;font-weight:bold}
+
+  .welcome{margin:6px 0 14px;font-size:13px;color:var(--ink)}
+  .h-script{margin:0 0 6px;font-family:var(--script);font-weight:400;font-size:28px;color:var(--red);line-height:1.1}
+  .list{margin:0 0 16px;padding:0;list-style:none;columns:1;font-size:13px}
+  .list li{padding-left:14px;position:relative;margin-bottom:3px}
+  .list li::before{content:"-";position:absolute;left:2px;color:var(--grey)}
+  .hint{margin:0;font-size:12px;color:var(--grey)}
+  .hint button{font:inherit;color:var(--blue-deep);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+
+  /* statement panel: a fixed-height scroller, the way Flash sites did long copy */
+  .statement .h-script{margin-bottom:10px}
+  .scroller{
+    height:330px;overflow:auto;padding-right:16px;
+    scrollbar-width:thin;scrollbar-color:var(--blue) #dce9f8;
+  }
+  .scroller::-webkit-scrollbar{width:10px}
+  .scroller::-webkit-scrollbar-track{background:#dce9f8;border-radius:6px}
+  .scroller::-webkit-scrollbar-thumb{background:var(--blue);border-radius:6px;border:2px solid #dce9f8}
+  .scroller h3{margin:16px 0 4px;font-family:var(--tab);font-weight:500;font-size:16px;letter-spacing:.03em;text-transform:lowercase;color:var(--green)}
+  .scroller p{margin:0 0 10px;max-width:64ch}
+  .scroller ul{margin:0 0 10px;padding:0;list-style:none}
+  .scroller li{padding-left:14px;position:relative;margin-bottom:4px}
+  .scroller li::before{content:"-";position:absolute;left:2px;color:var(--grey)}
+  .scroller .sign{font-family:var(--script);font-size:24px;color:var(--red);margin-top:14px}
+
+  .girl{
+    position:absolute;right:-78px;top:-150px;width:410px;height:auto;z-index:5;
+    filter:drop-shadow(6px 8px 6px rgba(10,30,70,.3));pointer-events:none;
+    translate:var(--gx,0px) var(--gy,0px);
+  }
+  .editing .girl{pointer-events:auto;cursor:grab;touch-action:none;outline:2px dashed rgba(255,210,58,.9);outline-offset:4px}
+  .editing .girl.dragging{cursor:grabbing}
+
+  /* the wall of things people miss */
+  .wall-intro{margin:0 0 10px;font-size:13px}
+  .add{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;background:#fff;border:1px solid #c3d6f0;padding:12px;margin-bottom:14px}
+  .add label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:bold;color:var(--blue-deep)}
+  .add .wide{grid-column:1 / -1}
+  .add input[type=text],.add input[type=url]{font:13px var(--body);padding:5px 7px;border:1px solid #9bb6e0;border-radius:3px;background:#fbfdff;color:var(--ink)}
+  .add input[type=file]{font:11px var(--body)}
+  .add .row{grid-column:1 / -1;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .add .err{color:var(--red);font-size:12px;margin:0}
+  .add .note{color:var(--grey);font-size:11px;margin:0}
+  .or{font-size:11px;color:var(--grey);align-self:end;padding-bottom:6px;text-align:center}
+  .wall{height:236px;overflow:auto;padding:6px 10px 6px 4px;display:flex;flex-wrap:wrap;gap:18px 16px;align-content:flex-start;scrollbar-width:thin;scrollbar-color:var(--blue) #dce9f8}
+  .card{position:relative;width:148px;background:#fff;padding:7px 7px 8px;box-shadow:1px 3px 8px rgba(0,0,0,.25)}
+  .card:nth-child(3n+1){transform:rotate(-3deg)}
+  .card:nth-child(3n+2){transform:rotate(2.5deg)}
+  .card:nth-child(3n){transform:rotate(-1deg)}
+  .card img{display:block;width:134px;height:100px;object-fit:cover;max-width:none}
+  .card .yt{position:relative;display:flex;align-items:center;justify-content:center;width:134px;height:100px;padding:0;border:0;cursor:pointer;background:linear-gradient(180deg,#2a2a2a,#111)}
+  .card .yt img{position:absolute;inset:0}
+  .card .yt svg{position:relative;width:44px;height:32px}
+  .card p{margin:5px 0 0;font-family:var(--hand);font-size:19px;line-height:1.05;color:var(--blue-deep);overflow-wrap:anywhere}
+  .card .who{font-family:var(--body);font-size:10px;color:var(--grey);margin-top:3px}
+  .card .ytlink{display:block;font-size:10px;margin-top:3px;color:var(--red)}
+  .empty{font-size:13px;color:var(--grey);margin:20px auto;text-align:center;max-width:40ch}
+
+  .foot{display:flex;align-items:center;gap:8px;margin:12px 0 0 26px;font-size:11px;color:#eaf2ff}
+  .foot svg{width:18px;height:14px;flex:none}
+  .credit{margin:4px 0 0 26px;font-size:10px;color:#dbe8ff;opacity:.85}
+
+  /* editing (outside the zoomed stage) */
+  .edit-bar{
+    position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;
+    display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 32px);
+  }
+  .btn{font:bold 13px var(--body);cursor:pointer;color:#fff;border:1px solid #0e2a6b;border-radius:6px 6px 0 0;padding:7px 14px;
+    background:linear-gradient(180deg,#6aa8ee,#2a66c8 55%,#1d52ad)}
+  .btn.go{background:linear-gradient(180deg,#ff6a6e,#e1262d 55%,#b81c22);border-color:#7d1014}
+  .btn:focus-visible{outline:2px dashed #fff;outline-offset:2px}
+  .btn[disabled]{opacity:.6;cursor:wait}
+  .status{background:#fff;color:var(--ink);padding:4px 10px;font-size:12px;border:1px solid #9bb6e0}
+  .editing [data-k]{outline:1px dashed #9bb6e0;outline-offset:2px;cursor:text}
+  .editing [data-k]:focus{outline:2px solid var(--yellow);background:rgba(255,210,58,.15)}
+  .editing [data-k]:empty::before{content:"type here";color:#9aa1ad}
+  @media (prefers-reduced-motion:no-preference){
+    .sparkle{animation:tw 3s ease-in-out infinite}
+    .sparkle:nth-of-type(2n){animation-delay:1.2s}
+    @keyframes tw{0%,100%{opacity:1}50%{opacity:.35}}
+  }
+
+  .trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  .mod{display:flex;gap:6px;margin-top:6px}
+  .mod button{font:bold 10px var(--body);color:#fff;background:var(--green);border:0;border-radius:8px;padding:3px 8px;cursor:pointer}
+  .mod button.del{background:var(--red)}
+  .mod button[disabled]{opacity:.5}
+  .pending{background:#fff8d6;border:1px dashed var(--yellow);padding:8px;margin-bottom:12px}
+  .pending h3{margin:0 0 6px;font:bold 12px var(--body);color:var(--blue-deep)}
+  .pending .wall{height:auto;max-height:236px}
+  .card.waiting{opacity:.9}
+  .tv-wrap{position:fixed;inset:0;z-index:30;background:rgba(10,20,50,.7);display:flex;align-items:center;justify-content:center;padding:16px}
+  .tv-box{width:min(640px,100%);background:#8a5226;border:4px solid #3b2410;border-radius:18px;padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px;align-items:flex-end;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+  .tv-box iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:10px;background:#000}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="edit-bar" id="edit-bar" hidden></div>
+<script>
+(function(){
+  // The page as it ships. What an admin saves (site_content "rewind") replaces
+  // it as soon as /rewind/data answers.
+  var DEFAULT = {"logo": "Rewind Theory", "tagline": "\"a study of nostalgia, memory & color\"", "captions": ["", "", "", ""], "welcome": "Welcome to Rewind Theory, a project about why we miss the past, how the era we grow up in shapes us, and how to bring the color back.", "comingTitle": "Coming soon:", "coming": ["Research on nostalgia & memory", "How eras shape our style", "Media, ads & jingles, then and now", "Something that brings the color back"], "stmtTitle": "My statement", "blocks": [{"t": "p", "x": "I want to explore this much more deeply and ground it in credible research rather than just my personal feelings."}, {"t": "h", "x": "the study"}, {"t": "p", "x": "Study or research on the human brain, psychology, sociology, social development, and social behavior across generations, including Gen Z, Millennials, and people who grew up during different periods such as the 2010s, 2000s, 1990s, 1980s, and 1960s. I especially want to understand how the era someone grows up in can influence their tastes, identity, interests, social skills, memories, and perceptions of happiness."}, {"t": "p", "x": "Ima connect this research to:"}, {"t": "li", "x": "Nostalgia and why people yearn for periods from their childhood or even eras they never personally experienced"}, {"t": "li", "x": "How childhood and adolescence shape emotional attachments to music, fashion, television, movies, advertising, art, colors, aesthetics, and cultural trends"}, {"t": "li", "x": "How media and television have evolved across these periods and how those changes affect people psychologically and socially"}, {"t": "li", "x": "How bullying, social pressure, criticism, and other people's opinions can influence someone's clothing, interests, identity, and willingness to express themselves"}, {"t": "li", "x": "The psychological effects of colors, visual styles, environments, and aesthetics"}, {"t": "li", "x": "Why people may remember earlier periods as happier, safer, more colorful, more exciting, or more authentic"}, {"t": "li", "x": "The role of social media and algorithmic feeds in resurfacing old aesthetics and creating communities around nostalgia"}, {"t": "h", "x": "what i'm noticing"}, {"t": "p", "x": "I'm noticing that in 2026, people online seem to be yearning for many different periods. Some romanticize relatively recent years like 2015, 2016, or 2018. Others miss the 2000s, the 1990s, or even idealize periods such as the 1950s. This nostalgia appears through fashion, art, music, media, advertisements, behavior, and broader aesthetics. At the same time, there seems to be tension between people embracing new cultural trends, people reviving or blending older styles with new ones, and people who strongly want aspects of the past back."}, {"t": "p", "x": "I'm personally drawn toward the past because parts of it feel connected to happier times and childhood. I want to understand how much of that feeling can be explained by memory, brain development, nostalgia, culture, social influence, and actual changes in society."}, {"t": "p", "x": "I will investigate these ideas carefully using credible scientific studies, psychological and sociological research, and research on media and culture. Distinguish established findings from reasonable theories or speculation. Also distinguish between nostalgia for one's own lived childhood and nostalgia for an era someone never experienced. Don't assume that an earlier era was objectively better simply because people remember or portray it that way. I want a nuanced explanation of what may actually be happening and why these feelings seem so powerful."}, {"t": "h", "x": "the issue i keep running into"}, {"t": "p", "x": "Here's an issue I keep running into, and I'm even noticing it in my own style. Everything is on our phones now. We follow trends, age ranges for things barely exist anymore, and with so much access, restriction is a lot harder."}, {"t": "p", "x": "There was a time when media, music, and movies were colorful and had great plots. Now we're getting darker themes, and a lot of it feels simple, repetitive, and not very creative. There are so many creatives out there who aren't being acknowledged."}, {"t": "p", "x": "I remember when we just had cable. No streaming services, just DVDs and CDs. Commercials actually advertised products: redecorate your house, get home security, try this cleaner that gets the goop off your counter. And they had jingles. Jingles mattered because they made commercials captivating."}, {"t": "p", "x": "Now the ads just look like people doing things for money, not for a deeper purpose. It doesn't feel like people are truly invested in their brand or their craft. I'm looking at my Roku TV right now and there are ads everywhere. When I was little, there weren't nearly that many directed in such negative ways."}, {"t": "p", "x": "With cable, you were forced to watch something, which meant you were forced to explore. You'd ask your friend's mom what channel a show was on, and she'd tell you. You could have looked it up, but you didn't need to. People just knew."}, {"t": "h", "x": "on ai"}, {"t": "p", "x": "I don't think AI itself is destroying media. If you're a creative person with a unique idea and you use AI to help execute it, I accept that. But if you're not using your brain at all and just telling AI \"make me this,\" I don't think you should be using it. AI and robots are for minds with intention, not for people looking for a shortcut. It's the people using it carelessly, without adding creativity or specifics, who are ruining things. I also don't like AI replacing human beings. Use it as a tool."}, {"t": "h", "x": "on cancel culture"}, {"t": "p", "x": "Cancel culture has always existed, but now people are extremely aware of EVERYTHING going on. That awareness is right, but I think it ruins the spirit of some things. People now avoid entire artists and creatives because of specific things they said or did. There are so many people with wonderful crafts who have lost their minds, sure, but at other times people have been able to separate the art from the artist. So why is that suddenly the issue?"}, {"t": "h", "x": "tween culture"}, {"t": "p", "x": "We don't have tween culture anymore. When we were younger, there was so much to look forward to: \"When I'm older I'll get to wear lip gloss, have my hair slicked back in a bedazzled ponytail, be a diva, go to Paris.\" There was a whole obsession with Paris when I was little."}, {"t": "p", "x": "Kids did silly things, like putting balloons in their shirts to pretend they were grown. That was fine. Now kids don't do that, partly because of how \"woke\" everything is, and partly because some parents want their kids to be grown and give them the freedom they wished they'd had. A lot of it comes down to how you're raised. Kids have so much freedom and internet access, and the internet can put things in your mind you don't even realize."}, {"t": "h", "x": "where did the color go?"}, {"t": "p", "x": "When I was little, all our rooms were colorful: patterns, posters, stuffed animals, bright comforters. It didn't matter your economic status; everyone had something vibrant that brought life and happiness. Over the years, we've shifted to neutral, beige, basic colors. I'll admit my own room is simpler now because it feels luxurious, and luxury and money are what everyone wants right now. I notice myself leaning into it and I wish I could lean out."}, {"t": "p", "x": "Someone made a really good point: we have screens everywhere, and the screens are the vibrant part now. They're overstimulating and powerful. You can watch anything and access anything, with no real limits. Growing up, nobody really had phones unless it was your mom's old one, and you'd just play games or listen to music on it. Maybe you got a flip phone or an iPad, but we didn't have unlimited access."}, {"t": "p", "x": "Now little girls and boys act like grown adults, and it's scary. They talk differently. Even babies seem more alert from birth. People in 2000 expected the 2000s to feel like the 3000s, so innovative. But I feel like our phones have set us back and are messing with how we execute ideas and unleash creativity."}, {"t": "h", "x": "money"}, {"t": "p", "x": "When I talk to people about their careers now, they're hyperfixated on money, not on what they actually want to do. I'm hyperfixated on money too. How do we change that as people? What is this even called?"}, {"t": "p", "x": "Everything is super simplistic now. People put things out just to get them done and get paid, without real care. And when people do put in care, they don't get the traction they deserve, because people complain about prices. I love modern design, but modern and minimalist gets draining. It means everything around you is simple and basic."}, {"t": "h", "x": "games, freedom and restriction"}, {"t": "p", "x": "Video game stories feel repetitive, but I think it's because people don't have time. We're all stressed and wishing for something simple. Back in 2018, when I played Roblox and Fortnite, there weren't many restrictions. We experienced all sorts of things, which probably affected our minds, but we also had way more excitement. We knew what we could and couldn't do. Now people either don't care at all or over-restrict. There's a balance between restriction and freedom, and I think losing it is another reason we're missing that color."}, {"t": "h", "x": "fashion"}, {"t": "p", "x": "Fashion will always change, but every era used to have distinct style groups. The 2000s had glamour, art punk, and scene. The '90s had glamour, hip hop, and streetwear. 2018 was mainly streetwear. Now it's a mix of everything, and everyone yearns for an era: one they missed, one they were too young for, or one they lived through. We still have trends, but they aren't as appealing or memorable. People still talk about 2018's cat ears and mermaid Frappuccinos. That's what I mean: it was businesses, it was everything."}, {"t": "h", "x": "what i want to make"}, {"t": "p", "x": "I want to do a real brainstorm and research study on all of this, including the history, and figure out what I can make. A website? An app? A post? A company? A product? What could actually impact people? I know not everyone wants the same style, but I want everyone to HAVE a style to DO something to be an impact on our minds something new, I want to make something that shapes how people think and feeds their minds, and brings the color back."}], "signOff": "More soon!", "fine": "", "girl": {"x": 0, "y": 0}, "wallTitle": "What do you miss?", "wallIntro": "A song, a show, a commercial jingle, a toy, a room. Pin something you miss from growing up.", "photos": ["", "", "", ""]};
+  var GIRL = "/rewind/girl.webp";
+  var PICS = [/* cable tv with colour bars */
+    '<svg viewBox="0 0 116 92"><rect width="116" height="92" fill="#ffe58a"/><rect x="18" y="16" width="80" height="60" rx="10" fill="#8a5226"/><rect x="25" y="23" width="54" height="44" rx="6" fill="#222"/><g><rect x="28" y="26" width="12" height="38" fill="#e1262d"/><rect x="40" y="26" width="12" height="38" fill="#ffd23a"/><rect x="52" y="26" width="12" height="38" fill="#1c9a4c"/><rect x="64" y="26" width="12" height="38" fill="#4b93e3"/></g><circle cx="89" cy="34" r="4" fill="#ffd23a"/><circle cx="89" cy="48" r="4" fill="#e1262d"/><path d="M48 16 38 4M68 16 80 5" stroke="#222" stroke-width="2.5" stroke-linecap="round"/></svg>',
+    /* cassette tape for jingles */
+    '<svg viewBox="0 0 116 92"><rect width="116" height="92" fill="#cfe1f6"/><rect x="14" y="20" width="88" height="54" rx="6" fill="#e1262d"/><rect x="24" y="28" width="68" height="24" rx="4" fill="#fff4c4"/><circle cx="42" cy="40" r="7" fill="#222"/><circle cx="74" cy="40" r="7" fill="#222"/><circle cx="42" cy="40" r="3" fill="#fff"/><circle cx="74" cy="40" r="3" fill="#fff"/><path d="M34 74l6-12h36l6 12" fill="#b81c22"/><path d="M84 14c4 0 6 3 6 6M92 10c6 1 9 5 9 10" stroke="#173a8a" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>',
+    /* cds and dvds */
+    '<svg viewBox="0 0 116 92"><rect width="116" height="92" fill="#d9f2df"/><circle cx="58" cy="46" r="34" fill="#dfe6ee"/><path d="M58 12a34 34 0 0 1 32 22L58 46z" fill="#ffd23a" opacity=".8"/><path d="M90 34a34 34 0 0 1-6 34L58 46z" fill="#1c9a4c" opacity=".6"/><path d="M84 68a34 34 0 0 1-34 11L58 46z" fill="#4b93e3" opacity=".6"/><path d="M50 79A34 34 0 0 1 24 44L58 46z" fill="#e1262d" opacity=".5"/><circle cx="58" cy="46" r="10" fill="#fff" stroke="#c4ccd6"/><circle cx="58" cy="46" r="4" fill="#d9f2df"/></svg>',
+    /* colourful bedroom */
+    '<svg viewBox="0 0 116 92"><rect width="116" height="92" fill="#ffd23a"/><g fill="#ffe58a"><circle cx="12" cy="12" r="4"/><circle cx="40" cy="8" r="4"/><circle cx="70" cy="14" r="4"/><circle cx="100" cy="8" r="4"/><circle cx="26" cy="32" r="4"/><circle cx="88" cy="30" r="4"/></g><rect x="14" y="20" width="26" height="32" fill="#4b93e3"/><rect x="18" y="24" width="18" height="24" fill="#e1262d"/><rect x="66" y="22" width="34" height="22" fill="#1c9a4c"/><path d="M70 40l8-10 7 7 5-5 6 8z" fill="#fff4c4"/><rect x="8" y="62" width="100" height="22" rx="6" fill="#e1262d"/><rect x="8" y="58" width="36" height="12" rx="6" fill="#fff"/><path d="M8 74h100" stroke="#ffd23a" stroke-width="4" stroke-dasharray="8 6"/></svg>'];
+  var SEAL = "M112.0 60.0Q121.5 67.5 110.5 72.4Q118.0 82.0 106.0 84.2Q111.0 95.2 98.9 94.5Q101.1 106.4 89.5 102.8Q88.8 114.9 78.4 108.6Q74.8 120.2 66.3 111.6Q60.0 122.0 53.7 111.6Q45.2 120.2 41.6 108.6Q31.2 114.9 30.5 102.8Q18.9 106.4 21.1 94.5Q9.0 95.2 14.0 84.2Q2.0 82.0 9.5 72.4Q-1.5 67.5 8.0 60.0Q-1.5 52.5 9.5 47.6Q2.0 38.0 14.0 35.8Q9.0 24.8 21.1 25.5Q18.9 13.6 30.5 17.2Q31.2 5.1 41.6 11.4Q45.2 -0.2 53.7 8.4Q60.0 -2.0 66.3 8.4Q74.8 -0.2 78.4 11.4Q88.8 5.1 89.5 17.2Q101.1 13.6 98.9 25.5Q111.0 24.8 106.0 35.8Q118.0 38.0 110.5 47.6Q121.5 52.5 112.0 60.0Z";
+
+  var state = clone(DEFAULT);
+  var wall = [], pending = [];
+  var app = document.getElementById("app");
+  var editing = false, owner = false, busy = false, msg = "", tab = "soon", sent = "";
+  var original = JSON.stringify(state);
+
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function merge(saved){
+    var s = clone(DEFAULT);
+    if (saved && typeof saved === "object") Object.keys(saved).forEach(function(k){ s[k] = saved[k]; });
+    if (!Array.isArray(s.photos) || s.photos.length !== 4) s.photos = ["","","",""];
+    if (!Array.isArray(s.captions) || s.captions.length !== 4) s.captions = DEFAULT.captions.slice();
+    if (!s.girl || typeof s.girl !== "object") s.girl = { x: 0, y: 0 };
+    return s;
+  }
+
+  /* phones get the same 760px stage, zoomed to fit */
+  function fit(){
+    var w = Math.min(document.documentElement.clientWidth, window.innerWidth) - 32;
+    document.documentElement.style.setProperty("--fit", Math.min(1, w / 760).toFixed(4));
+  }
+  fit(); window.addEventListener("resize", fit);
+
+  function esc(s){return String(s == null ? "" : s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function ed(key, tag, cls, text){ return "<"+tag+(cls?' class="'+cls+'"':"")+' data-k="'+key+'">'+esc(text)+"</"+tag+">"; }
+  var SPARK = "M12 0C13 8 16 11 24 12 16 13 13 16 12 24 11 16 8 13 0 12 8 11 11 8 12 0Z";
+  function sparkle(x,y,s){ return '<svg class="sparkle" style="left:'+x+'px;top:'+y+'px;width:'+s+'px;height:'+s+'px" viewBox="0 0 24 24" aria-hidden="true"><path d="'+SPARK+'"/></svg>'; }
+  function ytId(url){ var m = /[?&]v=([\w-]+)/.exec(url || ""); return m ? m[1] : ""; }
+  function safeImg(src){ return /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(src || "") ? src : ""; }
+
+  function renderStatement(){
+    var out = "", open = false;
+    state.blocks.forEach(function(b,i){
+      if (b.t === "li" && !open){ out += "<ul>"; open = true; }
+      if (b.t !== "li" && open){ out += "</ul>"; open = false; }
+      out += ed("b"+i, b.t === "h" ? "h3" : (b.t === "li" ? "li" : "p"), "", b.x);
+    });
+    if (open) out += "</ul>";
+    return out;
+  }
+
+  function card(w, isPending){
+    var media;
+    if (w.kind === "yt"){
+      var id = ytId(w.url);
+      media = '<button type="button" class="yt" data-play="'+esc(id)+'" aria-label="Play: '+esc(w.text)+'">'+
+        (id ? '<img src="https://i.ytimg.com/vi/'+esc(id)+'/mqdefault.jpg" alt="" loading="lazy">' : '')+
+        '<svg viewBox="0 0 44 32" aria-hidden="true"><rect width="44" height="32" rx="9" fill="#e1262d"/><path d="M17 9l12 7-12 7z" fill="#fff"/></svg></button>';
+    } else {
+      media = '<img src="'+safeImg(w.image)+'" alt="'+esc(w.text)+'" loading="lazy">';
+    }
+    var tools = owner
+      ? '<div class="mod">'+(isPending ? '<button type="button" data-approve="'+esc(w.id)+'">approve</button>' : '')+
+        '<button type="button" class="del" data-del="'+esc(w.id)+'">'+(isPending ? 'delete' : 'take down')+'</button></div>'
+      : '';
+    return '<div class="card'+(isPending ? ' waiting' : '')+'">'+media+'<p>'+esc(w.text)+'</p>'+
+      (w.kind === "yt" ? '<a class="ytlink" href="'+esc(w.url)+'" target="_blank" rel="noopener noreferrer">open on YouTube</a>' : '')+
+      (w.who ? '<div class="who">from '+esc(w.who)+'</div>' : '')+tools+'</div>';
+  }
+
+  function render(){
+    var s = state;
+    var pol = s.captions.map(function(c,i){
+      var ph = safeImg(s.photos[i]);
+      return '<figure class="polaroid p'+(i+1)+'" style="margin:0">'+
+        (ph ? '<img class="photo" src="'+ph+'" alt="'+esc(c)+'">' : PICS[i])+
+        '<div class="pol-tools"><label>'+(ph?"change photo":"add photo")+'<input type="file" accept="image/*" data-photo="'+i+'"></label>'+
+        (ph ? '<button type="button" data-rmphoto="'+i+'">remove</button>' : '')+'</div>'+
+        ed("cap"+i,"span","",c)+'</figure>';
+    }).join("");
+    var list = s.coming.map(function(c,i){ return ed("c"+i,"li","",c); }).join("");
+    var cards = wall.map(function(w){ return card(w, false); }).join("");
+    var waiting = owner && pending.length
+      ? '<div class="pending"><h3>Waiting for you to approve ('+pending.length+')</h3><div class="wall">'+pending.map(function(w){ return card(w, true); }).join("")+'</div></div>'
+      : '';
+    app.innerHTML =
+      '<div class="frame">'+
+        '<header class="head">'+ed("logo","h1","logo",s.logo)+ed("tagline","p","tagline",s.tagline)+'</header>'+
+        '<nav class="tabs" role="tablist" aria-label="Sections">'+
+          '<button type="button" class="tab" role="tab" data-tab="soon" aria-selected="'+(tab==="soon")+'">coming soon</button>'+
+          '<button type="button" class="tab" role="tab" data-tab="statement" aria-selected="'+(tab==="statement")+'">my statement</button>'+
+          '<button type="button" class="tab" role="tab" data-tab="missing" aria-selected="'+(tab==="missing")+'">what do you miss?</button>'+
+        '</nav>'+
+        '<div class="stagebox"><div class="pillow">'+
+          sparkle(20,18,14)+sparkle(590,40,18)+sparkle(560,330,12)+sparkle(12,340,16)+sparkle(300,8,10)+
+          '<section class="soon" role="tabpanel"'+(tab==="soon"?"":" hidden")+'>'+
+            '<div class="pile">'+pol+
+              '<svg class="seal" viewBox="0 0 120 120" role="img" aria-label="Coming soon!"><path d="'+SEAL+'" fill="#e1262d"/>'+
+              '<circle cx="60" cy="60" r="41" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 3" opacity=".8"/>'+
+              '<text x="60" y="56" text-anchor="middle" font-size="22" fill="#fff">coming</text><text x="60" y="80" text-anchor="middle" font-size="22" fill="#ffd23a">soon!</text></svg>'+
+            '</div>'+
+            '<div>'+ed("welcome","p","welcome",s.welcome)+ed("comingTitle","h2","h-script",s.comingTitle)+
+              '<ul class="list">'+list+'</ul>'+
+              '<p class="hint">Until then, <button type="button" data-tab="statement">read my statement</button> or <button type="button" data-tab="missing">tell me what you miss</button>.</p>'+
+            '</div>'+
+          '</section>'+
+          '<section class="statement" role="tabpanel"'+(tab==="statement"?"":" hidden")+'>'+
+            ed("stmtTitle","h2","h-script",s.stmtTitle)+
+            '<div class="scroller" tabindex="0">'+renderStatement()+ed("signOff","p","sign",s.signOff)+'</div>'+
+          '</section>'+
+          '<section class="missing" role="tabpanel"'+(tab==="missing"?"":" hidden")+'>'+
+            ed("wallTitle","h2","h-script",s.wallTitle)+ed("wallIntro","p","wall-intro",s.wallIntro)+
+            '<form class="add" id="add-form" novalidate>'+
+              '<label class="wide" for="miss-text">What do you miss?<input type="text" id="miss-text" maxlength="120" placeholder="e.g. the Saturday morning cartoons theme song"></label>'+
+              '<label for="miss-yt">A YouTube link (song or video)<input type="url" id="miss-yt" inputmode="url" placeholder="https://www.youtube.com/watch?v=…"></label>'+
+              '<label for="miss-img">Or upload a picture<input type="file" id="miss-img" accept="image/*"></label>'+
+              '<label for="miss-who">Your name (optional)<input type="text" id="miss-who" maxlength="40"></label>'+
+              '<label class="trap" aria-hidden="true">Website<input type="text" id="miss-site" tabindex="-1" autocomplete="off"></label>'+
+              '<div class="row"><button type="submit" class="btn go" id="miss-go"'+(busy?" disabled":"")+'>pin it to the wall</button>'+
+                '<p class="err" id="miss-err" role="alert"></p><p class="note" id="miss-note" role="status">'+esc(sent)+'</p></div>'+
+            '</form>'+
+            waiting+
+            '<div class="wall">'+(cards || '<p class="empty">Nothing on the wall yet. Be the first to pin something you miss.</p>')+'</div>'+
+          '</section>'+
+        '</div></div>'+
+        '<img class="girl" style="--gx:'+(s.girl.x||0)+'px;--gy:'+(s.girl.y||0)+'px" draggable="false" src="'+GIRL+'" alt="A cartoon girl in a red and navy striped sweater, lime skirt and brown boots, lying on her stomach with her chin in her hand">'+
+      '</div>'+
+      (s.fine || editing ? '<p class="foot"><svg viewBox="0 0 18 14" aria-hidden="true"><path d="M1 5h4l5-4v12l-5-4H1z" fill="#fff"/><path d="M12 4c1.5 1.5 1.5 4.5 0 6M14.5 2c3 3 3 7 0 10" stroke="#fff" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>'+ed("fine","span","",s.fine)+'</p>' : '');
+    document.body.classList.toggle("editing", editing);
+    if (editing) app.querySelectorAll("[data-k]").forEach(function(el){ el.setAttribute("contenteditable","true"); });
+    drawBar();
+  }
+
+  function collect(){
+    app.querySelectorAll("[data-k]").forEach(function(el){
+      var k = el.getAttribute("data-k"), v = el.textContent.replace(/ /g," ").replace(/\s*\n\s*/g," ").trim(), m;
+      if ((m = /^b(\d+)$/.exec(k))) state.blocks[+m[1]].x = v;
+      else if ((m = /^cap(\d+)$/.exec(k))) state.captions[+m[1]] = v;
+      else if ((m = /^c(\d+)$/.exec(k))) state.coming[+m[1]] = v;
+      else state[k] = v;
+    });
+  }
+
+  function drawBar(){
+    var bar = document.getElementById("edit-bar");
+    if (!owner){ bar.hidden = true; return; }
+    bar.hidden = false;
+    bar.innerHTML = (msg ? '<span class="status" role="status">'+esc(msg)+'</span>' : "") + (editing
+      ? '<button type="button" class="btn" id="btn-cancel">cancel</button><button type="button" class="btn go" id="btn-save"'+(busy?" disabled":"")+'>'+(busy?"saving…":"save")+'</button>'
+      : '<button type="button" class="btn" id="btn-edit">edit page</button>');
+  }
+
+  async function call(method, url, body){
+    var res = await fetch(url, { method: method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined, credentials: "same-origin" });
+    var data = {};
+    try { data = await res.json(); } catch(_) {}
+    if (!res.ok) throw new Error(data.error || "Something went wrong. Try again.");
+    return data;
+  }
+
+  async function load(){
+    try {
+      var d = await call("GET", "/rewind/data");
+      owner = !!d.owner;
+      wall = Array.isArray(d.wall) ? d.wall : [];
+      pending = Array.isArray(d.pending) ? d.pending : [];
+      if (!editing){ state = merge(d.page); original = JSON.stringify(state); }
+    } catch(_) { /* the page still works from what it ships with */ }
+    render();
+  }
+
+  async function save(){
+    collect();
+    state.blocks = state.blocks.filter(function(b){ return b.x !== ""; });
+    busy = true; msg = ""; drawBar();
+    try {
+      await call("POST", "/rewind/data", { page: state });
+      original = JSON.stringify(state); editing = false; msg = "Saved. Everyone sees this now.";
+    } catch (err) { msg = err.message + " Your edits are still here."; }
+    busy = false; render();
+  }
+
+  document.addEventListener("click", async function(e){
+    var t = e.target.closest && e.target.closest("button");
+    if (!t) return;
+    var tb = t.getAttribute("data-tab");
+    if (tb){ if (editing) collect(); tab = tb; render(); return; }
+    if (t.hasAttribute("data-play")){ play(t.getAttribute("data-play")); return; }
+    if (t.hasAttribute("data-rmphoto")){ collect(); state.photos[+t.getAttribute("data-rmphoto")] = ""; render(); return; }
+    if (t.hasAttribute("data-approve") || t.hasAttribute("data-del")){
+      var approve = t.hasAttribute("data-approve"), id = t.getAttribute(approve ? "data-approve" : "data-del");
+      t.disabled = true;
+      try {
+        await call(approve ? "PATCH" : "DELETE", "/rewind/wall", { id: id });
+        if (editing) collect();
+        await load();
+      } catch (err) { msg = err.message; t.disabled = false; drawBar(); }
+      return;
+    }
+    if (t.id === "btn-edit"){ editing = true; msg = "Click any words to change them, add photos to the polaroids, or drag her to move her."; render(); }
+    else if (t.id === "btn-cancel"){ state = JSON.parse(original); editing = false; msg = ""; render(); }
+    else if (t.id === "btn-save"){ save(); }
+    else if (t.id === "tv-close"){ closeTv(); }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && document.getElementById("tv")){ closeTv(); return; }
+    if (!editing) return;
+    var el = e.target.closest && e.target.closest("[data-k]");
+    if (!el) return;
+    var m = /^b(\d+)$/.exec(el.getAttribute("data-k"));
+    if (e.key === "Enter" && !e.shiftKey){
+      e.preventDefault();
+      if (!m){ el.blur(); return; }
+      collect();
+      var i = +m[1];
+      state.blocks.splice(i+1,0,{t: state.blocks[i].t === "li" ? "li" : "p", x:""});
+      render();
+      var n = app.querySelector('[data-k="b'+(i+1)+'"]'); if (n) n.focus();
+    } else if (e.key === "Backspace" && m && el.textContent.trim() === "" && state.blocks.length > 1){
+      e.preventDefault();
+      collect();
+      var j = +m[1];
+      state.blocks.splice(j,1);
+      render();
+      var p = app.querySelector('[data-k="b'+Math.max(0,j-1)+'"]'); if (p) p.focus();
+    }
+  });
+  document.addEventListener("paste", function(e){
+    if (!editing || !e.target.closest || !e.target.closest("[data-k]")) return;
+    e.preventDefault();
+    document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain"));
+  });
+
+  /* a little TV for YouTube posts */
+  function play(id){
+    if (!/^[\w-]{6,20}$/.test(id)) return;
+    closeTv();
+    var tv = document.createElement("div");
+    tv.id = "tv"; tv.className = "tv-wrap"; tv.setAttribute("role","dialog"); tv.setAttribute("aria-label","Video");
+    tv.innerHTML = '<div class="tv-box"><iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>'+
+      '<button type="button" class="btn" id="tv-close">close</button></div>';
+    tv.addEventListener("click", function(ev){ if (ev.target === tv) closeTv(); });
+    document.body.appendChild(tv);
+    document.getElementById("tv-close").focus();
+  }
+  function closeTv(){ var tv = document.getElementById("tv"); if (tv) tv.remove(); }
+
+  /* pictures: shrink them in the browser before they are sent */
+  function loadImage(file){
+    return new Promise(function(res, rej){
+      var url = URL.createObjectURL(file), im = new Image();
+      im.onload = function(){ URL.revokeObjectURL(url); res(im); };
+      im.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("unreadable")); };
+      im.src = url;
+    });
+  }
+  function shrink(im, w, h){
+    var sw = im.naturalWidth, sh = im.naturalHeight, scale = Math.max(w / sw, h / sh);
+    var cw = Math.round(w / scale), chh = Math.round(h / scale);
+    var c = document.createElement("canvas"); c.width = w; c.height = h;
+    var x = c.getContext("2d");
+    x.fillStyle = "#fff"; x.fillRect(0, 0, w, h);
+    x.drawImage(im, Math.round((sw - cw) / 2), Math.round((sh - chh) / 2), cw, chh, 0, 0, w, h);
+    return c.toDataURL("image/jpeg", 0.8);
+  }
+
+  document.addEventListener("change", function(e){
+    var inp = e.target;
+    if (!inp.hasAttribute || !inp.hasAttribute("data-photo") || !inp.files || !inp.files[0]) return;
+    var i = +inp.getAttribute("data-photo");
+    loadImage(inp.files[0]).then(function(im){
+      collect(); state.photos[i] = shrink(im, 348, 276); render();
+    }).catch(function(){ msg = "That file didn't open as a picture. Try a JPG or PNG."; drawBar(); });
+  });
+
+  document.addEventListener("submit", async function(e){
+    if (e.target.id !== "add-form") return;
+    e.preventDefault();
+    var err = document.getElementById("miss-err");
+    err.textContent = ""; sent = ""; document.getElementById("miss-note").textContent = "";
+    var text = document.getElementById("miss-text").value.trim();
+    var ytRaw = document.getElementById("miss-yt").value.trim();
+    var file = document.getElementById("miss-img").files[0];
+    if (!text){ err.textContent = "Say what you miss first."; document.getElementById("miss-text").focus(); return; }
+    if (!ytRaw && !file){ err.textContent = "Add a YouTube link or a picture."; return; }
+    var body = { text: text, who: document.getElementById("miss-who").value.trim(), website: document.getElementById("miss-site").value };
+    if (ytRaw) body.url = ytRaw;
+    else {
+      try { body.image = shrink(await loadImage(file), 402, 300); }
+      catch(_) { err.textContent = "That file didn't open as a picture. Try a JPG or PNG."; return; }
+    }
+    var go = document.getElementById("miss-go"); go.disabled = true;
+    try {
+      var r = await call("POST", "/rewind/wall", body);
+      sent = r.approved ? "Pinned!" : "Thanks! It will show up on the wall once it's approved.";
+      if (editing) collect();
+      await load();
+    } catch (ex) { err.textContent = ex.message; go.disabled = false; }
+  });
+
+  /* drag her anywhere while editing */
+  var drag = null;
+  document.addEventListener("pointerdown", function(e){
+    if (!editing || !e.target.classList || !e.target.classList.contains("girl")) return;
+    e.preventDefault();
+    var fitv = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--fit")) || 1;
+    drag = { el: e.target, sx: e.clientX, sy: e.clientY, gx: state.girl.x || 0, gy: state.girl.y || 0, fit: fitv };
+    e.target.setPointerCapture(e.pointerId);
+    e.target.classList.add("dragging");
+  });
+  document.addEventListener("pointermove", function(e){
+    if (!drag) return;
+    var x = Math.round(drag.gx + (e.clientX - drag.sx) / drag.fit), y = Math.round(drag.gy + (e.clientY - drag.sy) / drag.fit);
+    drag.el.style.setProperty("--gx", x + "px"); drag.el.style.setProperty("--gy", y + "px");
+    drag.x = x; drag.y = y;
+  });
+  document.addEventListener("pointerup", function(){
+    if (!drag) return;
+    if (drag.x !== undefined) state.girl = { x: drag.x, y: drag.y };
+    drag.el.classList.remove("dragging"); drag = null;
+  });
+
+  render();
+  load();
+})();
+</script>
+</body>
+</html>

@@ -2101,3 +2101,49 @@ create policy "Signed-in members can fill in a work"
 -- punctuation has no work at all.
 alter table public.posts add column if not exists work_id uuid references public.works (id) on delete set null;
 create index if not exists posts_work_idx on public.posts (work_id);
+
+-- ---------- rewind_wall (Rewind Theory's "what do you miss?" wall) ----------
+-- Anybody can add a post, only as unapproved; admins read, approve and
+-- delete. See migrations/022-rewind-wall.sql for the full reasoning.
+create table if not exists public.rewind_wall (
+  id         uuid primary key default gen_random_uuid(),
+  text       text not null check (char_length(text) between 1 and 120),
+  who        text check (who is null or char_length(who) <= 40),
+  kind       text not null check (kind in ('yt', 'img')),
+  url        text check (url is null or char_length(url) <= 200),
+  image      text check (image is null or char_length(image) <= 250000),
+  approved   boolean not null default false,
+  created_at timestamptz not null default now(),
+  check ((kind = 'yt' and url is not null) or (kind = 'img' and image is not null))
+);
+
+create index if not exists rewind_wall_approved_created_idx
+  on public.rewind_wall (approved, created_at desc);
+
+alter table public.rewind_wall enable row level security;
+
+drop policy if exists "Approved wall posts are viewable by everyone" on public.rewind_wall;
+create policy "Approved wall posts are viewable by everyone"
+  on public.rewind_wall for select
+  using (
+    approved
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+drop policy if exists "Anyone can pin to the wall for approval" on public.rewind_wall;
+create policy "Anyone can pin to the wall for approval"
+  on public.rewind_wall for insert
+  with check (
+    not approved
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+drop policy if exists "Admins can approve wall posts" on public.rewind_wall;
+create policy "Admins can approve wall posts"
+  on public.rewind_wall for update
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+drop policy if exists "Admins can delete wall posts" on public.rewind_wall;
+create policy "Admins can delete wall posts"
+  on public.rewind_wall for delete
+  using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
