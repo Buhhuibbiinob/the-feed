@@ -11,6 +11,7 @@ import { EmojiKeyboard } from "@/components/EmojiKeyboard";
 import { WelcomeExplainer } from "@/components/WelcomeExplainer";
 import { PostFab } from "@/components/PostFab";
 import { AnnouncementAlert } from "@/components/AnnouncementAlert";
+import { ArchiveBanner } from "@/components/ArchiveBanner";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_THEME } from "@/lib/themes";
 import { isAdmin } from "@/lib/admin";
@@ -173,6 +174,7 @@ export default async function RootLayout({
             customPages={customPages.map((p) => ({ href: p.path, label: p.label }))}
           />
           <AnnouncementAlert announcement={announcement} />
+          <ArchiveBanner />
           <div className="sk-app-content">
             <div className="wrap">
               {/* Split view: the list stays, the detail changes. Both

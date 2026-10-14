@@ -10,6 +10,7 @@ import { MORE_PAGES } from "@/lib/builtinPages";
 import { IconButtonLink } from "@/components/IconButton";
 import { AccountMenu } from "@/components/AccountMenu";
 import { openComposeSheet } from "@/components/ComposeSheet";
+import { FEED_HOME } from "@/lib/closed";
 
 // Built from the same list the admin Pages screen archives, so a page can
 // never be missing from the nav while still offering an Archive toggle.
@@ -183,7 +184,7 @@ export function SiteHeader({
     if (moreOpen) setMoreOpen(false);
   }
 
-  const isHome = pathname === "/";
+  const isHome = pathname === FEED_HOME;
 
   return (
     <>
@@ -193,14 +194,9 @@ export function SiteHeader({
             <img src="/f-logo.PNG" alt="" className="brand-logo" />
             <span className="wordmark">Feedback</span>
           </div>
-          <Link href="/" className={pathname === "/" ? "active" : ""}>
+          <Link href={FEED_HOME} className={isHome ? "active" : ""}>
             Feed
           </Link>
-          {/* A plain anchor, not <Link>: LastThread is a static site under
-              public/, so client-side routing would land on a 404. */}
-          <a href="/lastthread/" className={pathname.startsWith("/lastthread") ? "active" : ""}>
-            LastThread
-          </a>
           {showDiscover && (
             <Link href="/recs" className={pathname.startsWith("/recs") ? "active" : ""}>
               Discover
@@ -307,7 +303,7 @@ export function SiteHeader({
           back button. More moves into the Profile tab's reach rather than
           taking one of the five slots. */}
       <div className="sk-ios-tabbar">
-        <Link href="/" className={`sk-ios-tab ${isHome ? "active" : ""}`}>
+        <Link href={FEED_HOME} className={`sk-ios-tab ${isHome ? "active" : ""}`}>
           <span className="sk-ios-tab-icon">
             <HomeIcon />
           </span>

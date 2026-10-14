@@ -5,9 +5,9 @@ import { isAdmin } from "@/lib/admin";
 // Everything Rewind Theory needs to draw itself: the page as it has been
 // edited, the wall, and whether the person looking may edit.
 //
-// Rewind Theory is the static site under public/rewind. Like LastThread, its
-// edited text and polaroid photos are one row in site_content (readable by
-// everyone, writable by admins), so editing needs no table of its own. The
+// Rewind Theory is the static site under public/rewind. Its edited text and
+// polaroid photos are one row in site_content (readable by everyone, writable
+// by admins), so editing needs no table of its own. The
 // wall is the rewind_wall table, because visitors write to it.
 //
 // GET is public. Admins also get the posts still waiting for approval; the

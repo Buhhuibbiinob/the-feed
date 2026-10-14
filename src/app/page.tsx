@@ -4,6 +4,7 @@ import { WidgetCarousel } from "@/components/WidgetCarousel";
 import { layoutVariantFor, LAYOUT_EXPERIMENT } from "@/lib/experiments";
 import { logEventDaily } from "@/lib/events";
 import Link from "next/link";
+import { FEED_HOME } from "@/lib/closed";
 import { createClient } from "@/lib/supabase/server";
 import { loadReactions } from "@/lib/reactions";
 import { loadAnswered } from "@/lib/duets";
@@ -225,7 +226,7 @@ export default async function FeedPage({
     if (nextPage > 1) params.set("page", String(nextPage));
     if (nextView) params.set("view", nextView);
     const qs = params.toString();
-    return qs ? `/?${qs}#reviews` : "/#reviews";
+    return qs ? `${FEED_HOME}?${qs}#reviews` : `${FEED_HOME}#reviews`;
   };
   const supabase = await createClient();
   const {

@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Feed is temporarily closed</title>
+<meta name="description" content="The Feed is closed while we build something new. Coming back soon. The archive is still open.">
+<meta property="og:title" content="The Feed: temporarily closed">
+<meta property="og:description" content="Coming back soon. The archive is still open.">
+<meta name="theme-color" content="#2a1a10">
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Alfa+Slab+One&family=Cinzel:wght@600;700&family=Oswald:wght@600&display=swap">
+<style>
+  /* The Feed, closed. A shop door at dusk: a panelled wooden door with a
+     frosted glass window, gold-leaf lettering, an enamel CLOSED sign on a
+     string, a split-flap countdown board in a screwed-on aluminium case, and a
+     brass plaque pointing round the back to the archive.
+     One fixed 560px stage, zoomed down whole on phones so it looks the same
+     everywhere. Static on purpose: it must stay up whatever else breaks.
+     The archive is /archive (src/lib/closed.ts). */
+  :root{
+    --wall:#2a1f2e;
+    --brick:#3a2630;
+    --wood:#6b3a1f;
+    --wood-dark:#3f200f;
+    --wood-light:#8a5230;
+    --glass:#cfe3e6;
+    --gold:#d9a93a;
+    --gold-dark:#8a6316;
+    --enamel:#b3202a;
+    --cream:#f6ecd2;
+    --alu:#c9ccd1;
+    --flap:#1b1c20;
+    --brass:#b8862f;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,214,140,.22), transparent 55%),
+      repeating-linear-gradient(0deg, transparent 0 30px, rgba(0,0,0,.28) 30px 33px),
+      repeating-linear-gradient(90deg, transparent 0 62px, rgba(0,0,0,.22) 62px 65px),
+      var(--brick);
+    background-attachment:fixed;
+    color:var(--cream);
+    font-family:Georgia, "Times New Roman", serif;
+    padding:24px 16px calc(32px + env(safe-area-inset-bottom,0px));
+    overflow-x:hidden;
+  }
+  #stage{width:560px;margin:0 auto;zoom:var(--fit,1);position:relative}
+
+  /* the lamp above the door */
+  .lamp{display:block;margin:0 auto -6px;width:120px;height:58px;position:relative;z-index:3}
+  .glow{position:absolute;left:50%;top:40px;width:520px;height:340px;transform:translateX(-50%);
+    background:radial-gradient(ellipse at 50% 0%, rgba(255,210,130,.35), transparent 70%);pointer-events:none;z-index:2}
+
+  /* the door: frame, panels, grain */
+  .door{
+    position:relative;padding:26px 30px 34px;border-radius:8px 8px 2px 2px;
+    background:
+      repeating-linear-gradient(92deg, rgba(0,0,0,.10) 0 2px, transparent 2px 7px, rgba(255,255,255,.04) 7px 9px, transparent 9px 15px),
+      linear-gradient(90deg, var(--wood-dark), var(--wood) 12%, var(--wood-light) 50%, var(--wood) 88%, var(--wood-dark));
+    box-shadow:
+      0 0 0 10px #24140b, 0 0 0 13px #4b2c18, 0 26px 50px rgba(0,0,0,.7),
+      inset 0 2px 0 rgba(255,255,255,.12), inset 0 -3px 6px rgba(0,0,0,.4);
+  }
+  .window{
+    position:relative;height:360px;border-radius:4px;overflow:hidden;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.55), transparent 45%),
+      radial-gradient(circle at 70% 75%, rgba(255,230,180,.35), transparent 50%),
+      linear-gradient(160deg, #e2eff0, var(--glass) 45%, #a9c3c7);
+    box-shadow:0 0 0 6px var(--wood-dark), 0 0 0 9px #9b6a3e, inset 0 0 40px rgba(60,90,95,.45);
+  }
+  .window::after{ /* a streak of reflection across the glass */
+    content:"";position:absolute;inset:-40% -10%;pointer-events:none;
+    background:linear-gradient(115deg, transparent 38%, rgba(255,255,255,.35) 42%, transparent 47%, transparent 52%, rgba(255,255,255,.18) 55%, transparent 58%);
+  }
+  .gilt{
+    position:absolute;left:0;right:0;top:20px;text-align:center;margin:0;
+    font-family:"Abril Fatface", Georgia, serif;font-weight:400;font-size:62px;letter-spacing:.02em;line-height:1;
+    color:var(--gold);
+    background:linear-gradient(180deg,#fff2b8 0%, #e8bb4a 38%, #a87418 62%, #f3d27a 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 2px 0 rgba(90,55,10,.55)) drop-shadow(0 0 1px rgba(0,0,0,.4));
+  }
+  .gilt-sub{position:absolute;left:0;right:0;top:92px;text-align:center;margin:0;
+    font:700 13px/1 "Cinzel", Georgia, serif;letter-spacing:.42em;color:#9a6e1c;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+
+  /* the hanging sign */
+  .hook{position:absolute;left:50%;top:118px;width:18px;height:18px;margin-left:-9px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #fff, #c9d4d6 50%, #8fa1a4);box-shadow:0 2px 3px rgba(0,0,0,.35);z-index:2}
+  .sign{
+    position:absolute;left:50%;top:126px;width:330px;margin-left:-165px;transform-origin:50% 0;z-index:1;
+    animation:sway 6s ease-in-out infinite;
+  }
+  .sign svg.string{display:block;width:330px;height:46px;overflow:visible}
+  .plate{
+    margin-top:-6px;padding:14px 16px 16px;border-radius:12px;text-align:center;position:relative;
+    background:linear-gradient(180deg,#fbf3dc,#efe0b8);
+    box-shadow:0 0 0 4px var(--enamel), 0 0 0 7px #fbf3dc, 0 0 0 9px rgba(0,0,0,.25), 0 14px 22px rgba(0,0,0,.35);
+  }
+  .plate::before,.plate::after{content:"";position:absolute;top:8px;width:9px;height:9px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #fff, #9aa 70%);box-shadow:inset 0 -1px 1px rgba(0,0,0,.4)}
+  .plate::before{left:12px}.plate::after{right:12px}
+  .sorry{margin:0;font:700 13px/1 "Cinzel", Georgia, serif;letter-spacing:.3em;color:#5a2a16}
+  .closed{margin:6px 0 4px;font:400 54px/1 "Alfa Slab One", Georgia, serif;letter-spacing:.06em;color:var(--enamel);
+    text-shadow:0 1px 0 #fff, 0 -1px 0 rgba(0,0,0,.25)}
+  .temp{margin:0;font:600 12px/1.3 "Oswald", "Arial Narrow", sans-serif;letter-spacing:.32em;text-transform:uppercase;color:#5a2a16}
+  @keyframes sway{0%,100%{transform:rotate(-2.2deg)}50%{transform:rotate(2.2deg)}}
+
+  /* split-flap countdown in an aluminium case */
+  .board{
+    position:relative;margin:26px auto 0;padding:16px 18px 12px;border-radius:10px;width:470px;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg,#e9ebee,var(--alu) 40%,#9ea3aa);
+    box-shadow:0 0 0 2px #6f747b, 0 10px 24px rgba(0,0,0,.55), inset 0 1px 0 #fff;
+  }
+  .screw{position:absolute;width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #fafafa, #8b9097 70%);box-shadow:inset 0 -1px 1px rgba(0,0,0,.4)}
+  .screw::after{content:"";position:absolute;left:2px;right:2px;top:5px;height:1.5px;background:#5c6066;transform:rotate(35deg)}
+  .s1{left:7px;top:7px}.s2{right:7px;top:7px}.s3{left:7px;bottom:7px}.s4{right:7px;bottom:7px}
+  .board h2{margin:0 0 10px;text-align:center;font:600 14px/1 "Oswald", "Arial Narrow", sans-serif;letter-spacing:.4em;text-transform:uppercase;color:#2c2f34;text-shadow:0 1px 0 rgba(255,255,255,.7)}
+  .units{display:flex;justify-content:center;gap:14px}
+  .unit{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .flap{
+    position:relative;width:92px;height:84px;border-radius:7px;perspective:300px;
+    background:linear-gradient(180deg,#2c2e34 0%, var(--flap) 49.5%, #0e0f12 50.5%, #24262b 100%);
+    box-shadow:0 3px 0 #6c7077, 0 6px 10px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12);
+    display:flex;align-items:center;justify-content:center;
+    font:600 58px/1 "Oswald", "Arial Narrow", Helvetica, sans-serif;color:#f4f1e8;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  .flap::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:rgba(0,0,0,.85);box-shadow:0 1px 0 rgba(255,255,255,.07)}
+  .flap::after{ /* hinge pins */
+    content:"";position:absolute;left:-3px;right:-3px;top:50%;height:8px;margin-top:-4px;
+    background:linear-gradient(90deg,#9097a0 0 5px,transparent 5px calc(100% - 5px),#9097a0 calc(100% - 5px));border-radius:2px}
+  .flap span{display:block;transform-origin:50% 50%}
+  .flap.flip span{animation:flip .38s ease-in}
+  @keyframes flip{0%{transform:rotateX(0)}45%{transform:rotateX(88deg);opacity:.4}55%{transform:rotateX(-88deg);opacity:.4}100%{transform:rotateX(0)}}
+  .unit label{font:600 11px/1 "Oswald", "Arial Narrow", sans-serif;letter-spacing:.3em;color:#2c2f34;text-transform:uppercase}
+  .date{margin:10px 0 0;text-align:center;font:italic 14px/1.3 Georgia, serif;color:#2c2f34}
+
+  /* door hardware */
+  .handle{position:absolute;right:-6px;top:300px;width:22px;height:110px;border-radius:11px;z-index:4;
+    background:linear-gradient(90deg,#7a5418,#e2bb62 40%,#fff1c4 50%,#c99a3c 60%,#6f4a12);box-shadow:-3px 6px 10px rgba(0,0,0,.5)}
+  .kick{margin-top:28px;height:34px;border-radius:3px;
+    background:linear-gradient(180deg,#f1d27f,#b8862f 50%,#8a6316);box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 2px 4px rgba(0,0,0,.4)}
+
+  /* the brass plaque to the archive */
+  .plaque{
+    display:block;margin:34px auto 0;width:420px;padding:16px 22px 14px;border-radius:6px;text-decoration:none;text-align:center;position:relative;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 1px, transparent 1px 4px),
+      linear-gradient(180deg,#f0cf78,var(--brass) 45%,#7d5814);
+    box-shadow:0 0 0 2px #5a3f0e, 0 0 0 5px #c79a45, 0 0 0 7px #4a320a, 0 12px 22px rgba(0,0,0,.55);
+    color:#3a2604;transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .plaque:hover{transform:translateY(-2px)}
+  .plaque:active{transform:translateY(1px)}
+  .plaque:focus-visible{outline:3px dashed var(--cream);outline-offset:8px}
+  .plaque .screw{background:radial-gradient(circle at 35% 35%, #fff4c8, #8d6a22 70%)}
+  .plaque .screw::after{background:#5a3f0e}
+  .plaque b{display:block;font:700 22px/1.1 "Cinzel", Georgia, serif;letter-spacing:.12em;text-shadow:0 1px 0 rgba(255,240,190,.7), 0 -1px 0 rgba(0,0,0,.35)}
+  .plaque small{display:block;margin-top:6px;font:italic 14px/1.35 Georgia, serif;color:#4a3307;text-shadow:0 1px 0 rgba(255,240,190,.5)}
+  .plaque .go{display:inline-block;margin-top:8px;font:700 12px/1 "Cinzel", Georgia, serif;letter-spacing:.3em}
+
+  .step{height:22px;margin:0 -40px;border-radius:2px;background:linear-gradient(180deg,#6d6a66,#3b3936);box-shadow:0 8px 18px rgba(0,0,0,.6)}
+  .foot{margin:22px 0 0;text-align:center;font:13px/1.4 Georgia, serif;color:#d9c9a3;opacity:.85}
+  @media (prefers-reduced-motion:reduce){.sign{animation:none}.flap.flip span{animation:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="glow" aria-hidden="true"></div>
+  <svg class="lamp" viewBox="0 0 120 58" aria-hidden="true">
+    <defs><linearGradient id="lb" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#3a3a3a"/><stop offset="1" stop-color="#111"/></linearGradient>
+    <radialGradient id="bulb" cx=".5" cy=".3" r=".7"><stop offset="0" stop-color="#fff7d6"/><stop offset=".6" stop-color="#ffd57a"/><stop offset="1" stop-color="#e09a2a"/></radialGradient></defs>
+    <rect x="54" y="0" width="12" height="16" fill="url(#lb)"/>
+    <path d="M20 40 Q60 6 100 40 Z" fill="url(#lb)"/>
+    <ellipse cx="60" cy="42" rx="18" ry="10" fill="url(#bulb)"/>
+  </svg>
+
+  <main class="door">
+    <div class="window">
+      <h1 class="gilt">The Feed</h1>
+      <p class="gilt-sub">MYTHEFEED.COM</p>
+      <span class="hook" aria-hidden="true"></span>
+      <div class="sign" role="img" aria-label="Sorry, we're closed. Temporarily.">
+        <svg class="string" viewBox="0 0 330 46" aria-hidden="true"><path d="M60 46 L165 2 L270 46" fill="none" stroke="#7a5a3a" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <div class="plate">
+          <p class="sorry">SORRY, WE'RE</p>
+          <p class="closed">CLOSED</p>
+          <p class="temp">temporarily · coming back soon</p>
+        </div>
+      </div>
+    </div>
+    <span class="handle" aria-hidden="true"></span>
+
+    <section class="board" aria-labelledby="cd-title">
+      <span class="screw s1"></span><span class="screw s2"></span><span class="screw s3"></span><span class="screw s4"></span>
+      <h2 id="cd-title">Coming back soon</h2>
+      <div class="units" id="countdown" role="timer" aria-live="off">
+        <div class="unit"><div class="flap" id="d"><span>--</span></div><label for="d">Days</label></div>
+        <div class="unit"><div class="flap" id="h"><span>--</span></div><label for="h">Hours</label></div>
+        <div class="unit"><div class="flap" id="m"><span>--</span></div><label for="m">Mins</label></div>
+        <div class="unit"><div class="flap" id="s"><span>--</span></div><label for="s">Secs</label></div>
+      </div>
+      <p class="date" id="date">Opening again on 14 January 2027</p>
+    </section>
+    <div class="kick" aria-hidden="true"></div>
+  </main>
+  <div class="step" aria-hidden="true"></div>
+
+  <a class="plaque" href="/archive">
+    <span class="screw s1"></span><span class="screw s2"></span><span class="screw s3"></span><span class="screw s4"></span>
+    <b>The Feed Archive</b>
+    <small>The old Feed, kept just the way it was.<br>Still open round the back. Come and rewind.</small>
+    <span class="go">STEP INSIDE →</span>
+  </a>
+
+  <p class="foot">The Feed is closed while we build something new.</p>
+</div>
+
+<script>
+(function(){
+  // Keep in step with REOPENS_AT in src/lib/closed.ts.
+  var REOPENS_AT = new Date("2027-01-14T17:00:00Z");
+
+  function fit(){
+    var w = Math.min(document.documentElement.clientWidth, window.innerWidth) - 32;
+    document.documentElement.style.setProperty("--fit", Math.min(1, w / 560).toFixed(4));
+  }
+  fit(); window.addEventListener("resize", fit);
+
+  try {
+    document.getElementById("date").textContent = "Opening again on " +
+      REOPENS_AT.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+  } catch (_) {}
+
+  var cells = { d: document.getElementById("d"), h: document.getElementById("h"), m: document.getElementById("m"), s: document.getElementById("s") };
+  var shown = {};
+  function set(key, value){
+    var text = value < 10 ? "0" + value : String(value);
+    if (shown[key] === text) return;
+    shown[key] = text;
+    var cell = cells[key], span = cell.firstElementChild;
+    cell.classList.remove("flip");
+    void cell.offsetWidth; // restart the flip
+    cell.classList.add("flip");
+    setTimeout(function(){ span.textContent = text; }, 170);
+  }
+  function tick(){
+    var left = Math.max(0, REOPENS_AT.getTime() - Date.now());
+    var sec = Math.floor(left / 1000);
+    set("d", Math.floor(sec / 86400));
+    set("h", Math.floor(sec % 86400 / 3600));
+    set("m", Math.floor(sec % 3600 / 60));
+    set("s", sec % 60);
+    if (left === 0){
+      document.getElementById("cd-title").textContent = "Opening any minute now";
+      return;
+    }
+    setTimeout(tick, 1000 - (Date.now() % 1000));
+  }
+  tick();
+})();
+</script>
+</body>
+</html>

@@ -14,6 +14,7 @@ import {
   type MemberRow,
   type PostStamp,
 } from "@/lib/retention";
+import { FEED_HOME } from "@/lib/closed";
 
 export const metadata = { title: "Retention" };
 
@@ -27,7 +28,7 @@ export default async function RetentionPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user || !(await isAdmin(supabase, user.id))) redirect("/");
+  if (!user || !(await isAdmin(supabase, user.id))) redirect(FEED_HOME);
 
   const [{ data: eventRows }, { data: memberRows }, { data: postRows }] = await Promise.all([
     supabase

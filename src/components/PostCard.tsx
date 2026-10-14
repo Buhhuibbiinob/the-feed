@@ -19,6 +19,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { MEDIA_LABELS, type MediaType } from "@/lib/media";
 import { Stars } from "@/components/Stars";
+import { feedUrl } from "@/lib/closed";
 
 export type PostCardData = {
   id: string;
@@ -268,7 +269,7 @@ export function PostCard({
             has a reason to set: this is the whole payoff for filling the
             field in, and the only thing that will get it filled in. */}
         {post.genre && (
-          <Link href={`/?type=${post.mediaType}&genre=${post.genre}#reviews`} className="badge genre">
+          <Link href={feedUrl({ type: post.mediaType, genre: post.genre }, "reviews")} className="badge genre">
             {genreLabel(post.genre)}
           </Link>
         )}

@@ -13,6 +13,7 @@ import { searchVideos } from "@/lib/youtube";
 import { askGeminiJson } from "@/lib/gemini";
 import { getNewsletterRecipients } from "@/lib/newsletterRecipients";
 import { siteUrl } from "@/lib/site";
+import { FEED_HOME } from "@/lib/closed";
 
 export type NewsletterFormState = { error?: string; ok?: boolean };
 export type NewsletterSendState = { error?: string; ok?: boolean; sent?: number };
@@ -29,7 +30,7 @@ async function requireAdmin() {
 
 export async function createNewsletterIssue() {
   const { supabase, user, admin } = await requireAdmin();
-  if (!user || !admin) redirect("/");
+  if (!user || !admin) redirect(FEED_HOME);
 
   const { data, error } = await supabase
     .from("newsletter_issues")

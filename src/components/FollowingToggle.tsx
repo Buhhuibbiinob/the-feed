@@ -1,13 +1,14 @@
 import Link from "next/link";
+import { FEED_HOME, feedUrl } from "@/lib/closed";
 
 // The feed's three views. "For You" reorders the same posts by taste and
 // "Following" narrows to people you follow, so only one of the three can
 // ever show you less than "All" - worth knowing when reading an empty state.
 export function FollowingToggle({ filter }: { filter: string | null }) {
   const tabs = [
-    { key: null, label: "All", href: "/" },
-    { key: "foryou", label: "For You", href: "/?filter=foryou" },
-    { key: "following", label: "Following", href: "/?filter=following" },
+    { key: null, label: "All", href: FEED_HOME },
+    { key: "foryou", label: "For You", href: feedUrl({ filter: "foryou" }) },
+    { key: "following", label: "Following", href: feedUrl({ filter: "following" }) },
   ];
 
   // The kit's segmented control. This was a bespoke pill strip and the

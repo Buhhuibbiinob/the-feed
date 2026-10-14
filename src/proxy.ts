@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { FEED_HOME } from "@/lib/closed";
 
 // Rewind Theory's own domain(s), comma-separated, e.g.
 // "rewindtheory.com,www.rewindtheory.com". Set in Vercel's environment
@@ -38,7 +39,20 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL("/rewind/index.html", request.url));
   }
 
-  let supabaseResponse = NextResponse.next({ request });
+  // The Feed is closed (src/lib/closed.ts): the front door is the "coming
+  // back soon" page, and the feed carries on as the archive.
+  if (request.nextUrl.pathname === "/") {
+    return NextResponse.rewrite(new URL("/closed/index.html", request.url));
+  }
+
+  // The archive is the old home page, unmoved. Rewriting rather than moving
+  // it keeps every revalidatePath("/") in the actions pointing at the right
+  // page. The session refresh below still runs for it.
+  const archive =
+    request.nextUrl.pathname === FEED_HOME ? new URL("/" + request.nextUrl.search, request.url) : null;
+  const pass = () => (archive ? NextResponse.rewrite(archive, { request }) : NextResponse.next({ request }));
+
+  let supabaseResponse = pass();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -52,7 +66,7 @@ export async function proxy(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse = pass();
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );

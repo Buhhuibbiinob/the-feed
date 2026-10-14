@@ -26,8 +26,8 @@ An **edit page** button appears bottom right. In edit mode you can click any
 words to change them, add or change the polaroid photos, and drag the
 character to move her. **save** makes it live for everyone, on both addresses.
 
-Saved edits are one row in `site_content` (key `rewind`), the same way
-LastThread's are. See `src/app/rewind/data/route.ts`.
+Saved edits are one row in `site_content` (key `rewind`). See
+`src/app/rewind/data/route.ts`.
 
 ## The wall
 

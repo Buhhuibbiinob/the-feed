@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { FEED_HOME } from "@/lib/closed";
 
 // Handles every "click the link in your email" landing:
 //  - token_hash + type  -> what our own signup email sends. verifyOtp
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
       // cache - invalidate the layout so the header renders as signed in.
       revalidatePath("/", "layout");
       const defaultTarget =
-        type === "recovery" ? "/reset-password" : type === "signup" ? "/?verified=true" : "/";
+        type === "recovery" ? "/reset-password" : type === "signup" ? `${FEED_HOME}?verified=true` : FEED_HOME;
       return NextResponse.redirect(`${origin}${next ?? defaultTarget}`);
     }
     console.error(`[auth/callback] verifyOtp failed (type=${type}): ${error.message}`);
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       revalidatePath("/", "layout");
-      return NextResponse.redirect(`${origin}${next ?? "/?verified=true"}`);
+      return NextResponse.redirect(`${origin}${next ?? `${FEED_HOME}?verified=true`}`);
     }
     console.error(`[auth/callback] exchangeCodeForSession failed: ${error.message}`);
     return NextResponse.redirect(`${origin}/sign-in?error=${encodeURIComponent(error.message)}`);

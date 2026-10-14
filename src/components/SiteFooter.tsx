@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { FEED_HOME } from "@/lib/closed";
 
 export function SiteFooter() {
   return (
     <footer>
       <div className="links">
-        <Link href="/">Feed</Link>
+        <Link href={FEED_HOME}>Feed</Link>
         <Link href="/chat">Live Chat</Link>
         <Link href="/leaderboard">Leaderboard</Link>
         <Link href="/new-releases">New Releases</Link>

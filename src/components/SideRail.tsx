@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { FEED_HOME } from "@/lib/closed";
 
 /**
  * The persistent list on the left, as in the iPad Messages reference:
@@ -41,7 +42,7 @@ export function SideRail({
     {
       heading: "Browse",
       rows: [
-        { href: "/", label: "Feed" },
+        { href: FEED_HOME, label: "Feed" },
         { href: "/recs", label: "Discover" },
         { href: "/clubs", label: "Clubs" },
         { href: "/collections", label: "Collections" },

@@ -13,6 +13,7 @@ import { getHandCandidates } from "@/lib/handoffs";
 import { NowPlayingHero } from "@/components/NowPlayingHero";
 import { CommentSection, type CommentData } from "@/components/CommentSection";
 import type { MediaType } from "@/lib/media";
+import { FEED_HOME } from "@/lib/closed";
 
 type PostRow = {
   id: string;
@@ -183,7 +184,7 @@ export default async function PostPage({
     <>
       <div style={{ marginBottom: 14 }}>
         {/* The kit's notched back button, not an arrow glyph in a link. */}
-        <Link href="/" className="back-btn">
+        <Link href={FEED_HOME} className="back-btn">
           Feed
         </Link>
       </div>

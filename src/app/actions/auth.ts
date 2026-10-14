@@ -13,6 +13,7 @@ import {
   renderResetEmail,
   renderMagicLinkEmail,
 } from "@/lib/emailTemplates";
+import { FEED_HOME } from "@/lib/closed";
 
 export type AuthFormState = {
   error?: string;
@@ -179,9 +180,10 @@ async function signUpInner(formData: FormData): Promise<AuthFormState> {
 // same reason: the browser reads it as another origin.
 function safeNext(raw: FormDataEntryValue | null): string {
   const next = String(raw ?? "");
-  if (!next.startsWith("/") || next.startsWith("//")) return "/";
-  if (!/^\/[A-Za-z0-9._~\-/]*$/.test(next)) return "/";
-  return next;
+  if (!next.startsWith("/") || next.startsWith("//")) return FEED_HOME;
+  if (!/^\/[A-Za-z0-9._~\-/]*$/.test(next)) return FEED_HOME;
+  // "/" is the closed page now; somebody signing in wants the feed.
+  return next === "/" ? FEED_HOME : next;
 }
 
 export async function signIn(
