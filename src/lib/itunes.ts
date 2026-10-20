@@ -74,7 +74,7 @@ type ItunesSearchResult = {
  */
 const RETRY_DELAYS_MS = [700, 1800];
 
-async function itunesFetch(url: string): Promise<{ data: unknown; throttled: boolean }> {
+export async function itunesFetch(url: string): Promise<{ data: unknown; throttled: boolean }> {
   for (let attempt = 0; ; attempt++) {
     // Actually cached. `next: { revalidate }` alone sets a lifetime and
     // does not opt in, so every sleeve on every shelf on every view was

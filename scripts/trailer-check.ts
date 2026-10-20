@@ -215,7 +215,7 @@ async function main() {
   const src = [
     "src/lib/trailers.ts",
     "src/app/recs/page.tsx",
-    "src/app/page.tsx",
+    "src/app/feed/FeedHome.tsx",
     "src/app/new-releases/page.tsx",
     "src/app/shelves/page.tsx",
     "src/app/crate/page.tsx",

@@ -48,6 +48,9 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // api/store/art is the record store's artwork, the same bytes for
+    // everybody and cached as such. A session refresh there would mark
+    // every cover as personal and stop the CDN keeping it.
+    "/((?!_next/static|_next/image|favicon.ico|api/store/art|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

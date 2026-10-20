@@ -205,7 +205,7 @@ for (const file of MUSIC_SURFACES) {
   );
 
   // The feed does what the profile page has done for months.
-  const feed = readFileSync("src/app/page.tsx", "utf8");
+  const feed = readFileSync("src/app/feed/FeedHome.tsx", "utf8");
   check("the feed fills in missing covers too", /await backfillCovers\(/.test(feed));
   // And it reads the shared cache first, which is what makes doing it on
   // a twenty-row feed affordable at all.

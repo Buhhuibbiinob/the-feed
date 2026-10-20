@@ -84,7 +84,8 @@ Code that reads a column which doesn't exist yet used to take every review off
 the site; `src/lib/postQuery.ts` now degrades instead, but the rule stands: ship
 the migration and the code together, and run the migration.
 
-Migrations so far: `001`–`011`. They are safe to re-run.
+Migrations so far: `001`–`022`. They are safe to re-run. The record store's
+(`022`) is described in `docs/ps2-store/README.md`.
 
 **2. Secrets live in two places.** `.env.local` on your machine, and Vercel →
 Settings → Environment Variables for the live site. Changing one does not change
@@ -97,7 +98,8 @@ the other, and Vercel only picks up a new value on the next deploy.
 ```
 src/
   app/                     43 pages, one folder per route
-    page.tsx               the feed (the biggest file in the project)
+    page.tsx               the homepage: the record store, or the feed until it launches
+    feed/                  the feed (FeedHome.tsx is the biggest file in the project)
     post/new/              the composer
     post/[id]/             one review
     work/[id]/             one thing, and every review of it

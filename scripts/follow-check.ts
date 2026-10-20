@@ -19,7 +19,7 @@ function check(name: string, ok: boolean, detail = "") {
 }
 
 const card = readFileSync("src/components/PostCard.tsx", "utf8");
-const feed = readFileSync("src/app/page.tsx", "utf8");
+const feed = readFileSync("src/app/feed/FeedHome.tsx", "utf8");
 const button = readFileSync("src/components/FollowButton.tsx", "utf8");
 const profile = readFileSync("src/app/profile/[username]/page.tsx", "utf8");
 const css = readFileSync("src/app/globals.css", "utf8");
