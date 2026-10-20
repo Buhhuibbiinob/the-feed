@@ -54,13 +54,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<Fee
     );
     if (snapshot) {
       return (
-        <div className={STORE_FONT_VARIABLES}>
-          <StoreClient
-            initial={snapshot}
-            launchAt={access.launchAt?.toISOString() ?? null}
-            serverNow={new Date().toISOString()}
-          />
-        </div>
+        <StoreClient
+          initial={snapshot}
+          launchAt={access.launchAt?.toISOString() ?? null}
+          serverNow={new Date().toISOString()}
+          fontClass={STORE_FONT_VARIABLES}
+        />
       );
     }
     // The tables are not there yet: migration 022 has not been run. Only

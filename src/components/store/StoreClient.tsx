@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { Portal } from "@/components/Portal";
 import type { StoreSnapshot } from "@/lib/store";
 import "./store.css";
 
@@ -19,6 +20,26 @@ const StoreExperience = dynamic(() => import("./StoreExperience").then((m) => m.
   ),
 });
 
-export function StoreClient(props: { initial: StoreSnapshot; launchAt: string | null; serverNow: string }) {
-  return <StoreExperience {...props} />;
+/**
+ * Rendered into <body> through Portal: the page transition puts a
+ * transform on the wrapper around every page, which would otherwise make
+ * the full-screen stage anchor to the page and sit under the site's own
+ * popups. `fontClass` carries the store's font variables with it.
+ */
+export function StoreClient({
+  fontClass,
+  ...props
+}: {
+  initial: StoreSnapshot;
+  launchAt: string | null;
+  serverNow: string;
+  fontClass: string;
+}) {
+  return (
+    <Portal>
+      <div className={fontClass}>
+        <StoreExperience {...props} />
+      </div>
+    </Portal>
+  );
 }
