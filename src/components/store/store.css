@@ -1033,99 +1033,231 @@ html.ps2-open body {
 @media (prefers-reduced-motion: reduce) {
   .ps2-blink,
   .ps2-notebook,
-  .ps2-pillars i,
-  .ps2-countdown .digit.tick {
+  .ps2-pillars i {
     animation: none !important;
   }
 }
 
-/* ---------- the countdown, above the feed ---------- */
+/* ---------- the countdown, above the feed ----------
+   A PS2 online-channels menu: violet glass cubes in the dark, a lime
+   heading over a lavender list, the live line lit, controller hints in
+   a band along the bottom. */
 .ps2-countdown {
+  --bb-text: #c9c4f2;
+  --bb-lit: #ffffff;
+  --bb-lime: #dfe87a;
+  --bb-rule: rgba(190, 180, 255, 0.28);
   position: relative;
   overflow: hidden;
   margin: 0 0 16px;
-  padding: 22px 16px 20px;
-  background: linear-gradient(180deg, #02060f, #07204a 60%, #0a3a86);
-  border-bottom: 2px solid #9cc4ff;
-  box-shadow: inset 0 -2px 0 #05122f;
-  color: var(--text);
-  font-family: var(--ui);
-  text-align: center;
+  height: clamp(300px, 46vw, 380px);
+  background: #05040c;
+  color: var(--bb-text);
+  font-family: "Helvetica Neue", Helvetica, Arial, var(--ui);
+  border-radius: 4px;
+  isolation: isolate;
+  perspective: 900px;
 }
-.ps2-countdown .inner {
-  position: relative;
-  max-width: 720px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+.ps2-countdown .bb-haze {
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 42% 34% at 34% 52%, rgba(120, 100, 220, 0.42), transparent 70%),
+    radial-gradient(ellipse 30% 26% at 62% 36%, rgba(90, 70, 190, 0.28), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 40% 60%, rgba(40, 30, 110, 0.5), transparent 75%);
+  filter: blur(6px);
 }
-.ps2-countdown .kicker {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  text-shadow: 0 0 10px rgba(54, 214, 255, 0.6);
+
+/* the cubes */
+.ps2-countdown .bb-cubes {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transform-style: preserve-3d;
 }
-.ps2-countdown h2 {
-  margin: 0;
-  font-size: clamp(24px, 6vw, 40px);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--amber);
-  text-shadow: 0 0 18px rgba(242, 178, 74, 0.45), 0 3px 0 #5a3205;
-  line-height: 1;
+.ps2-countdown .bb-cube {
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  animation: bb-turn var(--t) linear infinite;
 }
-.ps2-countdown .clock {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-  justify-content: center;
-  flex-wrap: wrap;
+/* Softness goes on the faces: opacity or a filter on the cube itself
+   would flatten it into a single plane. */
+.ps2-countdown .bb-cube.far .bb-face {
+  filter: blur(1.2px);
+  opacity: 0.7;
 }
-.ps2-countdown .unit {
-  min-width: 70px;
-  padding: 8px 10px 6px;
-  background: linear-gradient(180deg, rgba(40, 86, 170, 0.9), rgba(10, 30, 76, 0.94));
-  border: 2px solid #9cc4ff;
-  border-radius: 6px;
-  box-shadow: 0 0 0 2px #05122f, inset 0 1px 0 rgba(255, 255, 255, 0.35);
-}
-.ps2-countdown .digit {
-  display: block;
-  font-family: var(--mono);
-  font-size: clamp(28px, 7vw, 44px);
-  line-height: 1;
-  color: #fff;
-  text-shadow: 0 0 10px #5aa8ff;
-}
-.ps2-countdown .digit.tick {
-  animation: ps2-tick 0.25s steps(2);
-}
-@keyframes ps2-tick {
+@keyframes bb-turn {
   from {
-    color: var(--cyan);
+    transform: rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(calc(var(--rx) + 360deg)) rotateY(calc(var(--ry) + 360deg)) rotateZ(90deg);
   }
 }
-.ps2-countdown .unit small {
-  display: block;
-  margin-top: 4px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  color: #bcd6ff;
+.ps2-countdown .bb-face {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(170, 160, 255, 0.5), rgba(90, 70, 210, 0.32) 55%, rgba(60, 40, 170, 0.42));
+  border: 1px solid rgba(225, 220, 255, 0.55);
+  box-shadow: inset 0 0 calc(var(--s) * 0.25) rgba(200, 190, 255, 0.35);
 }
-.ps2-countdown .when {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  color: #9fc3f2;
+.ps2-countdown .bb-face.f {
+  transform: translateZ(calc(var(--s) / 2));
 }
-.ps2-countdown .ps2-segbar {
-  width: min(420px, 80vw);
-  height: 14px;
+.ps2-countdown .bb-face.b {
+  transform: rotateY(180deg) translateZ(calc(var(--s) / 2));
+}
+.ps2-countdown .bb-face.l {
+  transform: rotateY(-90deg) translateZ(calc(var(--s) / 2));
+}
+.ps2-countdown .bb-face.r {
+  transform: rotateY(90deg) translateZ(calc(var(--s) / 2));
+}
+.ps2-countdown .bb-face.u {
+  transform: rotateX(90deg) translateZ(calc(var(--s) / 2));
+  background: linear-gradient(135deg, rgba(210, 205, 255, 0.6), rgba(140, 125, 245, 0.4));
+}
+.ps2-countdown .bb-face.d {
+  transform: rotateX(-90deg) translateZ(calc(var(--s) / 2));
+}
+
+/* header and footer bands */
+.ps2-countdown .bb-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 22px;
+  background: linear-gradient(180deg, rgba(30, 26, 52, 0.92), rgba(12, 10, 26, 0.85));
+  border-bottom: 1px solid var(--bb-rule);
+}
+.ps2-countdown .bb-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font: 700 14px/1 "Helvetica Neue", Arial, sans-serif;
+  color: #0b0a18;
+  background: linear-gradient(180deg, #e8e6f8, #a9a4d6);
+}
+.ps2-countdown .bb-brand {
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  color: #eceaf8;
+}
+.ps2-countdown .bb-bar.bottom {
+  top: auto;
+  bottom: 0;
+  height: 40px;
+  justify-content: center;
+  gap: 34px;
+  border-bottom: 0;
+  border-top: 1px solid var(--bb-rule);
+  background: linear-gradient(0deg, rgba(20, 17, 38, 0.92), rgba(8, 7, 18, 0.7));
+  font-size: 14px;
+  color: #dedbf4;
+}
+.ps2-countdown .bb-x,
+.ps2-countdown .bb-o {
+  font-weight: 400;
+  margin-right: 6px;
+}
+.ps2-countdown .bb-x {
+  color: #9db4ff;
+}
+.ps2-countdown .bb-o {
+  color: #ff8f9e;
+}
+
+/* the menu */
+.ps2-countdown .bb-menu {
+  position: absolute;
+  z-index: 1;
+  top: 64px;
+  bottom: 52px;
+  left: clamp(16px, 4vw, 44px);
+  width: min(54%, 440px);
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.ps2-countdown .bb-menu::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 6%;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(200, 195, 255, 0), rgba(200, 195, 255, 0.85) 20%, rgba(200, 195, 255, 0.85) 80%, rgba(200, 195, 255, 0));
+  box-shadow: 0 0 8px rgba(170, 160, 255, 0.6);
+}
+.ps2-countdown h2 {
+  margin: 0 0 10px;
+  padding-left: 12px;
+  font: 700 clamp(18px, 3.2vw, 24px) / 1.1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: 0.01em;
+  color: var(--bb-lime);
+  text-shadow: 0 0 10px rgba(223, 232, 122, 0.35);
+}
+.ps2-countdown ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+.ps2-countdown li {
+  font: 700 clamp(15px, 2.6vw, 19px) / 1.42 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: 0.01em;
+  color: var(--bb-text);
+  text-shadow: 0 0 6px rgba(140, 125, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ps2-countdown li.dim {
+  font-weight: 400;
+  color: #a39ed0;
+  font-size: clamp(13px, 2.2vw, 16px);
+}
+.ps2-countdown li.lit {
+  color: var(--bb-lit);
+  text-shadow: 0 0 6px #fff, 0 0 18px rgba(190, 180, 255, 0.95), 0 0 34px rgba(140, 120, 255, 0.7);
+  animation: bb-glow 2.4s ease-in-out infinite;
+}
+@keyframes bb-glow {
+  50% {
+    text-shadow: 0 0 4px #fff, 0 0 12px rgba(190, 180, 255, 0.7), 0 0 24px rgba(140, 120, 255, 0.45);
+  }
+}
+@media (max-width: 560px) {
+  .ps2-countdown .bb-menu {
+    width: 74%;
+  }
+  .ps2-countdown .bb-face {
+    opacity: 0.75;
+  }
+  .ps2-countdown .bb-cubes {
+    transform: scale(0.62);
+    transform-origin: 100% 50%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ps2-countdown .bb-cube,
+  .ps2-countdown li.lit {
+    animation: none !important;
+  }
 }
 
 .store-setup-note {
