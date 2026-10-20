@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { StoreFormat, StoreItem } from "@/lib/store";
 import { StoreAudio } from "./audio";
+import { upgradeWorlds } from "./assets";
 import { buildItem, drawCRT, itemFace, makeRenderer, makeTextures, type CRT, type CrtMode, type Device, type ItemModel, type Renderer } from "./gfx";
 import {
   buildCrate,
@@ -154,6 +155,8 @@ export class StoreEngine {
     this.resize();
     this.snapToStation();
     this.drawTV();
+    // The modelled furniture and photo textures, swapped in when they arrive.
+    void upgradeWorlds(this.T, this.store, this.room);
   }
 
   // ---------- lifecycle ----------

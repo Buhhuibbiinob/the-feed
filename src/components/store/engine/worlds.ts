@@ -60,6 +60,8 @@ export type Station = {
 
 export type World = {
   scene: THREE.Scene;
+  /** The plain built-in furniture, hidden once the modelled pieces load (engine/assets.ts). */
+  furniture: THREE.Group;
   cam: THREE.PerspectiveCamera;
   stations: Station[];
   spots: Spot[];
@@ -69,11 +71,14 @@ export type World = {
 
 function makeWorld(bg: number, near: number, far: number, fov: number): World {
   const scene = new THREE.Scene();
+  const furniture = new THREE.Group();
+  furniture.name = "furniture";
+  scene.add(furniture);
   scene.background = new THREE.Color(bg);
   scene.fog = new THREE.Fog(bg, near, far);
   const cam = new THREE.PerspectiveCamera(fov, 16 / 9, 0.1, 220);
   scene.add(cam);
-  return { scene, cam, stations: [], spots: [], devices: {}, disposables: [] };
+  return { scene, cam, furniture, stations: [], spots: [], devices: {}, disposables: [] };
 }
 
 function spot(scene: THREE.Scene, x: number, y: number, z: number, tx: number, ty: number, tz: number, color = 0xffb866, intensity = 1.4, angle = 0.62) {
@@ -195,7 +200,7 @@ export function buildStore(T: Textures, shelves: Record<StoreFormat, StoreItem[]
   // The shelves, filled with today's stock.
   for (const sec of SECTIONS) {
     const L = LAYOUT[sec.id];
-    const u = shelfUnit(sc, T, L.x, L.y0, L.cols, L.rows, L.cw, L.ch, L.dep, L.lip);
+    const u = shelfUnit(w.furniture, T, L.x, L.y0, L.cols, L.rows, L.cw, L.ch, L.dep, L.lip);
     plane(
       Math.min(u.W, 5),
       1.1,
@@ -211,7 +216,7 @@ export function buildStore(T: Textures, shelves: Record<StoreFormat, StoreItem[]
     u.slots.forEach((sl: Slot, i) => {
       const label = `${sec.label} ${i + 1}`;
       // On the shelf's front edge, like a shelf talker, so the case never hides it.
-      plane(Math.min(L.cw * 0.7, 1.3), 0.26, lambert(labelTex(label, 128, 24)), sl.x, sl.yb - 0.1, L.dep / 2 + 0.012, sc);
+      plane(Math.min(L.cw * 0.7, 1.3), 0.26, lambert(labelTex(label, 128, 24)), sl.x, sl.yb - 0.1, L.dep / 2 + 0.07, sc);
       const item = items[i];
       if (!item) {
         // An empty slot says so, the way a shop would.
@@ -318,8 +323,8 @@ export function buildStore(T: Textures, shelves: Record<StoreFormat, StoreItem[]
 
   // The listening post.
   const bx = LISTEN_X;
-  box(12.4, 3.0, 3.6, lambert(T.shelfDark), bx, 1.5, 0.9, sc);
-  box(12.8, 0.22, 4, lambert(T.shelf), bx, 3.1, 0.9, sc);
+  box(12.4, 3.0, 3.6, lambert(T.shelfDark), bx, 1.5, 0.9, w.furniture);
+  box(12.8, 0.22, 4, lambert(T.shelf), bx, 3.1, 0.9, w.furniture);
   const tt = buildTurntable();
   tt.position.set(bx - 4.2, 3.2, 1.0);
   sc.add(tt);
@@ -330,9 +335,9 @@ export function buildStore(T: Textures, shelves: Record<StoreFormat, StoreItem[]
   tp.position.set(bx + 3.5, 3.2, 1.0);
   tp.scale.setScalar(0.95);
   sc.add(tp);
-  box(13, 0.22, 3, lambert(T.shelf), bx + 0.6, 5.8, 0.35, sc);
-  box(0.3, 2.6, 2.6, lambert(T.shelfDark), bx - 5.4, 4.5, 0.35, sc);
-  box(0.3, 2.6, 2.6, lambert(T.shelfDark), bx + 6.7, 4.5, 0.35, sc);
+  box(13, 0.22, 3, lambert(T.shelf), bx + 0.6, 5.8, 0.35, w.furniture);
+  box(0.3, 2.6, 2.6, lambert(T.shelfDark), bx - 5.4, 4.5, 0.35, w.furniture);
+  box(0.3, 2.6, 2.6, lambert(T.shelfDark), bx + 6.7, 4.5, 0.35, w.furniture);
   const tv = buildCRT();
   tv.position.set(bx + 3.2, 5.9, 0.2);
   sc.add(tv);
@@ -362,9 +367,9 @@ export function buildStore(T: Textures, shelves: Record<StoreFormat, StoreItem[]
 
   // The till.
   const cx = COUNTER_X;
-  box(9, 3.3, 2.4, lambert(T.shelfDark), cx, 1.65, 2.7, sc);
-  box(9.4, 0.28, 2.9, lambert(T.shelf), cx, 3.4, 2.7, sc);
-  box(9, 0.2, 0.2, lambert(0xf2b24a), cx, 3.0, 3.95, sc);
+  box(9, 3.3, 2.4, lambert(T.shelfDark), cx, 1.65, 2.7, w.furniture);
+  box(9.4, 0.28, 2.9, lambert(T.shelf), cx, 3.4, 2.7, w.furniture);
+  box(9, 0.2, 0.2, lambert(0xf2b24a), cx, 3.0, 3.95, w.furniture);
   const reg = new THREE.Group();
   box(1.9, 0.8, 1.5, phong(0x3a3a40), 0, 0.4, 0, reg);
   const rs = box(
@@ -744,6 +749,10 @@ export function updateSelector(sel: Selector, world: World, target: Spot | null,
 
 export type Room = World & {
   shelfHolder: THREE.Group;
+  /** The collection shelf's own frame, swapped for the modelled one when it loads. */
+  collectionFrame: THREE.Group;
+  /** The room's surface textures, upgraded to the generated photo textures when they load. */
+  surfaces: { wall: THREE.Texture; carpet: THREE.Texture; cork: THREE.Texture };
   shelfSlots: Slot[];
   tvGlow: THREE.PointLight;
   models: Map<string, ItemModel>;
@@ -865,7 +874,7 @@ export function buildRoom(T: Textures): Room {
   spot(sc, 8.2, 9, 4, 8.2, 3.4, -8, 0xffb060, 1.0, 0.55);
   spot(sc, -8, 9, 2, -11.5, 4, -1, 0xffc27a, 1.0, 0.6);
   // The bed, where the camera starts.
-  box(9, 0.7, 9, lambert(0x3a2412), 0, 0.9, 8.2, sc);
+  box(9, 0.7, 9, lambert(0x3a2412), 0, 0.9, 8.2, w.furniture);
   box(
     8.6,
     1.2,
@@ -888,12 +897,12 @@ export function buildRoom(T: Textures): Room {
     8.2,
     sc
   );
-  box(3, 0.5, 1.6, lambert(0xe8e0d0), -2.4, 2.4, 5.2, sc);
-  box(9, 3.4, 0.5, lambert(0x3a2412), 0, 2.5, 12.4, sc);
+  box(3, 0.5, 1.6, lambert(0xe8e0d0), -2.4, 2.4, 5.2, w.furniture);
+  box(9, 3.4, 0.5, lambert(0x3a2412), 0, 2.5, 12.4, w.furniture);
   // Dresser and hi-fi.
-  box(8, 3.0, 2.6, lambert(T.shelfDark), -8, 1.5, -7.5, sc);
-  box(8.4, 0.22, 3, lambert(T.shelf), -8, 3.1, -7.5, sc);
-  for (const x of [-9.8, -6.2]) for (const r of [0, 1]) box(3, 1.2, 0.1, lambert(T.shelf), x, 0.9 + r * 1.1, -6.15, sc);
+  box(8, 3.0, 2.6, lambert(T.shelfDark), -8, 1.5, -7.5, w.furniture);
+  box(8.4, 0.22, 3, lambert(T.shelf), -8, 3.1, -7.5, w.furniture);
+  for (const x of [-9.8, -6.2]) for (const r of [0, 1]) box(3, 1.2, 0.1, lambert(T.shelf), x, 0.9 + r * 1.1, -6.15, w.furniture);
   const tt = buildTurntable();
   tt.position.set(-9.5, 3.2, -7.4);
   sc.add(tt);
@@ -901,8 +910,8 @@ export function buildRoom(T: Textures): Room {
   tp.position.set(-5.4, 3.2, -7.4);
   sc.add(tp);
   // TV and DVD.
-  box(7.6, 2.2, 2.6, lambert(T.shelfDark), 0, 1.1, -7.5, sc);
-  box(8, 0.2, 3, lambert(T.shelf), 0, 2.3, -7.5, sc);
+  box(7.6, 2.2, 2.6, lambert(T.shelfDark), 0, 1.1, -7.5, w.furniture);
+  box(8, 0.2, 3, lambert(T.shelf), 0, 2.3, -7.5, w.furniture);
   const tv = buildCRT(4.2, 3.2, 3.2);
   tv.position.set(-1.4, 2.4, -7.6);
   sc.add(tv);
@@ -910,9 +919,9 @@ export function buildRoom(T: Textures): Room {
   dv.position.set(2.4, 2.4, -7.2);
   sc.add(dv);
   // Desk, CD player and the notebook.
-  box(8, 0.3, 3.2, lambert(T.shelf), 8.4, 3.3, -7.4, sc);
-  for (const x of [-3.7, 3.7]) box(0.4, 3.2, 3, lambert(T.shelfDark), 8.4 + x, 1.6, -7.4, sc);
-  box(7.4, 2.2, 0.3, lambert(T.shelfDark), 8.4, 2.2, -8.6, sc);
+  box(8, 0.3, 3.2, lambert(T.shelf), 8.4, 3.3, -7.4, w.furniture);
+  for (const x of [-3.7, 3.7]) box(0.4, 3.2, 3, lambert(T.shelfDark), 8.4 + x, 1.6, -7.4, w.furniture);
+  box(7.4, 2.2, 0.3, lambert(T.shelfDark), 8.4, 2.2, -8.6, w.furniture);
   const cd = buildCDDeck();
   cd.position.set(10.6, 3.45, -7.4);
   sc.add(cd);
@@ -955,25 +964,30 @@ export function buildRoom(T: Textures): Room {
   // Corkboard on the right wall.
   const cb = new THREE.Group();
   box(0.3, 6.2, 9, lambert(0x5b3414), 0, 0, 0, cb);
+  const corkTex = canvasTex(
+    64,
+    48,
+    (c, cw, ch) => {
+      c.fillStyle = "#a8743a";
+      c.fillRect(0, 0, cw, ch);
+      for (let i = 0; i < 500; i++) {
+        c.fillStyle = ["#8a5a2a", "#c8904a", "#6a4220"][i % 3];
+        c.fillRect((i * 37) % cw, (i * 53) % ch, 1, 1);
+      }
+    },
+    [1, 1]
+  );
   const cork = plane(
     8.4,
     5.6,
-    lambert(
-      canvasTex(64, 48, (c, cw, ch) => {
-        c.fillStyle = "#a8743a";
-        c.fillRect(0, 0, cw, ch);
-        for (let i = 0; i < 500; i++) {
-          c.fillStyle = ["#8a5a2a", "#c8904a", "#6a4220"][i % 3];
-          c.fillRect((i * 37) % cw, (i * 53) % ch, 1, 1);
-        }
-      })
-    ),
+    lambert(corkTex),
     -0.18,
     0,
     0,
     cb
   );
   cork.rotation.y = -Math.PI / 2;
+  w.surfaces = { wall: wp, carpet, cork: corkTex };
   (
     [
       [-2.6, 1.2, 0xfff8dc],
@@ -999,6 +1013,7 @@ export function buildRoom(T: Textures): Room {
   sc.add(holder);
   const unit = shelfUnit(holder, T, 0, 1.0, ROOM_SHELF.cols, ROOM_SHELF.rows, ROOM_SHELF.cw, ROOM_SHELF.ch, ROOM_SHELF.dep, true);
   w.shelfHolder = holder;
+  w.collectionFrame = unit.group;
   w.shelfSlots = unit.slots;
   plane(4.2, 0.8, lambert(signTex("MY COLLECTION", 256, 48, "#2a1608", "#f2b24a")), 0, 1.0 + unit.H + 0.7, 0.3, holder);
   // Posters and the console.

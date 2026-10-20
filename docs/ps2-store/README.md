@@ -109,6 +109,25 @@ The voice is the browser's speech with tape hiss underneath. Browser
 speech can't be bit-crushed, so for the real thing record the two lines,
 crush them offline, and play them as audio files.
 
+## Furniture and textures
+
+The shelving, counter, listening bench and bedroom furniture are modelled
+in Blender, and the surfaces (wood, plaster, lino, carpet, cork, metal)
+are generated from noise, so there is nothing to license. Both are made by
+scripts in the repo and committed as their output:
+
+```bash
+python3 scripts/store-textures.py      # -> public/store/tex/*.png
+blender -b -P scripts/store-models.py  # -> public/store/models/*.glb
+```
+
+The models are built to the engine's shelf measurements (`LAYOUT` in
+`engine/worlds.ts`) and carry ambient occlusion baked into their vertex
+colours, which is how PS2 games lit a room. The shop opens with its plain
+built-in geometry and swaps the models in when they load
+(`engine/assets.ts`), so a slow connection never holds it up. On Ubuntu,
+Blender needs `apt install blender python3-numpy`.
+
 ## Testing
 
 ```bash
@@ -139,8 +158,8 @@ crate adds and checkouts. It needs the Postgres 16 server binaries
 
 ## Not done yet
 
-- Models made in Blender. Everything is currently built in code at real
-  proportions.
+- Modelled media devices (turntable, decks, CRT). The furniture is
+  modelled; the machines are still built in code.
 - A report button for bedroom reviews. Admins can already delete any
   review, which removes it from the board.
 - A recorded, bit-crushed cashier voice, and a licensed cashier photo.
