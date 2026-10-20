@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Reference code for the 3D store, kept as it was handed over. Not built.
+    "docs/ps2-store/prototype/**",
   ]),
   {
     rules: {
