@@ -40,7 +40,8 @@
     "check:contrast": "node scripts/check-theme-contrast.mjs --verbose",
     "check:shadows": "node scripts/check-shadow-weight.mjs",
     "check:follow": "npx tsx scripts/follow-check.ts",
-    "check:guide": "npx tsx scripts/editing-guide-check.ts"
+    "check:guide": "npx tsx scripts/editing-guide-check.ts",
+    "check:storedb": "bash scripts/store-db-check.sh"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.0",
